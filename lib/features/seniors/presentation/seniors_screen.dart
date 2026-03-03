@@ -301,6 +301,24 @@ class _SeniorCard extends StatelessWidget {
         .where((o) => o.senior.id == senior.id)
         .length;
 
+    // Determine status chip
+    final bool isProcessing = MockData.orders.any(
+      (o) =>
+          o.senior.id == senior.id &&
+          o.student == null &&
+          (o.status == OrderStatus.active ||
+              o.status == OrderStatus.processing),
+    );
+
+    final (Color chipTextColor, Color chipBgColor, String chipLabel) =
+        senior.isArchived
+            ? (HelpiTheme.textSecondary, HelpiTheme.chipBg, AppStrings.statusArchived)
+            : !senior.isActive
+                ? (HelpiTheme.statusCancelledText, HelpiTheme.statusCancelledBg, AppStrings.filterInactive)
+                : isProcessing
+                    ? (HelpiTheme.statusProcessingText, HelpiTheme.statusProcessingBg, AppStrings.filterProcessing)
+                    : (HelpiTheme.statusActiveText, HelpiTheme.statusActiveBg, AppStrings.filterActive);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -352,51 +370,27 @@ class _SeniorCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (senior.isArchived) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: HelpiTheme.chipBg,
-                            borderRadius: BorderRadius.circular(
-                              HelpiTheme.statusBadgeRadius,
-                            ),
-                          ),
-                          child: Text(
-                            AppStrings.statusArchived,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: HelpiTheme.textSecondary,
-                            ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: chipBgColor,
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.statusBadgeRadius,
                           ),
                         ),
-                      ] else if (!senior.isActive) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: HelpiTheme.statusCancelledBg,
-                            borderRadius: BorderRadius.circular(
-                              HelpiTheme.statusBadgeRadius,
-                            ),
-                          ),
-                          child: Text(
-                            AppStrings.filterInactive,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: HelpiTheme.statusCancelledText,
-                            ),
+                        child: Text(
+                          chipLabel,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: chipTextColor,
                           ),
                         ),
-                      ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),

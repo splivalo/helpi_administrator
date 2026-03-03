@@ -1352,12 +1352,71 @@ class _StudentCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    student.fullName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          student.fullName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Builder(
+                        builder: (_) {
+                          final (textColor, bgColor, label) = _contractChip(
+                            student.contractStatus,
+                          );
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(
+                                HelpiTheme.statusBadgeRadius,
+                              ),
+                            ),
+                            child: Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: textColor,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      if (student.isArchived) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: HelpiTheme.chipBg,
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.statusBadgeRadius,
+                            ),
+                          ),
+                          child: Text(
+                            AppStrings.statusArchived,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: HelpiTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -1385,60 +1444,22 @@ class _StudentCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  // ── Contract status chip + archived badge ──
+                  const SizedBox(height: 2),
                   Row(
                     children: [
-                      Builder(
-                        builder: (_) {
-                          final (textColor, bgColor, label) = _contractChip(
-                            student.contractStatus,
-                          );
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: bgColor,
-                              borderRadius: BorderRadius.circular(
-                                HelpiTheme.statusBadgeRadius,
-                              ),
-                            ),
-                            child: Text(
-                              label,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: textColor,
-                              ),
-                            ),
-                          );
-                        },
+                      const Icon(
+                        Icons.phone_outlined,
+                        size: 14,
+                        color: HelpiTheme.textSecondary,
                       ),
-                      if (student.isArchived) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: HelpiTheme.chipBg,
-                            borderRadius: BorderRadius.circular(
-                              HelpiTheme.statusBadgeRadius,
-                            ),
-                          ),
-                          child: Text(
-                            AppStrings.statusArchived,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: HelpiTheme.textSecondary,
-                            ),
-                          ),
+                      const SizedBox(width: 4),
+                      Text(
+                        student.phone,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ],
