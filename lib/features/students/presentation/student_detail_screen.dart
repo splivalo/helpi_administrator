@@ -103,60 +103,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               const SizedBox(height: 12),
             ],
 
-            _SectionCard(
-              title: AppStrings.studentRating,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: HelpiTheme.starYellow.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(
-                          HelpiTheme.statusBadgeRadius,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            size: 18,
-                            color: HelpiTheme.starYellow,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${_student.avgRating}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      '${_student.totalReviews} ${AppStrings.studentTotalRatings.toLowerCase()}',
-                      style: const TextStyle(
-                        color: HelpiTheme.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                _InfoRow(
-                  label: AppStrings.studentCompletedJobs,
-                  value: '${_student.completedJobs}',
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
             _buildContractSection(),
             const SizedBox(height: 12),
 
@@ -169,10 +115,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             _buildOrdersSection(orders),
             const SizedBox(height: 12),
 
-            if (reviews.isNotEmpty) ...[
-              _buildReviewsSection(reviews),
-              const SizedBox(height: 16),
-            ],
+            _buildReviewsSection(reviews),
+            const SizedBox(height: 16),
 
             const SizedBox(height: 32),
           ],
@@ -517,6 +461,32 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   //  WORK SUMMARY (Obračun)
   // ─────────────────────────────────────────────────────────
 
+  /// Counts (completed, cancelled) orders within [_summaryStart]..[_summaryEnd].
+  (int, int) _rangeJobCounts() {
+    final studentOrders = MockData.orders.where(
+      (o) => o.student?.id == _student.id,
+    );
+
+    int completed = 0;
+    int cancelled = 0;
+
+    for (final order in studentOrders) {
+      // One-time orders: check scheduledDate
+      if (order.dayEntries.isEmpty) {
+        if (!order.scheduledDate.isBefore(_summaryStart) &&
+            !order.scheduledDate.isAfter(_summaryEnd)) {
+          if (order.status == OrderStatus.completed) completed++;
+          if (order.status == OrderStatus.cancelled) cancelled++;
+        }
+      } else {
+        // Recurring: if order falls in range at all, count it once
+        if (order.status == OrderStatus.completed) completed++;
+        if (order.status == OrderStatus.cancelled) cancelled++;
+      }
+    }
+    return (completed, cancelled);
+  }
+
   /// Counts how many times [dayOfWeek] (1=Mon..7=Sun) falls in [start]..[end].
   int _dayOccurrencesInRange(DateTime start, DateTime end, int dayOfWeek) {
     int count = 0;
@@ -614,6 +584,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     final regularPay = regularHrs * _student.hourlyRate;
     final sundayPay = sundayHrs * _student.sundayHourlyRate;
     final totalPay = regularPay + sundayPay;
+
+    final (completedCount, cancelledCount) = _rangeJobCounts();
 
     return _SectionCard(
       title: AppStrings.workSummary,
@@ -713,6 +685,17 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           ),
         ),
         const SizedBox(height: 12),
+
+        // ── Job counts ──
+        _InfoRow(
+          label: AppStrings.studentCompletedJobs,
+          value: '$completedCount',
+        ),
+        _InfoRow(
+          label: AppStrings.studentCancelledJobs,
+          value: '$cancelledCount',
+        ),
+        const Divider(height: 20),
 
         if (totalHrs == 0)
           Padding(
@@ -908,49 +891,92 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     return _SectionCard(
       title: AppStrings.studentReviews,
       children: [
-        ...reviews.map(
-          (r) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: HelpiTheme.scaffold,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ...List.generate(
-                      5,
-                      (i) => Icon(
-                        i < r.rating ? Icons.star : Icons.star_border,
-                        size: 16,
-                        color: HelpiTheme.starYellow,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      r.seniorName,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                    ),
-                  ],
+        // ── Rating summary ──
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: HelpiTheme.starYellow.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(
+                  HelpiTheme.statusBadgeRadius,
                 ),
-                if (r.comment != null && r.comment!.isNotEmpty) ...[
-                  const SizedBox(height: 6),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.star,
+                    size: 18,
+                    color: HelpiTheme.starYellow,
+                  ),
+                  const SizedBox(width: 4),
                   Text(
-                    r.comment!,
-                    style: const TextStyle(fontSize: 13, height: 1.4),
+                    '${_student.avgRating}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                    ),
                   ),
                 ],
-              ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Text(
+              '${AppStrings.studentTotalRatings}: ${reviews.length}',
+              style: const TextStyle(
+                color: HelpiTheme.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        if (reviews.isNotEmpty) ...[
+          const Divider(height: 20),
+          ...reviews.map(
+            (r) => Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: HelpiTheme.scaffold,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      ...List.generate(
+                        5,
+                        (i) => Icon(
+                          i < r.rating ? Icons.star : Icons.star_border,
+                          size: 16,
+                          color: HelpiTheme.starYellow,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        r.seniorName,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (r.comment != null && r.comment!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      r.comment!,
+                      style: const TextStyle(fontSize: 13, height: 1.4),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -1268,27 +1294,22 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 130,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: HelpiTheme.textSecondary,
-              ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: HelpiTheme.textSecondary,
             ),
           ),
-          Expanded(
-            child:
-                valueWidget ??
-                Text(
-                  value ?? '',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
+          const Spacer(),
+          valueWidget ??
+              Text(
+                value ?? '',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
-          ),
+              ),
         ],
       ),
     );
