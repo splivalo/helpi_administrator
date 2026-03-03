@@ -164,7 +164,14 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       children: [
         _InfoRow(
           label: AppStrings.studentContractStatus,
-          valueWidget: _buildContractBadge(_student.contractStatus),
+          valueWidget: Text(
+            _contractLabel(_student.contractStatus),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: _contractColor(_student.contractStatus),
+            ),
+          ),
         ),
         if (_student.contractStartDate != null)
           _InfoRow(
@@ -474,13 +481,13 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   // ─────────────────────────────────────────────────────────
   Widget _buildAvailabilitySection() {
     final dayLabels = [
-      AppStrings.dayMon,
-      AppStrings.dayTue,
-      AppStrings.dayWed,
-      AppStrings.dayThu,
-      AppStrings.dayFri,
-      AppStrings.daySat,
-      AppStrings.daySun,
+      AppStrings.dayMonFull,
+      AppStrings.dayTueFull,
+      AppStrings.dayWedFull,
+      AppStrings.dayThuFull,
+      AppStrings.dayFriFull,
+      AppStrings.daySatFull,
+      AppStrings.daySunFull,
     ];
 
     return _SectionCard(
@@ -493,7 +500,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             child: Row(
               children: [
                 SizedBox(
-                  width: 40,
+                  width: 140,
                   child: Text(
                     dayLabels[i],
                     style: const TextStyle(
@@ -505,26 +512,14 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 const SizedBox(width: 8),
                 if (day.isEnabled)
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: HelpiTheme.statusActiveBg,
-                        borderRadius: BorderRadius.circular(
-                          HelpiTheme.statusBadgeRadius,
-                        ),
-                      ),
-                      child: Text(
-                        '${day.from.hour.toString().padLeft(2, '0')}:${day.from.minute.toString().padLeft(2, '0')}'
-                        ' – '
-                        '${day.to.hour.toString().padLeft(2, '0')}:${day.to.minute.toString().padLeft(2, '0')}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: HelpiTheme.statusActiveText,
-                          fontWeight: FontWeight.w500,
-                        ),
+                    child: Text(
+                      '${day.from.hour.toString().padLeft(2, '0')}:${day.from.minute.toString().padLeft(2, '0')}'
+                      ' – '
+                      '${day.to.hour.toString().padLeft(2, '0')}:${day.to.minute.toString().padLeft(2, '0')}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: HelpiTheme.statusActiveText,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   )
@@ -1218,6 +1213,22 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       ),
     );
   }
+
+  String _contractLabel(ContractStatus status) => switch (status) {
+    ContractStatus.active => AppStrings.contractActive,
+    ContractStatus.expired => AppStrings.contractExpired,
+    ContractStatus.expiring => AppStrings.contractExpiring,
+    ContractStatus.none => AppStrings.contractNone,
+    ContractStatus.deactivated => AppStrings.contractDeactivated,
+  };
+
+  Color _contractColor(ContractStatus status) => switch (status) {
+    ContractStatus.active => HelpiTheme.statusActiveText,
+    ContractStatus.expired => HelpiTheme.statusCancelledText,
+    ContractStatus.expiring => HelpiTheme.statusProcessingText,
+    ContractStatus.none => HelpiTheme.textSecondary,
+    ContractStatus.deactivated => HelpiTheme.statusCancelledText,
+  };
 
   Widget _buildContractBadge(ContractStatus status) {
     final (Color textColor, Color bgColor, String label) = switch (status) {
