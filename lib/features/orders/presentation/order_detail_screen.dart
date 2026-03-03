@@ -71,6 +71,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   label: AppStrings.seniorAddress,
                   value: _order.senior.address,
                 ),
+                _InfoRow(
+                  label: AppStrings.seniorOrdererGender,
+                  value: _order.senior.gender == Gender.male
+                      ? AppStrings.genderMale
+                      : AppStrings.genderFemale,
+                ),
+                _InfoRow(
+                  label: AppStrings.seniorOrdererDob,
+                  value:
+                      '${_order.senior.dateOfBirth.day.toString().padLeft(2, '0')}.${_order.senior.dateOfBirth.month.toString().padLeft(2, '0')}.${_order.senior.dateOfBirth.year}.',
+                ),
+                if (!_order.senior.hasOrderer)
+                  _InfoRow(
+                    label: AppStrings.seniorOrdererEmail,
+                    value: _order.senior.email,
+                  ),
                 if (_order.senior.hasOrderer) ...[
                   const Divider(height: 16),
                   Text(
