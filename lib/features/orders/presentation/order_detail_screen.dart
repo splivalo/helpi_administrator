@@ -50,54 +50,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Senior info sekcija ──
-            _SectionCard(
-              title: AppStrings.orderSenior,
-              icon: Icons.elderly,
-              children: [
-                _InfoRow(
-                  label: AppStrings.seniorFirstName,
-                  value: _order.senior.firstName,
-                ),
-                _InfoRow(
-                  label: AppStrings.seniorLastName,
-                  value: _order.senior.lastName,
-                ),
-                _InfoRow(
-                  label: AppStrings.seniorPhone,
-                  value: _order.senior.phone,
-                ),
-                _InfoRow(
-                  label: AppStrings.seniorAddress,
-                  value: _order.senior.address,
-                ),
-                _InfoRow(
-                  label: AppStrings.seniorOrdererGender,
-                  value: _order.senior.gender == Gender.male
-                      ? AppStrings.genderMale
-                      : AppStrings.genderFemale,
-                ),
-                _InfoRow(
-                  label: AppStrings.seniorOrdererDob,
-                  value:
-                      '${_order.senior.dateOfBirth.day.toString().padLeft(2, '0')}.${_order.senior.dateOfBirth.month.toString().padLeft(2, '0')}.${_order.senior.dateOfBirth.year}.',
-                ),
-                if (!_order.senior.hasOrderer)
-                  _InfoRow(
-                    label: AppStrings.seniorOrdererEmail,
-                    value: _order.senior.email,
-                  ),
-                if (_order.senior.hasOrderer) ...[
-                  const Divider(height: 16),
-                  Text(
-                    AppStrings.seniorOrdererTitle,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: HelpiTheme.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
+            // ── Orderer (if exists) ──
+            if (_order.senior.hasOrderer) ...[
+              _SectionCard(
+                title: AppStrings.seniorOrdererTitle,
+                icon: Icons.people,
+                children: [
                   _InfoRow(
                     label: AppStrings.seniorOrdererFirstName,
                     value: _order.senior.ordererFirstName ?? '',
@@ -136,6 +94,47 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           '${_order.senior.ordererDateOfBirth!.day.toString().padLeft(2, '0')}.${_order.senior.ordererDateOfBirth!.month.toString().padLeft(2, '0')}.${_order.senior.ordererDateOfBirth!.year}.',
                     ),
                 ],
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // ── Service user (senior) ──
+            _SectionCard(
+              title: AppStrings.seniorServiceUser,
+              icon: Icons.elderly,
+              children: [
+                _InfoRow(
+                  label: AppStrings.seniorFirstName,
+                  value: _order.senior.firstName,
+                ),
+                _InfoRow(
+                  label: AppStrings.seniorLastName,
+                  value: _order.senior.lastName,
+                ),
+                if (!_order.senior.hasOrderer)
+                  _InfoRow(
+                    label: AppStrings.seniorOrdererEmail,
+                    value: _order.senior.email,
+                  ),
+                _InfoRow(
+                  label: AppStrings.seniorPhone,
+                  value: _order.senior.phone,
+                ),
+                _InfoRow(
+                  label: AppStrings.seniorAddress,
+                  value: _order.senior.address,
+                ),
+                _InfoRow(
+                  label: AppStrings.seniorOrdererGender,
+                  value: _order.senior.gender == Gender.male
+                      ? AppStrings.genderMale
+                      : AppStrings.genderFemale,
+                ),
+                _InfoRow(
+                  label: AppStrings.seniorOrdererDob,
+                  value:
+                      '${_order.senior.dateOfBirth.day.toString().padLeft(2, '0')}.${_order.senior.dateOfBirth.month.toString().padLeft(2, '0')}.${_order.senior.dateOfBirth.year}.',
+                ),
               ],
             ),
             const SizedBox(height: 12),

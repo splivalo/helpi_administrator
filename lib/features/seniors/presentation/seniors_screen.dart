@@ -4,6 +4,7 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
+import 'package:helpi_admin/features/seniors/presentation/add_senior_screen.dart';
 
 /// Seniors Screen — popis seniora s pretragom i detaljima.
 enum SeniorSort { az, za, newest, oldest }
@@ -135,6 +136,18 @@ class _SeniorsScreenState extends State<SeniorsScreen>
             ],
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(builder: (_) => const AddSeniorScreen()),
+          );
+          if (!context.mounted) return;
+          if (result == true) setState(() {});
+        },
+        backgroundColor: HelpiTheme.primary,
+        child: const Icon(Icons.person_add, color: Colors.white),
       ),
       body: Column(
         children: [
@@ -324,12 +337,65 @@ class _SeniorCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    senior.fullName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          senior.fullName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (senior.isArchived) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: HelpiTheme.chipBg,
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.statusBadgeRadius,
+                            ),
+                          ),
+                          child: Text(
+                            AppStrings.statusArchived,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: HelpiTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ] else if (!senior.isActive) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: HelpiTheme.statusCancelledBg,
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.statusBadgeRadius,
+                            ),
+                          ),
+                          child: Text(
+                            AppStrings.filterInactive,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: HelpiTheme.statusCancelledText,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -382,51 +448,6 @@ class _SeniorCard extends StatelessWidget {
                           color: HelpiTheme.accent,
                         ),
                       ),
-                      if (senior.isArchived) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: HelpiTheme.chipBg,
-                            borderRadius: BorderRadius.circular(
-                              HelpiTheme.statusBadgeRadius,
-                            ),
-                          ),
-                          child: Text(
-                            AppStrings.statusArchived,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: HelpiTheme.textSecondary,
-                            ),
-                          ),
-                        ),
-                      ] else if (!senior.isActive) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: HelpiTheme.statusCancelledBg,
-                            borderRadius: BorderRadius.circular(
-                              HelpiTheme.statusBadgeRadius,
-                            ),
-                          ),
-                          child: Text(
-                            AppStrings.filterInactive,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: HelpiTheme.statusCancelledText,
-                            ),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ],
@@ -698,7 +719,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               _senior.hasOrderer
                   ? AppStrings.seniorServiceUser
                   : AppStrings.seniorServiceUser,
-              icon: Icons.person,
+              icon: Icons.elderly,
               [
                 _buildInfoRow(AppStrings.seniorFirstName, _senior.firstName),
                 _buildInfoRow(AppStrings.seniorLastName, _senior.lastName),

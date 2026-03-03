@@ -252,6 +252,12 @@ class AppStrings {
       'seniorOrdererDob': 'Datum rođenja',
       'seniorOrdererRelation': 'Odnos',
       'seniorNotes': 'Napomena',
+      'addSeniorTitle': 'Novi senior',
+      'addSeniorSuccess': 'Senior uspješno dodan',
+      'addSeniorHasOrderer': 'Ima naručitelja (sin/kći/druga osoba)',
+      'fieldRequired': 'Obavezno polje',
+      'selectDate': 'Odaberi datum',
+      'selectGender': 'Odaberi spol',
       'seniorOrderCount': '{count} narudžbi',
       'seniorCreditCards': 'Kartice za plaćanje',
       'seniorNoCards': 'Nema spremljenih kartica',
@@ -622,6 +628,12 @@ class AppStrings {
       'seniorOrdererDob': 'Date of birth',
       'seniorOrdererRelation': 'Relation',
       'seniorNotes': 'Notes',
+      'addSeniorTitle': 'New senior',
+      'addSeniorSuccess': 'Senior added successfully',
+      'addSeniorHasOrderer': 'Has orderer (son/daughter/other person)',
+      'fieldRequired': 'Required field',
+      'selectDate': 'Select date',
+      'selectGender': 'Select gender',
       'seniorOrderCount': '{count} orders',
       'seniorCreditCards': 'Payment cards',
       'seniorNoCards': 'No saved cards',
@@ -1013,6 +1025,12 @@ class AppStrings {
   static String get seniorOrdererDob => _t('seniorOrdererDob');
   static String get seniorOrdererRelation => _t('seniorOrdererRelation');
   static String get seniorNotes => _t('seniorNotes');
+  static String get addSeniorTitle => _t('addSeniorTitle');
+  static String get addSeniorSuccess => _t('addSeniorSuccess');
+  static String get addSeniorHasOrderer => _t('addSeniorHasOrderer');
+  static String get fieldRequired => _t('fieldRequired');
+  static String get selectDate => _t('selectDate');
+  static String get selectGender => _t('selectGender');
   static String get seniorCreditCards => _t('seniorCreditCards');
   static String get seniorNoCards => _t('seniorNoCards');
   static String get cardExpiry => _t('cardExpiry');
