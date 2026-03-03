@@ -475,8 +475,8 @@ class _ExpiringContractCard extends StatelessWidget {
               ),
             ),
             // ── Action ──
-            OutlinedButton(
-              onPressed: () {
+            GestureDetector(
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -484,23 +484,38 @@ class _ExpiringContractCard extends StatelessWidget {
                   ),
                 );
               },
-              style: OutlinedButton.styleFrom(
+              child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
+                  horizontal: 10,
+                  vertical: 6,
                 ),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                side: const BorderSide(color: HelpiTheme.accent, width: 1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(HelpiTheme.buttonRadius),
+                decoration: BoxDecoration(
+                  color: HelpiTheme.accent.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: HelpiTheme.accent.withValues(alpha: 0.25),
+                  ),
                 ),
-                textStyle: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.refresh,
+                      size: 14,
+                      color: HelpiTheme.accent,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      AppStrings.renewContract,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: HelpiTheme.accent,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Text(AppStrings.renewContract),
             ),
           ],
         ),

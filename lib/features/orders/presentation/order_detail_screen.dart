@@ -1167,21 +1167,40 @@ class _StudentAssignCard extends StatelessWidget {
           ),
 
           // ── Assign button ──
-          ElevatedButton(
-            onPressed: onAssign,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(HelpiTheme.buttonRadius),
+          GestureDetector(
+            onTap: onAssign,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 6,
               ),
-              textStyle: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+              decoration: BoxDecoration(
+                color: HelpiTheme.accent.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: HelpiTheme.accent.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.person_add,
+                    size: 14,
+                    color: HelpiTheme.accent,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    AppStrings.assignStudent,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: HelpiTheme.accent,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Text(AppStrings.assignStudent),
           ),
         ],
       ),
