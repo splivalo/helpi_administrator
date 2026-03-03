@@ -328,7 +328,6 @@ class _RecentOrderCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // ── Senior info ──
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -343,10 +342,13 @@ class _RecentOrderCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.person_outline,
-                        size: 16,
-                        color: HelpiTheme.textSecondary,
+                      const SizedBox(
+                        width: 16,
+                        child: Icon(
+                          Icons.person_outline,
+                          size: 16,
+                          color: HelpiTheme.textSecondary,
+                        ),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -361,16 +363,21 @@ class _RecentOrderCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.calendar_today,
-                        size: 14,
-                        color: HelpiTheme.textSecondary,
+                      const SizedBox(
+                        width: 16,
+                        child: Center(
+                          child: Icon(
+                            Icons.calendar_today,
+                            size: 14,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '$dateStr  $timeStr',
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           color: HelpiTheme.textSecondary,
                         ),
                       ),
@@ -379,55 +386,12 @@ class _RecentOrderCard extends StatelessWidget {
                 ],
               ),
             ),
-
-            // ── Status chip ──
-            _buildStatusChip(order.status),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusChip(OrderStatus status) {
-    Color textColor;
-    Color bgColor;
-    String label;
-
-    switch (status) {
-      case OrderStatus.processing:
-        textColor = HelpiTheme.statusProcessingText;
-        bgColor = HelpiTheme.statusProcessingBg;
-        label = AppStrings.statusProcessing;
-      case OrderStatus.active:
-        textColor = HelpiTheme.statusActiveText;
-        bgColor = HelpiTheme.statusActiveBg;
-        label = AppStrings.statusActive;
-      case OrderStatus.completed:
-        textColor = HelpiTheme.statusCompletedText;
-        bgColor = HelpiTheme.statusCompletedBg;
-        label = AppStrings.statusCompleted;
-      case OrderStatus.cancelled:
-        textColor = HelpiTheme.statusCancelledText;
-        bgColor = HelpiTheme.statusCancelledBg;
-        label = AppStrings.statusCancelled;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(HelpiTheme.chipRadius),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
-      ),
-    );
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -675,9 +639,7 @@ class _ActiveStudentCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: HelpiTheme.accent.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(
-                      HelpiTheme.chipRadius,
-                    ),
+                    borderRadius: BorderRadius.circular(HelpiTheme.chipRadius),
                   ),
                   child: Text(
                     '$sessionCount ${AppStrings.sessionsCount}',

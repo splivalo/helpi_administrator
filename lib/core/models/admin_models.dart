@@ -560,7 +560,7 @@ class MockData {
   static final List<OrderModel> orders = [
     OrderModel(
       id: 'o1',
-      orderNumber: '001',
+      orderNumber: '0001',
       senior: seniors[0],
       student: null,
       status: OrderStatus.processing,
@@ -584,7 +584,7 @@ class MockData {
     ),
     OrderModel(
       id: 'o2',
-      orderNumber: '002',
+      orderNumber: '0002',
       senior: seniors[1],
       student: null,
       status: OrderStatus.processing,
@@ -641,7 +641,7 @@ class MockData {
     ),
     OrderModel(
       id: 'o3',
-      orderNumber: '003',
+      orderNumber: '0003',
       senior: seniors[2],
       student: students[0],
       status: OrderStatus.active,
@@ -747,7 +747,7 @@ class MockData {
     ),
     OrderModel(
       id: 'o8',
-      orderNumber: '008',
+      orderNumber: '0008',
       senior: seniors[0],
       student: students[0],
       status: OrderStatus.completed,
@@ -772,7 +772,7 @@ class MockData {
     ),
     OrderModel(
       id: 'o9',
-      orderNumber: '009',
+      orderNumber: '0009',
       senior: seniors[2],
       student: students[0],
       status: OrderStatus.cancelled,
@@ -797,7 +797,7 @@ class MockData {
     ),
     OrderModel(
       id: 'o4',
-      orderNumber: '004',
+      orderNumber: '0004',
       senior: seniors[3],
       student: students[1],
       status: OrderStatus.active,
@@ -856,7 +856,7 @@ class MockData {
     ),
     OrderModel(
       id: 'o5',
-      orderNumber: '005',
+      orderNumber: '0005',
       senior: seniors[0],
       student: students[2],
       status: OrderStatus.completed,
@@ -881,7 +881,7 @@ class MockData {
     ),
     OrderModel(
       id: 'o6',
-      orderNumber: '006',
+      orderNumber: '0006',
       senior: seniors[1],
       student: students[0],
       status: OrderStatus.completed,
@@ -906,7 +906,7 @@ class MockData {
     ),
     OrderModel(
       id: 'o7',
-      orderNumber: '007',
+      orderNumber: '0007',
       senior: seniors[3],
       student: null,
       status: OrderStatus.cancelled,

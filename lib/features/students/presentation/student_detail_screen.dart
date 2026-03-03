@@ -65,7 +65,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             if (_student.isArchived) ...[
               const SizedBox(width: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: HelpiTheme.chipBg,
                   borderRadius: BorderRadius.circular(
