@@ -45,12 +45,12 @@ class HelpiTheme {
 
   // ─── Dimenzije ──────────────────────────────────────────────────
   static const double buttonHeight = 56.0;
-  static const double buttonRadius = 16.0;
-  static const double cardRadius = 16.0;
+  static const double buttonRadius = 12.0;
+  static const double cardRadius = 12.0;
   static const double chipRadius = 100.0;
   static const double statusBadgeRadius = 100.0;
-  static const double bottomSheetRadius = 20.0;
-  static const double pillRadius = 24.0;
+  static const double bottomSheetRadius = 12.0;
+  static const double pillRadius = 12.0;
 
   // ─── Sidebar (desktop) ──────────────────────────────────────────
   static const double sidebarWidth = 260.0;

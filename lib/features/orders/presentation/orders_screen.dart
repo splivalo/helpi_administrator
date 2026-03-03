@@ -64,9 +64,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStrings.ordersTitle),
-      ),
+      appBar: AppBar(title: Text(AppStrings.ordersTitle)),
       body: Column(
         children: [
           // ── Search ──
@@ -77,10 +75,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
                 hintText: AppStrings.searchOrders,
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: HelpiTheme.accent,
-                ),
+                prefixIcon: const Icon(Icons.search, color: HelpiTheme.accent),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,

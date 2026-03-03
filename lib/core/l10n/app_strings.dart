@@ -981,8 +981,19 @@ class AppStrings {
   static String get seniorOrdererPhone => _t('seniorOrdererPhone');
   static String get seniorOrdererRelation => _t('seniorOrdererRelation');
   static String get seniorNotes => _t('seniorNotes');
-  static String seniorOrderCount(int count) =>
-      _t('seniorOrderCount', params: {'count': '$count'});
+  static String seniorOrderCount(int count) {
+    final locale = _currentLocale;
+    if (locale == 'hr') {
+      final mod10 = count % 10;
+      final mod100 = count % 100;
+      if (mod10 == 1 && mod100 != 11) return '$count narudžba';
+      if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+        return '$count narudžbe';
+      }
+      return '$count narudžbi';
+    }
+    return count == 1 ? '$count order' : '$count orders';
+  }
 
   // ── Chat detalji ──
   static String get chatSelectConversation => _t('chatSelectConversation');
