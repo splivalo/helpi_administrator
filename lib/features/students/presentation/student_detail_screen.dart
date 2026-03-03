@@ -710,37 +710,19 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             ),
           )
         else ...[
-          // Total hours badge
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: HelpiTheme.pastelTeal,
-              borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
-            ),
-            child: Center(
-              child: Text(
-                '${totalHrs.toStringAsFixed(0)} ${AppStrings.hours}',
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: HelpiTheme.accent,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Breakdown rows
+          // Hours breakdown
           _InfoRow(
             label: AppStrings.workRegularHours,
             value: '${regularHrs.toStringAsFixed(0)} ${AppStrings.hours}',
           ),
-          if (sundayHrs > 0)
-            _InfoRow(
-              label: AppStrings.workSundayHours,
-              value: '${sundayHrs.toStringAsFixed(0)} ${AppStrings.hours}',
-            ),
+          _InfoRow(
+            label: AppStrings.workSundayHours,
+            value: '${sundayHrs.toStringAsFixed(0)} ${AppStrings.hours}',
+          ),
+          _InfoRow(
+            label: AppStrings.workTotalHours,
+            value: '${totalHrs.toStringAsFixed(0)} ${AppStrings.hours}',
+          ),
           const Divider(height: 20),
 
           // Rates
@@ -748,11 +730,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             label: AppStrings.workHourlyRate,
             value: '${_student.hourlyRate.toStringAsFixed(2)} €',
           ),
-          if (sundayHrs > 0)
-            _InfoRow(
-              label: AppStrings.workSundayRate,
-              value: '${_student.sundayHourlyRate.toStringAsFixed(2)} €',
-            ),
+          _InfoRow(
+            label: AppStrings.workSundayRate,
+            value: '${_student.sundayHourlyRate.toStringAsFixed(2)} €',
+          ),
           const Divider(height: 20),
 
           // Estimated payout
