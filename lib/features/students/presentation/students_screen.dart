@@ -1421,17 +1421,19 @@ class _StudentCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
+                            horizontal: 10,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
                             color: HelpiTheme.statusActiveBg,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.chipRadius,
+                            ),
                           ),
                           child: Text(
                             '$jobsInPeriod $periodLabel',
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: HelpiTheme.statusActiveText,
                             ),
@@ -1451,8 +1453,8 @@ class _StudentCard extends StatelessWidget {
                           );
                           return Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
+                              horizontal: 10,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
                               color: bgColor,
@@ -1463,7 +1465,7 @@ class _StudentCard extends StatelessWidget {
                             child: Text(
                               label,
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: textColor,
                               ),
@@ -1475,8 +1477,8 @@ class _StudentCard extends StatelessWidget {
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
+                            horizontal: 10,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
                             color: HelpiTheme.chipBg,
@@ -1487,7 +1489,7 @@ class _StudentCard extends StatelessWidget {
                           child: Text(
                             AppStrings.statusArchived,
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: HelpiTheme.textSecondary,
                             ),

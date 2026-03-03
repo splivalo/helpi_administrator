@@ -32,6 +32,30 @@ class DashboardScreen extends StatelessWidget {
         )
         .toList();
 
+    // ── Studenti koji su radili ovaj mjesec ──
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month);
+    final monthEnd = DateTime(now.year, now.month + 1);
+    final activeStudentMap =
+        <String, ({StudentModel student, int sessions, int hours})>{};
+    for (final order in MockData.orders) {
+      if (order.student == null) continue;
+      for (final session in order.sessions) {
+        if (session.status == SessionStatus.cancelled) continue;
+        if (!session.date.isBefore(monthStart) &&
+            session.date.isBefore(monthEnd)) {
+          final sid = order.student!.id;
+          final prev = activeStudentMap[sid];
+          activeStudentMap[sid] = (
+            student: order.student!,
+            sessions: (prev?.sessions ?? 0) + 1,
+            hours: (prev?.hours ?? 0) + session.durationHours,
+          );
+        }
+      }
+    }
+    final activeStudentsList = activeStudentMap.values.toList();
+
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.dashboardTitle)),
       body: SingleChildScrollView(
@@ -149,12 +173,28 @@ class DashboardScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // ── Nedavne narudžbe ──
-            _SectionHeader(title: AppStrings.recentOrders),
+            // ── Narudžbe u obradi ──
+            _SectionHeader(title: AppStrings.processingOrders),
             const SizedBox(height: 8),
             ...MockData.orders
                 .where((o) => o.status == OrderStatus.processing)
                 .map((order) => _RecentOrderCard(order: order, theme: theme)),
+
+            const SizedBox(height: 24),
+
+            // ── Aktivni studenti ovaj mjesec ──
+            if (activeStudentsList.isNotEmpty) ...[
+              _SectionHeader(title: AppStrings.activeStudentsThisMonth),
+              const SizedBox(height: 8),
+              ...activeStudentsList.map(
+                (entry) => _ActiveStudentCard(
+                  student: entry.student,
+                  sessionCount: entry.sessions,
+                  totalHours: entry.hours,
+                  theme: theme,
+                ),
+              ),
+            ],
 
             const SizedBox(height: 24),
 
@@ -373,7 +413,7 @@ class _RecentOrderCard extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(HelpiTheme.chipRadius),
@@ -420,11 +460,7 @@ class _ExpiringContractCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          border: Border.all(
-            color: isExpired
-                ? HelpiTheme.statusCancelledText
-                : HelpiTheme.border,
-          ),
+          border: Border.all(color: HelpiTheme.border),
         ),
         child: Row(
           children: [
@@ -458,17 +494,31 @@ class _ExpiringContractCard extends StatelessWidget {
                       fontSize: 15,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    isExpired
-                        ? AppStrings.contractExpired
-                        : AppStrings.contractExpires(dateStr),
-                    style: TextStyle(
-                      fontSize: 13,
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
                       color: isExpired
-                          ? HelpiTheme.statusCancelledText
-                          : HelpiTheme.statusProcessingText,
-                      fontWeight: FontWeight.w500,
+                          ? HelpiTheme.statusCancelledBg
+                          : HelpiTheme.statusProcessingBg,
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.chipRadius,
+                      ),
+                    ),
+                    child: Text(
+                      isExpired
+                          ? AppStrings.contractExpired
+                          : AppStrings.contractExpires(dateStr),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isExpired
+                            ? HelpiTheme.statusCancelledText
+                            : HelpiTheme.statusProcessingText,
+                      ),
                     ),
                   ),
                 ],
@@ -516,6 +566,137 @@ class _ExpiringContractCard extends StatelessWidget {
                   ],
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ACTIVE STUDENT THIS MONTH CARD
+// ═══════════════════════════════════════════════════════════════
+class _ActiveStudentCard extends StatelessWidget {
+  const _ActiveStudentCard({
+    required this.student,
+    required this.sessionCount,
+    required this.totalHours,
+    required this.theme,
+  });
+
+  final StudentModel student;
+  final int sessionCount;
+  final int totalHours;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => StudentDetailScreen(student: student),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          border: Border.all(color: HelpiTheme.border),
+        ),
+        child: Row(
+          children: [
+            // ── Avatar ──
+            Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                color: HelpiTheme.pastelTeal,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  student.firstName[0] + student.lastName[0],
+                  style: const TextStyle(
+                    color: HelpiTheme.accent,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // ── Info ──
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    student.fullName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        size: 14,
+                        color: HelpiTheme.starYellow,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        '${student.avgRating}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // ── Stats ──
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: HelpiTheme.accent.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(
+                      HelpiTheme.chipRadius,
+                    ),
+                  ),
+                  child: Text(
+                    '$sessionCount ${AppStrings.sessionsCount}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: HelpiTheme.accent,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$totalHours ${AppStrings.hoursCount}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

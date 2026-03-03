@@ -208,12 +208,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           children: _order.services.map((s) {
                             return Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
+                                horizontal: 10,
+                                vertical: 4,
                               ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF0F0F0),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(
+                                  HelpiTheme.chipRadius,
+                                ),
                               ),
                               child: Text(
                                 _serviceLabel(s),
@@ -476,7 +478,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
@@ -484,7 +486,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: FontWeight.w600,
           color: textColor,
         ),
@@ -1170,10 +1172,7 @@ class _StudentAssignCard extends StatelessWidget {
           GestureDetector(
             onTap: onAssign,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 6,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
                 color: HelpiTheme.accent.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),

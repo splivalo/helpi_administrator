@@ -386,8 +386,8 @@ class _SeniorCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
+                            horizontal: 10,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
                             color: HelpiTheme.chipBg,
@@ -398,7 +398,7 @@ class _SeniorCard extends StatelessWidget {
                           child: Text(
                             AppStrings.statusArchived,
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: HelpiTheme.textSecondary,
                             ),
@@ -408,8 +408,8 @@ class _SeniorCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
+                            horizontal: 10,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
                             color: HelpiTheme.statusCancelledBg,
@@ -420,7 +420,7 @@ class _SeniorCard extends StatelessWidget {
                           child: Text(
                             AppStrings.filterInactive,
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: HelpiTheme.statusCancelledText,
                             ),
@@ -575,7 +575,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 3,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   color: HelpiTheme.statusActiveBg,
@@ -586,7 +586,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                 child: Text(
                   AppStrings.filterActive,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: HelpiTheme.statusActiveText,
                   ),
@@ -596,7 +596,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 3,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   color: HelpiTheme.statusCancelledBg,
@@ -607,7 +607,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                 child: Text(
                   AppStrings.filterInactive,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: HelpiTheme.statusCancelledText,
                   ),
@@ -618,7 +618,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 3,
+                  vertical: 4,
                 ),
                 decoration: BoxDecoration(
                   color: HelpiTheme.chipBg,
@@ -629,7 +629,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                 child: Text(
                   AppStrings.statusArchived,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: HelpiTheme.textSecondary,
                   ),
@@ -1000,7 +1000,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: statusBg,
                 borderRadius: BorderRadius.circular(
@@ -1010,7 +1010,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               child: Text(
                 statusLabel,
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: statusColor,
                 ),

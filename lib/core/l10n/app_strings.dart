@@ -42,6 +42,9 @@ class AppStrings {
       'recentOrders': 'Nedavne narudžbe',
       'todaysSessions': 'Današnji termini',
       'expiringContracts': 'Ugovori koji ističu',
+      'activeStudentsThisMonth': 'Aktivni studenti ovaj mjesec',
+      'sessionsCount': 'termina',
+      'hoursCount': 'sati',
       'viewAll': 'Prikaži sve',
       'noData': 'Nema podataka',
 
@@ -397,6 +400,9 @@ class AppStrings {
       'recentOrders': 'Recent orders',
       'todaysSessions': "Today's sessions",
       'expiringContracts': 'Expiring contracts',
+      'activeStudentsThisMonth': 'Active students this month',
+      'sessionsCount': 'sessions',
+      'hoursCount': 'hours',
       'viewAll': 'View all',
       'noData': 'No data',
 
@@ -766,6 +772,9 @@ class AppStrings {
   static String get recentOrders => _t('recentOrders');
   static String get todaysSessions => _t('todaysSessions');
   static String get expiringContracts => _t('expiringContracts');
+  static String get activeStudentsThisMonth => _t('activeStudentsThisMonth');
+  static String get sessionsCount => _t('sessionsCount');
+  static String get hoursCount => _t('hoursCount');
   static String get viewAll => _t('viewAll');
   static String get noData => _t('noData');
 
