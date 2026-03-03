@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
+import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
 /// Admin Dashboard — pregled statistika i nedavnih narudžbi.
 class DashboardScreen extends StatelessWidget {
@@ -269,71 +271,79 @@ class _RecentOrderCard extends StatelessWidget {
     final timeStr =
         '${order.scheduledStart.hour.toString().padLeft(2, '0')}:${order.scheduledStart.minute.toString().padLeft(2, '0')}';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
-      ),
-      child: Row(
-        children: [
-          // ── Senior info ──
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppStrings.orderNumber(order.orderNumber),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order)),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          border: Border.all(color: HelpiTheme.border),
+        ),
+        child: Row(
+          children: [
+            // ── Senior info ──
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.orderNumber(order.orderNumber),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.person_outline,
-                      size: 16,
-                      color: HelpiTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      order.senior.fullName,
-                      style: const TextStyle(
-                        fontSize: 14,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.person_outline,
+                        size: 16,
                         color: HelpiTheme.textSecondary,
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today,
-                      size: 14,
-                      color: HelpiTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$dateStr  $timeStr',
-                      style: const TextStyle(
-                        fontSize: 13,
+                      const SizedBox(width: 4),
+                      Text(
+                        order.senior.fullName,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today,
+                        size: 14,
                         color: HelpiTheme.textSecondary,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      const SizedBox(width: 4),
+                      Text(
+                        '$dateStr  $timeStr',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          // ── Status chip ──
-          _buildStatusChip(order.status),
-        ],
+            // ── Status chip ──
+            _buildStatusChip(order.status),
+          ],
+        ),
       ),
     );
   }
@@ -395,82 +405,105 @@ class _ExpiringContractCard extends StatelessWidget {
         ? '${student.contractExpiryDate!.day.toString().padLeft(2, '0')}.${student.contractExpiryDate!.month.toString().padLeft(2, '0')}.${student.contractExpiryDate!.year}'
         : '';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(
-          color: isExpired ? HelpiTheme.statusCancelledText : HelpiTheme.border,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => StudentDetailScreen(student: student),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          border: Border.all(
+            color: isExpired
+                ? HelpiTheme.statusCancelledText
+                : HelpiTheme.border,
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          // ── Student icon ──
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: isExpired
-                  ? HelpiTheme.statusCancelledBg
-                  : HelpiTheme.statusProcessingBg,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.school,
-              color: isExpired
-                  ? HelpiTheme.statusCancelledText
-                  : HelpiTheme.statusProcessingText,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  student.fullName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  isExpired
-                      ? AppStrings.contractExpired
-                      : AppStrings.contractExpires(dateStr),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isExpired
-                        ? HelpiTheme.statusCancelledText
-                        : HelpiTheme.statusProcessingText,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // ── Action ──
-          OutlinedButton(
-            onPressed: () {},
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              minimumSize: Size.zero,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                  HelpiTheme.statusBadgeRadius,
-                ),
+        child: Row(
+          children: [
+            // ── Student icon ──
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isExpired
+                    ? HelpiTheme.statusCancelledBg
+                    : HelpiTheme.statusProcessingBg,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.school,
+                color: isExpired
+                    ? HelpiTheme.statusCancelledText
+                    : HelpiTheme.statusProcessingText,
+                size: 20,
               ),
             ),
-            child: Text(
-              AppStrings.renewContract,
-              style: const TextStyle(fontSize: 13),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    student.fullName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isExpired
+                        ? AppStrings.contractExpired
+                        : AppStrings.contractExpires(dateStr),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isExpired
+                          ? HelpiTheme.statusCancelledText
+                          : HelpiTheme.statusProcessingText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            // ── Action ──
+            OutlinedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => StudentDetailScreen(student: student),
+                  ),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                side: const BorderSide(color: HelpiTheme.accent, width: 1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(HelpiTheme.buttonRadius),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              child: Text(AppStrings.renewContract),
+            ),
+          ],
+        ),
       ),
     );
   }

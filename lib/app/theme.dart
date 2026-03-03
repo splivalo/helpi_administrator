@@ -47,8 +47,8 @@ class HelpiTheme {
   static const double buttonHeight = 56.0;
   static const double buttonRadius = 16.0;
   static const double cardRadius = 16.0;
-  static const double chipRadius = 12.0;
-  static const double statusBadgeRadius = 8.0;
+  static const double chipRadius = 100.0;
+  static const double statusBadgeRadius = 100.0;
   static const double bottomSheetRadius = 20.0;
   static const double pillRadius = 24.0;
 

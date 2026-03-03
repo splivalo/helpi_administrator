@@ -884,6 +884,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   address: _order.address,
                   endDate: _order.endDate,
                   dayEntries: _order.dayEntries,
+                  sessions: _order.sessions,
                 );
                 // Persist to MockData so all screens see the change
                 final idx = MockData.orders.indexWhere(
@@ -1171,16 +1172,16 @@ class _StudentAssignCard extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                  HelpiTheme.statusBadgeRadius,
-                ),
+                borderRadius: BorderRadius.circular(HelpiTheme.buttonRadius),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            child: Text(
-              AppStrings.assignStudent,
-              style: const TextStyle(fontSize: 13),
-            ),
+            child: Text(AppStrings.assignStudent),
           ),
         ],
       ),
