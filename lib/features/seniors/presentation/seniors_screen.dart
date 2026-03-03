@@ -1023,40 +1023,52 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
 
   Widget _buildCreditCardRow(CreditCard card) {
     final expired = card.isExpired;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: expired
+            ? HelpiTheme.statusCancelledBg
+            : HelpiTheme.scaffold,
+        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+      ),
       child: Row(
         children: [
-          Icon(
-            Icons.credit_card,
-            size: 20,
-            color: expired
-                ? HelpiTheme.statusCancelledText
-                : HelpiTheme.textSecondary,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            '${card.brandLabel}  \u2022\u2022\u2022\u2022 ${card.last4}',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: expired
-                  ? HelpiTheme.statusCancelledText
-                  : HelpiTheme.textPrimary,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${card.brandLabel}  \u2022\u2022\u2022\u2022 ${card.last4}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: expired
+                        ? HelpiTheme.statusCancelledText
+                        : HelpiTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  expired
+                      ? '${AppStrings.cardExpired} ${card.expiry}'
+                      : '${AppStrings.cardExpiry} ${card.expiry}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: expired
+                        ? HelpiTheme.statusCancelledText
+                        : HelpiTheme.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ),
-          const Spacer(),
-          Text(
-            expired
-                ? '${AppStrings.cardExpired} ${card.expiry}'
-                : '${AppStrings.cardExpiry} ${card.expiry}',
-            style: TextStyle(
-              fontSize: 12,
-              color: expired
-                  ? HelpiTheme.statusCancelledText
-                  : HelpiTheme.textSecondary,
+          if (expired)
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 18,
+              color: HelpiTheme.statusCancelledText,
             ),
-          ),
         ],
       ),
     );
