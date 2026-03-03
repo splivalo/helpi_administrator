@@ -95,6 +95,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           children: [
             _SectionCard(
               title: AppStrings.studentPersonalData,
+              icon: Icons.person,
               children: [
                 _InfoRow(
                   label: AppStrings.studentFirstName,
@@ -161,6 +162,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   Widget _buildContractSection() {
     return _SectionCard(
       title: AppStrings.studentContractTitle,
+      icon: Icons.description,
       children: [
         _InfoRow(
           label: AppStrings.studentContractStatus,
@@ -492,6 +494,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
     return _SectionCard(
       title: AppStrings.studentAvailability,
+      icon: Icons.schedule,
       children: [
         ...List.generate(_student.availability.length, (i) {
           final day = _student.availability[i];
@@ -674,6 +677,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
     return _SectionCard(
       title: AppStrings.workSummary,
+      icon: Icons.work_history,
       children: [
         // ── Period selector ──
         Container(
@@ -849,6 +853,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   Widget _buildOrdersSection(List<OrderModel> orders) {
     return _SectionCard(
       title: AppStrings.studentAssignedOrders,
+      icon: Icons.receipt_long,
       children: [
         ...orders.map((o) {
           return GestureDetector(
@@ -931,6 +936,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   Widget _buildReviewsSection(List<ReviewModel> reviews) {
     return _SectionCard(
       title: AppStrings.studentReviews,
+      icon: Icons.star,
       children: [
         // ── Rating summary ──
         Row(
@@ -1302,8 +1308,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 //  SECTION CARD
 // ═══════════════════════════════════════════════════════════════
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.children});
+  const _SectionCard({required this.title, required this.children, this.icon});
   final String title;
+  final IconData? icon;
   final List<Widget> children;
 
   @override
@@ -1319,13 +1326,21 @@ class _SectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: HelpiTheme.textPrimary,
-            ),
+          Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 20, color: HelpiTheme.accent),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: HelpiTheme.textPrimary,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           ...children,

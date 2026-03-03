@@ -645,7 +645,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Personal data ──
-            _buildSection(AppStrings.seniorPersonalData, [
+            _buildSection(AppStrings.seniorPersonalData, icon: Icons.person, [
               _buildInfoRow(AppStrings.seniorFirstName, _senior.firstName),
               _buildInfoRow(AppStrings.seniorLastName, _senior.lastName),
               _buildInfoRow(AppStrings.seniorEmail, _senior.email),
@@ -657,6 +657,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
             // ── Credit cards ──
             _buildSection(
               AppStrings.seniorCreditCards,
+              icon: Icons.credit_card,
               _senior.creditCards.isEmpty
                   ? [
                       Padding(
@@ -678,7 +679,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
 
             // ── Orderer info ──
             if (_senior.ordererFirstName != null) ...[
-              _buildSection(AppStrings.seniorOrdererInfo, [
+              _buildSection(AppStrings.seniorOrdererInfo, icon: Icons.people, [
                 _buildInfoRow(
                   AppStrings.seniorOrdererName,
                   '${_senior.ordererFirstName} ${_senior.ordererLastName}',
@@ -696,6 +697,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
             if (widget.orders.isNotEmpty) ...[
               _buildSection(
                 AppStrings.seniorOrders,
+                icon: Icons.receipt_long,
                 widget.orders.map((o) => _buildOrderRow(o)).toList(),
               ),
               const SizedBox(height: 16),
@@ -731,39 +733,75 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
 
             // ── Admin actions ──
             const SizedBox(height: 12),
-            _buildSection(AppStrings.adminActions, [
-              Row(
-                children: [
-                  Expanded(
+            _buildSection(
+              AppStrings.adminActions,
+              icon: Icons.admin_panel_settings,
+              [
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            if (_senior.isActive) {
+                              _senior = _rebuildSenior(isActive: false);
+                            } else {
+                              _senior = _rebuildSenior(isActive: true);
+                            }
+                          });
+                        },
+                        icon: Icon(
+                          _senior.isActive
+                              ? Icons.block
+                              : Icons.check_circle_outline,
+                          size: 18,
+                        ),
+                        label: Text(
+                          _senior.isActive
+                              ? AppStrings.studentDeactivate
+                              : AppStrings.studentActivate,
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: _senior.isActive
+                              ? HelpiTheme.primary
+                              : HelpiTheme.statusActiveText,
+                          side: BorderSide(
+                            color: _senior.isActive
+                                ? HelpiTheme.primary
+                                : HelpiTheme.statusActiveText,
+                            width: 2,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (!_senior.isActive || _senior.isArchived) ...[
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          if (_senior.isActive) {
-                            _senior = _rebuildSenior(isActive: false);
-                          } else {
-                            _senior = _rebuildSenior(isActive: true);
-                          }
-                        });
-                      },
+                      onPressed: () => _senior.isArchived
+                          ? _confirmUnarchive()
+                          : _confirmArchive(),
                       icon: Icon(
-                        _senior.isActive
-                            ? Icons.block
-                            : Icons.check_circle_outline,
+                        _senior.isArchived ? Icons.unarchive : Icons.archive,
                         size: 18,
                       ),
                       label: Text(
-                        _senior.isActive
-                            ? AppStrings.studentDeactivate
-                            : AppStrings.studentActivate,
+                        _senior.isArchived
+                            ? AppStrings.studentUnarchive
+                            : AppStrings.studentArchive,
                       ),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: _senior.isActive
-                            ? HelpiTheme.primary
-                            : HelpiTheme.statusActiveText,
+                        foregroundColor: _senior.isArchived
+                            ? HelpiTheme.accent
+                            : HelpiTheme.textSecondary,
                         side: BorderSide(
-                          color: _senior.isActive
-                              ? HelpiTheme.primary
-                              : HelpiTheme.statusActiveText,
+                          color: _senior.isArchived
+                              ? HelpiTheme.accent
+                              : HelpiTheme.textSecondary,
                           width: 2,
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -771,40 +809,8 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                     ),
                   ),
                 ],
-              ),
-              if (!_senior.isActive || _senior.isArchived) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _senior.isArchived
-                        ? _confirmUnarchive()
-                        : _confirmArchive(),
-                    icon: Icon(
-                      _senior.isArchived ? Icons.unarchive : Icons.archive,
-                      size: 18,
-                    ),
-                    label: Text(
-                      _senior.isArchived
-                          ? AppStrings.studentUnarchive
-                          : AppStrings.studentArchive,
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _senior.isArchived
-                          ? HelpiTheme.accent
-                          : HelpiTheme.textSecondary,
-                      side: BorderSide(
-                        color: _senior.isArchived
-                            ? HelpiTheme.accent
-                            : HelpiTheme.textSecondary,
-                        width: 2,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
               ],
-            ]),
+            ),
           ],
         ),
       ),
@@ -819,7 +825,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
         ? 0.0
         : reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
 
-    return _buildSection(AppStrings.seniorReviews, [
+    return _buildSection(AppStrings.seniorReviews, icon: Icons.star, [
       // ── Rating summary ──
       Row(
         children: [
@@ -903,7 +909,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     ]);
   }
 
-  Widget _buildSection(String title, List<Widget> children) {
+  Widget _buildSection(String title, List<Widget> children, {IconData? icon}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -915,13 +921,21 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: HelpiTheme.textPrimary,
-            ),
+          Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 20, color: HelpiTheme.accent),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: HelpiTheme.textPrimary,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           ...children,
