@@ -4,35 +4,60 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 
-/// Ekran za dodavanje novog seniora.
-class AddSeniorScreen extends StatefulWidget {
-  const AddSeniorScreen({super.key});
+/// Ekran za uređivanje postojećeg seniora.
+class EditSeniorScreen extends StatefulWidget {
+  const EditSeniorScreen({super.key, required this.senior});
+
+  final SeniorModel senior;
 
   @override
-  State<AddSeniorScreen> createState() => _AddSeniorScreenState();
+  State<EditSeniorScreen> createState() => _EditSeniorScreenState();
 }
 
-class _AddSeniorScreenState extends State<AddSeniorScreen> {
+class _EditSeniorScreenState extends State<EditSeniorScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // ── Korisnik usluga ──
-  final _firstNameCtrl = TextEditingController();
-  final _lastNameCtrl = TextEditingController();
-  final _emailCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  final _addressCtrl = TextEditingController();
+  late final TextEditingController _firstNameCtrl;
+  late final TextEditingController _lastNameCtrl;
+  late final TextEditingController _emailCtrl;
+  late final TextEditingController _phoneCtrl;
+  late final TextEditingController _addressCtrl;
   Gender? _gender;
   DateTime? _dateOfBirth;
 
   // ── Naručitelj ──
-  bool _hasOrderer = false;
-  final _ordFirstNameCtrl = TextEditingController();
-  final _ordLastNameCtrl = TextEditingController();
-  final _ordEmailCtrl = TextEditingController();
-  final _ordPhoneCtrl = TextEditingController();
-  final _ordAddressCtrl = TextEditingController();
+  late bool _hasOrderer;
+  late final TextEditingController _ordFirstNameCtrl;
+  late final TextEditingController _ordLastNameCtrl;
+  late final TextEditingController _ordEmailCtrl;
+  late final TextEditingController _ordPhoneCtrl;
+  late final TextEditingController _ordAddressCtrl;
   Gender? _ordGender;
   DateTime? _ordDateOfBirth;
+
+  @override
+  void initState() {
+    super.initState();
+    final s = widget.senior;
+
+    _firstNameCtrl = TextEditingController(text: s.firstName);
+    _lastNameCtrl = TextEditingController(text: s.lastName);
+    _emailCtrl = TextEditingController(text: s.email);
+    _phoneCtrl = TextEditingController(text: s.phone);
+    _addressCtrl = TextEditingController(text: s.address);
+    _gender = s.gender;
+    _dateOfBirth = s.dateOfBirth;
+
+    _hasOrderer = s.hasOrderer;
+    _ordFirstNameCtrl = TextEditingController(text: s.ordererFirstName ?? '');
+    _ordLastNameCtrl = TextEditingController(text: s.ordererLastName ?? '');
+    _ordEmailCtrl = TextEditingController(text: s.ordererEmail ?? '');
+    _ordPhoneCtrl = TextEditingController(text: s.ordererPhone ?? '');
+    _ordAddressCtrl = TextEditingController(text: s.ordererAddress ?? '');
+    _ordGender = s.ordererGender;
+    _ordDateOfBirth = s.ordererDateOfBirth;
+  }
 
   @override
   void dispose() {
@@ -52,7 +77,7 @@ class _AddSeniorScreenState extends State<AddSeniorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.addSeniorTitle)),
+      appBar: AppBar(title: Text(AppStrings.editSeniorTitle)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -348,10 +373,8 @@ class _AddSeniorScreenState extends State<AddSeniorScreen> {
       return;
     }
 
-    final newId = 's${MockData.seniors.length + 1}';
-
-    final senior = SeniorModel(
-      id: newId,
+    final updated = SeniorModel(
+      id: widget.senior.id,
       firstName: _firstNameCtrl.text.trim(),
       lastName: _lastNameCtrl.text.trim(),
       email: _hasOrderer ? _ordEmailCtrl.text.trim() : _emailCtrl.text.trim(),
@@ -359,7 +382,9 @@ class _AddSeniorScreenState extends State<AddSeniorScreen> {
       address: _addressCtrl.text.trim(),
       gender: _gender!,
       dateOfBirth: _dateOfBirth!,
-      createdAt: DateTime.now(),
+      isActive: widget.senior.isActive,
+      isArchived: widget.senior.isArchived,
+      createdAt: widget.senior.createdAt,
       ordererFirstName: _hasOrderer ? _ordFirstNameCtrl.text.trim() : null,
       ordererLastName: _hasOrderer ? _ordLastNameCtrl.text.trim() : null,
       ordererEmail: _hasOrderer ? _ordEmailCtrl.text.trim() : null,
@@ -367,17 +392,20 @@ class _AddSeniorScreenState extends State<AddSeniorScreen> {
       ordererAddress: _hasOrderer ? _ordAddressCtrl.text.trim() : null,
       ordererGender: _hasOrderer ? _ordGender : null,
       ordererDateOfBirth: _hasOrderer ? _ordDateOfBirth : null,
+      creditCards: widget.senior.creditCards,
     );
 
-    MockData.seniors.add(senior);
+    // Persist to MockData
+    final idx = MockData.seniors.indexWhere((s) => s.id == updated.id);
+    if (idx != -1) MockData.seniors[idx] = updated;
 
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(AppStrings.addSeniorSuccess),
+        content: Text(AppStrings.editSeniorSuccess),
         backgroundColor: HelpiTheme.accent,
       ),
     );
-    Navigator.pop(context, true);
+    Navigator.pop(context, updated);
   }
 }

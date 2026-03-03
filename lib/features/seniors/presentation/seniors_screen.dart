@@ -5,6 +5,7 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/add_senior_screen.dart';
+import 'package:helpi_admin/features/seniors/presentation/edit_senior_screen.dart';
 
 /// Seniors Screen — popis seniora s pretragom i detaljima.
 enum SeniorSort { az, za, newest, oldest }
@@ -588,6 +589,17 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     });
   }
 
+  Future<void> _openEditSenior() async {
+    final result = await Navigator.push<SeniorModel>(
+      context,
+      MaterialPageRoute(builder: (_) => EditSeniorScreen(senior: _senior)),
+    );
+    if (!mounted) return;
+    if (result != null) {
+      setState(() => _senior = result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -666,6 +678,13 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
             ],
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, size: 22),
+            tooltip: AppStrings.editSeniorTitle,
+            onPressed: _openEditSenior,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

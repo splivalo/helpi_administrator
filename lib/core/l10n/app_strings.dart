@@ -254,7 +254,9 @@ class AppStrings {
       'seniorNotes': 'Napomena',
       'addSeniorTitle': 'Novi senior',
       'addSeniorSuccess': 'Senior uspješno dodan',
-      'addSeniorHasOrderer': 'Ima naručitelja (sin/kći/druga osoba)',
+      'editSeniorTitle': 'Uredi seniora',
+      'editSeniorSuccess': 'Podaci uspješno ažurirani',
+      'addSeniorHasOrderer': 'Ima naručitelja',
       'fieldRequired': 'Obavezno polje',
       'selectDate': 'Odaberi datum',
       'selectGender': 'Odaberi spol',
@@ -630,7 +632,9 @@ class AppStrings {
       'seniorNotes': 'Notes',
       'addSeniorTitle': 'New senior',
       'addSeniorSuccess': 'Senior added successfully',
-      'addSeniorHasOrderer': 'Has orderer (son/daughter/other person)',
+      'editSeniorTitle': 'Edit senior',
+      'editSeniorSuccess': 'Data updated successfully',
+      'addSeniorHasOrderer': 'Has orderer',
       'fieldRequired': 'Required field',
       'selectDate': 'Select date',
       'selectGender': 'Select gender',
@@ -1027,6 +1031,8 @@ class AppStrings {
   static String get seniorNotes => _t('seniorNotes');
   static String get addSeniorTitle => _t('addSeniorTitle');
   static String get addSeniorSuccess => _t('addSeniorSuccess');
+  static String get editSeniorTitle => _t('editSeniorTitle');
+  static String get editSeniorSuccess => _t('editSeniorSuccess');
   static String get addSeniorHasOrderer => _t('addSeniorHasOrderer');
   static String get fieldRequired => _t('fieldRequired');
   static String get selectDate => _t('selectDate');
