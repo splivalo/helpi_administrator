@@ -13,6 +13,16 @@ enum ActivityPeriod { thisMonth, lastMonth, last60Days, custom }
 /// Sort options for the student list.
 enum StudentSort { az, za, newest, oldest, ratingHigh, ratingLow }
 
+enum _StudentFilter {
+  all,
+  active,
+  expiring,
+  expired,
+  noContract,
+  deactivated,
+  archived,
+}
+
 class StudentsScreen extends StatefulWidget {
   const StudentsScreen({super.key});
 
@@ -20,17 +30,19 @@ class StudentsScreen extends StatefulWidget {
   State<StudentsScreen> createState() => _StudentsScreenState();
 }
 
-class _StudentsScreenState extends State<StudentsScreen> {
+class _StudentsScreenState extends State<StudentsScreen>
+    with SingleTickerProviderStateMixin {
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
   StudentSort _sort = StudentSort.az;
+  _StudentFilter _studentFilter = _StudentFilter.active;
+  late final TabController _tabCtrl;
 
   // ── Advanced filter state ──
   ActivityPeriod? _activityPeriod; // null=any
   bool? _activityWorked; // null=any, true=worked, false=didn't
   DateTime? _customFrom;
   DateTime? _customTo;
-  ContractStatus? _contractFilter;
   Gender? _genderFilter;
   double _minRating = 0.0;
   int? _minJobs;
@@ -40,8 +52,26 @@ class _StudentsScreenState extends State<StudentsScreen> {
   TimeOfDay? _availableTo;
   String? _seniorFilter;
 
+  static const _tabFilters = _StudentFilter.values;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabCtrl = TabController(
+      length: _tabFilters.length,
+      vsync: this,
+      initialIndex: _tabFilters.indexOf(_StudentFilter.active),
+    );
+    _tabCtrl.addListener(() {
+      if (!_tabCtrl.indexIsChanging) {
+        setState(() => _studentFilter = _tabFilters[_tabCtrl.index]);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _tabCtrl.dispose();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -50,7 +80,6 @@ class _StudentsScreenState extends State<StudentsScreen> {
   int get _activeFilterCount {
     int count = 0;
     if (_activityPeriod != null) count++;
-    if (_contractFilter != null) count++;
     if (_genderFilter != null) count++;
     if (_minRating > 0) count++;
     if (_minJobs != null) count++;
@@ -128,6 +157,48 @@ class _StudentsScreenState extends State<StudentsScreen> {
   List<StudentModel> get _filteredStudents {
     var students = MockData.students.toList();
 
+    // Combined status + contract filter
+    switch (_studentFilter) {
+      case _StudentFilter.all:
+        break;
+      case _StudentFilter.active:
+        students = students
+            .where(
+              (s) => s.contractStatus == ContractStatus.active && !s.isArchived,
+            )
+            .toList();
+      case _StudentFilter.expiring:
+        students = students
+            .where(
+              (s) =>
+                  s.contractStatus == ContractStatus.expiring && !s.isArchived,
+            )
+            .toList();
+      case _StudentFilter.expired:
+        students = students
+            .where(
+              (s) =>
+                  s.contractStatus == ContractStatus.expired && !s.isArchived,
+            )
+            .toList();
+      case _StudentFilter.noContract:
+        students = students
+            .where(
+              (s) => s.contractStatus == ContractStatus.none && !s.isArchived,
+            )
+            .toList();
+      case _StudentFilter.deactivated:
+        students = students
+            .where(
+              (s) =>
+                  s.contractStatus == ContractStatus.deactivated &&
+                  !s.isArchived,
+            )
+            .toList();
+      case _StudentFilter.archived:
+        students = students.where((s) => s.isArchived).toList();
+    }
+
     // Search
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
@@ -151,13 +222,6 @@ class _StudentsScreenState extends State<StudentsScreen> {
             .where((s) => _jobsInRange(s, from, to) == 0)
             .toList();
       }
-    }
-
-    // Contract status
-    if (_contractFilter != null) {
-      students = students
-          .where((s) => s.contractStatus == _contractFilter)
-          .toList();
     }
 
     // Gender
@@ -235,7 +299,6 @@ class _StudentsScreenState extends State<StudentsScreen> {
       _activityWorked = null;
       _customFrom = null;
       _customTo = null;
-      _contractFilter = null;
       _genderFilter = null;
       _minRating = 0.0;
       _minJobs = null;
@@ -319,6 +382,41 @@ class _StudentsScreenState extends State<StudentsScreen> {
                     : null,
               ),
             ),
+          ),
+
+          // ── Status filter tabs ──
+          TabBar(
+            controller: _tabCtrl,
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            labelColor: HelpiTheme.accent,
+            unselectedLabelColor: HelpiTheme.textSecondary,
+            labelStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
+            ),
+            indicatorColor: HelpiTheme.accent,
+            indicatorWeight: 2.5,
+            dividerHeight: 0.5,
+            dividerColor: HelpiTheme.border,
+            padding: EdgeInsets.zero,
+            labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+            tabs: _tabFilters.map((f) {
+              final label = switch (f) {
+                _StudentFilter.all => AppStrings.anyContract,
+                _StudentFilter.active => AppStrings.contractActive,
+                _StudentFilter.expiring => AppStrings.contractExpiring,
+                _StudentFilter.expired => AppStrings.contractExpired,
+                _StudentFilter.noContract => AppStrings.contractNone,
+                _StudentFilter.deactivated => AppStrings.contractDeactivated,
+                _StudentFilter.archived => AppStrings.filterArchived,
+              };
+              return Tab(text: label);
+            }).toList(),
           ),
 
           // ── Active filter chips summary ──
@@ -480,7 +578,6 @@ class _StudentsScreenState extends State<StudentsScreen> {
           activityWorked: _activityWorked,
           customFrom: _customFrom,
           customTo: _customTo,
-          contractFilter: _contractFilter,
           genderFilter: _genderFilter,
           minRating: _minRating,
           minJobs: _minJobs,
@@ -495,7 +592,6 @@ class _StudentsScreenState extends State<StudentsScreen> {
                 required bool? activityWorked,
                 required DateTime? customFrom,
                 required DateTime? customTo,
-                required ContractStatus? contractFilter,
                 required Gender? genderFilter,
                 required double minRating,
                 required int? minJobs,
@@ -510,7 +606,6 @@ class _StudentsScreenState extends State<StudentsScreen> {
                   _activityWorked = activityWorked;
                   _customFrom = customFrom;
                   _customTo = customTo;
-                  _contractFilter = contractFilter;
                   _genderFilter = genderFilter;
                   _minRating = minRating;
                   _minJobs = minJobs;
@@ -541,7 +636,6 @@ class _FilterPanel extends StatefulWidget {
     required this.activityWorked,
     required this.customFrom,
     required this.customTo,
-    required this.contractFilter,
     required this.genderFilter,
     required this.minRating,
     required this.minJobs,
@@ -558,7 +652,6 @@ class _FilterPanel extends StatefulWidget {
   final bool? activityWorked;
   final DateTime? customFrom;
   final DateTime? customTo;
-  final ContractStatus? contractFilter;
   final Gender? genderFilter;
   final double minRating;
   final int? minJobs;
@@ -572,7 +665,6 @@ class _FilterPanel extends StatefulWidget {
     required bool? activityWorked,
     required DateTime? customFrom,
     required DateTime? customTo,
-    required ContractStatus? contractFilter,
     required Gender? genderFilter,
     required double minRating,
     required int? minJobs,
@@ -594,7 +686,6 @@ class _FilterPanelState extends State<_FilterPanel> {
   late bool? _activityWorked;
   late DateTime? _customFrom;
   late DateTime? _customTo;
-  late ContractStatus? _contractFilter;
   late Gender? _genderFilter;
   late double _minRating;
   late int? _minJobs;
@@ -614,7 +705,6 @@ class _FilterPanelState extends State<_FilterPanel> {
     _activityWorked = widget.activityWorked;
     _customFrom = widget.customFrom;
     _customTo = widget.customTo;
-    _contractFilter = widget.contractFilter;
     _genderFilter = widget.genderFilter;
     _minRating = widget.minRating;
     _minJobs = widget.minJobs;
@@ -787,31 +877,7 @@ class _FilterPanelState extends State<_FilterPanel> {
                     const SizedBox(height: 20),
 
                     // ──────────────────────────────────
-                    // 2. Contract status
-                    // ──────────────────────────────────
-                    _sectionTitle(AppStrings.filterByContract),
-                    const SizedBox(height: 8),
-                    _buildChoiceRow<ContractStatus?>(
-                      [
-                        (null, AppStrings.anyContract),
-                        (ContractStatus.active, AppStrings.contractActive),
-                        (ContractStatus.expiring, AppStrings.contractExpiring),
-                        (ContractStatus.expired, AppStrings.contractExpired),
-                        (ContractStatus.none, AppStrings.contractNone),
-                        (
-                          ContractStatus.deactivated,
-                          AppStrings.contractDeactivated,
-                        ),
-                      ],
-                      _contractFilter,
-                      (v) {
-                        setState(() => _contractFilter = v);
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // ──────────────────────────────────
-                    // 3. Gender
+                    // 2. Gender
                     // ──────────────────────────────────
                     _sectionTitle(AppStrings.filterByGender),
                     const SizedBox(height: 8),
@@ -1055,7 +1121,6 @@ class _FilterPanelState extends State<_FilterPanel> {
                           activityWorked: _activityWorked,
                           customFrom: _customFrom,
                           customTo: _customTo,
-                          contractFilter: _contractFilter,
                           genderFilter: _genderFilter,
                           minRating: _minRating,
                           minJobs: _minJobs,
@@ -1376,33 +1441,60 @@ class _StudentCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  // ── Contract status chip ──
-                  Builder(
-                    builder: (_) {
-                      final (textColor, bgColor, label) = _contractChip(
-                        student.contractStatus,
-                      );
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: bgColor,
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.statusBadgeRadius,
+                  // ── Contract status chip + archived badge ──
+                  Row(
+                    children: [
+                      Builder(
+                        builder: (_) {
+                          final (textColor, bgColor, label) = _contractChip(
+                            student.contractStatus,
+                          );
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(
+                                HelpiTheme.statusBadgeRadius,
+                              ),
+                            ),
+                            child: Text(
+                              label,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: textColor,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      if (student.isArchived) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: HelpiTheme.chipBg,
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.statusBadgeRadius,
+                            ),
+                          ),
+                          child: Text(
+                            AppStrings.statusArchived,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: HelpiTheme.textSecondary,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: textColor,
-                          ),
-                        ),
-                      );
-                    },
+                      ],
+                    ],
                   ),
                 ],
               ),

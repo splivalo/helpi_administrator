@@ -53,18 +53,54 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(_student.fullName)),
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(_student.fullName, overflow: TextOverflow.ellipsis),
+            ),
+            const SizedBox(width: 8),
+            _buildContractBadge(_student.contractStatus),
+            if (_student.isArchived) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: HelpiTheme.chipBg,
+                  borderRadius: BorderRadius.circular(
+                    HelpiTheme.statusBadgeRadius,
+                  ),
+                ),
+                child: Text(
+                  AppStrings.statusArchived,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildProfileHeader(),
-            const SizedBox(height: 16),
-
             _SectionCard(
               title: AppStrings.studentPersonalData,
               children: [
+                _InfoRow(
+                  label: AppStrings.studentFirstName,
+                  value: _student.firstName,
+                ),
+                _InfoRow(
+                  label: AppStrings.studentLastName,
+                  value: _student.lastName,
+                ),
                 _InfoRow(label: AppStrings.studentEmail, value: _student.email),
                 _InfoRow(label: AppStrings.studentPhone, value: _student.phone),
                 _InfoRow(
@@ -82,26 +118,17 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                       ? AppStrings.genderMale
                       : AppStrings.genderFemale,
                 ),
+                _InfoRow(
+                  label: AppStrings.studentFaculty,
+                  value: _student.faculty,
+                ),
+                _InfoRow(
+                  label: AppStrings.studentIdNumber,
+                  value: _student.studentIdNumber,
+                ),
               ],
             ),
             const SizedBox(height: 12),
-
-            if (_student.bio.isNotEmpty) ...[
-              _SectionCard(
-                title: AppStrings.studentBio,
-                children: [
-                  Text(
-                    _student.bio,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      height: 1.5,
-                      color: HelpiTheme.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
 
             _buildContractSection(),
             const SizedBox(height: 12),
@@ -121,65 +148,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             const SizedBox(height: 32),
           ],
         ),
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────
-  //  PROFILE HEADER
-  // ─────────────────────────────────────────────────────────
-  Widget _buildProfileHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: const BoxDecoration(
-              color: HelpiTheme.pastelTeal,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                _student.firstName[0] + _student.lastName[0],
-                style: const TextStyle(
-                  color: HelpiTheme.accent,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        _student.fullName,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                _buildContractBadge(_student.contractStatus),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -217,7 +185,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 label: Text(AppStrings.studentUploadContract),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: HelpiTheme.accent,
-                  side: const BorderSide(color: HelpiTheme.accent),
+                  side: const BorderSide(color: HelpiTheme.accent, width: 2),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
@@ -257,6 +225,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                     color: _student.isActive
                         ? HelpiTheme.primary
                         : HelpiTheme.statusActiveText,
+                    width: 2,
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
@@ -264,11 +233,122 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             ),
           ],
         ),
+
+        // ── Archive / Unarchive button ──
+        if (!_student.isActive || _student.isArchived) ...[
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () =>
+                  _student.isArchived ? _confirmUnarchive() : _confirmArchive(),
+              icon: Icon(
+                _student.isArchived ? Icons.unarchive : Icons.archive,
+                size: 18,
+              ),
+              label: Text(
+                _student.isArchived
+                    ? AppStrings.studentUnarchive
+                    : AppStrings.studentArchive,
+              ),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _student.isArchived
+                    ? HelpiTheme.accent
+                    : HelpiTheme.textSecondary,
+                side: BorderSide(
+                  color: _student.isArchived
+                      ? HelpiTheme.accent
+                      : HelpiTheme.textSecondary,
+                  width: 2,
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  /// Computes contract status from the student's contract dates.
+  // ── Archive / Unarchive logic ──
+
+  void _confirmArchive() {
+    // Check for active orders
+    final hasActiveOrders = MockData.orders.any(
+      (o) =>
+          o.student?.id == _student.id &&
+          (o.status == OrderStatus.active ||
+              o.status == OrderStatus.processing),
+    );
+
+    if (hasActiveOrders) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(AppStrings.archiveBlockedTitle),
+          content: Text(AppStrings.archiveBlockedMsg),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStrings.archiveConfirmTitle),
+        content: Text(AppStrings.archiveConfirmMsg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(AppStrings.studentArchive),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed == true) {
+        setState(() {
+          _student = _rebuildStudent(isArchived: true, isActive: false);
+        });
+      }
+    });
+  }
+
+  void _confirmUnarchive() {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStrings.unarchiveConfirmTitle),
+        content: Text(AppStrings.unarchiveConfirmMsg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(AppStrings.studentUnarchive),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed == true) {
+        setState(() {
+          _student = _rebuildStudent(isArchived: false);
+        });
+      }
+    });
+  }
+
   ContractStatus _computeContractStatus() {
     final start = _student.contractStartDate;
     final expiry = _student.contractExpiryDate;
@@ -289,21 +369,24 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   StudentModel _rebuildStudent({
     bool? isActive,
+    bool? isArchived,
     ContractStatus? contractStatus,
     DateTime? contractStartDate,
     DateTime? contractExpiryDate,
   }) {
-    return StudentModel(
+    final updated = StudentModel(
       id: _student.id,
       firstName: _student.firstName,
       lastName: _student.lastName,
       email: _student.email,
       phone: _student.phone,
       address: _student.address,
-      bio: _student.bio,
+      faculty: _student.faculty,
+      studentIdNumber: _student.studentIdNumber,
       dateOfBirth: _student.dateOfBirth,
       gender: _student.gender,
       isActive: isActive ?? _student.isActive,
+      isArchived: isArchived ?? _student.isArchived,
       isVerified: _student.isVerified,
       avgRating: _student.avgRating,
       totalReviews: _student.totalReviews,
@@ -317,6 +400,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       hourlyRate: _student.hourlyRate,
       sundayHourlyRate: _student.sundayHourlyRate,
     );
+    // Persist change to MockData so list screens reflect it
+    final idx = MockData.students.indexWhere((s) => s.id == updated.id);
+    if (idx != -1) MockData.students[idx] = updated;
+    return updated;
   }
 
   Future<void> _simulateContractUpload() async {
@@ -737,44 +824,20 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           const Divider(height: 20),
 
           // Estimated payout
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: HelpiTheme.statusActiveBg,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  AppStrings.workEstimatedPayout,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: HelpiTheme.statusActiveText,
-                  ),
-                ),
-                Text(
-                  '${totalPay.toStringAsFixed(2)} €',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: HelpiTheme.statusActiveText,
-                  ),
-                ),
-              ],
-            ),
+          _InfoRow(
+            label: AppStrings.workEstimatedPayout,
+            value: '${totalPay.toStringAsFixed(2)} €',
           ),
-
           // Breakdown detail
-          const SizedBox(height: 6),
-          Text(
-            '${regularHrs.toStringAsFixed(0)}h × ${_student.hourlyRate.toStringAsFixed(2)}€ = ${regularPay.toStringAsFixed(2)}€'
-            '${sundayHrs > 0 ? '  +  ${sundayHrs.toStringAsFixed(0)}h × ${_student.sundayHourlyRate.toStringAsFixed(2)}€ = ${sundayPay.toStringAsFixed(2)}€' : ''}',
-            style: const TextStyle(
-              fontSize: 11,
-              color: HelpiTheme.textSecondary,
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              '${regularHrs.toStringAsFixed(0)}h × ${_student.hourlyRate.toStringAsFixed(2)}€ = ${regularPay.toStringAsFixed(2)}€'
+              '${sundayHrs > 0 ? '  +  ${sundayHrs.toStringAsFixed(0)}h × ${_student.sundayHourlyRate.toStringAsFixed(2)}€ = ${sundayPay.toStringAsFixed(2)}€' : ''}',
+              style: const TextStyle(
+                fontSize: 11,
+                color: HelpiTheme.textSecondary,
+              ),
             ),
           ),
         ],
@@ -854,7 +917,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: HelpiTheme.accent,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1275,22 +1337,27 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              color: HelpiTheme.textSecondary,
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                color: HelpiTheme.textSecondary,
+              ),
             ),
           ),
-          const Spacer(),
-          valueWidget ??
-              Text(
-                value ?? '',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+          Expanded(
+            child:
+                valueWidget ??
+                Text(
+                  value ?? '',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
+          ),
         ],
       ),
     );

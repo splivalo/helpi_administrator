@@ -14,6 +14,8 @@ enum FrequencyType { oneTime, recurring, recurringWithEnd }
 
 enum ContractStatus { active, expired, expiring, none, deactivated }
 
+enum SessionStatus { upcoming, completed, cancelled }
+
 enum Gender { male, female }
 
 // ═══════════════════════════════════════════════════════════════
@@ -28,6 +30,7 @@ class SeniorModel {
   final String phone;
   final String address;
   final bool isActive;
+  final bool isArchived;
   final DateTime createdAt;
   final String? ordererFirstName;
   final String? ordererLastName;
@@ -41,6 +44,7 @@ class SeniorModel {
     required this.phone,
     required this.address,
     this.isActive = true,
+    this.isArchived = false,
     required this.createdAt,
     this.ordererFirstName,
     this.ordererLastName,
@@ -60,7 +64,8 @@ class StudentModel {
   final String email;
   final String phone;
   final String address;
-  final String bio;
+  final String faculty;
+  final String studentIdNumber;
   final DateTime dateOfBirth;
   final Gender gender;
   final double avgRating;
@@ -69,6 +74,7 @@ class StudentModel {
   final int cancelledJobs;
   final bool isVerified;
   final bool isActive;
+  final bool isArchived;
   final DateTime createdAt;
   final ContractStatus contractStatus;
   final DateTime? contractStartDate;
@@ -84,7 +90,8 @@ class StudentModel {
     required this.email,
     required this.phone,
     required this.address,
-    required this.bio,
+    required this.faculty,
+    required this.studentIdNumber,
     required this.dateOfBirth,
     required this.gender,
     this.avgRating = 0.0,
@@ -93,6 +100,7 @@ class StudentModel {
     this.cancelledJobs = 0,
     this.isVerified = false,
     this.isActive = true,
+    this.isArchived = false,
     required this.createdAt,
     this.contractStatus = ContractStatus.none,
     this.contractStartDate,
@@ -136,6 +144,7 @@ class OrderModel {
   final String address;
   final DateTime? endDate;
   final List<DayEntry> dayEntries;
+  final List<SessionModel> sessions;
 
   const OrderModel({
     required this.id,
@@ -153,6 +162,7 @@ class OrderModel {
     required this.address,
     this.endDate,
     this.dayEntries = const [],
+    this.sessions = const [],
   });
 }
 
@@ -166,6 +176,46 @@ class DayEntry {
     required this.startTime,
     required this.durationHours,
   });
+}
+
+class SessionModel {
+  final String id;
+  final DateTime date;
+  final int weekday;
+  final TimeOfDay startTime;
+  final int durationHours;
+  final String? studentName;
+  final SessionStatus status;
+
+  const SessionModel({
+    required this.id,
+    required this.date,
+    required this.weekday,
+    required this.startTime,
+    required this.durationHours,
+    this.studentName,
+    this.status = SessionStatus.upcoming,
+  });
+
+  SessionModel copyWith({
+    String? id,
+    DateTime? date,
+    int? weekday,
+    TimeOfDay? startTime,
+    int? durationHours,
+    String? Function()? studentName,
+    SessionStatus? status,
+  }) {
+    return SessionModel(
+      id: id ?? this.id,
+      date: date ?? this.date,
+      weekday: weekday ?? this.weekday,
+      startTime: startTime ?? this.startTime,
+      durationHours: durationHours ?? this.durationHours,
+      studentName: studentName != null ? studentName() : this.studentName,
+      status: status ?? this.status,
+    );
+  }
 }
 
 class ReviewModel {
@@ -303,7 +353,8 @@ class MockData {
       email: 'luka.peric@email.com',
       phone: '+385 99 111 2222',
       address: 'Trg bana Jelačića 1, Zagreb',
-      bio: 'Student medicine, 3. godina. Volim pomagati starijima.',
+      faculty: 'Medicinski fakultet Zagreb',
+      studentIdNumber: '0036512345',
       dateOfBirth: DateTime(2002, 5, 14),
       gender: Gender.male,
       avgRating: 4.8,
@@ -352,7 +403,8 @@ class MockData {
       email: 'ana.matic@email.com',
       phone: '+385 99 333 4444',
       address: 'Ozaljska 55, Zagreb',
-      bio: 'Studentica socijalnog rada. Iskustvo u radu sa starijima.',
+      faculty: 'Pravni fakultet Zagreb',
+      studentIdNumber: '0036598765',
       dateOfBirth: DateTime(2003, 8, 22),
       gender: Gender.female,
       avgRating: 4.6,
@@ -401,7 +453,8 @@ class MockData {
       email: 'ivan.simic@email.com',
       phone: '+385 99 555 6666',
       address: 'Dubrava 120, Zagreb',
-      bio: 'Student ekonomije. Dostupan vikendom i popodne.',
+      faculty: 'Ekonomski fakultet Zagreb',
+      studentIdNumber: '0036554321',
       dateOfBirth: DateTime(2001, 11, 3),
       gender: Gender.male,
       avgRating: 4.2,
@@ -455,7 +508,8 @@ class MockData {
       email: 'petra.novak@email.com',
       phone: '+385 99 777 8888',
       address: 'Črnomerec 30, Zagreb',
-      bio: 'Studentica psihologije. Strpljiva i empatična.',
+      faculty: 'Filozofski fakultet Zagreb',
+      studentIdNumber: '0036567890',
       dateOfBirth: DateTime(2004, 2, 10),
       gender: Gender.female,
       avgRating: 5.0,
@@ -518,6 +572,15 @@ class MockData {
       durationHours: 2,
       notes: 'Mlijeko i kruh iz Konzuma, lijekove iz ljekarne.',
       address: 'Ilica 45, Zagreb',
+      sessions: [
+        SessionModel(
+          id: 'o1s1',
+          date: DateTime(2026, 3, 5),
+          weekday: 4,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+        ),
+      ],
     ),
     OrderModel(
       id: 'o2',
@@ -542,6 +605,36 @@ class MockData {
         const DayEntry(
           dayOfWeek: 4,
           startTime: TimeOfDay(hour: 9, minute: 0),
+          durationHours: 3,
+        ),
+      ],
+      sessions: [
+        SessionModel(
+          id: 'o2s1',
+          date: DateTime(2026, 3, 5),
+          weekday: 4,
+          startTime: const TimeOfDay(hour: 9, minute: 0),
+          durationHours: 3,
+        ),
+        SessionModel(
+          id: 'o2s2',
+          date: DateTime(2026, 3, 9),
+          weekday: 1,
+          startTime: const TimeOfDay(hour: 9, minute: 0),
+          durationHours: 3,
+        ),
+        SessionModel(
+          id: 'o2s3',
+          date: DateTime(2026, 3, 12),
+          weekday: 4,
+          startTime: const TimeOfDay(hour: 9, minute: 0),
+          durationHours: 3,
+        ),
+        SessionModel(
+          id: 'o2s4',
+          date: DateTime(2026, 3, 16),
+          weekday: 1,
+          startTime: const TimeOfDay(hour: 9, minute: 0),
           durationHours: 3,
         ),
       ],
@@ -581,6 +674,76 @@ class MockData {
           durationHours: 2,
         ),
       ],
+      sessions: [
+        SessionModel(
+          id: 'o3s1',
+          date: DateTime(2026, 2, 24),
+          weekday: 1,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Ana Kovačević',
+          status: SessionStatus.completed,
+        ),
+        SessionModel(
+          id: 'o3s2',
+          date: DateTime(2026, 2, 26),
+          weekday: 3,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Ana Kovačević',
+          status: SessionStatus.completed,
+        ),
+        SessionModel(
+          id: 'o3s3',
+          date: DateTime(2026, 2, 28),
+          weekday: 5,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Ana Kovačević',
+          status: SessionStatus.completed,
+        ),
+        SessionModel(
+          id: 'o3s4',
+          date: DateTime(2026, 3, 2),
+          weekday: 7,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Ana Kovačević',
+          status: SessionStatus.completed,
+        ),
+        SessionModel(
+          id: 'o3s5',
+          date: DateTime(2026, 3, 3),
+          weekday: 1,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Ana Kovačević',
+        ),
+        SessionModel(
+          id: 'o3s6',
+          date: DateTime(2026, 3, 5),
+          weekday: 3,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Ana Kovačević',
+        ),
+        SessionModel(
+          id: 'o3s7',
+          date: DateTime(2026, 3, 7),
+          weekday: 5,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Ana Kovačević',
+        ),
+        SessionModel(
+          id: 'o3s8',
+          date: DateTime(2026, 3, 9),
+          weekday: 7,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Ana Kovačević',
+        ),
+      ],
     ),
     OrderModel(
       id: 'o8',
@@ -595,6 +758,17 @@ class MockData {
       scheduledStart: const TimeOfDay(hour: 10, minute: 0),
       durationHours: 2,
       address: 'Ilica 45, Zagreb',
+      sessions: [
+        SessionModel(
+          id: 'o8s1',
+          date: DateTime(2026, 3, 2),
+          weekday: 1,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Ana Kovačević',
+          status: SessionStatus.completed,
+        ),
+      ],
     ),
     OrderModel(
       id: 'o9',
@@ -609,6 +783,17 @@ class MockData {
       scheduledStart: const TimeOfDay(hour: 14, minute: 0),
       durationHours: 1,
       address: 'Maksimirska 100, Zagreb',
+      sessions: [
+        SessionModel(
+          id: 'o9s1',
+          date: DateTime(2026, 3, 3),
+          weekday: 1,
+          startTime: const TimeOfDay(hour: 14, minute: 0),
+          durationHours: 1,
+          studentName: 'Ana Kovačević',
+          status: SessionStatus.cancelled,
+        ),
+      ],
     ),
     OrderModel(
       id: 'o4',
@@ -632,6 +817,42 @@ class MockData {
           durationHours: 4,
         ),
       ],
+      sessions: [
+        SessionModel(
+          id: 'o4s1',
+          date: DateTime(2026, 2, 18),
+          weekday: 2,
+          startTime: const TimeOfDay(hour: 8, minute: 30),
+          durationHours: 4,
+          studentName: 'Marko Jurić',
+          status: SessionStatus.completed,
+        ),
+        SessionModel(
+          id: 'o4s2',
+          date: DateTime(2026, 2, 25),
+          weekday: 2,
+          startTime: const TimeOfDay(hour: 8, minute: 30),
+          durationHours: 4,
+          studentName: 'Marko Jurić',
+          status: SessionStatus.completed,
+        ),
+        SessionModel(
+          id: 'o4s3',
+          date: DateTime(2026, 3, 4),
+          weekday: 2,
+          startTime: const TimeOfDay(hour: 8, minute: 30),
+          durationHours: 4,
+          studentName: 'Marko Jurić',
+        ),
+        SessionModel(
+          id: 'o4s4',
+          date: DateTime(2026, 3, 11),
+          weekday: 2,
+          startTime: const TimeOfDay(hour: 8, minute: 30),
+          durationHours: 4,
+          studentName: 'Marko Jurić',
+        ),
+      ],
     ),
     OrderModel(
       id: 'o5',
@@ -646,6 +867,17 @@ class MockData {
       scheduledStart: const TimeOfDay(hour: 9, minute: 0),
       durationHours: 3,
       address: 'Ilica 45, Zagreb',
+      sessions: [
+        SessionModel(
+          id: 'o5s1',
+          date: DateTime(2026, 2, 5),
+          weekday: 4,
+          startTime: const TimeOfDay(hour: 9, minute: 0),
+          durationHours: 3,
+          studentName: 'Petra Novak',
+          status: SessionStatus.completed,
+        ),
+      ],
     ),
     OrderModel(
       id: 'o6',
@@ -660,6 +892,17 @@ class MockData {
       scheduledStart: const TimeOfDay(hour: 14, minute: 0),
       durationHours: 2,
       address: 'Vukovarska 12, Zagreb',
+      sessions: [
+        SessionModel(
+          id: 'o6s1',
+          date: DateTime(2026, 1, 28),
+          weekday: 3,
+          startTime: const TimeOfDay(hour: 14, minute: 0),
+          durationHours: 2,
+          studentName: 'Ana Kovačević',
+          status: SessionStatus.completed,
+        ),
+      ],
     ),
     OrderModel(
       id: 'o7',
@@ -674,6 +917,16 @@ class MockData {
       scheduledStart: const TimeOfDay(hour: 16, minute: 0),
       durationHours: 1,
       address: 'Savska 25, Zagreb',
+      sessions: [
+        SessionModel(
+          id: 'o7s1',
+          date: DateTime(2026, 2, 14),
+          weekday: 6,
+          startTime: const TimeOfDay(hour: 16, minute: 0),
+          durationHours: 1,
+          status: SessionStatus.cancelled,
+        ),
+      ],
     ),
   ];
 

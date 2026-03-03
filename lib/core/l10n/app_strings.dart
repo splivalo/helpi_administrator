@@ -90,11 +90,14 @@ class AppStrings {
       // ── Studenti ──────────────────────────────
       'studentsTitle': 'Studenti',
       'studentDetails': 'Detalji studenta',
+      'studentFirstName': 'Ime',
+      'studentLastName': 'Prezime',
       'studentName': 'Ime i prezime',
       'studentEmail': 'Email',
       'studentPhone': 'Telefon',
       'studentAddress': 'Adresa',
-      'studentBio': 'O studentu',
+      'studentFaculty': 'Fakultet',
+      'studentIdNumber': 'Broj iskaznice',
       'studentRating': 'Prosječna ocjena',
       'studentTotalJobs': 'Ukupno poslova',
       'studentCompletedJobs': 'Završenih',
@@ -103,7 +106,7 @@ class AppStrings {
       'workSummary': 'Obračun',
       'workTotalHours': 'Ukupno sati',
       'workRegularHours': 'Redovni sati',
-      'workSundayHours': 'Prekovremeni (Ned. i blagdani)',
+      'workSundayHours': 'Prekovremeni',
       'workHourlyRate': 'Satnica',
       'workSundayRate': 'Nedjeljna satnica',
       'workEstimatedPayout': 'Procjena isplate',
@@ -207,6 +210,23 @@ class AppStrings {
       'studentVerify': 'Verificiraj',
       'studentDeactivate': 'Deaktiviraj',
       'studentActivate': 'Aktiviraj',
+      'studentArchive': 'Arhiviraj',
+      'studentUnarchive': 'Vrati iz arhive',
+      'archiveConfirmTitle': 'Arhiviraj',
+      'archiveConfirmMsg':
+          'Jeste li sigurni da želite arhivirati? Arhivirani profil neće biti vidljiv na listi.',
+      'unarchiveConfirmTitle': 'Vrati iz arhive',
+      'unarchiveConfirmMsg':
+          'Jeste li sigurni da želite vratiti profil iz arhive?',
+      'archiveBlockedTitle': 'Nije moguće arhivirati',
+      'archiveBlockedMsg':
+          'Nije moguće arhivirati jer ima aktivnih narudžbi. Prvo otkazite ili prebacite narudžbe.',
+      'filterAll': 'Svi',
+      'filterProcessing': 'U obradi',
+      'filterActive': 'Aktivni',
+      'filterInactive': 'Neaktivni',
+      'filterArchived': 'Arhivirani',
+      'statusArchived': 'Arhiviran',
       'adminActions': 'Admin akcije',
       'assignToOrder': 'Dodijeli narudžbu',
       'matchingOrders': 'Nalozi koje može pokriti',
@@ -233,10 +253,13 @@ class AppStrings {
       // ── Seniori ───────────────────────────────
       'seniorsTitle': 'Seniori',
       'seniorDetails': 'Detalji seniora',
+      'seniorFirstName': 'Ime',
+      'seniorLastName': 'Prezime',
       'seniorName': 'Ime i prezime',
       'seniorEmail': 'Email',
       'seniorPhone': 'Telefon',
       'seniorAddress': 'Adresa',
+      'seniorReviews': 'Ocjene seniora',
       'seniorOrders': 'Narudžbe seniora',
       'seniorTotalOrders': 'Ukupno narudžbi',
       'seniorActiveOrders': 'Aktivnih',
@@ -271,6 +294,26 @@ class AppStrings {
       'oneTime': 'Jednom',
       'recurring': 'Ponavljajuće',
       'recurringWithEnd': 'Do {date}',
+
+      // ── Termini ──────────────────────────────────
+      'sessionsTitle': 'Termini',
+      'sessionsMonthlySubtitle': 'Prikazani termini za tekući mjesec.',
+      'sessionStatusUpcoming': 'Nadolazeći',
+      'sessionStatusCompleted': 'Obavljen',
+      'sessionStatusCancelled': 'Otkazan',
+      'sessionCancel': 'Otkaži termin',
+      'sessionReschedule': 'Promijeni termin',
+      'sessionSelectStudent': 'Odaberi studenta',
+      'sessionNewDate': 'Novi datum',
+      'sessionNewTime': 'Novo vrijeme',
+      'sessionCancelConfirm':
+          'Jeste li sigurni da želite otkazati ovaj termin?',
+      'sessionRescheduleTitle': 'Promjena termina',
+      'sessionNoStudentAssigned': 'Nije dodijeljen',
+      'sessionKeepCurrentStudent': 'Zadrži trenutnog',
+      'sessionReactivate': 'Vrati termin',
+      'sessionReactivateConfirm':
+          'Želite li vratiti ovaj termin kao nadolazeći?',
 
       // ── Općenito ──────────────────────────────
       'loading': 'Učitavanje...',
@@ -402,11 +445,14 @@ class AppStrings {
       // ── Studenti ──────────────────────────────
       'studentsTitle': 'Students',
       'studentDetails': 'Student details',
+      'studentFirstName': 'First name',
+      'studentLastName': 'Last name',
       'studentName': 'Full name',
       'studentEmail': 'Email',
       'studentPhone': 'Phone',
       'studentAddress': 'Address',
-      'studentBio': 'About',
+      'studentFaculty': 'Faculty',
+      'studentIdNumber': 'Student ID',
       'studentRating': 'Average rating',
       'studentTotalJobs': 'Total jobs',
       'studentCompletedJobs': 'Completed',
@@ -415,7 +461,7 @@ class AppStrings {
       'workSummary': 'Payout',
       'workTotalHours': 'Total hours',
       'workRegularHours': 'Regular hours',
-      'workSundayHours': 'Overtime (Sun. & holidays)',
+      'workSundayHours': 'Overtime',
       'workHourlyRate': 'Hourly rate',
       'workSundayRate': 'Sunday rate',
       'workEstimatedPayout': 'Estimated payout',
@@ -519,6 +565,23 @@ class AppStrings {
       'studentVerify': 'Verify',
       'studentDeactivate': 'Deactivate',
       'studentActivate': 'Activate',
+      'studentArchive': 'Archive',
+      'studentUnarchive': 'Restore from archive',
+      'archiveConfirmTitle': 'Archive',
+      'archiveConfirmMsg':
+          'Are you sure you want to archive? Archived profile will not be visible on the list.',
+      'unarchiveConfirmTitle': 'Restore from archive',
+      'unarchiveConfirmMsg':
+          'Are you sure you want to restore this profile from the archive?',
+      'archiveBlockedTitle': 'Cannot archive',
+      'archiveBlockedMsg':
+          'Cannot archive because there are active orders. Cancel or reassign orders first.',
+      'filterAll': 'All',
+      'filterProcessing': 'Processing',
+      'filterActive': 'Active',
+      'filterInactive': 'Inactive',
+      'filterArchived': 'Archived',
+      'statusArchived': 'Archived',
       'adminActions': 'Admin actions',
       'assignToOrder': 'Assign order',
       'matchingOrders': 'Matching orders',
@@ -545,10 +608,13 @@ class AppStrings {
       // ── Seniori ───────────────────────────────
       'seniorsTitle': 'Seniors',
       'seniorDetails': 'Senior details',
+      'seniorFirstName': 'First name',
+      'seniorLastName': 'Last name',
       'seniorName': 'Full name',
       'seniorEmail': 'Email',
       'seniorPhone': 'Phone',
       'seniorAddress': 'Address',
+      'seniorReviews': 'Senior reviews',
       'seniorOrders': 'Senior orders',
       'seniorTotalOrders': 'Total orders',
       'seniorActiveOrders': 'Active',
@@ -583,6 +649,25 @@ class AppStrings {
       'oneTime': 'Once',
       'recurring': 'Recurring',
       'recurringWithEnd': 'Until {date}',
+
+      // ── Termini ──────────────────────────────────
+      'sessionsTitle': 'Sessions',
+      'sessionsMonthlySubtitle': 'Sessions for the current month.',
+      'sessionStatusUpcoming': 'Upcoming',
+      'sessionStatusCompleted': 'Completed',
+      'sessionStatusCancelled': 'Cancelled',
+      'sessionCancel': 'Cancel session',
+      'sessionReschedule': 'Reschedule',
+      'sessionSelectStudent': 'Select student',
+      'sessionNewDate': 'New date',
+      'sessionNewTime': 'New time',
+      'sessionCancelConfirm': 'Are you sure you want to cancel this session?',
+      'sessionRescheduleTitle': 'Reschedule session',
+      'sessionNoStudentAssigned': 'Not assigned',
+      'sessionKeepCurrentStudent': 'Keep current',
+      'sessionReactivate': 'Restore session',
+      'sessionReactivateConfirm':
+          'Do you want to restore this session as upcoming?',
 
       // ── Općenito ──────────────────────────────
       'loading': 'Loading...',
@@ -731,11 +816,14 @@ class AppStrings {
   // ── Studenti ──
   static String get studentsTitle => _t('studentsTitle');
   static String get studentDetails => _t('studentDetails');
+  static String get studentFirstName => _t('studentFirstName');
+  static String get studentLastName => _t('studentLastName');
   static String get studentName => _t('studentName');
   static String get studentEmail => _t('studentEmail');
   static String get studentPhone => _t('studentPhone');
   static String get studentAddress => _t('studentAddress');
-  static String get studentBio => _t('studentBio');
+  static String get studentFaculty => _t('studentFaculty');
+  static String get studentIdNumber => _t('studentIdNumber');
   static String get studentRating => _t('studentRating');
   static String get studentTotalJobs => _t('studentTotalJobs');
   static String get studentCompletedJobs => _t('studentCompletedJobs');
@@ -813,6 +901,20 @@ class AppStrings {
   static String get studentVerify => _t('studentVerify');
   static String get studentDeactivate => _t('studentDeactivate');
   static String get studentActivate => _t('studentActivate');
+  static String get studentArchive => _t('studentArchive');
+  static String get studentUnarchive => _t('studentUnarchive');
+  static String get archiveConfirmTitle => _t('archiveConfirmTitle');
+  static String get archiveConfirmMsg => _t('archiveConfirmMsg');
+  static String get unarchiveConfirmTitle => _t('unarchiveConfirmTitle');
+  static String get unarchiveConfirmMsg => _t('unarchiveConfirmMsg');
+  static String get archiveBlockedTitle => _t('archiveBlockedTitle');
+  static String get archiveBlockedMsg => _t('archiveBlockedMsg');
+  static String get filterAll => _t('filterAll');
+  static String get filterProcessing => _t('filterProcessing');
+  static String get filterActive => _t('filterActive');
+  static String get filterInactive => _t('filterInactive');
+  static String get filterArchived => _t('filterArchived');
+  static String get statusArchived => _t('statusArchived');
   static String get adminActions => _t('adminActions');
   static String get assignToOrder => _t('assignToOrder');
   static String get matchingOrders => _t('matchingOrders');
@@ -863,6 +965,8 @@ class AppStrings {
 
   // ── Detalji seniora ──
   static String get seniorPersonalData => _t('seniorPersonalData');
+  static String get seniorFirstName => _t('seniorFirstName');
+  static String get seniorLastName => _t('seniorLastName');
   static String get seniorOrdererInfo => _t('seniorOrdererInfo');
   static String get seniorOrdererName => _t('seniorOrdererName');
   static String get seniorOrdererPhone => _t('seniorOrdererPhone');
@@ -885,6 +989,7 @@ class AppStrings {
   static String get seniorEmail => _t('seniorEmail');
   static String get seniorPhone => _t('seniorPhone');
   static String get seniorAddress => _t('seniorAddress');
+  static String get seniorReviews => _t('seniorReviews');
   static String get seniorOrders => _t('seniorOrders');
   static String get seniorTotalOrders => _t('seniorTotalOrders');
   static String get seniorActiveOrders => _t('seniorActiveOrders');
@@ -983,4 +1088,23 @@ class AppStrings {
       _t('priceFormat', params: {'price': price});
   static String pricePerHour(String price) =>
       _t('pricePerHour', params: {'price': price});
+
+  // ── Termini ──
+  static String get sessionsTitle => _t('sessionsTitle');
+  static String get sessionsMonthlySubtitle => _t('sessionsMonthlySubtitle');
+  static String get sessionStatusUpcoming => _t('sessionStatusUpcoming');
+  static String get sessionStatusCompleted => _t('sessionStatusCompleted');
+  static String get sessionStatusCancelled => _t('sessionStatusCancelled');
+  static String get sessionCancel => _t('sessionCancel');
+  static String get sessionReschedule => _t('sessionReschedule');
+  static String get sessionSelectStudent => _t('sessionSelectStudent');
+  static String get sessionNewDate => _t('sessionNewDate');
+  static String get sessionNewTime => _t('sessionNewTime');
+  static String get sessionCancelConfirm => _t('sessionCancelConfirm');
+  static String get sessionRescheduleTitle => _t('sessionRescheduleTitle');
+  static String get sessionNoStudentAssigned => _t('sessionNoStudentAssigned');
+  static String get sessionKeepCurrentStudent =>
+      _t('sessionKeepCurrentStudent');
+  static String get sessionReactivate => _t('sessionReactivate');
+  static String get sessionReactivateConfirm => _t('sessionReactivateConfirm');
 }

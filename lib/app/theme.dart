@@ -145,6 +145,15 @@ class HelpiTheme {
         textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
       ),
     ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(double.infinity, buttonHeight),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(buttonRadius),
+        ),
+        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+      ),
+    ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: accent,
