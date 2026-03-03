@@ -391,7 +391,6 @@ class _RecentOrderCard extends StatelessWidget {
       ),
     );
   }
-
 }
 
 // ═══════════════════════════════════════════════════════════════
