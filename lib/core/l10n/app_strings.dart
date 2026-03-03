@@ -239,9 +239,17 @@ class AppStrings {
 
       // ── Detalji seniora ───────────────────────
       'seniorPersonalData': 'Osobni podaci',
+      'seniorOrdererTitle': 'Naručitelj usluga',
+      'seniorServiceUser': 'Korisnik usluga',
       'seniorOrdererInfo': 'Naručitelj',
+      'seniorOrdererFirstName': 'Ime',
+      'seniorOrdererLastName': 'Prezime',
+      'seniorOrdererEmail': 'Email',
       'seniorOrdererName': 'Ime naručitelja',
-      'seniorOrdererPhone': 'Telefon naručitelja',
+      'seniorOrdererPhone': 'Telefon',
+      'seniorOrdererAddress': 'Adresa',
+      'seniorOrdererGender': 'Spol',
+      'seniorOrdererDob': 'Datum rođenja',
       'seniorOrdererRelation': 'Odnos',
       'seniorNotes': 'Napomena',
       'seniorOrderCount': '{count} narudžbi',
@@ -601,9 +609,17 @@ class AppStrings {
 
       // ── Detalji seniora ───────────────────────
       'seniorPersonalData': 'Personal data',
+      'seniorOrdererTitle': 'Service orderer',
+      'seniorServiceUser': 'Service user',
       'seniorOrdererInfo': 'Orderer',
+      'seniorOrdererFirstName': 'First name',
+      'seniorOrdererLastName': 'Last name',
+      'seniorOrdererEmail': 'Email',
       'seniorOrdererName': 'Orderer name',
-      'seniorOrdererPhone': 'Orderer phone',
+      'seniorOrdererPhone': 'Phone',
+      'seniorOrdererAddress': 'Address',
+      'seniorOrdererGender': 'Gender',
+      'seniorOrdererDob': 'Date of birth',
       'seniorOrdererRelation': 'Relation',
       'seniorNotes': 'Notes',
       'seniorOrderCount': '{count} orders',
@@ -984,9 +1000,17 @@ class AppStrings {
   static String get seniorPersonalData => _t('seniorPersonalData');
   static String get seniorFirstName => _t('seniorFirstName');
   static String get seniorLastName => _t('seniorLastName');
+  static String get seniorOrdererTitle => _t('seniorOrdererTitle');
+  static String get seniorServiceUser => _t('seniorServiceUser');
   static String get seniorOrdererInfo => _t('seniorOrdererInfo');
+  static String get seniorOrdererFirstName => _t('seniorOrdererFirstName');
+  static String get seniorOrdererLastName => _t('seniorOrdererLastName');
+  static String get seniorOrdererEmail => _t('seniorOrdererEmail');
   static String get seniorOrdererName => _t('seniorOrdererName');
   static String get seniorOrdererPhone => _t('seniorOrdererPhone');
+  static String get seniorOrdererAddress => _t('seniorOrdererAddress');
+  static String get seniorOrdererGender => _t('seniorOrdererGender');
+  static String get seniorOrdererDob => _t('seniorOrdererDob');
   static String get seniorOrdererRelation => _t('seniorOrdererRelation');
   static String get seniorNotes => _t('seniorNotes');
   static String get seniorCreditCards => _t('seniorCreditCards');

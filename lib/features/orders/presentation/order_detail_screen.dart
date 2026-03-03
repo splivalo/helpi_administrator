@@ -76,7 +76,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 if (_order.senior.hasOrderer) ...[
                   const Divider(height: 16),
                   Text(
-                    AppStrings.ordererInfo,
+                    AppStrings.seniorOrdererTitle,
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -85,18 +85,41 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   ),
                   const SizedBox(height: 4),
                   _InfoRow(
-                    label: AppStrings.seniorFirstName,
+                    label: AppStrings.seniorOrdererFirstName,
                     value: _order.senior.ordererFirstName ?? '',
                   ),
                   if (_order.senior.ordererLastName != null)
                     _InfoRow(
-                      label: AppStrings.seniorLastName,
+                      label: AppStrings.seniorOrdererLastName,
                       value: _order.senior.ordererLastName!,
+                    ),
+                  if (_order.senior.ordererEmail != null)
+                    _InfoRow(
+                      label: AppStrings.seniorOrdererEmail,
+                      value: _order.senior.ordererEmail!,
                     ),
                   if (_order.senior.ordererPhone != null)
                     _InfoRow(
-                      label: AppStrings.seniorPhone,
+                      label: AppStrings.seniorOrdererPhone,
                       value: _order.senior.ordererPhone!,
+                    ),
+                  if (_order.senior.ordererAddress != null)
+                    _InfoRow(
+                      label: AppStrings.seniorOrdererAddress,
+                      value: _order.senior.ordererAddress!,
+                    ),
+                  if (_order.senior.ordererGender != null)
+                    _InfoRow(
+                      label: AppStrings.seniorOrdererGender,
+                      value: _order.senior.ordererGender == Gender.male
+                          ? AppStrings.genderMale
+                          : AppStrings.genderFemale,
+                    ),
+                  if (_order.senior.ordererDateOfBirth != null)
+                    _InfoRow(
+                      label: AppStrings.seniorOrdererDob,
+                      value:
+                          '${_order.senior.ordererDateOfBirth!.day.toString().padLeft(2, '0')}.${_order.senior.ordererDateOfBirth!.month.toString().padLeft(2, '0')}.${_order.senior.ordererDateOfBirth!.year}.',
                     ),
                 ],
               ],

@@ -35,7 +35,7 @@ class _StudentsScreenState extends State<StudentsScreen>
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
   StudentSort _sort = StudentSort.az;
-  _StudentFilter _studentFilter = _StudentFilter.active;
+  _StudentFilter _studentFilter = _StudentFilter.all;
   late final TabController _tabCtrl;
 
   // ── Advanced filter state ──
@@ -60,7 +60,7 @@ class _StudentsScreenState extends State<StudentsScreen>
     _tabCtrl = TabController(
       length: _tabFilters.length,
       vsync: this,
-      initialIndex: _tabFilters.indexOf(_StudentFilter.active),
+      initialIndex: _tabFilters.indexOf(_StudentFilter.all),
     );
     _tabCtrl.addListener(() {
       if (!_tabCtrl.indexIsChanging) {

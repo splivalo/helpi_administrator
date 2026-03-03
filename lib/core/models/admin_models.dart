@@ -66,12 +66,18 @@ class SeniorModel {
   final String email;
   final String phone;
   final String address;
+  final Gender gender;
+  final DateTime dateOfBirth;
   final bool isActive;
   final bool isArchived;
   final DateTime createdAt;
   final String? ordererFirstName;
   final String? ordererLastName;
+  final String? ordererEmail;
   final String? ordererPhone;
+  final String? ordererAddress;
+  final Gender? ordererGender;
+  final DateTime? ordererDateOfBirth;
   final List<CreditCard> creditCards;
 
   const SeniorModel({
@@ -81,12 +87,18 @@ class SeniorModel {
     required this.email,
     required this.phone,
     required this.address,
+    required this.gender,
+    required this.dateOfBirth,
     this.isActive = true,
     this.isArchived = false,
     required this.createdAt,
     this.ordererFirstName,
     this.ordererLastName,
+    this.ordererEmail,
     this.ordererPhone,
+    this.ordererAddress,
+    this.ordererGender,
+    this.ordererDateOfBirth,
     this.creditCards = const [],
   });
 
@@ -339,6 +351,8 @@ class MockData {
       email: 'ivka.mandic@email.com',
       phone: '+385 91 234 5678',
       address: 'Ilica 45, Zagreb',
+      gender: Gender.female,
+      dateOfBirth: DateTime(1948, 7, 22),
       createdAt: DateTime(2026, 1, 15),
       creditCards: [
         CreditCard(
@@ -358,10 +372,16 @@ class MockData {
       email: 'marija.horvat@email.com',
       phone: '+385 92 345 6789',
       address: 'Vukovarska 12, Zagreb',
+      gender: Gender.female,
+      dateOfBirth: DateTime(1942, 11, 3),
       createdAt: DateTime(2026, 1, 20),
       ordererFirstName: 'Ana',
       ordererLastName: 'Horvat',
+      ordererEmail: 'ana.horvat@email.com',
       ordererPhone: '+385 98 765 4321',
+      ordererAddress: 'Vukovarska 12, Zagreb',
+      ordererGender: Gender.female,
+      ordererDateOfBirth: DateTime(1985, 3, 15),
       creditCards: [
         CreditCard(
           id: 'cc2',
@@ -388,6 +408,8 @@ class MockData {
       email: 'josip.kovacevic@email.com',
       phone: '+385 91 456 7890',
       address: 'Maksimirska 100, Zagreb',
+      gender: Gender.male,
+      dateOfBirth: DateTime(1940, 5, 18),
       createdAt: DateTime(2026, 2, 1),
       creditCards: [
         CreditCard(
@@ -407,6 +429,8 @@ class MockData {
       email: 'kata.babic@email.com',
       phone: '+385 92 567 8901',
       address: 'Savska 25, Zagreb',
+      gender: Gender.female,
+      dateOfBirth: DateTime(1945, 9, 12),
       createdAt: DateTime(2026, 2, 10),
     ),
     SeniorModel(
@@ -416,6 +440,8 @@ class MockData {
       email: 'franjo.juric@email.com',
       phone: '+385 91 678 9012',
       address: 'Heinzelova 8, Zagreb',
+      gender: Gender.male,
+      dateOfBirth: DateTime(1938, 2, 28),
       isActive: false,
       createdAt: DateTime(2025, 12, 5),
     ),

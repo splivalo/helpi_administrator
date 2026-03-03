@@ -22,7 +22,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
   SeniorSort _sort = SeniorSort.az;
-  _SeniorStatusFilter _statusFilter = _SeniorStatusFilter.active;
+  _SeniorStatusFilter _statusFilter = _SeniorStatusFilter.all;
   late final TabController _tabCtrl;
 
   static const _tabFilters = _SeniorStatusFilter.values;
@@ -33,7 +33,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
     _tabCtrl = TabController(
       length: _tabFilters.length,
       vsync: this,
-      initialIndex: _tabFilters.indexOf(_SeniorStatusFilter.active),
+      initialIndex: _tabFilters.indexOf(_SeniorStatusFilter.all),
     );
     _tabCtrl.addListener(() {
       if (!_tabCtrl.indexIsChanging) {
@@ -471,12 +471,19 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
       email: _senior.email,
       phone: _senior.phone,
       address: _senior.address,
+      gender: _senior.gender,
+      dateOfBirth: _senior.dateOfBirth,
       isActive: isActive ?? _senior.isActive,
       isArchived: isArchived ?? _senior.isArchived,
       createdAt: _senior.createdAt,
       ordererFirstName: _senior.ordererFirstName,
       ordererLastName: _senior.ordererLastName,
+      ordererEmail: _senior.ordererEmail,
       ordererPhone: _senior.ordererPhone,
+      ordererAddress: _senior.ordererAddress,
+      ordererGender: _senior.ordererGender,
+      ordererDateOfBirth: _senior.ordererDateOfBirth,
+      creditCards: _senior.creditCards,
     );
     // Persist change to MockData so list screens reflect it
     final idx = MockData.seniors.indexWhere((s) => s.id == updated.id);
@@ -644,14 +651,73 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Personal data ──
-            _buildSection(AppStrings.seniorPersonalData, icon: Icons.person, [
-              _buildInfoRow(AppStrings.seniorFirstName, _senior.firstName),
-              _buildInfoRow(AppStrings.seniorLastName, _senior.lastName),
-              _buildInfoRow(AppStrings.seniorEmail, _senior.email),
-              _buildInfoRow(AppStrings.seniorPhone, _senior.phone),
-              _buildInfoRow(AppStrings.seniorAddress, _senior.address),
-            ]),
+            // ── Orderer (if exists) ──
+            if (_senior.hasOrderer) ...[
+              _buildSection(AppStrings.seniorOrdererTitle, icon: Icons.people, [
+                _buildInfoRow(
+                  AppStrings.seniorOrdererFirstName,
+                  _senior.ordererFirstName!,
+                ),
+                _buildInfoRow(
+                  AppStrings.seniorOrdererLastName,
+                  _senior.ordererLastName ?? '',
+                ),
+                if (_senior.ordererEmail != null)
+                  _buildInfoRow(
+                    AppStrings.seniorOrdererEmail,
+                    _senior.ordererEmail!,
+                  ),
+                if (_senior.ordererPhone != null)
+                  _buildInfoRow(
+                    AppStrings.seniorOrdererPhone,
+                    _senior.ordererPhone!,
+                  ),
+                if (_senior.ordererAddress != null)
+                  _buildInfoRow(
+                    AppStrings.seniorOrdererAddress,
+                    _senior.ordererAddress!,
+                  ),
+                if (_senior.ordererGender != null)
+                  _buildInfoRow(
+                    AppStrings.seniorOrdererGender,
+                    _senior.ordererGender == Gender.male
+                        ? AppStrings.genderMale
+                        : AppStrings.genderFemale,
+                  ),
+                if (_senior.ordererDateOfBirth != null)
+                  _buildInfoRow(
+                    AppStrings.seniorOrdererDob,
+                    '${_senior.ordererDateOfBirth!.day.toString().padLeft(2, '0')}.${_senior.ordererDateOfBirth!.month.toString().padLeft(2, '0')}.${_senior.ordererDateOfBirth!.year}.',
+                  ),
+              ]),
+              const SizedBox(height: 12),
+            ],
+
+            // ── Service user (senior) ──
+            _buildSection(
+              _senior.hasOrderer
+                  ? AppStrings.seniorServiceUser
+                  : AppStrings.seniorServiceUser,
+              icon: Icons.person,
+              [
+                _buildInfoRow(AppStrings.seniorFirstName, _senior.firstName),
+                _buildInfoRow(AppStrings.seniorLastName, _senior.lastName),
+                if (!_senior.hasOrderer)
+                  _buildInfoRow(AppStrings.seniorEmail, _senior.email),
+                _buildInfoRow(AppStrings.seniorPhone, _senior.phone),
+                _buildInfoRow(AppStrings.seniorAddress, _senior.address),
+                _buildInfoRow(
+                  AppStrings.seniorOrdererGender,
+                  _senior.gender == Gender.male
+                      ? AppStrings.genderMale
+                      : AppStrings.genderFemale,
+                ),
+                _buildInfoRow(
+                  AppStrings.seniorOrdererDob,
+                  '${_senior.dateOfBirth.day.toString().padLeft(2, '0')}.${_senior.dateOfBirth.month.toString().padLeft(2, '0')}.${_senior.dateOfBirth.year}.',
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
 
             // ── Credit cards ──
@@ -676,22 +742,6 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                         .toList(),
             ),
             const SizedBox(height: 12),
-
-            // ── Orderer info ──
-            if (_senior.ordererFirstName != null) ...[
-              _buildSection(AppStrings.seniorOrdererInfo, icon: Icons.people, [
-                _buildInfoRow(
-                  AppStrings.seniorOrdererName,
-                  '${_senior.ordererFirstName} ${_senior.ordererLastName}',
-                ),
-                if (_senior.ordererPhone != null)
-                  _buildInfoRow(
-                    AppStrings.seniorOrdererPhone,
-                    _senior.ordererPhone!,
-                  ),
-              ]),
-              const SizedBox(height: 12),
-            ],
 
             // ── Orders ──
             if (widget.orders.isNotEmpty) ...[
