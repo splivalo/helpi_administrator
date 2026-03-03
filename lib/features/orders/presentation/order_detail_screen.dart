@@ -30,28 +30,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         '${_order.scheduledDate.day.toString().padLeft(2, '0')}.${_order.scheduledDate.month.toString().padLeft(2, '0')}.${_order.scheduledDate.year}';
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.orderNumber(_order.orderNumber))),
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                AppStrings.orderNumber(_order.orderNumber),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            _buildOrderStatusChip(_order.status),
+          ],
+        ),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Status chip ──
-            Row(
-              children: [
-                Text(
-                  AppStrings.orderStatus,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _buildOrderStatusChip(_order.status),
-              ],
-            ),
-            const SizedBox(height: 20),
-
             // ── Senior info sekcija ──
             _SectionCard(
               title: AppStrings.orderSenior,

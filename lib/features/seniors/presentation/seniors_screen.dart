@@ -1027,9 +1027,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: expired
-            ? HelpiTheme.statusCancelledBg
-            : HelpiTheme.scaffold,
+        color: expired ? HelpiTheme.statusCancelledBg : HelpiTheme.scaffold,
         borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
       ),
       child: Row(
