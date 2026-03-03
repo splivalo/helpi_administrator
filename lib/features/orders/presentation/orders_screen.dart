@@ -66,101 +66,106 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(AppStrings.ordersTitle),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(100),
-          child: Column(
-            children: [
-              // ── Search ──
-              Padding(
-                padding: const EdgeInsets.symmetric(
+      ),
+      body: Column(
+        children: [
+          // ── Search ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: (v) => setState(() => _searchQuery = v),
+              decoration: InputDecoration(
+                hintText: AppStrings.searchOrders,
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: HelpiTheme.accent,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 8,
+                  vertical: 12,
                 ),
-                child: TextField(
-                  controller: _searchCtrl,
-                  onChanged: (v) => setState(() => _searchQuery = v),
-                  decoration: InputDecoration(
-                    hintText: AppStrings.searchOrders,
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: HelpiTheme.accent,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                        HelpiTheme.cardRadius,
-                      ),
-                    ),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, size: 20),
-                            onPressed: () {
-                              _searchCtrl.clear();
-                              setState(() => _searchQuery = '');
-                            },
-                          )
-                        : null,
-                  ),
-                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 20),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
               ),
-              // ── Tabs ──
-              TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                labelColor: HelpiTheme.accent,
-                unselectedLabelColor: HelpiTheme.textSecondary,
-                indicatorColor: HelpiTheme.accent,
-                labelStyle: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-                tabs: [
-                  Tab(text: AppStrings.allOrders),
-                  Tab(text: AppStrings.ordersProcessing),
-                  Tab(text: AppStrings.ordersActive),
-                  Tab(text: AppStrings.ordersCompleted),
-                  Tab(text: AppStrings.ordersCancelled),
-                ],
-              ),
+            ),
+          ),
+          // ── Tabs ──
+          TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            labelColor: HelpiTheme.accent,
+            unselectedLabelColor: HelpiTheme.textSecondary,
+            labelStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w400,
+            ),
+            indicatorColor: HelpiTheme.accent,
+            indicatorWeight: 2.5,
+            dividerHeight: 0.5,
+            dividerColor: HelpiTheme.border,
+            padding: const EdgeInsets.only(left: 4),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+            tabs: [
+              Tab(text: AppStrings.allOrders),
+              Tab(text: AppStrings.ordersProcessing),
+              Tab(text: AppStrings.ordersActive),
+              Tab(text: AppStrings.ordersCompleted),
+              Tab(text: AppStrings.ordersCancelled),
             ],
           ),
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: _tabs.map((status) {
-          final orders = _filteredOrders(status);
-          if (orders.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.receipt_long, size: 64, color: HelpiTheme.border),
-                  const SizedBox(height: 16),
-                  Text(
-                    AppStrings.noOrdersFound,
-                    style: const TextStyle(
-                      color: HelpiTheme.textSecondary,
-                      fontSize: 16,
+          // ── Order list ──
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: _tabs.map((status) {
+                final orders = _filteredOrders(status);
+                if (orders.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.receipt_long,
+                          size: 64,
+                          color: HelpiTheme.border,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          AppStrings.noOrdersFound,
+                          style: const TextStyle(
+                            color: HelpiTheme.textSecondary,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
                     ),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: orders.length,
+                  itemBuilder: (ctx, i) => _OrderListCard(
+                    order: orders[i],
+                    onTap: () => _openOrderDetail(orders[i]),
                   ),
-                ],
-              ),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: orders.length,
-            itemBuilder: (ctx, i) => _OrderListCard(
-              order: orders[i],
-              onTap: () => _openOrderDetail(orders[i]),
+                );
+              }).toList(),
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
   }

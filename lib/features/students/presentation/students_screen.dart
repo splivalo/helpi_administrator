@@ -395,8 +395,8 @@ class _StudentsScreenState extends State<StudentsScreen>
             indicatorWeight: 2.5,
             dividerHeight: 0.5,
             dividerColor: HelpiTheme.border,
-            padding: EdgeInsets.zero,
-            labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+            padding: const EdgeInsets.only(left: 4),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 12),
             tabs: _tabFilters.map((f) {
               final label = switch (f) {
                 _StudentFilter.all => AppStrings.anyContract,
