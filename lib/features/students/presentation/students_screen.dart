@@ -35,7 +35,6 @@ class _StudentsScreenState extends State<StudentsScreen>
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
   StudentSort _sort = StudentSort.az;
-  _StudentFilter _studentFilter = _StudentFilter.all;
   late final TabController _tabCtrl;
 
   // ── Advanced filter state ──
@@ -64,7 +63,7 @@ class _StudentsScreenState extends State<StudentsScreen>
     );
     _tabCtrl.addListener(() {
       if (!_tabCtrl.indexIsChanging) {
-        setState(() => _studentFilter = _tabFilters[_tabCtrl.index]);
+        setState(() {});
       }
     });
   }
@@ -146,11 +145,11 @@ class _StudentsScreenState extends State<StudentsScreen>
   }
 
   // ── Apply all filters ──
-  List<StudentModel> get _filteredStudents {
+  List<StudentModel> _filteredStudents(_StudentFilter filter) {
     var students = MockData.students.toList();
 
     // Combined status + contract filter
-    switch (_studentFilter) {
+    switch (filter) {
       case _StudentFilter.all:
         break;
       case _StudentFilter.active:
@@ -304,7 +303,8 @@ class _StudentsScreenState extends State<StudentsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final students = _filteredStudents;
+    final currentFilter = _tabFilters[_tabCtrl.index];
+    final students = _filteredStudents(currentFilter);
     final filterCount = _activeFilterCount;
 
     return Scaffold(

@@ -31,6 +31,11 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -123,10 +128,9 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
           ),
           // ── Order list ──
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: _tabs.map((status) {
-                final orders = _filteredOrders(status);
+            child: Builder(
+              builder: (context) {
+                final orders = _filteredOrders(_tabs[_tabController.index]);
                 if (orders.isEmpty) {
                   return Center(
                     child: Column(
@@ -157,7 +161,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                     onTap: () => _openOrderDetail(orders[i]),
                   ),
                 );
-              }).toList(),
+              },
             ),
           ),
         ],

@@ -24,7 +24,6 @@ class _SeniorsScreenState extends State<SeniorsScreen>
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
   SeniorSort _sort = SeniorSort.az;
-  _SeniorStatusFilter _statusFilter = _SeniorStatusFilter.all;
   late final TabController _tabCtrl;
 
   static const _tabFilters = _SeniorStatusFilter.values;
@@ -39,7 +38,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
     );
     _tabCtrl.addListener(() {
       if (!_tabCtrl.indexIsChanging) {
-        setState(() => _statusFilter = _tabFilters[_tabCtrl.index]);
+        setState(() {});
       }
     });
   }
@@ -51,7 +50,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
     super.dispose();
   }
 
-  List<SeniorModel> get _filteredSeniors {
+  List<SeniorModel> _filteredSeniors(_SeniorStatusFilter filter) {
     var seniors = MockData.seniors.toList();
 
     // Precompute senior IDs that have unassigned orders
@@ -66,7 +65,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
         .toSet();
 
     // Status filter
-    switch (_statusFilter) {
+    switch (filter) {
       case _SeniorStatusFilter.all:
         break;
       case _SeniorStatusFilter.processing:
@@ -119,8 +118,6 @@ class _SeniorsScreenState extends State<SeniorsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final seniors = _filteredSeniors;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(AppStrings.seniorsTitle),
@@ -209,12 +206,13 @@ class _SeniorsScreenState extends State<SeniorsScreen>
               return Tab(text: label);
             }).toList(),
           ),
-          const SizedBox(height: 8),
-
           // ── Senior list ──
           Expanded(
-            child: seniors.isEmpty
-                ? Center(
+            child: Builder(
+              builder: (context) {
+                final seniors = _filteredSeniors(_tabFilters[_tabCtrl.index]);
+                if (seniors.isEmpty) {
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -233,15 +231,18 @@ class _SeniorsScreenState extends State<SeniorsScreen>
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: seniors.length,
-                    itemBuilder: (ctx, i) => _SeniorCard(
-                      senior: seniors[i],
-                      onTap: () => _openSeniorDetail(seniors[i]),
-                    ),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: seniors.length,
+                  itemBuilder: (ctx, i) => _SeniorCard(
+                    senior: seniors[i],
+                    onTap: () => _openSeniorDetail(seniors[i]),
                   ),
+                );
+              },
+            ),
           ),
         ],
       ),
