@@ -123,14 +123,6 @@ class _StudentsScreenState extends State<StudentsScreen>
         .length;
   }
 
-  // ── Jobs for the card badge (selected period or default this month) ──
-  int _jobsForBadge(StudentModel student) {
-    final range = _activityPeriod != null
-        ? _dateRangeFor(_activityPeriod!)
-        : _dateRangeFor(ActivityPeriod.thisMonth);
-    return _jobsInRange(student, range.$1, range.$2);
-  }
-
   Set<String> _seniorIdsForStudent(StudentModel student) {
     return MockData.orders
         .where((o) => o.student?.id == student.id)
@@ -503,13 +495,8 @@ class _StudentsScreenState extends State<StudentsScreen>
                     itemCount: students.length,
                     itemBuilder: (ctx, i) {
                       final s = students[i];
-                      final jobs = _jobsForBadge(s);
                       return _StudentCard(
                         student: s,
-                        jobsInPeriod: jobs,
-                        periodLabel: _activityPeriod != null
-                            ? _periodShortLabel(_activityPeriod!)
-                            : AppStrings.thisMonthShort,
                         onTap: () => _openStudentDetail(s),
                       );
                     },
@@ -548,20 +535,6 @@ class _StudentsScreenState extends State<StudentsScreen>
         ],
       ),
     );
-  }
-
-  // ── Short label for the badge on student card ──
-  String _periodShortLabel(ActivityPeriod period) {
-    switch (period) {
-      case ActivityPeriod.thisMonth:
-        return AppStrings.thisMonthShort;
-      case ActivityPeriod.lastMonth:
-        return AppStrings.filterPeriodLastMonth;
-      case ActivityPeriod.last60Days:
-        return '60d';
-      case ActivityPeriod.custom:
-        return AppStrings.filterPeriodCustom;
-    }
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -1304,16 +1277,9 @@ class _FilterPanelState extends State<_FilterPanel> {
 //  STUDENT CARD
 // ═══════════════════════════════════════════════════════════════
 class _StudentCard extends StatelessWidget {
-  const _StudentCard({
-    required this.student,
-    required this.jobsInPeriod,
-    required this.periodLabel,
-    required this.onTap,
-  });
+  const _StudentCard({required this.student, required this.onTap});
 
   final StudentModel student;
-  final int jobsInPeriod;
-  final String periodLabel;
   final VoidCallback onTap;
 
   (Color, Color, String) _contractChip(ContractStatus status) {
@@ -1417,29 +1383,6 @@ class _StudentCard extends StatelessWidget {
                           color: HelpiTheme.textSecondary,
                         ),
                       ),
-                      if (jobsInPeriod > 0) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: HelpiTheme.statusActiveBg,
-                            borderRadius: BorderRadius.circular(
-                              HelpiTheme.chipRadius,
-                            ),
-                          ),
-                          child: Text(
-                            '$jobsInPeriod $periodLabel',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: HelpiTheme.statusActiveText,
-                            ),
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                   const SizedBox(height: 4),
