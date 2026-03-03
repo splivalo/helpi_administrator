@@ -21,9 +21,6 @@ class DashboardScreen extends StatelessWidget {
     final activeCount = MockData.orders
         .where((o) => o.status == OrderStatus.active)
         .length;
-    final completedCount = MockData.orders
-        .where((o) => o.status == OrderStatus.completed)
-        .length;
     final expiringStudents = MockData.students
         .where(
           (s) =>
@@ -82,18 +79,8 @@ class DashboardScreen extends StatelessWidget {
                       icon: Icons.play_circle_outline,
                       label: AppStrings.activeOrders,
                       value: '$activeCount',
-                      color: HelpiTheme.statusActiveText,
-                      bgColor: HelpiTheme.statusActiveBg,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _KpiCard(
-                      icon: Icons.check_circle_outline,
-                      label: AppStrings.completedOrders,
-                      value: '$completedCount',
-                      color: HelpiTheme.statusCompletedText,
-                      bgColor: HelpiTheme.statusCompletedBg,
+                      color: HelpiTheme.accent,
+                      bgColor: HelpiTheme.pastelTeal,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -112,8 +99,8 @@ class DashboardScreen extends StatelessWidget {
                       icon: Icons.elderly_outlined,
                       label: AppStrings.totalSeniors,
                       value: '${MockData.seniors.length}',
-                      color: HelpiTheme.primary,
-                      bgColor: const Color(0xFFFFE8E5),
+                      color: HelpiTheme.accent,
+                      bgColor: HelpiTheme.pastelTeal,
                     ),
                   ),
                 ],
@@ -138,8 +125,8 @@ class DashboardScreen extends StatelessWidget {
                           icon: Icons.play_circle_outline,
                           label: AppStrings.activeOrders,
                           value: '$activeCount',
-                          color: HelpiTheme.statusActiveText,
-                          bgColor: HelpiTheme.statusActiveBg,
+                          color: HelpiTheme.accent,
+                          bgColor: HelpiTheme.pastelTeal,
                         ),
                       ),
                     ],
@@ -149,19 +136,19 @@ class DashboardScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _KpiCard(
-                          icon: Icons.check_circle_outline,
-                          label: AppStrings.completedOrders,
-                          value: '$completedCount',
-                          color: HelpiTheme.statusCompletedText,
-                          bgColor: HelpiTheme.statusCompletedBg,
+                          icon: Icons.school_outlined,
+                          label: AppStrings.totalStudents,
+                          value: '${MockData.students.length}',
+                          color: HelpiTheme.accent,
+                          bgColor: HelpiTheme.pastelTeal,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _KpiCard(
-                          icon: Icons.school_outlined,
-                          label: AppStrings.totalStudents,
-                          value: '${MockData.students.length}',
+                          icon: Icons.elderly_outlined,
+                          label: AppStrings.totalSeniors,
+                          value: '${MockData.seniors.length}',
                           color: HelpiTheme.accent,
                           bgColor: HelpiTheme.pastelTeal,
                         ),
