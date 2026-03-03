@@ -654,6 +654,28 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
             ]),
             const SizedBox(height: 12),
 
+            // ── Credit cards ──
+            _buildSection(
+              AppStrings.seniorCreditCards,
+              _senior.creditCards.isEmpty
+                  ? [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          AppStrings.seniorNoCards,
+                          style: const TextStyle(
+                            color: HelpiTheme.textSecondary,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ]
+                  : _senior.creditCards
+                        .map((card) => _buildCreditCardRow(card))
+                        .toList(),
+            ),
+            const SizedBox(height: 12),
+
             // ── Orderer info ──
             if (_senior.ordererFirstName != null) ...[
               _buildSection(AppStrings.seniorOrdererInfo, [
@@ -928,6 +950,47 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
             child: Text(
               value,
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreditCardRow(CreditCard card) {
+    final expired = card.isExpired;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(
+            Icons.credit_card,
+            size: 20,
+            color: expired
+                ? HelpiTheme.statusCancelledText
+                : HelpiTheme.textSecondary,
+          ),
+          const SizedBox(width: 10),
+          Text(
+            '${card.brandLabel}  \u2022\u2022\u2022\u2022 ${card.last4}',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: expired
+                  ? HelpiTheme.statusCancelledText
+                  : HelpiTheme.textPrimary,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            expired
+                ? '${AppStrings.cardExpired} ${card.expiry}'
+                : '${AppStrings.cardExpiry} ${card.expiry}',
+            style: TextStyle(
+              fontSize: 12,
+              color: expired
+                  ? HelpiTheme.statusCancelledText
+                  : HelpiTheme.textSecondary,
             ),
           ),
         ],

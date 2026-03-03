@@ -245,6 +245,10 @@ class AppStrings {
       'seniorOrdererRelation': 'Odnos',
       'seniorNotes': 'Napomena',
       'seniorOrderCount': '{count} narudžbi',
+      'seniorCreditCards': 'Kartice za plaćanje',
+      'seniorNoCards': 'Nema spremljenih kartica',
+      'cardExpiry': 'Ističe',
+      'cardExpired': 'Istekla',
 
       // ── Chat detalji ──────────────────────────
       'chatSelectConversation': 'Odaberite razgovor',
@@ -603,6 +607,10 @@ class AppStrings {
       'seniorOrdererRelation': 'Relation',
       'seniorNotes': 'Notes',
       'seniorOrderCount': '{count} orders',
+      'seniorCreditCards': 'Payment cards',
+      'seniorNoCards': 'No saved cards',
+      'cardExpiry': 'Expires',
+      'cardExpired': 'Expired',
 
       // ── Chat detalji ──────────────────────────
       'chatSelectConversation': 'Select a conversation',
@@ -981,6 +989,10 @@ class AppStrings {
   static String get seniorOrdererPhone => _t('seniorOrdererPhone');
   static String get seniorOrdererRelation => _t('seniorOrdererRelation');
   static String get seniorNotes => _t('seniorNotes');
+  static String get seniorCreditCards => _t('seniorCreditCards');
+  static String get seniorNoCards => _t('seniorNoCards');
+  static String get cardExpiry => _t('cardExpiry');
+  static String get cardExpired => _t('cardExpired');
   static String seniorOrderCount(int count) {
     final locale = _currentLocale;
     if (locale == 'hr') {

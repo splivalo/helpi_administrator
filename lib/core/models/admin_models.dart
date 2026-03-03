@@ -22,6 +22,43 @@ enum Gender { male, female }
 //  MODELS
 // ═══════════════════════════════════════════════════════════════
 
+enum CardBrand { visa, mastercard, maestro, amex, diners, unknown }
+
+class CreditCard {
+  final String id;
+  final String last4;
+  final CardBrand brand;
+  final String? holderName;
+  final int expiryMonth;
+  final int expiryYear;
+
+  const CreditCard({
+    required this.id,
+    required this.last4,
+    required this.brand,
+    this.holderName,
+    required this.expiryMonth,
+    required this.expiryYear,
+  });
+
+  String get expiry => '${expiryMonth.toString().padLeft(2, '0')}/$expiryYear';
+
+  bool get isExpired {
+    final now = DateTime.now();
+    return expiryYear < now.year ||
+        (expiryYear == now.year && expiryMonth < now.month);
+  }
+
+  String get brandLabel => switch (brand) {
+    CardBrand.visa => 'Visa',
+    CardBrand.mastercard => 'Mastercard',
+    CardBrand.maestro => 'Maestro',
+    CardBrand.amex => 'Amex',
+    CardBrand.diners => 'Diners',
+    CardBrand.unknown => 'Kartica',
+  };
+}
+
 class SeniorModel {
   final String id;
   final String firstName;
@@ -35,6 +72,7 @@ class SeniorModel {
   final String? ordererFirstName;
   final String? ordererLastName;
   final String? ordererPhone;
+  final List<CreditCard> creditCards;
 
   const SeniorModel({
     required this.id,
@@ -49,6 +87,7 @@ class SeniorModel {
     this.ordererFirstName,
     this.ordererLastName,
     this.ordererPhone,
+    this.creditCards = const [],
   });
 
   String get fullName => '$firstName $lastName';
@@ -301,6 +340,16 @@ class MockData {
       phone: '+385 91 234 5678',
       address: 'Ilica 45, Zagreb',
       createdAt: DateTime(2026, 1, 15),
+      creditCards: [
+        CreditCard(
+          id: 'cc1',
+          last4: '4532',
+          brand: CardBrand.visa,
+          holderName: 'IVKA MANDIC',
+          expiryMonth: 9,
+          expiryYear: 2028,
+        ),
+      ],
     ),
     SeniorModel(
       id: 's2',
@@ -313,6 +362,24 @@ class MockData {
       ordererFirstName: 'Ana',
       ordererLastName: 'Horvat',
       ordererPhone: '+385 98 765 4321',
+      creditCards: [
+        CreditCard(
+          id: 'cc2',
+          last4: '8821',
+          brand: CardBrand.mastercard,
+          holderName: 'ANA HORVAT',
+          expiryMonth: 3,
+          expiryYear: 2027,
+        ),
+        CreditCard(
+          id: 'cc3',
+          last4: '1190',
+          brand: CardBrand.visa,
+          holderName: 'MARIJA HORVAT',
+          expiryMonth: 12,
+          expiryYear: 2026,
+        ),
+      ],
     ),
     SeniorModel(
       id: 's3',
@@ -322,6 +389,16 @@ class MockData {
       phone: '+385 91 456 7890',
       address: 'Maksimirska 100, Zagreb',
       createdAt: DateTime(2026, 2, 1),
+      creditCards: [
+        CreditCard(
+          id: 'cc4',
+          last4: '7744',
+          brand: CardBrand.maestro,
+          holderName: 'JOSIP KOVACEVIC',
+          expiryMonth: 6,
+          expiryYear: 2027,
+        ),
+      ],
     ),
     SeniorModel(
       id: 's4',
