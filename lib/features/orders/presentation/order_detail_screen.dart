@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/widgets/contact_actions.dart';
 
 /// Order Detail Screen — detalji narudžbe + dodjela studenta.
 class OrderDetailScreen extends StatefulWidget {
@@ -70,50 +70,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     _InfoRow(
                       label: AppStrings.seniorOrdererEmail,
                       value: _order.senior.ordererEmail!,
-                      trailing: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          iconSize: 14,
-                          onPressed: () {
-                            Clipboard.setData(
-                              ClipboardData(text: _order.senior.ordererEmail!),
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(AppStrings.emailCopied),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.copy,
-                            size: 14,
-                            color: HelpiTheme.textSecondary,
-                          ),
-                        ),
+                      trailing: EmailCopyButton(
+                        email: _order.senior.ordererEmail!,
                       ),
                     ),
                   if (_order.senior.ordererPhone != null)
                     _InfoRow(
                       label: AppStrings.seniorOrdererPhone,
                       value: _order.senior.ordererPhone!,
-                      trailing: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          iconSize: 14,
-                          onPressed: () => launchUrl(
-                            Uri.parse('tel:${_order.senior.ordererPhone}'),
-                          ),
-                          icon: const Icon(
-                            Icons.phone,
-                            size: 14,
-                            color: HelpiTheme.accent,
-                          ),
-                        ),
+                      trailing: PhoneCallButton(
+                        phone: _order.senior.ordererPhone!,
                       ),
                     ),
                   if (_order.senior.ordererAddress != null)
@@ -156,10 +122,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   _InfoRow(
                     label: AppStrings.seniorOrdererEmail,
                     value: _order.senior.email,
+                    trailing: EmailCopyButton(email: _order.senior.email),
                   ),
                 _InfoRow(
                   label: AppStrings.seniorPhone,
                   value: _order.senior.phone,
+                  trailing: PhoneCallButton(phone: _order.senior.phone),
                 ),
                 _InfoRow(
                   label: AppStrings.seniorAddress,
@@ -195,8 +163,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     value: _order.student!.lastName,
                   ),
                   _InfoRow(
+                    label: AppStrings.studentEmail,
+                    value: _order.student!.email,
+                    trailing: EmailCopyButton(email: _order.student!.email),
+                  ),
+                  _InfoRow(
                     label: AppStrings.studentPhone,
                     value: _order.student!.phone,
+                    trailing: PhoneCallButton(phone: _order.student!.phone),
                   ),
                   _InfoRow(
                     label: AppStrings.studentRating,
@@ -1158,7 +1132,9 @@ class _InfoRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: trailing != null
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 140,

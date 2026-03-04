@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/widgets/contact_actions.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
@@ -662,21 +660,7 @@ class _ExpiringContractCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          iconSize: 14,
-                          icon: const Icon(
-                            Icons.call,
-                            color: HelpiTheme.accent,
-                          ),
-                          onPressed: () {
-                            launchUrl(Uri(scheme: 'tel', path: student.phone));
-                          },
-                        ),
-                      ),
+                      PhoneCallButton(phone: student.phone),
                     ],
                   ),
                   const SizedBox(height: 2),
@@ -700,26 +684,7 @@ class _ExpiringContractCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          iconSize: 14,
-                          icon: const Icon(
-                            Icons.copy,
-                            color: HelpiTheme.textSecondary,
-                          ),
-                          onPressed: () {
-                            Clipboard.setData(
-                              ClipboardData(text: student.email),
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(AppStrings.emailCopied)),
-                            );
-                          },
-                        ),
-                      ),
+                      EmailCopyButton(email: student.email),
                     ],
                   ),
                 ],
@@ -914,21 +879,7 @@ class _ActiveStudentCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          iconSize: 14,
-                          icon: const Icon(
-                            Icons.call,
-                            color: HelpiTheme.accent,
-                          ),
-                          onPressed: () {
-                            launchUrl(Uri(scheme: 'tel', path: student.phone));
-                          },
-                        ),
-                      ),
+                      PhoneCallButton(phone: student.phone),
                     ],
                   ),
                   const SizedBox(height: 2),
@@ -952,26 +903,7 @@ class _ActiveStudentCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          iconSize: 14,
-                          icon: const Icon(
-                            Icons.copy,
-                            color: HelpiTheme.textSecondary,
-                          ),
-                          onPressed: () {
-                            Clipboard.setData(
-                              ClipboardData(text: student.email),
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(AppStrings.emailCopied)),
-                            );
-                          },
-                        ),
-                      ),
+                      EmailCopyButton(email: student.email),
                     ],
                   ),
                 ],

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/widgets/contact_actions.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/add_senior_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/edit_senior_screen.dart';
@@ -461,21 +460,7 @@ class _SeniorCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: IconButton(
-                          padding: EdgeInsets.zero,
-                          iconSize: 14,
-                          onPressed: () =>
-                              launchUrl(Uri.parse('tel:${senior.phone}')),
-                          icon: const Icon(
-                            Icons.phone,
-                            size: 14,
-                            color: HelpiTheme.accent,
-                          ),
-                        ),
-                      ),
+                      PhoneCallButton(phone: senior.phone),
                     ],
                   ),
                   const SizedBox(height: 2),
@@ -779,13 +764,13 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   _buildInfoRow(
                     AppStrings.seniorOrdererEmail,
                     _senior.ordererEmail!,
-                    trailing: _emailCopyButton(_senior.ordererEmail!),
+                    trailing: EmailCopyButton(email: _senior.ordererEmail!),
                   ),
                 if (_senior.ordererPhone != null)
                   _buildInfoRow(
                     AppStrings.seniorOrdererPhone,
                     _senior.ordererPhone!,
-                    trailing: _phoneCallButton(_senior.ordererPhone!),
+                    trailing: PhoneCallButton(phone: _senior.ordererPhone!),
                   ),
                 if (_senior.ordererAddress != null)
                   _buildInfoRow(
@@ -821,12 +806,12 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   _buildInfoRow(
                     AppStrings.seniorEmail,
                     _senior.email,
-                    trailing: _emailCopyButton(_senior.email),
+                    trailing: EmailCopyButton(email: _senior.email),
                   ),
                 _buildInfoRow(
                   AppStrings.seniorPhone,
                   _senior.phone,
-                  trailing: _phoneCallButton(_senior.phone),
+                  trailing: PhoneCallButton(phone: _senior.phone),
                 ),
                 _buildInfoRow(AppStrings.seniorAddress, _senior.address),
                 _buildInfoRow(
@@ -1136,46 +1121,6 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
           ),
           if (trailing != null) ...[const SizedBox(width: 4), trailing],
         ],
-      ),
-    );
-  }
-
-  Widget _emailCopyButton(String email) {
-    return SizedBox(
-      width: 20,
-      height: 20,
-      child: Builder(
-        builder: (context) => IconButton(
-          padding: EdgeInsets.zero,
-          iconSize: 14,
-          onPressed: () {
-            Clipboard.setData(ClipboardData(text: email));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppStrings.emailCopied),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          },
-          icon: const Icon(
-            Icons.copy,
-            size: 14,
-            color: HelpiTheme.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _phoneCallButton(String phone) {
-    return SizedBox(
-      width: 20,
-      height: 20,
-      child: IconButton(
-        padding: EdgeInsets.zero,
-        iconSize: 14,
-        onPressed: () => launchUrl(Uri.parse('tel:$phone')),
-        icon: const Icon(Icons.phone, size: 14, color: HelpiTheme.accent),
       ),
     );
   }
