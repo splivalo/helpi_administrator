@@ -38,6 +38,7 @@ class _StudentsScreenState extends State<StudentsScreen>
   String _searchQuery = '';
   StudentSort _sort = StudentSort.az;
   late final TabController _tabCtrl;
+  bool _isGridView = false;
 
   // ── Advanced filter state ──
   ActivityPeriod? _activityPeriod; // null=any
@@ -313,41 +314,11 @@ class _StudentsScreenState extends State<StudentsScreen>
       appBar: AppBar(
         title: Text(AppStrings.studentsTitle),
         actions: [
-          // ── Sort popup ──
-          PopupMenuButton<StudentSort>(
-            icon: const Icon(Icons.sort, color: HelpiTheme.textSecondary),
-            tooltip: AppStrings.sortBy,
-            onSelected: (v) => setState(() => _sort = v),
-            itemBuilder: (_) => [
-              _sortMenuItem(StudentSort.az, AppStrings.sortAZ),
-              _sortMenuItem(StudentSort.za, AppStrings.sortZA),
-              _sortMenuItem(StudentSort.newest, AppStrings.sortNewest),
-              _sortMenuItem(StudentSort.oldest, AppStrings.sortOldest),
-              _sortMenuItem(StudentSort.ratingHigh, AppStrings.sortRatingHigh),
-              _sortMenuItem(StudentSort.ratingLow, AppStrings.sortRatingLow),
-            ],
+          IconButton(
+            icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+            onPressed: () => setState(() => _isGridView = !_isGridView),
           ),
-          // ── Filter toggle ──
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Badge(
-              isLabelVisible: filterCount > 0,
-              label: Text('$filterCount'),
-              backgroundColor: HelpiTheme.primary,
-              child: IconButton(
-                icon: Icon(
-                  filterCount > 0
-                      ? Icons.filter_alt
-                      : Icons.filter_alt_outlined,
-                  color: filterCount > 0
-                      ? HelpiTheme.accent
-                      : HelpiTheme.textSecondary,
-                ),
-                onPressed: () => _openFilterSheet(context),
-                tooltip: AppStrings.advancedFilters,
-              ),
-            ),
-          ),
+          const NotificationBell(),
         ],
       ),
       body: Column(
@@ -453,8 +424,63 @@ class _StudentsScreenState extends State<StudentsScreen>
 
           const SizedBox(height: 8),
 
-          // ── Result count ──
-          ResultCountRow(text: AppStrings.filterResultCount(students.length)),
+          // ── Result count + sort/filter ──
+          ResultCountRow(
+            text: AppStrings.filterResultCount(students.length),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                PopupMenuButton<StudentSort>(
+                  icon: const Icon(
+                    Icons.sort,
+                    size: 20,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                  padding: EdgeInsets.zero,
+                  tooltip: AppStrings.sortBy,
+                  onSelected: (v) => setState(() => _sort = v),
+                  itemBuilder: (_) => [
+                    _sortMenuItem(StudentSort.az, AppStrings.sortAZ),
+                    _sortMenuItem(StudentSort.za, AppStrings.sortZA),
+                    _sortMenuItem(StudentSort.newest, AppStrings.sortNewest),
+                    _sortMenuItem(StudentSort.oldest, AppStrings.sortOldest),
+                    _sortMenuItem(
+                      StudentSort.ratingHigh,
+                      AppStrings.sortRatingHigh,
+                    ),
+                    _sortMenuItem(
+                      StudentSort.ratingLow,
+                      AppStrings.sortRatingLow,
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 4),
+                Badge(
+                  isLabelVisible: filterCount > 0,
+                  label: Text('$filterCount'),
+                  backgroundColor: HelpiTheme.primary,
+                  child: IconButton(
+                    icon: Icon(
+                      filterCount > 0
+                          ? Icons.filter_alt
+                          : Icons.filter_alt_outlined,
+                      size: 20,
+                      color: filterCount > 0
+                          ? HelpiTheme.accent
+                          : HelpiTheme.textSecondary,
+                    ),
+                    onPressed: () => _openFilterSheet(context),
+                    tooltip: AppStrings.advancedFilters,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 28,
+                      minHeight: 28,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
 
           // ── Student list ──
           Expanded(
@@ -463,14 +489,49 @@ class _StudentsScreenState extends State<StudentsScreen>
                     icon: Icons.school_outlined,
                     message: AppStrings.noStudentsFound,
                   )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: students.length,
-                    itemBuilder: (ctx, i) {
-                      final s = students[i];
-                      return _StudentCard(
-                        student: s,
-                        onTap: () => _openStudentDetail(s),
+                : Builder(
+                    builder: (context) {
+                      final screenWidth = MediaQuery.sizeOf(context).width;
+                      final gridCols = screenWidth >= 1200
+                          ? 3
+                          : (screenWidth >= 900 ? 2 : 1);
+                      if (_isGridView && gridCols > 1) {
+                        return ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: (students.length / gridCols).ceil(),
+                          itemBuilder: (ctx, rowIdx) {
+                            final start = rowIdx * gridCols;
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                for (var j = 0; j < gridCols; j++) ...[
+                                  if (j > 0) const SizedBox(width: 10),
+                                  Expanded(
+                                    child: start + j < students.length
+                                        ? _StudentCard(
+                                            student: students[start + j],
+                                            onTap: () => _openStudentDetail(
+                                              students[start + j],
+                                            ),
+                                          )
+                                        : const SizedBox(),
+                                  ),
+                                ],
+                              ],
+                            );
+                          },
+                        );
+                      }
+                      return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: students.length,
+                        itemBuilder: (ctx, i) {
+                          final s = students[i];
+                          return _StudentCard(
+                            student: s,
+                            onTap: () => _openStudentDetail(s),
+                          );
+                        },
                       );
                     },
                   ),

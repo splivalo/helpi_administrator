@@ -27,6 +27,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
   String _searchQuery = '';
   SeniorSort _sort = SeniorSort.az;
   late final TabController _tabCtrl;
+  bool _isGridView = false;
 
   static const _tabFilters = _SeniorStatusFilter.values;
 
@@ -124,17 +125,11 @@ class _SeniorsScreenState extends State<SeniorsScreen>
       appBar: AppBar(
         title: Text(AppStrings.seniorsTitle),
         actions: [
-          PopupMenuButton<SeniorSort>(
-            icon: const Icon(Icons.sort, color: HelpiTheme.textSecondary),
-            tooltip: AppStrings.sortBy,
-            onSelected: (v) => setState(() => _sort = v),
-            itemBuilder: (_) => [
-              _sortMenuItem(SeniorSort.az, AppStrings.sortAZ),
-              _sortMenuItem(SeniorSort.za, AppStrings.sortZA),
-              _sortMenuItem(SeniorSort.newest, AppStrings.sortNewest),
-              _sortMenuItem(SeniorSort.oldest, AppStrings.sortOldest),
-            ],
+          IconButton(
+            icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+            onPressed: () => setState(() => _isGridView = !_isGridView),
           ),
+          const NotificationBell(),
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -211,13 +206,31 @@ class _SeniorsScreenState extends State<SeniorsScreen>
 
           const SizedBox(height: 8),
 
-          // ── Result count ──
+          // ── Result count + sort ──
           Builder(
             builder: (context) {
               final count = _filteredSeniors(
                 _tabFilters[_tabCtrl.index],
               ).length;
-              return ResultCountRow(text: AppStrings.seniorResultCount(count));
+              return ResultCountRow(
+                text: AppStrings.seniorResultCount(count),
+                trailing: PopupMenuButton<SeniorSort>(
+                  icon: const Icon(
+                    Icons.sort,
+                    size: 20,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                  padding: EdgeInsets.zero,
+                  tooltip: AppStrings.sortBy,
+                  onSelected: (v) => setState(() => _sort = v),
+                  itemBuilder: (_) => [
+                    _sortMenuItem(SeniorSort.az, AppStrings.sortAZ),
+                    _sortMenuItem(SeniorSort.za, AppStrings.sortZA),
+                    _sortMenuItem(SeniorSort.newest, AppStrings.sortNewest),
+                    _sortMenuItem(SeniorSort.oldest, AppStrings.sortOldest),
+                  ],
+                ),
+              );
             },
           ),
           // ── Senior list ──
@@ -229,6 +242,36 @@ class _SeniorsScreenState extends State<SeniorsScreen>
                   return EmptyState(
                     icon: Icons.elderly_outlined,
                     message: AppStrings.noSeniorsFound,
+                  );
+                }
+                final screenWidth = MediaQuery.sizeOf(context).width;
+                final gridCols = screenWidth >= 1200
+                    ? 3
+                    : (screenWidth >= 900 ? 2 : 1);
+                if (_isGridView && gridCols > 1) {
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: (seniors.length / gridCols).ceil(),
+                    itemBuilder: (ctx, rowIdx) {
+                      final start = rowIdx * gridCols;
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (var j = 0; j < gridCols; j++) ...[
+                            if (j > 0) const SizedBox(width: 10),
+                            Expanded(
+                              child: start + j < seniors.length
+                                  ? _SeniorCard(
+                                      senior: seniors[start + j],
+                                      onTap: () =>
+                                          _openSeniorDetail(seniors[start + j]),
+                                    )
+                                  : const SizedBox(),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   );
                 }
                 return ListView.builder(

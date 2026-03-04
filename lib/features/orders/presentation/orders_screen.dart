@@ -20,6 +20,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
   late TabController _tabController;
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
+  bool _isGridView = false;
 
   static const _tabs = [
     null, // All
@@ -71,7 +72,16 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.ordersTitle)),
+      appBar: AppBar(
+        title: Text(AppStrings.ordersTitle),
+        actions: [
+          IconButton(
+            icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+            onPressed: () => setState(() => _isGridView = !_isGridView),
+          ),
+          const NotificationBell(),
+        ],
+      ),
       body: Column(
         children: [
           // ── Search ──
@@ -148,6 +158,41 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                   return EmptyState(
                     icon: Icons.receipt_long,
                     message: AppStrings.noOrdersFound,
+                  );
+                }
+                final screenWidth = MediaQuery.sizeOf(context).width;
+                final gridCols = screenWidth >= 1200
+                    ? 3
+                    : (screenWidth >= 900 ? 2 : 1);
+                if (_isGridView && gridCols > 1) {
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: (orders.length / gridCols).ceil(),
+                    itemBuilder: (ctx, rowIdx) {
+                      final start = rowIdx * gridCols;
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: start + gridCols < orders.length ? 0 : 0,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (var j = 0; j < gridCols; j++) ...[
+                              if (j > 0) const SizedBox(width: 10),
+                              Expanded(
+                                child: start + j < orders.length
+                                    ? _OrderListCard(
+                                        order: orders[start + j],
+                                        onTap: () =>
+                                            _openOrderDetail(orders[start + j]),
+                                      )
+                                    : const SizedBox(),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   );
                 }
                 return ListView.builder(

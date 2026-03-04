@@ -18,11 +18,32 @@ enum SessionStatus { upcoming, completed, cancelled }
 
 enum Gender { male, female }
 
+enum NotificationType { newOrder, contractExpiring, sessionCancelled, info }
+
 // ═══════════════════════════════════════════════════════════════
 //  MODELS
 // ═══════════════════════════════════════════════════════════════
 
 enum CardBrand { visa, mastercard, maestro, amex, diners, unknown }
+
+// ── Notification ──
+class NotificationModel {
+  final String id;
+  final NotificationType type;
+  final String title;
+  final String body;
+  final DateTime createdAt;
+  bool isRead;
+
+  NotificationModel({
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.body,
+    required this.createdAt,
+    this.isRead = false,
+  });
+}
 
 class CreditCard {
   final String id;
@@ -1564,6 +1585,46 @@ class MockData {
       rating: 3,
       comment: null,
       createdAt: DateTime(2026, 2, 5),
+    ),
+  ];
+
+  // ── Notifications ──
+  static final List<NotificationModel> notifications = [
+    NotificationModel(
+      id: 'n1',
+      type: NotificationType.newOrder,
+      title: 'Nova narudžba',
+      body: 'Marija Horvat je kreirala novu narudžbu za kupovinu.',
+      createdAt: DateTime(2026, 3, 4, 9, 15),
+    ),
+    NotificationModel(
+      id: 'n2',
+      type: NotificationType.contractExpiring,
+      title: 'Ugovor ističe',
+      body: 'Ugovor studenta Petra Novaka ističe za 5 dana.',
+      createdAt: DateTime(2026, 3, 3, 14, 30),
+    ),
+    NotificationModel(
+      id: 'n3',
+      type: NotificationType.sessionCancelled,
+      title: 'Sesija otkazana',
+      body: 'Ana Matić je otkazala sesiju s Josipom Kovačevićem (05.03.).',
+      createdAt: DateTime(2026, 3, 3, 10, 0),
+    ),
+    NotificationModel(
+      id: 'n4',
+      type: NotificationType.newOrder,
+      title: 'Nova narudžba',
+      body: 'Kata Babić je kreirala narudžbu za pomoć u kući.',
+      createdAt: DateTime(2026, 3, 2, 16, 45),
+    ),
+    NotificationModel(
+      id: 'n5',
+      type: NotificationType.info,
+      title: 'Sustav ažuriran',
+      body: 'Helpi sustav je uspješno ažuriran na verziju 2.1.',
+      createdAt: DateTime(2026, 3, 1, 8, 0),
+      isRead: true,
     ),
   ];
 }

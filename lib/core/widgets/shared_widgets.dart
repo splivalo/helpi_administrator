@@ -179,19 +179,26 @@ class EmptyState extends StatelessWidget {
 
 /// Displays a result count label (e.g. "Prikazano: 12 rezultata") aligned left.
 class ResultCountRow extends StatelessWidget {
-  const ResultCountRow({super.key, required this.text});
+  const ResultCountRow({super.key, required this.text, this.trailing});
   final String text;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(
-          text,
-          style: const TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
-        ),
+      child: Row(
+        children: [
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 13,
+              color: HelpiTheme.textSecondary,
+            ),
+          ),
+          const Spacer(),
+          ?trailing,
+        ],
       ),
     );
   }

@@ -366,6 +366,15 @@ class AppStrings {
       'copyEmail': 'Kopiraj email',
       'phoneCopied': 'Telefon kopiran',
 
+      // ── Notifications ──
+      'notifications': 'Obavijesti',
+      'noNotifications': 'Nema novih obavijesti',
+      'markAllRead': 'Označi sve kao pročitano',
+      'justNow': 'Upravo sad',
+      'minutesAgo': 'min prije',
+      'hoursAgo': 'h prije',
+      'daysAgo': 'd prije',
+
       // ── Auth ──────────────────────────────────
       'login': 'Prijava',
       'email': 'E-mail adresa',
@@ -746,6 +755,15 @@ class AppStrings {
       'emailCopied': 'Email copied',
       'copyEmail': 'Copy email',
       'phoneCopied': 'Phone copied',
+
+      // ── Notifications ──
+      'notifications': 'Notifications',
+      'noNotifications': 'No new notifications',
+      'markAllRead': 'Mark all as read',
+      'justNow': 'Just now',
+      'minutesAgo': 'min ago',
+      'hoursAgo': 'h ago',
+      'daysAgo': 'd ago',
 
       // ── Auth ──────────────────────────────────
       'login': 'Login',
@@ -1201,4 +1219,11 @@ class AppStrings {
   static String get emailCopied => _t('emailCopied');
   static String get copyEmail => _t('copyEmail');
   static String get phoneCopied => _t('phoneCopied');
+  static String get notifications => _t('notifications');
+  static String get noNotifications => _t('noNotifications');
+  static String get markAllRead => _t('markAllRead');
+  static String get justNow => _t('justNow');
+  static String get minutesAgo => _t('minutesAgo');
+  static String get hoursAgo => _t('hoursAgo');
+  static String get daysAgo => _t('daysAgo');
 }

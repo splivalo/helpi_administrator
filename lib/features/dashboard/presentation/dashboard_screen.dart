@@ -74,6 +74,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
             onPressed: () => setState(() => _isGridView = !_isGridView),
           ),
+          const NotificationBell(),
         ],
       ),
       body: SingleChildScrollView(
