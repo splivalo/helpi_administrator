@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
@@ -69,11 +70,51 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     _InfoRow(
                       label: AppStrings.seniorOrdererEmail,
                       value: _order.senior.ordererEmail!,
+                      trailing: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 14,
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(text: _order.senior.ordererEmail!),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(AppStrings.emailCopied),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          icon: const Icon(
+                            Icons.copy,
+                            size: 14,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                        ),
+                      ),
                     ),
                   if (_order.senior.ordererPhone != null)
                     _InfoRow(
                       label: AppStrings.seniorOrdererPhone,
                       value: _order.senior.ordererPhone!,
+                      trailing: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 14,
+                          onPressed: () => launchUrl(
+                            Uri.parse('tel:${_order.senior.ordererPhone}'),
+                          ),
+                          icon: const Icon(
+                            Icons.phone,
+                            size: 14,
+                            color: HelpiTheme.accent,
+                          ),
+                        ),
+                      ),
                     ),
                   if (_order.senior.ordererAddress != null)
                     _InfoRow(
@@ -1107,9 +1148,10 @@ class _SectionCard extends StatelessWidget {
 //  INFO ROW
 // ═══════════════════════════════════════════════════════════════
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow({required this.label, required this.value, this.trailing});
   final String label;
   final String value;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -1128,12 +1170,13 @@ class _InfoRow extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
+          Flexible(
             child: Text(
               value,
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
+          if (trailing != null) ...[const SizedBox(width: 4), trailing!],
         ],
       ),
     );

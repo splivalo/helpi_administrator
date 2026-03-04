@@ -362,6 +362,8 @@ class AppStrings {
       'yesterday': 'Jučer',
       'thisWeek': 'Ovaj tjedan',
       'thisMonth': 'Ovaj mjesec',
+      'emailCopied': 'Email kopiran',
+      'phoneCopied': 'Telefon kopiran',
 
       // ── Auth ──────────────────────────────────
       'login': 'Prijava',
@@ -740,6 +742,8 @@ class AppStrings {
       'yesterday': 'Yesterday',
       'thisWeek': 'This week',
       'thisMonth': 'This month',
+      'emailCopied': 'Email copied',
+      'phoneCopied': 'Phone copied',
 
       // ── Auth ──────────────────────────────────
       'login': 'Login',
@@ -1192,4 +1196,6 @@ class AppStrings {
       _t('sessionKeepCurrentStudent');
   static String get sessionReactivate => _t('sessionReactivate');
   static String get sessionReactivateConfirm => _t('sessionReactivateConfirm');
+  static String get emailCopied => _t('emailCopied');
+  static String get phoneCopied => _t('phoneCopied');
 }

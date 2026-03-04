@@ -1,5 +1,7 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
@@ -108,8 +110,81 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   label: AppStrings.studentLastName,
                   value: _student.lastName,
                 ),
-                _InfoRow(label: AppStrings.studentEmail, value: _student.email),
-                _InfoRow(label: AppStrings.studentPhone, value: _student.phone),
+                _InfoRow(
+                  label: AppStrings.studentEmail,
+                  value: _student.email,
+                  valueWidget: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          _student.email,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 14,
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(text: _student.email),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(AppStrings.emailCopied),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          icon: const Icon(
+                            Icons.copy,
+                            size: 14,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _InfoRow(
+                  label: AppStrings.studentPhone,
+                  value: _student.phone,
+                  valueWidget: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          _student.phone,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 14,
+                          onPressed: () =>
+                              launchUrl(Uri.parse('tel:${_student.phone}')),
+                          icon: const Icon(
+                            Icons.phone,
+                            size: 14,
+                            color: HelpiTheme.accent,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 _InfoRow(
                   label: AppStrings.studentAddress,
                   value: _student.address,

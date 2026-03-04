@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
@@ -1461,11 +1463,29 @@ class _StudentCard extends StatelessWidget {
                         color: HelpiTheme.textSecondary,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        student.phone,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: HelpiTheme.textSecondary,
+                      Flexible(
+                        child: Text(
+                          student.phone,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 14,
+                          onPressed: () =>
+                              launchUrl(Uri.parse('tel:${student.phone}')),
+                          icon: const Icon(
+                            Icons.phone,
+                            size: 14,
+                            color: HelpiTheme.accent,
+                          ),
                         ),
                       ),
                     ],
@@ -1479,7 +1499,7 @@ class _StudentCard extends StatelessWidget {
                         color: HelpiTheme.textSecondary,
                       ),
                       const SizedBox(width: 4),
-                      Expanded(
+                      Flexible(
                         child: Text(
                           student.email,
                           style: const TextStyle(
@@ -1488,6 +1508,31 @@ class _StudentCard extends StatelessWidget {
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 14,
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(text: student.email),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(AppStrings.emailCopied),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          icon: const Icon(
+                            Icons.copy,
+                            size: 14,
+                            color: HelpiTheme.textSecondary,
+                          ),
                         ),
                       ),
                     ],

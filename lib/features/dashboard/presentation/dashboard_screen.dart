@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
@@ -284,12 +287,21 @@ class _SectionHeader extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  RECENT ORDER CARD
+//  RECENT ORDER CARD (matches _OrderListCard from orders_screen)
 // ═══════════════════════════════════════════════════════════════
 class _RecentOrderCard extends StatelessWidget {
   const _RecentOrderCard({required this.order, required this.theme});
   final OrderModel order;
   final ThemeData theme;
+
+  String _serviceLabel(ServiceType type) => switch (type) {
+    ServiceType.shopping => AppStrings.serviceShopping,
+    ServiceType.houseHelp => AppStrings.serviceHouseHelp,
+    ServiceType.companionship => AppStrings.serviceCompanionship,
+    ServiceType.walk => AppStrings.serviceWalk,
+    ServiceType.escort => AppStrings.serviceEscort,
+    ServiceType.other => AppStrings.serviceOther,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -306,74 +318,190 @@ class _RecentOrderCard extends StatelessWidget {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
           border: Border.all(color: HelpiTheme.border),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
+            // ── Header: order number + status ──
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
                     AppStrings.orderNumber(order.orderNumber),
                     style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
+                ),
+                _buildStatusChip(order.status),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Divider(height: 1),
+            const SizedBox(height: 10),
+
+            // ── Details + Arrow ──
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(
-                        width: 16,
-                        child: Icon(
-                          Icons.person_outline,
-                          size: 16,
-                          color: HelpiTheme.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        order.senior.fullName,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: HelpiTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const SizedBox(
-                        width: 16,
-                        child: Center(
-                          child: Icon(
-                            Icons.calendar_today,
-                            size: 14,
+                      // ── Senior ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.elderly,
+                            size: 18,
                             color: HelpiTheme.textSecondary,
                           ),
-                        ),
+                          const SizedBox(width: 6),
+                          Text(
+                            order.senior.fullName,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '$dateStr  $timeStr',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: HelpiTheme.textSecondary,
-                        ),
+                      const SizedBox(height: 6),
+
+                      // ── Student ──
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.school,
+                            size: 18,
+                            color: order.student != null
+                                ? HelpiTheme.textSecondary
+                                : HelpiTheme.statusCancelledText,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            order.student?.fullName ??
+                                AppStrings.noStudentAssigned,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: order.student != null
+                                  ? HelpiTheme.textPrimary
+                                  : HelpiTheme.statusCancelledText,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+
+                      // ── Date + Time ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today,
+                            size: 16,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$dateStr  $timeStr  ·  ${order.durationHours}h',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: HelpiTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // ── Service chips ──
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: order.services.map((s) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: HelpiTheme.textSecondary.withValues(
+                                alpha: 0.08,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: HelpiTheme.textSecondary.withValues(
+                                  alpha: 0.25,
+                                ),
+                              ),
+                            ),
+                            child: Text(
+                              _serviceLabel(s),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: HelpiTheme.textSecondary,
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+
+                // ── Arrow ──
+                const Icon(
+                  Icons.chevron_right,
+                  color: HelpiTheme.textSecondary,
+                ),
+              ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(OrderStatus status) {
+    Color textColor;
+    Color bgColor;
+    String label;
+
+    switch (status) {
+      case OrderStatus.processing:
+        textColor = HelpiTheme.statusProcessingText;
+        bgColor = HelpiTheme.statusProcessingBg;
+        label = AppStrings.statusProcessing;
+      case OrderStatus.active:
+        textColor = HelpiTheme.statusActiveText;
+        bgColor = HelpiTheme.statusActiveBg;
+        label = AppStrings.statusActive;
+      case OrderStatus.completed:
+        textColor = HelpiTheme.statusCompletedText;
+        bgColor = HelpiTheme.statusCompletedBg;
+        label = AppStrings.statusCompleted;
+      case OrderStatus.cancelled:
+        textColor = HelpiTheme.statusCancelledText;
+        bgColor = HelpiTheme.statusCancelledBg;
+        label = AppStrings.statusCancelled;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border.all(color: textColor.withValues(alpha: 0.3)),
+        borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: textColor,
         ),
       ),
     );
@@ -381,7 +509,7 @@ class _RecentOrderCard extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  EXPIRING CONTRACT CARD
+//  EXPIRING CONTRACT CARD (matches _StudentCard style)
 // ═══════════════════════════════════════════════════════════════
 class _ExpiringContractCard extends StatelessWidget {
   const _ExpiringContractCard({required this.student, required this.theme});
@@ -395,6 +523,18 @@ class _ExpiringContractCard extends StatelessWidget {
         ? '${student.contractExpiryDate!.day.toString().padLeft(2, '0')}.${student.contractExpiryDate!.month.toString().padLeft(2, '0')}.${student.contractExpiryDate!.year}'
         : '';
 
+    final (Color chipTextColor, Color chipBgColor, String chipLabel) = isExpired
+        ? (
+            HelpiTheme.statusCancelledText,
+            HelpiTheme.statusCancelledBg,
+            AppStrings.contractExpired,
+          )
+        : (
+            HelpiTheme.statusProcessingText,
+            HelpiTheme.statusProcessingBg,
+            AppStrings.contractExpires(dateStr),
+          );
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -405,7 +545,7 @@ class _ExpiringContractCard extends StatelessWidget {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -414,109 +554,180 @@ class _ExpiringContractCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // ── Student icon ──
+            // ── Avatar ──
             Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: isExpired
-                    ? HelpiTheme.statusCancelledBg
-                    : HelpiTheme.statusProcessingBg,
+              width: 48,
+              height: 48,
+              decoration: const BoxDecoration(
+                color: HelpiTheme.pastelTeal,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.school,
-                color: isExpired
-                    ? HelpiTheme.statusCancelledText
-                    : HelpiTheme.statusProcessingText,
-                size: 20,
+              child: Center(
+                child: Text(
+                  student.firstName[0] + student.lastName[0],
+                  style: const TextStyle(
+                    color: HelpiTheme.accent,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
+
+            // ── Info ──
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    student.fullName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          student.fullName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: chipBgColor,
+                          border: Border.all(
+                            color: chipTextColor.withValues(alpha: 0.3),
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.statusBadgeRadius,
+                          ),
+                        ),
+                        child: Text(
+                          chipLabel,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: chipTextColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isExpired
-                          ? HelpiTheme.statusCancelledBg
-                          : HelpiTheme.statusProcessingBg,
-                      borderRadius: BorderRadius.circular(
-                        HelpiTheme.chipRadius,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        size: 14,
+                        color: HelpiTheme.starYellow,
                       ),
-                    ),
-                    child: Text(
-                      isExpired
-                          ? AppStrings.contractExpired
-                          : AppStrings.contractExpires(dateStr),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: isExpired
-                            ? HelpiTheme.statusCancelledText
-                            : HelpiTheme.statusProcessingText,
+                      const SizedBox(width: 3),
+                      Text(
+                        '${student.avgRating}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.phone_outlined,
+                        size: 14,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        student.phone,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 14,
+                          icon: const Icon(
+                            Icons.call,
+                            color: HelpiTheme.accent,
+                          ),
+                          onPressed: () {
+                            launchUrl(Uri(scheme: 'tel', path: student.phone));
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.email_outlined,
+                        size: 14,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          student.email,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 14,
+                          icon: const Icon(
+                            Icons.copy,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(text: student.email),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(AppStrings.emailCopied)),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            // ── Action ──
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => StudentDetailScreen(student: student),
-                  ),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: HelpiTheme.accent.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: HelpiTheme.accent.withValues(alpha: 0.25),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.refresh,
-                      size: 14,
-                      color: HelpiTheme.accent,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      AppStrings.renewContract,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: HelpiTheme.accent,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+
+            // ── Arrow ──
+            const Icon(Icons.chevron_right, color: HelpiTheme.textSecondary),
           ],
         ),
       ),
@@ -525,7 +736,7 @@ class _ExpiringContractCard extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ACTIVE STUDENT THIS MONTH CARD
+//  ACTIVE STUDENT THIS MONTH CARD (matches _StudentCard style)
 // ═══════════════════════════════════════════════════════════════
 class _ActiveStudentCard extends StatelessWidget {
   const _ActiveStudentCard({
@@ -540,8 +751,42 @@ class _ActiveStudentCard extends StatelessWidget {
   final int totalHours;
   final ThemeData theme;
 
+  (Color, Color, String) _contractChip(ContractStatus status) {
+    return switch (status) {
+      ContractStatus.active => (
+        HelpiTheme.statusActiveText,
+        HelpiTheme.statusActiveBg,
+        AppStrings.contractActive,
+      ),
+      ContractStatus.expired => (
+        HelpiTheme.statusCancelledText,
+        HelpiTheme.statusCancelledBg,
+        AppStrings.contractExpired,
+      ),
+      ContractStatus.expiring => (
+        HelpiTheme.statusProcessingText,
+        HelpiTheme.statusProcessingBg,
+        AppStrings.contractExpiring,
+      ),
+      ContractStatus.none => (
+        HelpiTheme.textSecondary,
+        HelpiTheme.chipBg,
+        AppStrings.contractNone,
+      ),
+      ContractStatus.deactivated => (
+        HelpiTheme.statusCancelledText,
+        HelpiTheme.statusCancelledBg,
+        AppStrings.contractDeactivated,
+      ),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    final (chipTextColor, chipBgColor, chipLabel) = _contractChip(
+      student.contractStatus,
+    );
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -552,7 +797,7 @@ class _ActiveStudentCard extends StatelessWidget {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
+        margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -563,8 +808,8 @@ class _ActiveStudentCard extends StatelessWidget {
           children: [
             // ── Avatar ──
             Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: const BoxDecoration(
                 color: HelpiTheme.pastelTeal,
                 shape: BoxShape.circle,
@@ -575,25 +820,58 @@ class _ActiveStudentCard extends StatelessWidget {
                   style: const TextStyle(
                     color: HelpiTheme.accent,
                     fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                    fontSize: 18,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
+
             // ── Info ──
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    student.fullName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          student.fullName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: chipBgColor,
+                          border: Border.all(
+                            color: chipTextColor.withValues(alpha: 0.3),
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.statusBadgeRadius,
+                          ),
+                        ),
+                        child: Text(
+                          chipLabel,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: chipTextColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(
@@ -606,7 +884,92 @@ class _ActiveStudentCard extends StatelessWidget {
                         '${student.avgRating}',
                         style: const TextStyle(
                           fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$sessionCount ${AppStrings.sessionsCount}  ·  $totalHours ${AppStrings.hoursCount}',
+                        style: const TextStyle(
+                          fontSize: 13,
                           color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.phone_outlined,
+                        size: 14,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        student.phone,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 14,
+                          icon: const Icon(
+                            Icons.call,
+                            color: HelpiTheme.accent,
+                          ),
+                          onPressed: () {
+                            launchUrl(Uri(scheme: 'tel', path: student.phone));
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.email_outlined,
+                        size: 14,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          student.email,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 14,
+                          icon: const Icon(
+                            Icons.copy,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(text: student.email),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(AppStrings.emailCopied)),
+                            );
+                          },
                         ),
                       ),
                     ],
@@ -614,38 +977,9 @@ class _ActiveStudentCard extends StatelessWidget {
                 ],
               ),
             ),
-            // ── Stats ──
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: HelpiTheme.accent.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(HelpiTheme.chipRadius),
-                  ),
-                  child: Text(
-                    '$sessionCount ${AppStrings.sessionsCount}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: HelpiTheme.accent,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$totalHours ${AppStrings.hoursCount}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                ),
-              ],
-            ),
+
+            // ── Arrow ──
+            const Icon(Icons.chevron_right, color: HelpiTheme.textSecondary),
           ],
         ),
       ),
