@@ -344,13 +344,12 @@ class _SeniorCard extends StatelessWidget {
         .length;
 
     // Determine status chip
-    final bool isProcessing = MockData.orders.any(
-      (o) =>
-          o.senior.id == senior.id &&
-          o.student == null &&
-          (o.status == OrderStatus.active ||
-              o.status == OrderStatus.processing),
-    );
+    // Senior is "Active" only when they have at least one order
+    // with an assigned student. Otherwise they are "Processing".
+    final seniorOrders =
+        MockData.orders.where((o) => o.senior.id == senior.id);
+    final bool hasStudentAssigned =
+        seniorOrders.any((o) => o.student != null);
 
     final (
       Color chipTextColor,
@@ -368,16 +367,16 @@ class _SeniorCard extends StatelessWidget {
             HelpiTheme.statusCancelledBg,
             AppStrings.filterInactive,
           )
-        : isProcessing
+        : hasStudentAssigned
         ? (
-            HelpiTheme.statusProcessingText,
-            HelpiTheme.statusProcessingBg,
-            AppStrings.filterProcessing,
-          )
-        : (
             HelpiTheme.statusActiveText,
             HelpiTheme.statusActiveBg,
             AppStrings.filterActive,
+          )
+        : (
+            HelpiTheme.statusProcessingText,
+            HelpiTheme.statusProcessingBg,
+            AppStrings.filterProcessing,
           );
 
     return GestureDetector(
@@ -515,7 +514,7 @@ class _SeniorCard extends StatelessWidget {
                       Text(
                         AppStrings.seniorOrderCount(orderCount),
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: HelpiTheme.accent,
                         ),
@@ -960,7 +959,10 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                 label: Text(AppStrings.addOrder),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: HelpiTheme.accent,
-                  side: const BorderSide(color: HelpiTheme.accent),
+                  side: const BorderSide(
+                    color: HelpiTheme.accent,
+                    width: 2,
+                  ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),

@@ -466,6 +466,17 @@ class MockData {
       isActive: false,
       createdAt: DateTime(2025, 12, 5),
     ),
+    SeniorModel(
+      id: 's6',
+      firstName: 'Ankica',
+      lastName: 'Tomić',
+      email: 'ankica.tomic@email.com',
+      phone: '+385 91 789 0123',
+      address: 'Draškovićeva 33, Zagreb',
+      gender: Gender.female,
+      dateOfBirth: DateTime(1950, 4, 10),
+      createdAt: DateTime(2026, 2, 20),
+    ),
   ];
 
   // ── Studenti ──
