@@ -429,7 +429,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     final picked = await showDateRangePicker(
       context: context,
       firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 2),
+      lastDate: DateTime(now.year + 1, 12, 31),
       initialDateRange: DateTimeRange(
         start: now,
         end: DateTime(now.year, now.month + 1, 0),
@@ -623,10 +623,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
 
   Future<void> _pickDateRange() async {
+    final now = DateTime.now();
     final picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(2025),
-      lastDate: DateTime(2027),
+      firstDate: DateTime(now.year - 1, now.month, 1),
+      lastDate: DateTime(now.year, 12, 31),
       initialDateRange: DateTimeRange(start: _summaryStart, end: _summaryEnd),
       builder: (context, child) {
         return Theme(
