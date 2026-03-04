@@ -622,13 +622,13 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   String _fmtDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
 
-  Future<void> _pickDateRange() async {
+  Future<void> _pickStartDate() async {
     final now = DateTime.now();
-    final picked = await showDateRangePicker(
+    final picked = await showDatePicker(
       context: context,
-      firstDate: DateTime(now.year - 1, now.month, 1),
-      lastDate: DateTime(now.year, 12, 31),
-      initialDateRange: DateTimeRange(start: _summaryStart, end: _summaryEnd),
+      initialDate: _summaryStart,
+      firstDate: DateTime(now.year - 1, 1, 1),
+      lastDate: _summaryEnd,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -645,8 +645,36 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     if (!mounted) return;
     if (picked != null) {
       setState(() {
-        _summaryStart = picked.start;
-        _summaryEnd = picked.end;
+        _summaryStart = picked;
+        _isCustomRange = true;
+      });
+    }
+  }
+
+  Future<void> _pickEndDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _summaryEnd,
+      firstDate: _summaryStart,
+      lastDate: DateTime(now.year, 12, 31),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: HelpiTheme.accent,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (!mounted) return;
+    if (picked != null) {
+      setState(() {
+        _summaryEnd = picked;
         _isCustomRange = true;
       });
     }
@@ -724,44 +752,78 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 ],
               ),
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: _pickDateRange,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _pickStartDate,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: HelpiTheme.border),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${AppStrings.workFrom}: ${_fmtDate(_summaryStart)}',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.edit_calendar,
+                              size: 16,
+                              color: HelpiTheme.accent,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: HelpiTheme.border),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text(
+                      '→',
+                      style: TextStyle(color: HelpiTheme.textSecondary),
+                    ),
                   ),
-                  child: Row(
-                    children: [
-                      Text(
-                        '${AppStrings.workFrom}: ${_fmtDate(_summaryStart)}',
-                        style: const TextStyle(fontSize: 13),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: _pickEndDate,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: HelpiTheme.border),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${AppStrings.workTo}: ${_fmtDate(_summaryEnd)}',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.edit_calendar,
+                              size: 16,
+                              color: HelpiTheme.accent,
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        '→',
-                        style: TextStyle(color: HelpiTheme.textSecondary),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        '${AppStrings.workTo}: ${_fmtDate(_summaryEnd)}',
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                      const Spacer(),
-                      const Icon(
-                        Icons.edit_calendar,
-                        size: 16,
-                        color: HelpiTheme.accent,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
