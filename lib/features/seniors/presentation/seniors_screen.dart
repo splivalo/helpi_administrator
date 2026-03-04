@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/create_order_screen.dart';
@@ -24,6 +25,9 @@ class SeniorsScreen extends StatefulWidget {
 
 class _SeniorsScreenState extends State<SeniorsScreen>
     with SingleTickerProviderStateMixin {
+  static const _screenKey = 'seniors';
+  final _prefs = PreferencesService.instance;
+
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
   SeniorSort _sort = SeniorSort.az;
@@ -35,14 +39,27 @@ class _SeniorsScreenState extends State<SeniorsScreen>
   @override
   void initState() {
     super.initState();
+
+    // Restore saved preferences
+    _isGridView = _prefs.getGridView(_screenKey);
+    final savedSort = _prefs.getSort(_screenKey);
+    if (savedSort != null) {
+      _sort = SeniorSort.values.firstWhere(
+        (e) => e.name == savedSort,
+        orElse: () => SeniorSort.az,
+      );
+    }
+    final savedTab = _prefs.getTab(_screenKey);
+
     _tabCtrl = TabController(
       length: _tabFilters.length,
       vsync: this,
-      initialIndex: _tabFilters.indexOf(_SeniorStatusFilter.all),
+      initialIndex: savedTab.clamp(0, _tabFilters.length - 1),
     );
     _tabCtrl.addListener(() {
       if (!_tabCtrl.indexIsChanging) {
         setState(() {});
+        _prefs.setTab(_screenKey, _tabCtrl.index);
       }
     });
   }
@@ -125,7 +142,10 @@ class _SeniorsScreenState extends State<SeniorsScreen>
         actions: [
           IconButton(
             icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
-            onPressed: () => setState(() => _isGridView = !_isGridView),
+            onPressed: () {
+              setState(() => _isGridView = !_isGridView);
+              _prefs.setGridView(_screenKey, isGrid: _isGridView);
+            },
           ),
           const NotificationBell(),
         ],
@@ -220,7 +240,10 @@ class _SeniorsScreenState extends State<SeniorsScreen>
                   ),
                   padding: EdgeInsets.zero,
                   tooltip: AppStrings.sortBy,
-                  onSelected: (v) => setState(() => _sort = v),
+                  onSelected: (v) {
+                    setState(() => _sort = v);
+                    _prefs.setSort(_screenKey, v.name);
+                  },
                   itemBuilder: (_) => [
                     _sortMenuItem(SeniorSort.az, AppStrings.sortAZ),
                     _sortMenuItem(SeniorSort.za, AppStrings.sortZA),

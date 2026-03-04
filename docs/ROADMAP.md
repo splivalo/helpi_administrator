@@ -4,12 +4,13 @@
 
 ## TODO (čeka potvrdu)
 
+- [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
 - [ ] **Blagdani (javni praznici)** — Definirati listu hrvatskih blagdana i integrirati u obračun sati. Sati odrađeni na blagdan trebaju koristiti `sundayHourlyRate` (11.10 €) umjesto redovne satnice. Potrebno odlučiti: hardkodirana lista RH blagdana ili konfigurabilan popis iz backenda.
 - [ ] **Backend integracija** — Zamjena MockData s REST API pozivima. Definiranje API endpointova, autentifikacija (JWT), error handling.
 - [ ] **State management** — Uvesti Riverpod ili Bloc za state management umjesto lokalnog StatefulWidget stanja.
-- [ ] **Notifikacije** — Push notifikacije za administratora (nova narudžba, istek ugovora, otkazana sesija).
+- [ ] **Notifikacije (push)** — Push notifikacije za administratora (nova narudžba, istek ugovora, otkazana sesija). Trenutno su notifikacije samo lokalne mock.
 - [ ] **Export podataka** — PDF/Excel export za obračune, liste studenata, izvještaje.
-- [ ] **Filteri na narudžbama** — Napredni filteri za narudžbe (po seniorima, studentima, datumu, statusu).
+- [ ] **Filteri na narudžbama** — Napredni filteri za narudžbe (po seniorima, studentima, datumu, statusu) — slično studenti filter panelu.
 - [ ] **Lokacija/mapa** — Prikaz lokacija seniora/studenata na mapi za optimizaciju dodjele.
 - [ ] **Dark mode** — Podrška za tamnu temu.
 
@@ -18,7 +19,7 @@
 - [x] **Projekt scaffold** — Flutter 3.10.7+, Material 3, responzivni shell (2026-02)
 - [x] **Svih 5 ekrana** — Dashboard, Studenti, Seniori, Narudžbe, Chat (2026-02)
 - [x] **i18n sustav** — AppStrings Gemini Hybrid pattern, HR + EN (2026-02)
-- [x] **Mock podaci** — Kompletni mock podaci za sve entitete (2026-02)
+- [x] **Mock podaci** — Kompletni mock podaci za sve entitete uklj. 6 seniora i notifikacije (2026-02 → 2026-03-04)
 - [x] **Responzivni gumbi** — 1/3 širine na ≥800px, full-width na mobilnom (2026-03-04)
 - [x] **Date picker optimizacija** — Zamjena showDateRangePicker s dva showDatePicker (2026-03-04)
 - [x] **UI polish** — Order kartice styling, italic fix, boja ikone (2026-03-04)
@@ -26,6 +27,16 @@
 - [x] **Dokumentacija** — docs/ folder s PROGRESS, ROADMAP, ARCHITECTURE, PROJECT_HISTORY (2026-03-04)
 - [x] **DRY refactor cijele aplikacije** — 7 ekrana refaktorirano, 6 shared fajlova kreirano, ~1000+ linija duplikata uklonjeno (2026-03-04)
 - [x] **Contact actions fix** — PhoneCallButton/EmailCopyButton trailing uz tekst, GestureDetector fix (2026-03-04)
+- [x] **CreateOrderScreen** — Kompletna single-page forma za kreiranje narudžbe (1141 linija), senior pre-assignment, auto-scroll, service/hour chips full-width (2026-03-04)
+- [x] **FAB "Dodaj narudžbu"** — Na listi narudžbi + "Dodaj narudžbu" gumb na senior detail ekranu (2026-03-04)
+- [x] **Senior status business logika** — "U obradi" dok nema studenta → "Aktivan" kad ima (hasStudentAssigned) (2026-03-04)
+- [x] **Studenti 7 tabova** — Prošireno s 3 na 7 (Svi/Aktivni/Ističe/Istekao/Bez/Deaktivirani/Arhivirani) (2026-03-04)
+- [x] **Seniori 5 tabova** — Svi/U obradi/Aktivni/Neaktivni/Arhivirani (2026-03-04)
+- [x] **Narudžbe 5 tabova** — Svi/U obradi/Aktivne/Završene/Otkazane + sortiranje (2026-03-04)
+- [x] **Filter panel redesign** — DropdownButtonFormField, day chips full-width, konzistentni borderRadius/padding (2026-03-04)
+- [x] **bodyLarge font unifikacija** — 18px → 16px za konzistentne TextField/Dropdown (2026-03-04)
+- [x] **NotificationBell widget** — Bell ikona s badge + drawer s mock notifikacijama (2026-03-04)
+- [x] **SharedPreferences persistencija** — Grid/sort/tab per screen, web-safe fallback, wired u 4 ekrana (2026-03-04)
 
 ---
 

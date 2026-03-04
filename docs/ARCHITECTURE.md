@@ -6,17 +6,19 @@
 
 ## Tech Stack
 
-| Komponenta    | Tehnologija              | Verzija     |
-| ------------- | ------------------------ | ----------- |
-| Framework     | Flutter                  | SDK ≥3.10.7 |
-| Jezik         | Dart                     | ≥3.10.7     |
-| Dizajn sustav | Material 3               | —           |
-| SVG rendering | flutter_svg              | ^2.0.17     |
-| File picker   | file_selector            | ^1.1.0      |
-| Lokalizacija  | flutter_localizations    | SDK         |
-| Ikone         | cupertino_icons          | ^1.0.8      |
-| State mgmt    | StatefulWidget (lokalni) | —           |
-| Backend       | ❌ Mock (MockData klasa) | —           |
+| Komponenta      | Tehnologija              | Verzija     |
+| --------------- | ------------------------ | ----------- |
+| Framework       | Flutter                  | SDK ≥3.10.7 |
+| Jezik           | Dart                     | ≥3.10.7     |
+| Dizajn sustav   | Material 3               | —           |
+| SVG rendering   | flutter_svg              | ^2.0.17     |
+| File picker     | file_selector            | ^1.1.0      |
+| URL launcher    | url_launcher             | ^6.3.1      |
+| Lokalna pohrana | shared_preferences       | ^2.5.4      |
+| Lokalizacija    | flutter_localizations    | SDK         |
+| Ikone           | cupertino_icons          | ^1.0.8      |
+| State mgmt      | StatefulWidget (lokalni) | —           |
+| Backend         | ❌ Mock (MockData klasa) | —           |
 
 ---
 
@@ -24,52 +26,66 @@
 
 ```
 lib/
-├── main.dart                          # Entry point
+├── main.dart                          # Entry point (async, init SharedPreferences)
 ├── app/
 │   ├── app.dart                       # Root widget (HelpiAdminApp)
 │   ├── theme.dart                     # HelpiTheme – boje, dimenzije, ThemeData
 │   └── responsive_shell.dart          # Responsive shell (sidebar/rail/bottomnav)
 ├── core/
 │   ├── l10n/
-│   │   ├── app_strings.dart           # i18n stringovi (HR + EN)
+│   │   ├── app_strings.dart           # i18n stringovi (HR + EN, ~1337 linija)
 │   │   └── locale_notifier.dart       # ValueNotifier<Locale>
-│   └── models/
-│       └── admin_models.dart          # Svi modeli + MockData + enumi
+│   ├── models/
+│   │   └── admin_models.dart          # Svi modeli + MockData + enumi (~1641 linija)
+│   ├── services/
+│   │   └── preferences_service.dart   # SharedPreferences wrapper (singleton, web-safe)
+│   ├── utils/
+│   │   └── formatters.dart            # Formatiranje datuma/vremena
+│   └── widgets/
+│       ├── widgets.dart               # Barrel export
+│       ├── status_badges.dart         # StatusBadge, ServiceChip
+│       ├── shared_widgets.dart        # SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar
+│       ├── contact_actions.dart       # PhoneCallButton, EmailCopyButton
+│       └── notification_bell.dart     # NotificationBell + NotificationsDrawer
 └── features/
     ├── auth/
     │   └── presentation/
     │       └── login_screen.dart       # Login ekran
     ├── dashboard/
     │   └── presentation/
-    │       └── dashboard_screen.dart   # Dashboard s KPI karticama
+    │       └── dashboard_screen.dart   # Dashboard s KPI karticama (~935 linija)
     ├── students/
     │   └── presentation/
-    │       ├── students_screen.dart    # Lista studenata
+    │       ├── students_screen.dart    # Lista studenata (~1574 linija)
     │       └── student_detail_screen.dart # Detalj studenta
     ├── seniors/
     │   └── presentation/
-    │       ├── seniors_screen.dart     # Lista + detalj seniora
+    │       ├── seniors_screen.dart     # Lista + inline detalj seniora (~1261 linija)
     │       ├── add_senior_screen.dart  # Dodaj seniora
-    │       └── edit_senior_screen.dart # Uredi seniora
+    │       ├── edit_senior_screen.dart # Uredi seniora
+    │       └── senior_form_helpers.dart # Shared form mixin
     ├── orders/
     │   └── presentation/
-    │       ├── orders_screen.dart      # Lista narudžbi
-    │       └── order_detail_screen.dart # Detalj narudžbe
+    │       ├── orders_screen.dart      # Lista narudžbi (~454 linija)
+    │       ├── order_detail_screen.dart # Detalj narudžbe (~1217 linija)
+    │       └── create_order_screen.dart # Kreiranje narudžbe (~1141 linija)
     └── chat/
         └── presentation/
-            └── chat_screen.dart        # Chat moderacija
+            └── chat_screen.dart        # Chat moderacija (~492 linija)
 ```
 
-**23 Dart fajlova, ~9.500 linija koda** (nakon DRY refaktora)
+**26 Dart fajlova, ~11.200 linija koda**
 
 ### Shared widgeti/utilitiji (core/)
 
 | Fajl                                            | Sadržaj                                                                       |
 | ----------------------------------------------- | ----------------------------------------------------------------------------- |
 | `core/utils/formatters.dart`                    | formatDate, formatTime, formatTimeOfDay, formatDateDot                        |
+| `core/services/preferences_service.dart`        | PreferencesService singleton — grid/sort/tab per screen, web-safe fallback    |
 | `core/widgets/status_badges.dart`               | StatusBadge, ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel |
 | `core/widgets/shared_widgets.dart`              | SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar  |
 | `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                              |
+| `core/widgets/notification_bell.dart`           | NotificationBell (badge + drawer s mock notifikacijama)                       |
 | `core/widgets/widgets.dart`                     | Barrel export svih widgeta                                                    |
 | `seniors/presentation/senior_form_helpers.dart` | SeniorFormHelpers mixin (forme za add/edit senior)                            |
 
@@ -85,9 +101,38 @@ Tri breakpointa definirana u `ResponsiveShell`:
 | 600–900px  | Tablet  | NavigationRail (collapsed, ikone)                                  |
 | ≥ 900px    | Desktop | Extended Sidebar (260px, SVG logo, labele, jezični toggle, logout) |
 
-Navigacija koristi `IndexedStack` s 5 ekrana: Dashboard, Studenti, Seniori, Narudžbe, Chat.
+Navigacija koristi `IndexedStack` s 5 ekrana: Dashboard, Narudžbe, Studenti, Seniori, Chat.
 
 **Responsive gumbi:** Action gumbi koriste `LayoutBuilder` — full-width na <800px, 1/3 širine na ≥800px.
+
+---
+
+## Persistencija (SharedPreferences)
+
+`PreferencesService` singleton u `core/services/preferences_service.dart`:
+
+```dart
+// Inicijalizacija u main.dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await PreferencesService.instance.init();
+  runApp(const HelpiAdminApp());
+}
+```
+
+**Što se pamti po ekranu:**
+
+| Ključ pattern       | Tip    | Default | Opis                      |
+| ------------------- | ------ | ------- | ------------------------- |
+| `gridView_{screen}` | bool   | false   | Grid ili List prikaz      |
+| `sort_{screen}`     | String | null    | Ime enum sort vrijednosti |
+| `tab_{screen}`      | int    | 0       | Indeks aktivnog taba      |
+
+**Screen identifikatori:** `dashboard`, `orders`, `students`, `seniors`
+
+**Web safety:** Init ima try-catch; ako SharedPreferences plugin nije dostupan (web hot-restart), servis radi u in-memory fallback modu bez crasha.
+
+> ⚠️ Trenutno globalne preferencije. Kad se doda auth, trebaju postati **per-user** (npr. `gridView_orders_userId123`).
 
 ---
 
@@ -119,19 +164,21 @@ static String deleteConfirm(String item) => _t('deleteConfirm', params: {'item':
 
 Centralizirana u `lib/app/theme.dart`:
 
-| Element            | Vrijednost                 |
-| ------------------ | -------------------------- |
-| Primary (coral)    | `#EF5B5B`                  |
-| Accent (teal)      | `#009D9D`                  |
-| Background         | `#F9F7F4` (warm off-white) |
-| Surface            | `#FFFFFF`                  |
-| Text Primary       | `#2D2D2D`                  |
-| Text Secondary     | `#757575`                  |
-| Border             | `#E0E0E0`                  |
-| Star yellow        | `#FFC107`                  |
-| Button height      | 56px                       |
-| Card/Button radius | 12px                       |
-| Sidebar width      | 260px                      |
+| Element             | Vrijednost                 |
+| ------------------- | -------------------------- |
+| Primary (coral)     | `#EF5B5B`                  |
+| Accent (teal)       | `#009D9D`                  |
+| Background          | `#F9F7F4` (warm off-white) |
+| Surface             | `#FFFFFF`                  |
+| Text Primary        | `#2D2D2D`                  |
+| Text Secondary      | `#757575`                  |
+| Border              | `#E0E0E0`                  |
+| Star yellow         | `#FFC107`                  |
+| Button height       | 56px                       |
+| Card/Button radius  | 12px                       |
+| Sidebar width       | 260px                      |
+| bodyLarge fontSize  | 16px                       |
+| bodyMedium fontSize | 16px                       |
 
 Status boje: Processing (plava), Active/Completed (zelena), Cancelled (coral/crvena).
 
@@ -139,19 +186,22 @@ Status boje: Processing (plava), Active/Completed (zelena), Cancelled (coral/crv
 
 ## Modeli podataka
 
-Definirani u `lib/core/models/admin_models.dart`:
+Definirani u `lib/core/models/admin_models.dart` (~1641 linija):
 
-| Model           | Opis                                                                              |
-| --------------- | --------------------------------------------------------------------------------- |
-| `SeniorModel`   | Senior (korisnik usluge) — ime, adresa, kontakt, potrebe, status                  |
-| `StudentModel`  | Student (pružatelj usluge) — profil, ugovor, satnica, dostupnost, bankovni podaci |
-| `OrderModel`    | Narudžba — senior ↔ student, usluga, frekvencija, lokacija, status                |
-| `SessionModel`  | Pojedinačna sesija unutar narudžbe — datum, trajanje, status                      |
-| `ChatRoom`      | Chat soba za moderaciju                                                           |
-| `ChatMessage`   | Pojedinačna poruka u chatu                                                        |
-| `StudentReview` | Recenzija studenta od seniora                                                     |
+| Model               | Opis                                                                              |
+| ------------------- | --------------------------------------------------------------------------------- |
+| `SeniorModel`       | Senior (korisnik usluge) — ime, adresa, kontakt, potrebe, status                  |
+| `StudentModel`      | Student (pružatelj usluge) — profil, ugovor, satnica, dostupnost, bankovni podaci |
+| `OrderModel`        | Narudžba — senior ↔ student, usluga, frekvencija, lokacija, status                |
+| `SessionModel`      | Pojedinačna sesija unutar narudžbe — datum, trajanje, status                      |
+| `ChatRoom`          | Chat soba za moderaciju                                                           |
+| `ChatMessage`       | Pojedinačna poruka u chatu                                                        |
+| `StudentReview`     | Recenzija studenta od seniora                                                     |
+| `NotificationModel` | Notifikacija za admina (tip, poruka, timestamp, isRead)                           |
 
-**Enumi:** `OrderStatus`, `JobStatus`, `ServiceType`, `FrequencyType`, `ContractStatus`, `SessionStatus`, `Gender`
+**Enumi:** `OrderStatus`, `OrderSort`, `StudentSort`, `SeniorSort`, `JobStatus`, `ServiceType`, `FrequencyType`, `ContractStatus`, `SessionStatus`, `Gender`
+
+**MockData:** 6 seniora (uključujući Ankica Tomić s6 s 0 narudžbi), studenti, narudžbe, sesije, chat sobe, notifikacije
 
 ---
 
@@ -173,3 +223,4 @@ Definirani u `lib/core/models/admin_models.dart`:
 - **Nema `// ignore` direktiva** — popravlja se kôd, ne utišava linter
 - **Nema `dynamic` bez casta** — uvijek `as Map<String, dynamic>`
 - **0 linter issues** — `flutter analyze` mora uvijek proći čisto
+- **Incremental changes** — jedan fajl po promjeni, potvrda testa prije sljedećeg

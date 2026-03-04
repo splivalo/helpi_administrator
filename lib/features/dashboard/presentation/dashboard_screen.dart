@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
@@ -17,7 +18,10 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  bool _isGridView = false;
+  static const _screenKey = 'dashboard';
+  final _prefs = PreferencesService.instance;
+
+  late bool _isGridView = _prefs.getGridView(_screenKey);
   late DateTime _selectedMonth = DateTime(
     DateTime.now().year,
     DateTime.now().month,
@@ -75,7 +79,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           IconButton(
             icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
-            onPressed: () => setState(() => _isGridView = !_isGridView),
+            onPressed: () {
+              setState(() => _isGridView = !_isGridView);
+              _prefs.setGridView(_screenKey, isGrid: _isGridView);
+            },
           ),
           const NotificationBell(),
         ],

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
@@ -20,6 +21,9 @@ class AdminOrdersScreen extends StatefulWidget {
 
 class _AdminOrdersScreenState extends State<AdminOrdersScreen>
     with SingleTickerProviderStateMixin {
+  static const _screenKey = 'orders';
+  final _prefs = PreferencesService.instance;
+
   late TabController _tabController;
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
@@ -37,10 +41,27 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+
+    // Restore saved preferences
+    _isGridView = _prefs.getGridView(_screenKey);
+    final savedSort = _prefs.getSort(_screenKey);
+    if (savedSort != null) {
+      _sort = OrderSort.values.firstWhere(
+        (e) => e.name == savedSort,
+        orElse: () => OrderSort.newest,
+      );
+    }
+    final savedTab = _prefs.getTab(_screenKey);
+
+    _tabController = TabController(
+      length: _tabs.length,
+      vsync: this,
+      initialIndex: savedTab.clamp(0, _tabs.length - 1),
+    );
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {});
+        _prefs.setTab(_screenKey, _tabController.index);
       }
     });
   }
@@ -91,7 +112,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
         actions: [
           IconButton(
             icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
-            onPressed: () => setState(() => _isGridView = !_isGridView),
+            onPressed: () {
+              setState(() => _isGridView = !_isGridView);
+              _prefs.setGridView(_screenKey, isGrid: _isGridView);
+            },
           ),
           const NotificationBell(),
         ],
@@ -169,7 +193,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                   ),
                   padding: EdgeInsets.zero,
                   tooltip: AppStrings.sortBy,
-                  onSelected: (v) => setState(() => _sort = v),
+                  onSelected: (v) {
+                    setState(() => _sort = v);
+                    _prefs.setSort(_screenKey, v.name);
+                  },
                   itemBuilder: (_) => [
                     _sortMenuItem(OrderSort.newest, AppStrings.sortNewest),
                     _sortMenuItem(OrderSort.oldest, AppStrings.sortOldest),
