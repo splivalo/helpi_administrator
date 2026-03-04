@@ -224,91 +224,112 @@ class _OrderListCard extends StatelessWidget {
             const Divider(height: 1),
             const SizedBox(height: 10),
 
-            // ── Senior ──
+            // ── Details + Arrow ──
             Row(
               children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Senior ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.elderly,
+                            size: 18,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            order.senior.fullName,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+
+                      // ── Student ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.school,
+                            size: 18,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            order.student?.fullName ??
+                                AppStrings.noStudentAssigned,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: order.student != null
+                                  ? HelpiTheme.textPrimary
+                                  : HelpiTheme.statusCancelledText,
+                              fontStyle: order.student == null
+                                  ? FontStyle.italic
+                                  : FontStyle.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+
+                      // ── Date + Time ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today,
+                            size: 16,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '$dateStr  $timeStr  ·  ${order.durationHours}h',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: HelpiTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      // ── Service chips ──
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: order.services.map((s) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: HelpiTheme.chipBg,
+                              borderRadius: BorderRadius.circular(
+                                HelpiTheme.pillRadius,
+                              ),
+                            ),
+                            child: Text(
+                              _serviceLabel(s),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: HelpiTheme.textSecondary,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Arrow ──
                 const Icon(
-                  Icons.elderly,
-                  size: 18,
+                  Icons.chevron_right,
                   color: HelpiTheme.textSecondary,
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  order.senior.fullName,
-                  style: const TextStyle(fontSize: 14),
-                ),
               ],
-            ),
-            const SizedBox(height: 6),
-
-            // ── Student ──
-            Row(
-              children: [
-                const Icon(
-                  Icons.school,
-                  size: 18,
-                  color: HelpiTheme.textSecondary,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  order.student?.fullName ?? AppStrings.noStudentAssigned,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: order.student != null
-                        ? HelpiTheme.textPrimary
-                        : HelpiTheme.statusCancelledText,
-                    fontStyle: order.student == null
-                        ? FontStyle.italic
-                        : FontStyle.normal,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-
-            // ── Date + Time + Services ──
-            Row(
-              children: [
-                const Icon(
-                  Icons.calendar_today,
-                  size: 16,
-                  color: HelpiTheme.textSecondary,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '$dateStr  $timeStr  ·  ${order.durationHours}h',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // ── Service chips ──
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: order.services.map((s) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: HelpiTheme.chipBg,
-                    borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
-                  ),
-                  child: Text(
-                    _serviceLabel(s),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: HelpiTheme.textSecondary,
-                    ),
-                  ),
-                );
-              }).toList(),
             ),
           ],
         ),
@@ -341,16 +362,16 @@ class _OrderListCard extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
         color: bgColor,
         border: Border.all(color: textColor.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(HelpiTheme.chipRadius),
+        borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: FontWeight.w600,
           color: textColor,
         ),
