@@ -517,6 +517,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
+        border: Border.all(color: textColor.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
       ),
       child: Text(
@@ -974,6 +975,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
         color: bgColor,
+        border: Border.all(
+          color: textColor.withValues(alpha: 0.3),
+        ),
         borderRadius: BorderRadius.circular(HelpiTheme.chipRadius),
       ),
       child: Text(

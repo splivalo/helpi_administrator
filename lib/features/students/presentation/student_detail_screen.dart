@@ -71,6 +71,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: HelpiTheme.chipBg,
+                  border: Border.all(
+                    color: HelpiTheme.textSecondary.withValues(alpha: 0.3),
+                  ),
                   borderRadius: BorderRadius.circular(
                     HelpiTheme.statusBadgeRadius,
                   ),
@@ -1207,6 +1210,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
+        border: Border.all(color: textColor.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
       ),
       child: Text(
@@ -1269,6 +1273,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
+        border: Border.all(color: textColor.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
       ),
       child: Text(

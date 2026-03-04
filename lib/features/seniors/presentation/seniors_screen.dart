@@ -310,14 +310,33 @@ class _SeniorCard extends StatelessWidget {
               o.status == OrderStatus.processing),
     );
 
-    final (Color chipTextColor, Color chipBgColor, String chipLabel) =
-        senior.isArchived
-            ? (HelpiTheme.textSecondary, HelpiTheme.chipBg, AppStrings.statusArchived)
-            : !senior.isActive
-                ? (HelpiTheme.statusCancelledText, HelpiTheme.statusCancelledBg, AppStrings.filterInactive)
-                : isProcessing
-                    ? (HelpiTheme.statusProcessingText, HelpiTheme.statusProcessingBg, AppStrings.filterProcessing)
-                    : (HelpiTheme.statusActiveText, HelpiTheme.statusActiveBg, AppStrings.filterActive);
+    final (
+      Color chipTextColor,
+      Color chipBgColor,
+      String chipLabel,
+    ) = senior.isArchived
+        ? (
+            HelpiTheme.textSecondary,
+            HelpiTheme.chipBg,
+            AppStrings.statusArchived,
+          )
+        : !senior.isActive
+        ? (
+            HelpiTheme.statusCancelledText,
+            HelpiTheme.statusCancelledBg,
+            AppStrings.filterInactive,
+          )
+        : isProcessing
+        ? (
+            HelpiTheme.statusProcessingText,
+            HelpiTheme.statusProcessingBg,
+            AppStrings.filterProcessing,
+          )
+        : (
+            HelpiTheme.statusActiveText,
+            HelpiTheme.statusActiveBg,
+            AppStrings.filterActive,
+          );
 
     return GestureDetector(
       onTap: onTap,
@@ -378,6 +397,9 @@ class _SeniorCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: chipBgColor,
+                          border: Border.all(
+                            color: chipTextColor.withValues(alpha: 0.3),
+                          ),
                           borderRadius: BorderRadius.circular(
                             HelpiTheme.statusBadgeRadius,
                           ),
@@ -614,6 +636,9 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: HelpiTheme.statusActiveBg,
+                  border: Border.all(
+                    color: HelpiTheme.statusActiveText.withValues(alpha: 0.3),
+                  ),
                   borderRadius: BorderRadius.circular(
                     HelpiTheme.statusBadgeRadius,
                   ),
@@ -635,6 +660,11 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: HelpiTheme.statusCancelledBg,
+                  border: Border.all(
+                    color: HelpiTheme.statusCancelledText.withValues(
+                      alpha: 0.3,
+                    ),
+                  ),
                   borderRadius: BorderRadius.circular(
                     HelpiTheme.statusBadgeRadius,
                   ),
@@ -657,6 +687,9 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: HelpiTheme.chipBg,
+                  border: Border.all(
+                    color: HelpiTheme.textSecondary.withValues(alpha: 0.3),
+                  ),
                   borderRadius: BorderRadius.circular(
                     HelpiTheme.statusBadgeRadius,
                   ),
@@ -1175,6 +1208,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: statusBg,
+                border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                 borderRadius: BorderRadius.circular(
                   HelpiTheme.statusBadgeRadius,
                 ),

@@ -1378,6 +1378,9 @@ class _StudentCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: bgColor,
+                              border: Border.all(
+                                color: textColor.withValues(alpha: 0.3),
+                              ),
                               borderRadius: BorderRadius.circular(
                                 HelpiTheme.statusBadgeRadius,
                               ),
@@ -1402,6 +1405,11 @@ class _StudentCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: HelpiTheme.chipBg,
+                            border: Border.all(
+                              color: HelpiTheme.textSecondary.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
                             borderRadius: BorderRadius.circular(
                               HelpiTheme.statusBadgeRadius,
                             ),
