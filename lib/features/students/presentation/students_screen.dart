@@ -1315,157 +1315,170 @@ class _StudentCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
           border: Border.all(color: HelpiTheme.border),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Avatar ──
-            Container(
-              width: 48,
-              height: 48,
-              decoration: const BoxDecoration(
-                color: HelpiTheme.pastelTeal,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  student.firstName[0] + student.lastName[0],
-                  style: const TextStyle(
-                    color: HelpiTheme.accent,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
+            // ── Header: Avatar + Name + Status chips ──
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: HelpiTheme.pastelTeal,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      student.firstName[0] + student.lastName[0],
+                      style: const TextStyle(
+                        color: HelpiTheme.accent,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 14),
-
-            // ── Info ──
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          student.fullName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    student.fullName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                StatusBadge.contract(student.contractStatus),
+                if (student.isArchived) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: HelpiTheme.chipBg,
+                      border: Border.all(
+                        color: HelpiTheme.textSecondary.withValues(alpha: 0.3),
                       ),
-                      const SizedBox(width: 8),
-                      StatusBadge.contract(student.contractStatus),
-                      if (student.isArchived) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 3,
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.statusBadgeRadius,
+                      ),
+                    ),
+                    child: Text(
+                      AppStrings.statusArchived,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Divider(height: 1),
+            const SizedBox(height: 10),
+
+            // ── Details + Chevron ──
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Rating + Jobs ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.star,
+                            size: 14,
+                            color: HelpiTheme.starYellow,
                           ),
-                          decoration: BoxDecoration(
-                            color: HelpiTheme.chipBg,
-                            border: Border.all(
-                              color: HelpiTheme.textSecondary.withValues(
-                                alpha: 0.3,
-                              ),
-                            ),
-                            borderRadius: BorderRadius.circular(
-                              HelpiTheme.statusBadgeRadius,
-                            ),
-                          ),
-                          child: Text(
-                            AppStrings.statusArchived,
+                          const SizedBox(width: 3),
+                          Text(
+                            '${student.avgRating}',
                             style: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
+                            style: const TextStyle(
+                              fontSize: 13,
                               color: HelpiTheme.textSecondary,
                             ),
                           ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        size: 14,
-                        color: HelpiTheme.starYellow,
+                        ],
                       ),
-                      const SizedBox(width: 3),
-                      Text(
-                        '${student.avgRating}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: HelpiTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.phone_outlined,
-                        size: 14,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          student.phone,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: HelpiTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      PhoneCallButton(phone: student.phone),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.email_outlined,
-                        size: 14,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          student.email,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: HelpiTheme.textSecondary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      EmailCopyButton(email: student.email),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                      const SizedBox(height: 4),
 
-            // ── Arrow ──
-            const Icon(Icons.chevron_right, color: HelpiTheme.textSecondary),
+                      // ── Phone ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.phone_outlined,
+                            size: 14,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              student.phone,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: HelpiTheme.textSecondary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          PhoneCallButton(phone: student.phone),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      // ── Email ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.email_outlined,
+                            size: 14,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              student.email,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: HelpiTheme.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          EmailCopyButton(email: student.email),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Chevron ──
+                const Icon(
+                  Icons.chevron_right,
+                  color: HelpiTheme.textSecondary,
+                ),
+              ],
+            ),
           ],
         ),
       ),

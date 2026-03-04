@@ -389,120 +389,128 @@ class _SeniorCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
           border: Border.all(color: HelpiTheme.border),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Avatar ──
-            Container(
-              width: 48,
-              height: 48,
-              decoration: const BoxDecoration(
-                color: HelpiTheme.pastelCoral,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  senior.firstName[0] + senior.lastName[0],
-                  style: const TextStyle(
-                    color: HelpiTheme.primary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
+            // ── Header: Avatar + Name + Status chip ──
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: HelpiTheme.pastelCoral,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      senior.firstName[0] + senior.lastName[0],
+                      style: const TextStyle(
+                        color: HelpiTheme.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    senior.fullName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: chipBgColor,
+                    border: Border.all(
+                      color: chipTextColor.withValues(alpha: 0.3),
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      HelpiTheme.statusBadgeRadius,
+                    ),
+                  ),
+                  child: Text(
+                    chipLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: chipTextColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 14),
+            const SizedBox(height: 10),
+            const Divider(height: 1),
+            const SizedBox(height: 10),
 
-            // ── Info ──
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            // ── Details + Chevron ──
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Flexible(
-                        child: Text(
-                          senior.fullName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: chipBgColor,
-                          border: Border.all(
-                            color: chipTextColor.withValues(alpha: 0.3),
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.statusBadgeRadius,
-                          ),
-                        ),
-                        child: Text(
-                          chipLabel,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: chipTextColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.phone_outlined,
-                        size: 14,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          senior.phone,
-                          style: const TextStyle(
-                            fontSize: 13,
+                      // ── Phone ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.phone_outlined,
+                            size: 14,
                             color: HelpiTheme.textSecondary,
                           ),
-                        ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              senior.phone,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: HelpiTheme.textSecondary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          PhoneCallButton(phone: senior.phone),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      PhoneCallButton(phone: senior.phone),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.location_on_outlined,
-                        size: 14,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          senior.address,
-                          style: const TextStyle(
-                            fontSize: 13,
+                      const SizedBox(height: 4),
+
+                      // ── Address ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 14,
                             color: HelpiTheme.textSecondary,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              senior.address,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: HelpiTheme.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
+                      const SizedBox(height: 6),
+
+                      // ── Order count ──
                       Text(
                         AppStrings.seniorOrderCount(orderCount),
                         style: const TextStyle(
@@ -513,12 +521,15 @@ class _SeniorCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
 
-            // ── Arrow ──
-            const Icon(Icons.chevron_right, color: HelpiTheme.textSecondary),
+                // ── Chevron ──
+                const Icon(
+                  Icons.chevron_right,
+                  color: HelpiTheme.textSecondary,
+                ),
+              ],
+            ),
           ],
         ),
       ),
