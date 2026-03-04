@@ -80,6 +80,7 @@ class AppStrings {
 
       // ── Kreiranje narudžbe ────────────────────
       'createOrder': 'Nova narudžba',
+      'addOrder': 'Dodaj narudžbu',
       'createOrderSuccess': 'Narudžba uspješno kreirana.',
       'selectSenior': 'Odaberi seniora',
       'selectSeniorHint': 'Pretraži seniore...',
@@ -504,6 +505,7 @@ class AppStrings {
 
       // ── Kreiranje narudžbe ────────────────────
       'createOrder': 'New order',
+      'addOrder': 'Add order',
       'createOrderSuccess': 'Order created successfully.',
       'selectSenior': 'Select senior',
       'selectSeniorHint': 'Search seniors...',
@@ -944,6 +946,7 @@ class AppStrings {
 
   // ── Kreiranje narudžbe ──
   static String get createOrder => _t('createOrder');
+  static String get addOrder => _t('addOrder');
   static String get createOrderSuccess => _t('createOrderSuccess');
   static String get selectSenior => _t('selectSenior');
   static String get selectSeniorHint => _t('selectSeniorHint');

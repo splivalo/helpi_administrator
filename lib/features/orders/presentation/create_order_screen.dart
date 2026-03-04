@@ -7,8 +7,13 @@ import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/status_badges.dart';
 
 /// Single-screen form for creating a new order (admin side).
+///
+/// When [senior] is provided the senior-picker section is skipped
+/// and the order is pre-assigned to that senior (used from senior detail).
 class CreateOrderScreen extends StatefulWidget {
-  const CreateOrderScreen({super.key});
+  const CreateOrderScreen({super.key, this.senior});
+
+  final SeniorModel? senior;
 
   @override
   State<CreateOrderScreen> createState() => _CreateOrderScreenState();
@@ -23,6 +28,12 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   // ── Senior ──
   SeniorModel? _selectedSenior;
   bool _showSeniorSearch = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSenior = widget.senior;
+  }
 
   // ── Frequency ──
   FrequencyType _frequency = FrequencyType.oneTime;
@@ -126,10 +137,12 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
             // ══════════════════════════════════════
             // 1) ODABERI SENIORA
             // ══════════════════════════════════════
-            _buildSectionLabel(AppStrings.selectSenior, Icons.elderly),
-            const SizedBox(height: 12),
-            _buildSeniorPicker(),
-            const SizedBox(height: 24),
+            if (widget.senior == null) ...[
+              _buildSectionLabel(AppStrings.selectSenior, Icons.elderly),
+              const SizedBox(height: 12),
+              _buildSeniorPicker(),
+              const SizedBox(height: 24),
+            ],
 
             // ══════════════════════════════════════
             // 2) UČESTALOST

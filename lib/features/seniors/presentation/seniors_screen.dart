@@ -5,6 +5,7 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
+import 'package:helpi_admin/features/orders/presentation/create_order_screen.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/add_senior_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/edit_senior_screen.dart';
@@ -939,6 +940,31 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   ),
                 ],
               ),
+            const SizedBox(height: 12),
+
+            // ── Add order button ──
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () async {
+                  await Navigator.push<void>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CreateOrderScreen(senior: widget.senior),
+                    ),
+                  );
+                  if (!context.mounted) return;
+                  // TODO: refresh orders when backend is wired
+                },
+                icon: const Icon(Icons.add),
+                label: Text(AppStrings.addOrder),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: HelpiTheme.accent,
+                  side: const BorderSide(color: HelpiTheme.accent),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
             const SizedBox(height: 12),
 
             // ── Reviews ──
