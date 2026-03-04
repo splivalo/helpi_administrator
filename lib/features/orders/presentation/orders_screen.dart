@@ -274,10 +274,12 @@ class _OrderListCard extends StatelessWidget {
                       // ── Student ──
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.school,
                             size: 18,
-                            color: HelpiTheme.textSecondary,
+                            color: order.student != null
+                                ? HelpiTheme.textSecondary
+                                : HelpiTheme.statusCancelledText,
                           ),
                           const SizedBox(width: 6),
                           Text(
@@ -288,9 +290,6 @@ class _OrderListCard extends StatelessWidget {
                               color: order.student != null
                                   ? HelpiTheme.textPrimary
                                   : HelpiTheme.statusCancelledText,
-                              fontStyle: order.student == null
-                                  ? FontStyle.italic
-                                  : FontStyle.normal,
                             ),
                           ),
                         ],
