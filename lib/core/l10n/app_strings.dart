@@ -213,8 +213,6 @@ class AppStrings {
       'studentAssignedOrders': 'Dodijeljene narudžbe',
       'studentRemoveVerification': 'Ukloni verifikaciju',
       'studentVerify': 'Verificiraj',
-      'studentDeactivate': 'Deaktiviraj',
-      'studentActivate': 'Aktiviraj',
       'studentArchive': 'Arhiviraj',
       'studentUnarchive': 'Vrati iz arhive',
       'archiveConfirmTitle': 'Arhiviraj',
@@ -594,8 +592,6 @@ class AppStrings {
       'studentAssignedOrders': 'Assigned orders',
       'studentRemoveVerification': 'Remove verification',
       'studentVerify': 'Verify',
-      'studentDeactivate': 'Deactivate',
-      'studentActivate': 'Activate',
       'studentArchive': 'Archive',
       'studentUnarchive': 'Restore from archive',
       'archiveConfirmTitle': 'Archive',
@@ -954,8 +950,6 @@ class AppStrings {
   static String get studentRemoveVerification =>
       _t('studentRemoveVerification');
   static String get studentVerify => _t('studentVerify');
-  static String get studentDeactivate => _t('studentDeactivate');
-  static String get studentActivate => _t('studentActivate');
   static String get studentArchive => _t('studentArchive');
   static String get studentUnarchive => _t('studentUnarchive');
   static String get archiveConfirmTitle => _t('archiveConfirmTitle');

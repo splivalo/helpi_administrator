@@ -25,10 +25,7 @@ class HelpiTheme {
   static const Color statusCompletedBg = Color(0xFFE8F5E9);
   static const Color statusCancelledText = Color(0xFFEF5B5B);
   static const Color statusCancelledBg = Color(0xFFFFEBEE);
-  static const Color statusAssignedText = Color(0xFF4CAF50);
-  static const Color statusAssignedBg = Color(0xFFE8F5E9);
-  static const Color statusUpcomingText = Color(0xFF1976D2);
-  static const Color statusUpcomingBg = Color(0xFFE8F1FB);
+
 
   // Specijalne
   static const Color starYellow = Color(0xFFFFC107);
@@ -37,11 +34,6 @@ class HelpiTheme {
   static const Color pastelCoral = Color(0xFFFFE8E5);
   static const Color scaffold = background;
 
-  // Pastelne boje za kartice
-  static const Color cardMint = Color(0xFFE8F5F1);
-  static const Color cardLavender = Color(0xFFF0EBFA);
-  static const Color cardCream = Color(0xFFFFF8E7);
-  static const Color cardBlue = Color(0xFFE8F1FB);
 
   // ─── Dimenzije ──────────────────────────────────────────────────
   static const double buttonHeight = 56.0;
@@ -54,7 +46,6 @@ class HelpiTheme {
 
   // ─── Sidebar (desktop) ──────────────────────────────────────────
   static const double sidebarWidth = 260.0;
-  static const double sidebarCollapsedWidth = 72.0;
 
   // ─── Tema ───────────────────────────────────────────────────────
   static ThemeData get light => ThemeData(
