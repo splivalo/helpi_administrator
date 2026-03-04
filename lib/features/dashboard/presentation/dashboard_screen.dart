@@ -9,13 +9,24 @@ import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dar
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
 /// Admin Dashboard — pregled statistika i nedavnih narudžbi.
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _isGridView = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isWide = screenWidth >= 900;
+
+    // Grid columns: >=1200 → 3, >=900 → 2, else 1
+    final gridColumns = screenWidth >= 1200 ? 3 : (screenWidth >= 900 ? 2 : 1);
 
     final processingCount = MockData.orders
         .where((o) => o.status == OrderStatus.processing)
@@ -56,7 +67,15 @@ class DashboardScreen extends StatelessWidget {
     final activeStudentsList = activeStudentMap.values.toList();
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.dashboardTitle)),
+      appBar: AppBar(
+        title: Text(AppStrings.dashboardTitle),
+        actions: [
+          IconButton(
+            icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+            onPressed: () => setState(() => _isGridView = !_isGridView),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -69,7 +88,7 @@ class DashboardScreen extends StatelessWidget {
                   Expanded(
                     child: _KpiCard(
                       icon: Icons.hourglass_top,
-                      label: AppStrings.processingOrders,
+                      label: AppStrings.ordersProcessing,
                       value: '$processingCount',
                       color: HelpiTheme.statusProcessingText,
                       bgColor: HelpiTheme.statusProcessingBg,
@@ -115,7 +134,7 @@ class DashboardScreen extends StatelessWidget {
                       Expanded(
                         child: _KpiCard(
                           icon: Icons.hourglass_top,
-                          label: AppStrings.processingOrders,
+                          label: AppStrings.ordersProcessing,
                           value: '$processingCount',
                           color: HelpiTheme.statusProcessingText,
                           bgColor: HelpiTheme.statusProcessingBg,
@@ -165,9 +184,13 @@ class DashboardScreen extends StatelessWidget {
             // ── Narudžbe u obradi ──
             _SectionHeader(title: AppStrings.processingOrders),
             const SizedBox(height: 8),
-            ...MockData.orders
-                .where((o) => o.status == OrderStatus.processing)
-                .map((order) => _RecentOrderCard(order: order, theme: theme)),
+            _buildCardSection(
+              gridColumns: gridColumns,
+              children: MockData.orders
+                  .where((o) => o.status == OrderStatus.processing)
+                  .map((order) => _RecentOrderCard(order: order, theme: theme))
+                  .toList(),
+            ),
 
             const SizedBox(height: 24),
 
@@ -175,13 +198,18 @@ class DashboardScreen extends StatelessWidget {
             if (activeStudentsList.isNotEmpty) ...[
               _SectionHeader(title: AppStrings.activeStudentsThisMonth),
               const SizedBox(height: 8),
-              ...activeStudentsList.map(
-                (entry) => _ActiveStudentCard(
-                  student: entry.student,
-                  sessionCount: entry.sessions,
-                  totalHours: entry.hours,
-                  theme: theme,
-                ),
+              _buildCardSection(
+                gridColumns: gridColumns,
+                children: activeStudentsList
+                    .map(
+                      (entry) => _ActiveStudentCard(
+                        student: entry.student,
+                        sessionCount: entry.sessions,
+                        totalHours: entry.hours,
+                        theme: theme,
+                      ),
+                    )
+                    .toList(),
               ),
             ],
 
@@ -191,15 +219,58 @@ class DashboardScreen extends StatelessWidget {
             if (expiringStudents.isNotEmpty) ...[
               _SectionHeader(title: AppStrings.expiringContracts),
               const SizedBox(height: 8),
-              ...expiringStudents.map(
-                (student) =>
-                    _ExpiringContractCard(student: student, theme: theme),
+              _buildCardSection(
+                gridColumns: gridColumns,
+                children: expiringStudents
+                    .map(
+                      (student) =>
+                          _ExpiringContractCard(student: student, theme: theme),
+                    )
+                    .toList(),
               ),
             ],
           ],
         ),
       ),
     );
+  }
+
+  /// Builds a list or grid of cards depending on [_isGridView].
+  Widget _buildCardSection({
+    required int gridColumns,
+    required List<Widget> children,
+  }) {
+    if (!_isGridView || gridColumns <= 1) {
+      return Column(children: children);
+    }
+
+    // Build rows of [gridColumns] items
+    final rows = <Widget>[];
+    for (var i = 0; i < children.length; i += gridColumns) {
+      final end = (i + gridColumns < children.length)
+          ? i + gridColumns
+          : children.length;
+      final rowItems = children.sublist(i, end);
+      rows.add(
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: i + gridColumns < children.length ? 10 : 0,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var j = 0; j < gridColumns; j++) ...[
+                if (j > 0) const SizedBox(width: 10),
+                Expanded(
+                  child: j < rowItems.length ? rowItems[j] : const SizedBox(),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+    return Column(children: rows);
   }
 }
 
