@@ -26,14 +26,12 @@ class HelpiTheme {
   static const Color statusCancelledText = Color(0xFFEF5B5B);
   static const Color statusCancelledBg = Color(0xFFFFEBEE);
 
-
   // Specijalne
   static const Color starYellow = Color(0xFFFFC107);
   static const Color chipBg = Color(0xFFF0F0F0);
   static const Color pastelTeal = Color(0xFFE0F5F5);
   static const Color pastelCoral = Color(0xFFFFE8E5);
   static const Color scaffold = background;
-
 
   // ─── Dimenzije ──────────────────────────────────────────────────
   static const double buttonHeight = 56.0;

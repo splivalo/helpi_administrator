@@ -1,16 +1,28 @@
-# helpi_admin
+# Helpi Admin
 
-A new Flutter project.
+Admin panel za Helpi platformu — povezivanje studenata i seniora za usluge pomoći u kući.
 
-## Getting Started
+## Tech Stack
 
-This project is a starting point for a Flutter application.
+- **Flutter** SDK ≥3.10.7, Material 3
+- **Dart** ≥3.10.7
+- **Lokalizacija:** HR + EN (AppStrings Gemini Hybrid pattern)
+- **Data:** Mock podaci (backend integracija planirana)
 
-A few resources to get you started if this is your first Flutter project:
+## Pokretanje
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+flutter pub get
+flutter run -d chrome   # web
+flutter run -d windows  # desktop
+flutter run              # connected device
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Dokumentacija
+
+Sva dokumentacija nalazi se u [`docs/`](docs/) folderu:
+
+- [PROGRESS.md](docs/PROGRESS.md) — Status i checklist završenih zadataka
+- [ROADMAP.md](docs/ROADMAP.md) — Budući prioriteti i TODO
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — Tehnička arhitektura sustava
+- [PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md) — Kronologija ključnih odluka
