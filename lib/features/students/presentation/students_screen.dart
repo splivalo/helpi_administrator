@@ -782,10 +782,10 @@ class _FilterPanelState extends State<_FilterPanel> {
                     const Spacer(),
                     TextButton(
                       onPressed: widget.onReset,
-                      child: Text(
-                        AppStrings.filterReset,
-                        style: const TextStyle(color: HelpiTheme.primary),
+                      style: TextButton.styleFrom(
+                        foregroundColor: HelpiTheme.primary,
                       ),
+                      child: Text(AppStrings.filterReset),
                     ),
                   ],
                 ),
@@ -930,13 +930,36 @@ class _FilterPanelState extends State<_FilterPanel> {
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               hintText: 'Min',
-                              isDense: true,
+                              filled: true,
+                              fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
+                                horizontal: 20,
+                                vertical: 18,
                               ),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(
+                                  HelpiTheme.cardRadius,
+                                ),
+                                borderSide: const BorderSide(
+                                  color: HelpiTheme.border,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  HelpiTheme.cardRadius,
+                                ),
+                                borderSide: const BorderSide(
+                                  color: HelpiTheme.border,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  HelpiTheme.cardRadius,
+                                ),
+                                borderSide: const BorderSide(
+                                  color: HelpiTheme.accent,
+                                  width: 2,
+                                ),
                               ),
                             ),
                             onChanged: (v) {
@@ -951,13 +974,36 @@ class _FilterPanelState extends State<_FilterPanel> {
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               hintText: 'Max',
-                              isDense: true,
+                              filled: true,
+                              fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
+                                horizontal: 20,
+                                vertical: 18,
                               ),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(
+                                  HelpiTheme.cardRadius,
+                                ),
+                                borderSide: const BorderSide(
+                                  color: HelpiTheme.border,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  HelpiTheme.cardRadius,
+                                ),
+                                borderSide: const BorderSide(
+                                  color: HelpiTheme.border,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  HelpiTheme.cardRadius,
+                                ),
+                                borderSide: const BorderSide(
+                                  color: HelpiTheme.accent,
+                                  width: 2,
+                                ),
                               ),
                             ),
                             onChanged: (v) {
@@ -974,45 +1020,49 @@ class _FilterPanelState extends State<_FilterPanel> {
                     // ──────────────────────────────────
                     _sectionTitle(AppStrings.filterByDay),
                     const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                    Row(
                       children: List.generate(7, (i) {
                         final day = i + 1;
                         final selected = _selectedDays.contains(day);
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (selected) {
-                                _selectedDays.remove(day);
-                              } else {
-                                _selectedDays.add(day);
-                              }
-                            });
-                          },
-                          child: Container(
-                            width: 44,
-                            height: 38,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: selected
-                                  ? HelpiTheme.accent
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: selected
-                                    ? HelpiTheme.accent
-                                    : HelpiTheme.border,
-                              ),
-                            ),
-                            child: Text(
-                              _dayLabel(day),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: selected
-                                    ? Colors.white
-                                    : HelpiTheme.textPrimary,
+                        return Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(right: i < 6 ? 8 : 0),
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedDays.remove(day);
+                                  } else {
+                                    _selectedDays.add(day);
+                                  }
+                                });
+                              },
+                              child: Container(
+                                height: 42,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: selected
+                                      ? HelpiTheme.accent
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(
+                                    HelpiTheme.cardRadius,
+                                  ),
+                                  border: Border.all(
+                                    color: selected
+                                        ? HelpiTheme.accent
+                                        : HelpiTheme.border,
+                                  ),
+                                ),
+                                child: Text(
+                                  _dayLabel(day),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: selected
+                                        ? Colors.white
+                                        : HelpiTheme.textPrimary,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
@@ -1064,37 +1114,55 @@ class _FilterPanelState extends State<_FilterPanel> {
                     // ──────────────────────────────────
                     _sectionTitle(AppStrings.filterBySenior),
                     const SizedBox(height: 8),
-                    InputDecorator(
+                    DropdownButtonFormField<String?>(
+                      initialValue: _seniorFilter,
+                      isExpanded: true,
                       decoration: InputDecoration(
-                        isDense: true,
+                        filled: true,
+                        fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
+                          horizontal: 20,
+                          vertical: 18,
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.cardRadius,
+                          ),
+                          borderSide: const BorderSide(
+                            color: HelpiTheme.border,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.cardRadius,
+                          ),
+                          borderSide: const BorderSide(
+                            color: HelpiTheme.border,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.cardRadius,
+                          ),
+                          borderSide: const BorderSide(
+                            color: HelpiTheme.accent,
+                            width: 2,
+                          ),
                         ),
                       ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String?>(
-                          value: _seniorFilter,
-                          isExpanded: true,
-                          isDense: true,
-                          items: [
-                            DropdownMenuItem<String?>(
-                              value: null,
-                              child: Text(AppStrings.anySenior),
-                            ),
-                            ...MockData.seniors.map(
-                              (s) => DropdownMenuItem<String?>(
-                                value: s.id,
-                                child: Text(s.fullName),
-                              ),
-                            ),
-                          ],
-                          onChanged: (v) => setState(() => _seniorFilter = v),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(AppStrings.anySenior),
                         ),
-                      ),
+                        ...MockData.seniors.map(
+                          (s) => DropdownMenuItem<String?>(
+                            value: s.id,
+                            child: Text(s.fullName),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) => setState(() => _seniorFilter = v),
                     ),
                     const SizedBox(height: 32),
                   ],
@@ -1220,7 +1288,9 @@ class _FilterPanelState extends State<_FilterPanel> {
       },
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        ),
         side: const BorderSide(color: HelpiTheme.border),
       ),
       child: Row(
@@ -1261,7 +1331,9 @@ class _FilterPanelState extends State<_FilterPanel> {
       },
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        ),
         side: const BorderSide(color: HelpiTheme.border),
       ),
       child: Row(

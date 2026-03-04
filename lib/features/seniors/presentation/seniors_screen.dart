@@ -57,14 +57,10 @@ class _SeniorsScreenState extends State<SeniorsScreen>
   List<SeniorModel> _filteredSeniors(_SeniorStatusFilter filter) {
     var seniors = MockData.seniors.toList();
 
-    // Precompute senior IDs that have unassigned orders
-    final processingIds = MockData.orders
-        .where(
-          (o) =>
-              o.student == null &&
-              (o.status == OrderStatus.active ||
-                  o.status == OrderStatus.processing),
-        )
+    // Senior is "active" only when they have at least one order
+    // with an assigned student. Otherwise they are "processing".
+    final activeIds = MockData.orders
+        .where((o) => o.student != null)
         .map((o) => o.senior.id)
         .toSet();
 
@@ -74,13 +70,14 @@ class _SeniorsScreenState extends State<SeniorsScreen>
         break;
       case _SeniorStatusFilter.processing:
         seniors = seniors
-            .where((s) => processingIds.contains(s.id) && !s.isArchived)
+            .where(
+              (s) => s.isActive && !s.isArchived && !activeIds.contains(s.id),
+            )
             .toList();
       case _SeniorStatusFilter.active:
         seniors = seniors
             .where(
-              (s) =>
-                  s.isActive && !s.isArchived && !processingIds.contains(s.id),
+              (s) => s.isActive && !s.isArchived && activeIds.contains(s.id),
             )
             .toList();
       case _SeniorStatusFilter.inactive:
@@ -346,10 +343,8 @@ class _SeniorCard extends StatelessWidget {
     // Determine status chip
     // Senior is "Active" only when they have at least one order
     // with an assigned student. Otherwise they are "Processing".
-    final seniorOrders =
-        MockData.orders.where((o) => o.senior.id == senior.id);
-    final bool hasStudentAssigned =
-        seniorOrders.any((o) => o.student != null);
+    final seniorOrders = MockData.orders.where((o) => o.senior.id == senior.id);
+    final bool hasStudentAssigned = seniorOrders.any((o) => o.student != null);
 
     final (
       Color chipTextColor,
@@ -959,10 +954,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                 label: Text(AppStrings.addOrder),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: HelpiTheme.accent,
-                  side: const BorderSide(
-                    color: HelpiTheme.accent,
-                    width: 2,
-                  ),
+                  side: const BorderSide(color: HelpiTheme.accent, width: 2),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
