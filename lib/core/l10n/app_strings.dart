@@ -78,6 +78,24 @@ class AppStrings {
       'filterByService': 'Filtriraj po usluzi',
       'searchOrders': 'Pretraži narudžbe...',
 
+      // ── Kreiranje narudžbe ────────────────────
+      'createOrder': 'Nova narudžba',
+      'createOrderSuccess': 'Narudžba uspješno kreirana.',
+      'selectSenior': 'Odaberi seniora',
+      'selectSeniorHint': 'Pretraži seniore...',
+      'scheduledDate': 'Datum',
+      'scheduledTime': 'Vrijeme početka',
+      'durationHoursLabel': 'Trajanje (sati)',
+      'selectServices': 'Usluge',
+      'orderNotesHint': 'Napomena (opcionalno)',
+      'selectAtLeastOneService': 'Odaberite barem jednu uslugu.',
+      'seniorRequired': 'Odaberite seniora.',
+      'dateRequired': 'Odaberite datum.',
+      'addDay': 'Dodaj dan',
+      'selectDay': 'Odaberi dan',
+      'endDateLabel': 'Krajnji datum',
+      'hasEndDate': 'Do određenog datuma',
+
       // ── Statusi narudžbi ──────────────────────
       'statusProcessing': 'U obradi',
       'statusActive': 'Aktivna',
@@ -483,6 +501,24 @@ class AppStrings {
       'filterByDate': 'Filter by date',
       'filterByService': 'Filter by service',
       'searchOrders': 'Search orders...',
+
+      // ── Kreiranje narudžbe ────────────────────
+      'createOrder': 'New order',
+      'createOrderSuccess': 'Order created successfully.',
+      'selectSenior': 'Select senior',
+      'selectSeniorHint': 'Search seniors...',
+      'scheduledDate': 'Date',
+      'scheduledTime': 'Start time',
+      'durationHoursLabel': 'Duration (hours)',
+      'selectServices': 'Services',
+      'orderNotesHint': 'Note (optional)',
+      'selectAtLeastOneService': 'Select at least one service.',
+      'seniorRequired': 'Please select a senior.',
+      'dateRequired': 'Please select a date.',
+      'addDay': 'Add day',
+      'selectDay': 'Select day',
+      'endDateLabel': 'End date',
+      'hasEndDate': 'Until specific date',
 
       // ── Statusi narudžbi ──────────────────────
       'statusProcessing': 'Processing',
@@ -905,6 +941,24 @@ class AppStrings {
   static String get filterByDate => _t('filterByDate');
   static String get filterByService => _t('filterByService');
   static String get searchOrders => _t('searchOrders');
+
+  // ── Kreiranje narudžbe ──
+  static String get createOrder => _t('createOrder');
+  static String get createOrderSuccess => _t('createOrderSuccess');
+  static String get selectSenior => _t('selectSenior');
+  static String get selectSeniorHint => _t('selectSeniorHint');
+  static String get scheduledDate => _t('scheduledDate');
+  static String get scheduledTime => _t('scheduledTime');
+  static String get durationHoursLabel => _t('durationHoursLabel');
+  static String get selectServices => _t('selectServices');
+  static String get orderNotesHint => _t('orderNotesHint');
+  static String get selectAtLeastOneService => _t('selectAtLeastOneService');
+  static String get seniorRequired => _t('seniorRequired');
+  static String get dateRequired => _t('dateRequired');
+  static String get addDay => _t('addDay');
+  static String get selectDay => _t('selectDay');
+  static String get endDateLabel => _t('endDateLabel');
+  static String get hasEndDate => _t('hasEndDate');
 
   // ── Statusi ──
   static String get statusProcessing => _t('statusProcessing');

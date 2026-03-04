@@ -6,6 +6,9 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
+import 'package:helpi_admin/features/orders/presentation/create_order_screen.dart';
+
+enum OrderSort { newest, oldest, az, za }
 
 /// Admin Orders Screen — sve narudžbe s tabovima i filterima.
 class AdminOrdersScreen extends StatefulWidget {
@@ -21,6 +24,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
   bool _isGridView = false;
+  OrderSort _sort = OrderSort.newest;
 
   static const _tabs = [
     null, // All
@@ -65,7 +69,17 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
       }).toList();
     }
 
-    orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    // Sorting
+    switch (_sort) {
+      case OrderSort.az:
+        orders.sort((a, b) => a.senior.fullName.compareTo(b.senior.fullName));
+      case OrderSort.za:
+        orders.sort((a, b) => b.senior.fullName.compareTo(a.senior.fullName));
+      case OrderSort.newest:
+        orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      case OrderSort.oldest:
+        orders.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    }
     return orders;
   }
 
@@ -141,11 +155,29 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
 
           const SizedBox(height: 8),
 
-          // ── Result count ──
+          // ── Result count + sort ──
           Builder(
             builder: (context) {
               final count = _filteredOrders(_tabs[_tabController.index]).length;
-              return ResultCountRow(text: AppStrings.orderResultCount(count));
+              return ResultCountRow(
+                text: AppStrings.orderResultCount(count),
+                trailing: PopupMenuButton<OrderSort>(
+                  icon: const Icon(
+                    Icons.sort,
+                    size: 20,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                  padding: EdgeInsets.zero,
+                  tooltip: AppStrings.sortBy,
+                  onSelected: (v) => setState(() => _sort = v),
+                  itemBuilder: (_) => [
+                    _sortMenuItem(OrderSort.newest, AppStrings.sortNewest),
+                    _sortMenuItem(OrderSort.oldest, AppStrings.sortOldest),
+                    _sortMenuItem(OrderSort.az, AppStrings.sortAZ),
+                    _sortMenuItem(OrderSort.za, AppStrings.sortZA),
+                  ],
+                ),
+              );
             },
           ),
           const SizedBox(height: 4),
@@ -208,6 +240,18 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: HelpiTheme.accent,
+        onPressed: () async {
+          final result = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(builder: (_) => const CreateOrderScreen()),
+          );
+          if (!mounted) return;
+          if (result == true) setState(() {});
+        },
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
 
@@ -215,6 +259,29 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order)),
+    );
+  }
+
+  PopupMenuItem<OrderSort> _sortMenuItem(OrderSort value, String label) {
+    final selected = _sort == value;
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          if (selected)
+            const Icon(Icons.check, size: 16, color: HelpiTheme.accent)
+          else
+            const SizedBox(width: 16),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              color: selected ? HelpiTheme.accent : HelpiTheme.textPrimary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
