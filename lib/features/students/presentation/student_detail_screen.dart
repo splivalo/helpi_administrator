@@ -184,9 +184,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.contractNone,
-                    style: const TextStyle(
-                      color: HelpiTheme.textSecondary,
-                    ),
+                    style: const TextStyle(color: HelpiTheme.textSecondary),
                   ),
                 ],
               ),
@@ -784,9 +782,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.workNoOrders,
-                    style: const TextStyle(
-                      color: HelpiTheme.textSecondary,
-                    ),
+                    style: const TextStyle(color: HelpiTheme.textSecondary),
                   ),
                 ],
               ),
@@ -873,9 +869,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.noOrdersFound,
-                    style: const TextStyle(
-                      color: HelpiTheme.textSecondary,
-                    ),
+                    style: const TextStyle(color: HelpiTheme.textSecondary),
                   ),
                 ],
               ),
@@ -978,9 +972,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.seniorNoReviews,
-                    style: const TextStyle(
-                      color: HelpiTheme.textSecondary,
-                    ),
+                    style: const TextStyle(color: HelpiTheme.textSecondary),
                   ),
                 ],
               ),
