@@ -206,6 +206,31 @@ class _SeniorsScreenState extends State<SeniorsScreen>
               return Tab(text: label);
             }).toList(),
           ),
+
+          const SizedBox(height: 8),
+
+          // ── Result count ──
+          Builder(
+            builder: (context) {
+              final count = _filteredSeniors(
+                _tabFilters[_tabCtrl.index],
+              ).length;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    AppStrings.seniorResultCount(count),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: HelpiTheme.textSecondary,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 4),
           // ── Senior list ──
           Expanded(
             child: Builder(
@@ -234,7 +259,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
                   );
                 }
                 return ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: seniors.length,
                   itemBuilder: (ctx, i) => _SeniorCard(
                     senior: seniors[i],

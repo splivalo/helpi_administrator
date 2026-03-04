@@ -126,6 +126,29 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
               Tab(text: AppStrings.ordersCancelled),
             ],
           ),
+
+          const SizedBox(height: 8),
+
+          // ── Result count ──
+          Builder(
+            builder: (context) {
+              final count = _filteredOrders(_tabs[_tabController.index]).length;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    AppStrings.orderResultCount(count),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: HelpiTheme.textSecondary,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 4),
           // ── Order list ──
           Expanded(
             child: Builder(
@@ -154,7 +177,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                   );
                 }
                 return ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: orders.length,
                   itemBuilder: (ctx, i) => _OrderListCard(
                     order: orders[i],

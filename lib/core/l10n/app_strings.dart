@@ -188,6 +188,8 @@ class AppStrings {
       'anyContract': 'Bilo koji',
       'anySenior': 'Bilo koji',
       'filterResultCount': '{count} studenata',
+      'seniorResultCount': '{count} seniora',
+      'orderResultCount': '{count} narudžbi',
       'thisMonthShort': 'ovaj mj.',
 
       // ── Detalji studenta ──────────────────────
@@ -566,6 +568,8 @@ class AppStrings {
       'anyContract': 'Any',
       'anySenior': 'Any',
       'filterResultCount': '{count} students',
+      'seniorResultCount': '{count} seniors',
+      'orderResultCount': '{count} orders',
       'thisMonthShort': 'this mo.',
 
       // ── Detalji studenta ──────────────────────
@@ -1010,6 +1014,10 @@ class AppStrings {
   static String get anySenior => _t('anySenior');
   static String filterResultCount(int count) =>
       _t('filterResultCount', params: {'count': '$count'});
+  static String seniorResultCount(int count) =>
+      _t('seniorResultCount', params: {'count': '$count'});
+  static String orderResultCount(int count) =>
+      _t('orderResultCount', params: {'count': '$count'});
   static String get thisMonthShort => _t('thisMonthShort');
 
   // ── Detalji seniora ──
