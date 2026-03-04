@@ -389,19 +389,25 @@ class _RecentOrderCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Header: order number + status ──
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    AppStrings.orderNumber(order.orderNumber),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
+            SizedBox(
+              height: 40,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        AppStrings.orderNumber(order.orderNumber),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                StatusBadge.order(order.status),
-              ],
+                  StatusBadge.order(order.status),
+                ],
+              ),
             ),
             const SizedBox(height: 10),
             const Divider(height: 1),
@@ -468,21 +474,11 @@ class _RecentOrderCard extends StatelessWidget {
                           Text(
                             '$dateStr  $timeStr  ·  ${order.durationHours}h',
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               color: HelpiTheme.textSecondary,
                             ),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      // ── Service chips ──
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: order.services
-                            .map((s) => ServiceChip(type: s))
-                            .toList(),
                       ),
                     ],
                   ),
@@ -512,23 +508,6 @@ class _ExpiringContractCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isExpired = student.contractStatus == ContractStatus.expired;
-    final dateStr = student.contractExpiryDate != null
-        ? formatDate(student.contractExpiryDate!)
-        : '';
-
-    final (Color chipTextColor, Color chipBgColor, String chipLabel) = isExpired
-        ? (
-            HelpiTheme.statusCancelledText,
-            HelpiTheme.statusCancelledBg,
-            AppStrings.contractExpired,
-          )
-        : (
-            HelpiTheme.statusProcessingText,
-            HelpiTheme.statusProcessingBg,
-            AppStrings.contractExpires(dateStr),
-          );
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -583,29 +562,7 @@ class _ExpiringContractCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: chipBgColor,
-                    border: Border.all(
-                      color: chipTextColor.withValues(alpha: 0.3),
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      HelpiTheme.statusBadgeRadius,
-                    ),
-                  ),
-                  child: Text(
-                    chipLabel,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: chipTextColor,
-                    ),
-                  ),
-                ),
+                StatusBadge.contract(student.contractStatus),
               ],
             ),
             const SizedBox(height: 10),
@@ -629,17 +586,9 @@ class _ExpiringContractCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            '${student.avgRating}',
+                            '${student.avgRating}  ·  ${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
                             style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
-                            style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               color: HelpiTheme.textSecondary,
                             ),
                           ),
@@ -660,7 +609,7 @@ class _ExpiringContractCard extends StatelessWidget {
                             child: Text(
                               student.phone,
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: HelpiTheme.textSecondary,
                               ),
                             ),
@@ -684,7 +633,7 @@ class _ExpiringContractCard extends StatelessWidget {
                             child: Text(
                               student.email,
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: HelpiTheme.textSecondary,
                               ),
                               maxLines: 1,
@@ -809,17 +758,9 @@ class _ActiveStudentCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            '${student.avgRating}',
+                            '${student.avgRating}  ·  $sessionCount ${AppStrings.sessionsCount}  ·  $totalHours ${AppStrings.hoursCount}',
                             style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '$sessionCount ${AppStrings.sessionsCount}  ·  $totalHours ${AppStrings.hoursCount}',
-                            style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               color: HelpiTheme.textSecondary,
                             ),
                           ),
@@ -840,7 +781,7 @@ class _ActiveStudentCard extends StatelessWidget {
                             child: Text(
                               student.phone,
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: HelpiTheme.textSecondary,
                               ),
                             ),
@@ -864,7 +805,7 @@ class _ActiveStudentCard extends StatelessWidget {
                             child: Text(
                               student.email,
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: HelpiTheme.textSecondary,
                               ),
                               maxLines: 1,

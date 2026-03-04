@@ -325,7 +325,7 @@ class _OrderListCard extends StatelessWidget {
                           Text(
                             '$dateStr  $timeStr  ·  ${order.durationHours}h',
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               color: HelpiTheme.textSecondary,
                             ),
                           ),

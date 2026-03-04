@@ -475,7 +475,7 @@ class _SeniorCard extends StatelessWidget {
                             child: Text(
                               senior.phone,
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: HelpiTheme.textSecondary,
                               ),
                             ),
@@ -499,7 +499,7 @@ class _SeniorCard extends StatelessWidget {
                             child: Text(
                               senior.address,
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: HelpiTheme.textSecondary,
                               ),
                               maxLines: 1,

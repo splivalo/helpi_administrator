@@ -1402,17 +1402,9 @@ class _StudentCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            '${student.avgRating}',
+                            '${student.avgRating}  ·  ${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
                             style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
-                            style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 14,
                               color: HelpiTheme.textSecondary,
                             ),
                           ),
@@ -1433,7 +1425,7 @@ class _StudentCard extends StatelessWidget {
                             child: Text(
                               student.phone,
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: HelpiTheme.textSecondary,
                               ),
                             ),
@@ -1457,7 +1449,7 @@ class _StudentCard extends StatelessWidget {
                             child: Text(
                               student.email,
                               style: const TextStyle(
-                                fontSize: 13,
+                                fontSize: 14,
                                 color: HelpiTheme.textSecondary,
                               ),
                               maxLines: 1,
