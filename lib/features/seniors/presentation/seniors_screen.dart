@@ -855,78 +855,35 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               AppStrings.adminActions,
               icon: Icons.admin_panel_settings,
               [
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            if (_senior.isActive) {
-                              _senior = _rebuildSenior(isActive: false);
-                            } else {
-                              _senior = _rebuildSenior(isActive: true);
-                            }
-                          });
-                        },
-                        icon: Icon(
-                          _senior.isActive
-                              ? Icons.block
-                              : Icons.check_circle_outline,
-                          size: 18,
-                        ),
-                        label: Text(
-                          _senior.isActive
-                              ? AppStrings.studentDeactivate
-                              : AppStrings.studentActivate,
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: _senior.isActive
-                              ? HelpiTheme.primary
-                              : HelpiTheme.statusActiveText,
-                          side: BorderSide(
-                            color: _senior.isActive
-                                ? HelpiTheme.primary
-                                : HelpiTheme.statusActiveText,
-                            width: 2,
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _senior.isArchived
+                        ? _confirmUnarchive()
+                        : _confirmArchive(),
+                    icon: Icon(
+                      _senior.isArchived ? Icons.unarchive : Icons.archive,
+                      size: 18,
                     ),
-                  ],
-                ),
-                if (!_senior.isActive || _senior.isArchived) ...[
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => _senior.isArchived
-                          ? _confirmUnarchive()
-                          : _confirmArchive(),
-                      icon: Icon(
-                        _senior.isArchived ? Icons.unarchive : Icons.archive,
-                        size: 18,
-                      ),
-                      label: Text(
-                        _senior.isArchived
-                            ? AppStrings.studentUnarchive
-                            : AppStrings.studentArchive,
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: _senior.isArchived
+                    label: Text(
+                      _senior.isArchived
+                          ? AppStrings.studentUnarchive
+                          : AppStrings.studentArchive,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _senior.isArchived
+                          ? HelpiTheme.accent
+                          : HelpiTheme.primary,
+                      side: BorderSide(
+                        color: _senior.isArchived
                             ? HelpiTheme.accent
-                            : HelpiTheme.textSecondary,
-                        side: BorderSide(
-                          color: _senior.isArchived
-                              ? HelpiTheme.accent
-                              : HelpiTheme.textSecondary,
-                          width: 2,
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                            : HelpiTheme.primary,
+                        width: 2,
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
-                ],
+                ),
               ],
             ),
           ],

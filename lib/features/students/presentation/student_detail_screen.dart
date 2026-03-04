@@ -150,7 +150,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             const SizedBox(height: 12),
 
             _buildReviewsSection(reviews),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            // ── Admin actions ──
+            _buildAdminActionsSection(),
 
             const SizedBox(height: 32),
           ],
@@ -191,96 +194,59 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 '${_student.contractExpiryDate!.day}.${_student.contractExpiryDate!.month}.${_student.contractExpiryDate!.year}.',
           ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _simulateContractUpload,
-                icon: const Icon(Icons.upload_file, size: 18),
-                label: Text(AppStrings.studentUploadContract),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: HelpiTheme.accent,
-                  side: const BorderSide(color: HelpiTheme.accent, width: 2),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    if (_student.isActive) {
-                      _student = _rebuildStudent(
-                        isActive: false,
-                        contractStatus: ContractStatus.deactivated,
-                      );
-                    } else {
-                      _student = _rebuildStudent(
-                        isActive: true,
-                        contractStatus: _computeContractStatus(),
-                      );
-                    }
-                  });
-                },
-                icon: Icon(
-                  _student.isActive ? Icons.block : Icons.check_circle_outline,
-                  size: 18,
-                ),
-                label: Text(
-                  _student.isActive
-                      ? AppStrings.studentDeactivate
-                      : AppStrings.studentActivate,
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: _student.isActive
-                      ? HelpiTheme.primary
-                      : HelpiTheme.statusActiveText,
-                  side: BorderSide(
-                    color: _student.isActive
-                        ? HelpiTheme.primary
-                        : HelpiTheme.statusActiveText,
-                    width: 2,
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        // ── Archive / Unarchive button ──
-        if (!_student.isActive || _student.isArchived) ...[
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () =>
-                  _student.isArchived ? _confirmUnarchive() : _confirmArchive(),
-              icon: Icon(
-                _student.isArchived ? Icons.unarchive : Icons.archive,
-                size: 18,
-              ),
-              label: Text(
-                _student.isArchived
-                    ? AppStrings.studentUnarchive
-                    : AppStrings.studentArchive,
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: _student.isArchived
-                    ? HelpiTheme.accent
-                    : HelpiTheme.textSecondary,
-                side: BorderSide(
-                  color: _student.isArchived
-                      ? HelpiTheme.accent
-                      : HelpiTheme.textSecondary,
-                  width: 2,
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _simulateContractUpload,
+            icon: const Icon(Icons.upload_file, size: 18),
+            label: Text(AppStrings.studentUploadContract),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: HelpiTheme.accent,
+              side: const BorderSide(color: HelpiTheme.accent, width: 2),
+              padding: const EdgeInsets.symmetric(vertical: 12),
             ),
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  //  ADMIN ACTIONS SECTION
+  // ─────────────────────────────────────────────────────────
+  Widget _buildAdminActionsSection() {
+    return _SectionCard(
+      title: AppStrings.adminActions,
+      icon: Icons.admin_panel_settings,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () =>
+                _student.isArchived ? _confirmUnarchive() : _confirmArchive(),
+            icon: Icon(
+              _student.isArchived ? Icons.unarchive : Icons.archive,
+              size: 18,
+            ),
+            label: Text(
+              _student.isArchived
+                  ? AppStrings.studentUnarchive
+                  : AppStrings.studentArchive,
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: _student.isArchived
+                  ? HelpiTheme.accent
+                  : HelpiTheme.primary,
+              side: BorderSide(
+                color: _student.isArchived
+                    ? HelpiTheme.accent
+                    : HelpiTheme.primary,
+                width: 2,
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -362,24 +328,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         });
       }
     });
-  }
-
-  ContractStatus _computeContractStatus() {
-    final start = _student.contractStartDate;
-    final expiry = _student.contractExpiryDate;
-    if (start == null || expiry == null) return ContractStatus.none;
-
-    final now = DateTime.now();
-    if (now.isAfter(expiry)) return ContractStatus.expired;
-
-    final daysLeft = expiry.difference(now).inDays;
-    if (daysLeft <= 7) return ContractStatus.expiring;
-
-    if (now.isAfter(start) || now.isAtSameMomentAs(start)) {
-      return ContractStatus.active;
-    }
-
-    return ContractStatus.none;
   }
 
   StudentModel _rebuildStudent({
