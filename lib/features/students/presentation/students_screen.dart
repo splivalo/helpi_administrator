@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
-import 'package:helpi_admin/core/widgets/contact_actions.dart';
+import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
 /// Students Screen — popis studenata s naprednim filterima i pretragom.
@@ -453,43 +454,14 @@ class _StudentsScreenState extends State<StudentsScreen>
           const SizedBox(height: 8),
 
           // ── Result count ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                AppStrings.filterResultCount(students.length),
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: HelpiTheme.textSecondary,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
+          ResultCountRow(text: AppStrings.filterResultCount(students.length)),
 
           // ── Student list ──
           Expanded(
             child: students.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.school_outlined,
-                          size: 64,
-                          color: HelpiTheme.border,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppStrings.noStudentsFound,
-                          style: const TextStyle(
-                            color: HelpiTheme.textSecondary,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
+                ? EmptyState(
+                    icon: Icons.school_outlined,
+                    message: AppStrings.noStudentsFound,
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -712,12 +684,6 @@ class _FilterPanelState extends State<_FilterPanel> {
     return labels[dayOfWeek - 1];
   }
 
-  String _formatTime(TimeOfDay t) =>
-      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
-  String _formatDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
-
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -735,14 +701,7 @@ class _FilterPanelState extends State<_FilterPanel> {
               // ── Drag handle ──
               Padding(
                 padding: const EdgeInsets.only(top: 12, bottom: 4),
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: HelpiTheme.border,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+                child: const DragHandle(),
               ),
 
               // ── Header ──
@@ -1209,7 +1168,7 @@ class _FilterPanelState extends State<_FilterPanel> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              value != null ? _formatDate(value) : label,
+              value != null ? formatDate(value) : label,
               style: TextStyle(
                 fontSize: 13,
                 color: value != null
@@ -1250,7 +1209,7 @@ class _FilterPanelState extends State<_FilterPanel> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              value != null ? _formatTime(value) : label,
+              value != null ? formatTimeOfDay(value) : label,
               style: TextStyle(
                 fontSize: 13,
                 color: value != null
@@ -1282,36 +1241,6 @@ class _StudentCard extends StatelessWidget {
 
   final StudentModel student;
   final VoidCallback onTap;
-
-  (Color, Color, String) _contractChip(ContractStatus status) {
-    return switch (status) {
-      ContractStatus.active => (
-        HelpiTheme.statusActiveText,
-        HelpiTheme.statusActiveBg,
-        AppStrings.contractActive,
-      ),
-      ContractStatus.expired => (
-        HelpiTheme.statusCancelledText,
-        HelpiTheme.statusCancelledBg,
-        AppStrings.contractExpired,
-      ),
-      ContractStatus.expiring => (
-        HelpiTheme.statusProcessingText,
-        HelpiTheme.statusProcessingBg,
-        AppStrings.contractExpiring,
-      ),
-      ContractStatus.none => (
-        HelpiTheme.textSecondary,
-        HelpiTheme.chipBg,
-        AppStrings.contractNone,
-      ),
-      ContractStatus.deactivated => (
-        HelpiTheme.statusCancelledText,
-        HelpiTheme.statusCancelledBg,
-        AppStrings.contractDeactivated,
-      ),
-    };
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1367,36 +1296,7 @@ class _StudentCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Builder(
-                        builder: (_) {
-                          final (textColor, bgColor, label) = _contractChip(
-                            student.contractStatus,
-                          );
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: bgColor,
-                              border: Border.all(
-                                color: textColor.withValues(alpha: 0.3),
-                              ),
-                              borderRadius: BorderRadius.circular(
-                                HelpiTheme.statusBadgeRadius,
-                              ),
-                            ),
-                            child: Text(
-                              label,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: textColor,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                      StatusBadge.contract(student.contractStatus),
                       if (student.isArchived) ...[
                         const SizedBox(width: 6),
                         Container(

@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
-import 'package:helpi_admin/core/widgets/contact_actions.dart';
+import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 
 /// Student Detail Screen — profil studenta, ugovor, dostupnost, recenzije.
@@ -62,7 +63,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               child: Text(_student.fullName, overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(width: 8),
-            _buildContractBadge(_student.contractStatus),
+            StatusBadge.contract(_student.contractStatus),
             if (_student.isArchived) ...[
               const SizedBox(width: 6),
               Container(
@@ -97,76 +98,47 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _SectionCard(
+            SectionCard(
               title: AppStrings.studentPersonalData,
               icon: Icons.person,
               children: [
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.studentFirstName,
                   value: _student.firstName,
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.studentLastName,
                   value: _student.lastName,
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.studentEmail,
                   value: _student.email,
-                  valueWidget: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          _student.email,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      EmailCopyButton(email: _student.email),
-                    ],
-                  ),
+                  trailing: EmailCopyButton(email: _student.email),
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.studentPhone,
                   value: _student.phone,
-                  valueWidget: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          _student.phone,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      PhoneCallButton(phone: _student.phone),
-                    ],
-                  ),
+                  trailing: PhoneCallButton(phone: _student.phone),
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.studentAddress,
                   value: _student.address,
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.studentDateOfBirth,
-                  value:
-                      '${_student.dateOfBirth.day}.${_student.dateOfBirth.month}.${_student.dateOfBirth.year}.',
+                  value: formatDateDot(_student.dateOfBirth),
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.studentGender,
                   value: _student.gender == Gender.male
                       ? AppStrings.genderMale
                       : AppStrings.genderFemale,
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.studentFaculty,
                   value: _student.faculty,
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.studentIdNumber,
                   value: _student.studentIdNumber,
                 ),
@@ -204,7 +176,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   // ─────────────────────────────────────────────────────────
   Widget _buildContractSection() {
     if (_student.contractStatus == ContractStatus.none) {
-      return _SectionCard(
+      return SectionCard(
         title: AppStrings.studentContractTitle,
         icon: Icons.description,
         children: [
@@ -244,32 +216,30 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       );
     }
 
-    return _SectionCard(
+    return SectionCard(
       title: AppStrings.studentContractTitle,
       icon: Icons.description,
       children: [
-        _InfoRow(
+        InfoRow(
           label: AppStrings.studentContractStatus,
           valueWidget: Text(
-            _contractLabel(_student.contractStatus),
+            contractStatusStyle(_student.contractStatus).$3,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: _contractColor(_student.contractStatus),
+              color: contractStatusStyle(_student.contractStatus).$1,
             ),
           ),
         ),
         if (_student.contractStartDate != null)
-          _InfoRow(
+          InfoRow(
             label: AppStrings.studentContractStart,
-            value:
-                '${_student.contractStartDate!.day}.${_student.contractStartDate!.month}.${_student.contractStartDate!.year}.',
+            value: formatDateDot(_student.contractStartDate!),
           ),
         if (_student.contractExpiryDate != null)
-          _InfoRow(
+          InfoRow(
             label: AppStrings.studentContractExpiry,
-            value:
-                '${_student.contractExpiryDate!.day}.${_student.contractExpiryDate!.month}.${_student.contractExpiryDate!.year}.',
+            value: formatDateDot(_student.contractExpiryDate!),
           ),
         const SizedBox(height: 12),
         SizedBox(
@@ -293,7 +263,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   //  ADMIN ACTIONS SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildAdminActionsSection() {
-    return _SectionCard(
+    return SectionCard(
       title: AppStrings.adminActions,
       icon: Icons.admin_panel_settings,
       children: [
@@ -521,7 +491,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       AppStrings.daySunFull,
     ];
 
-    return _SectionCard(
+    return SectionCard(
       title: AppStrings.studentAvailability,
       icon: Icons.schedule,
       children: [
@@ -545,9 +515,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 if (day.isEnabled)
                   Expanded(
                     child: Text(
-                      '${day.from.hour.toString().padLeft(2, '0')}:${day.from.minute.toString().padLeft(2, '0')}'
+                      '${formatTimeOfDay(day.from)}'
                       ' – '
-                      '${day.to.hour.toString().padLeft(2, '0')}:${day.to.minute.toString().padLeft(2, '0')}',
+                      '${formatTimeOfDay(day.to)}',
                       style: const TextStyle(
                         fontSize: 13,
                         color: HelpiTheme.statusActiveText,
@@ -656,9 +626,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     return (regular, sunday);
   }
 
-  String _fmtDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
-
   Future<void> _pickStartDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -733,7 +700,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
     final (completedCount, cancelledCount) = _rangeJobCounts();
 
-    return _SectionCard(
+    return SectionCard(
       title: AppStrings.workSummary,
       icon: Icons.work_history,
       children: [
@@ -808,7 +775,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                '${AppStrings.workFrom}: ${_fmtDate(_summaryStart)}',
+                                '${AppStrings.workFrom}: ${formatDate(_summaryStart)}',
                                 style: const TextStyle(fontSize: 13),
                               ),
                             ),
@@ -846,7 +813,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                '${AppStrings.workTo}: ${_fmtDate(_summaryEnd)}',
+                                '${AppStrings.workTo}: ${formatDate(_summaryEnd)}',
                                 style: const TextStyle(fontSize: 13),
                               ),
                             ),
@@ -890,43 +857,43 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           )
         else ...[
           // Job counts
-          _InfoRow(
+          InfoRow(
             label: AppStrings.studentCompletedJobs,
             value: '$completedCount',
           ),
-          _InfoRow(
+          InfoRow(
             label: AppStrings.studentCancelledJobs,
             value: '$cancelledCount',
           ),
           const Divider(height: 20),
           // Hours breakdown
-          _InfoRow(
+          InfoRow(
             label: AppStrings.workRegularHours,
             value: '${regularHrs.toStringAsFixed(0)} ${AppStrings.hours}',
           ),
-          _InfoRow(
+          InfoRow(
             label: AppStrings.workSundayHours,
             value: '${sundayHrs.toStringAsFixed(0)} ${AppStrings.hours}',
           ),
-          _InfoRow(
+          InfoRow(
             label: AppStrings.workTotalHours,
             value: '${totalHrs.toStringAsFixed(0)} ${AppStrings.hours}',
           ),
           const Divider(height: 20),
 
           // Rates
-          _InfoRow(
+          InfoRow(
             label: AppStrings.workHourlyRate,
             value: '${_student.hourlyRate.toStringAsFixed(2)} €',
           ),
-          _InfoRow(
+          InfoRow(
             label: AppStrings.workSundayRate,
             value: '${_student.sundayHourlyRate.toStringAsFixed(2)} €',
           ),
           const Divider(height: 20),
 
           // Estimated payout
-          _InfoRow(
+          InfoRow(
             label: AppStrings.workEstimatedPayout,
             value: '${totalPay.toStringAsFixed(2)} €',
           ),
@@ -951,7 +918,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   //  ORDERS SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildOrdersSection(List<OrderModel> orders) {
-    return _SectionCard(
+    return SectionCard(
       title: AppStrings.studentAssignedOrders,
       icon: Icons.receipt_long,
       children: [
@@ -1014,11 +981,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                       ],
                     ),
                   ),
-                  _buildStatusBadge(
-                    _orderStatusLabel(o.status),
-                    _orderStatusColor(o.status),
-                    _orderStatusBg(o.status),
-                  ),
+                  StatusBadge.order(o.status),
                   const SizedBox(width: 4),
                   const Icon(
                     Icons.chevron_right,
@@ -1055,7 +1018,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   // ─────────────────────────────────────────────────────────
   Widget _buildReviewsSection(List<ReviewModel> reviews) {
     if (reviews.isEmpty) {
-      return _SectionCard(
+      return SectionCard(
         title: AppStrings.studentReviews,
         icon: Icons.star,
         children: [
@@ -1082,7 +1045,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       );
     }
 
-    return _SectionCard(
+    return SectionCard(
       title: AppStrings.studentReviews,
       icon: Icons.star,
       children: [
@@ -1249,14 +1212,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   // Drag handle
                   Padding(
                     padding: const EdgeInsets.only(top: 12, bottom: 4),
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: HelpiTheme.border,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
+                    child: const DragHandle(),
                   ),
                   // Header
                   Padding(
@@ -1353,197 +1309,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   // ─────────────────────────────────────────────────────────
   //  HELPERS
   // ─────────────────────────────────────────────────────────
-  Widget _buildStatusBadge(String label, Color textColor, Color bgColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border.all(color: textColor.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
-      ),
-    );
-  }
-
-  String _contractLabel(ContractStatus status) => switch (status) {
-    ContractStatus.active => AppStrings.contractActive,
-    ContractStatus.expired => AppStrings.contractExpired,
-    ContractStatus.expiring => AppStrings.contractExpiring,
-    ContractStatus.none => AppStrings.contractNone,
-    ContractStatus.deactivated => AppStrings.contractDeactivated,
-  };
-
-  Color _contractColor(ContractStatus status) => switch (status) {
-    ContractStatus.active => HelpiTheme.statusActiveText,
-    ContractStatus.expired => HelpiTheme.statusCancelledText,
-    ContractStatus.expiring => HelpiTheme.statusProcessingText,
-    ContractStatus.none => HelpiTheme.textSecondary,
-    ContractStatus.deactivated => HelpiTheme.statusCancelledText,
-  };
-
-  Widget _buildContractBadge(ContractStatus status) {
-    final (Color textColor, Color bgColor, String label) = switch (status) {
-      ContractStatus.active => (
-        HelpiTheme.statusActiveText,
-        HelpiTheme.statusActiveBg,
-        AppStrings.contractActive,
-      ),
-      ContractStatus.expired => (
-        HelpiTheme.statusCancelledText,
-        HelpiTheme.statusCancelledBg,
-        AppStrings.contractExpired,
-      ),
-      ContractStatus.expiring => (
-        HelpiTheme.statusProcessingText,
-        HelpiTheme.statusProcessingBg,
-        AppStrings.contractExpiring,
-      ),
-      ContractStatus.none => (
-        HelpiTheme.textSecondary,
-        HelpiTheme.chipBg,
-        AppStrings.contractNone,
-      ),
-      ContractStatus.deactivated => (
-        HelpiTheme.statusCancelledText,
-        HelpiTheme.statusCancelledBg,
-        AppStrings.contractDeactivated,
-      ),
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border.all(color: textColor.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
-      ),
-    );
-  }
-
-  String _orderStatusLabel(OrderStatus status) => switch (status) {
-    OrderStatus.processing => AppStrings.statusProcessing,
-    OrderStatus.active => AppStrings.statusActive,
-    OrderStatus.completed => AppStrings.statusCompleted,
-    OrderStatus.cancelled => AppStrings.statusCancelled,
-  };
-
-  Color _orderStatusColor(OrderStatus status) => switch (status) {
-    OrderStatus.processing => HelpiTheme.statusProcessingText,
-    OrderStatus.active => HelpiTheme.statusActiveText,
-    OrderStatus.completed => HelpiTheme.statusActiveText,
-    OrderStatus.cancelled => HelpiTheme.statusCancelledText,
-  };
-
-  Color _orderStatusBg(OrderStatus status) => switch (status) {
-    OrderStatus.processing => HelpiTheme.statusProcessingBg,
-    OrderStatus.active => HelpiTheme.statusActiveBg,
-    OrderStatus.completed => HelpiTheme.statusActiveBg,
-    OrderStatus.cancelled => HelpiTheme.statusCancelledBg,
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  SECTION CARD
-// ═══════════════════════════════════════════════════════════════
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.children, this.icon});
-  final String title;
-  final IconData? icon;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 20, color: HelpiTheme.accent),
-                const SizedBox(width: 8),
-              ],
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: HelpiTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...children,
-        ],
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  INFO ROW
-// ═══════════════════════════════════════════════════════════════
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, this.value, this.valueWidget});
-  final String label;
-  final String? value;
-  final Widget? valueWidget;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: HelpiTheme.textSecondary,
-              ),
-            ),
-          ),
-          Expanded(
-            child:
-                valueWidget ??
-                Text(
-                  value ?? '',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1554,21 +1319,6 @@ class _MatchingOrderCard extends StatelessWidget {
 
   final OrderModel order;
   final VoidCallback onAssign;
-
-  String _serviceLabel(ServiceType type) => switch (type) {
-    ServiceType.shopping => AppStrings.serviceShopping,
-    ServiceType.houseHelp => AppStrings.serviceHouseHelp,
-    ServiceType.companionship => AppStrings.serviceCompanionship,
-    ServiceType.walk => AppStrings.serviceWalk,
-    ServiceType.escort => AppStrings.serviceEscort,
-    ServiceType.other => AppStrings.serviceOther,
-  };
-
-  String _formatDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
-
-  String _formatTime(TimeOfDay t) =>
-      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
@@ -1650,14 +1400,14 @@ class _MatchingOrderCard extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                _formatDate(order.scheduledDate),
+                formatDate(order.scheduledDate),
                 style: const TextStyle(fontSize: 13),
               ),
               const SizedBox(width: 12),
               const Icon(Icons.access_time, size: 14, color: HelpiTheme.accent),
               const SizedBox(width: 4),
               Text(
-                _formatTime(order.scheduledStart),
+                formatTimeOfDay(order.scheduledStart),
                 style: const TextStyle(fontSize: 13),
               ),
               const SizedBox(width: 4),
@@ -1688,7 +1438,7 @@ class _MatchingOrderCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '${dayLabels[e.dayOfWeek - 1]} ${_formatTime(e.startTime)} (${e.durationHours}${AppStrings.hours})',
+                    '${dayLabels[e.dayOfWeek - 1]} ${formatTimeOfDay(e.startTime)} (${e.durationHours}${AppStrings.hours})',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -1713,7 +1463,7 @@ class _MatchingOrderCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  _serviceLabel(s),
+                  serviceLabel(s),
                   style: const TextStyle(
                     fontSize: 11,
                     color: HelpiTheme.textSecondary,

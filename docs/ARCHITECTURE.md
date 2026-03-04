@@ -60,7 +60,18 @@ lib/
             └── chat_screen.dart        # Chat moderacija
 ```
 
-**17 Dart fajlova, ~11.000 linija koda**
+**23 Dart fajlova, ~9.500 linija koda** (nakon DRY refaktora)
+
+### Shared widgeti/utilitiji (core/)
+
+| Fajl                                            | Sadržaj                                                                       |
+| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| `core/utils/formatters.dart`                    | formatDate, formatTime, formatTimeOfDay, formatDateDot                        |
+| `core/widgets/status_badges.dart`               | StatusBadge, ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel |
+| `core/widgets/shared_widgets.dart`              | SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar  |
+| `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                              |
+| `core/widgets/widgets.dart`                     | Barrel export svih widgeta                                                    |
+| `seniors/presentation/senior_form_helpers.dart` | SeniorFormHelpers mixin (forme za add/edit senior)                            |
 
 ---
 
@@ -117,6 +128,7 @@ Centralizirana u `lib/app/theme.dart`:
 | Text Primary       | `#2D2D2D`                  |
 | Text Secondary     | `#757575`                  |
 | Border             | `#E0E0E0`                  |
+| Star yellow        | `#FFC107`                  |
 | Button height      | 56px                       |
 | Card/Button radius | 12px                       |
 | Sidebar width      | 260px                      |

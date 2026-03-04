@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/features/seniors/presentation/senior_form_helpers.dart';
 
 /// Ekran za uređivanje postojećeg seniora.
 class EditSeniorScreen extends StatefulWidget {
@@ -14,7 +15,8 @@ class EditSeniorScreen extends StatefulWidget {
   State<EditSeniorScreen> createState() => _EditSeniorScreenState();
 }
 
-class _EditSeniorScreenState extends State<EditSeniorScreen> {
+class _EditSeniorScreenState extends State<EditSeniorScreen>
+    with SeniorFormHelpers {
   final _formKey = GlobalKey<FormState>();
 
   // ── Korisnik usluga ──
@@ -105,46 +107,46 @@ class _EditSeniorScreenState extends State<EditSeniorScreen> {
 
             // ── Naručitelj sekcija ──
             if (_hasOrderer) ...[
-              _buildSectionLabel(AppStrings.seniorOrdererTitle, Icons.people),
+              buildSectionLabel(AppStrings.seniorOrdererTitle, Icons.people),
               const SizedBox(height: 12),
-              _buildTextField(
+              buildTextField(
                 controller: _ordFirstNameCtrl,
                 label: AppStrings.seniorOrdererFirstName,
                 required: true,
               ),
               const SizedBox(height: 12),
-              _buildTextField(
+              buildTextField(
                 controller: _ordLastNameCtrl,
                 label: AppStrings.seniorOrdererLastName,
                 required: true,
               ),
               const SizedBox(height: 12),
-              _buildTextField(
+              buildTextField(
                 controller: _ordEmailCtrl,
                 label: AppStrings.seniorOrdererEmail,
                 keyboardType: TextInputType.emailAddress,
                 required: true,
               ),
               const SizedBox(height: 12),
-              _buildTextField(
+              buildTextField(
                 controller: _ordPhoneCtrl,
                 label: AppStrings.seniorOrdererPhone,
                 keyboardType: TextInputType.phone,
                 required: true,
               ),
               const SizedBox(height: 12),
-              _buildTextField(
+              buildTextField(
                 controller: _ordAddressCtrl,
                 label: AppStrings.seniorOrdererAddress,
                 required: true,
               ),
               const SizedBox(height: 12),
-              _buildGenderSelector(
+              buildGenderSelector(
                 value: _ordGender,
                 onChanged: (g) => setState(() => _ordGender = g),
               ),
               const SizedBox(height: 12),
-              _buildDatePicker(
+              buildDatePicker(
                 label: AppStrings.seniorOrdererDob,
                 value: _ordDateOfBirth,
                 onChanged: (d) => setState(() => _ordDateOfBirth = d),
@@ -153,22 +155,22 @@ class _EditSeniorScreenState extends State<EditSeniorScreen> {
             ],
 
             // ── Korisnik usluga ──
-            _buildSectionLabel(AppStrings.seniorServiceUser, Icons.elderly),
+            buildSectionLabel(AppStrings.seniorServiceUser, Icons.elderly),
             const SizedBox(height: 12),
-            _buildTextField(
+            buildTextField(
               controller: _firstNameCtrl,
               label: AppStrings.seniorFirstName,
               required: true,
             ),
             const SizedBox(height: 12),
-            _buildTextField(
+            buildTextField(
               controller: _lastNameCtrl,
               label: AppStrings.seniorLastName,
               required: true,
             ),
             const SizedBox(height: 12),
             if (!_hasOrderer) ...[
-              _buildTextField(
+              buildTextField(
                 controller: _emailCtrl,
                 label: AppStrings.seniorEmail,
                 keyboardType: TextInputType.emailAddress,
@@ -176,25 +178,25 @@ class _EditSeniorScreenState extends State<EditSeniorScreen> {
               ),
               const SizedBox(height: 12),
             ],
-            _buildTextField(
+            buildTextField(
               controller: _phoneCtrl,
               label: AppStrings.seniorPhone,
               keyboardType: TextInputType.phone,
               required: true,
             ),
             const SizedBox(height: 12),
-            _buildTextField(
+            buildTextField(
               controller: _addressCtrl,
               label: AppStrings.seniorAddress,
               required: true,
             ),
             const SizedBox(height: 12),
-            _buildGenderSelector(
+            buildGenderSelector(
               value: _gender,
               onChanged: (g) => setState(() => _gender = g),
             ),
             const SizedBox(height: 12),
-            _buildDatePicker(
+            buildDatePicker(
               label: AppStrings.seniorOrdererDob,
               value: _dateOfBirth,
               onChanged: (d) => setState(() => _dateOfBirth = d),
@@ -221,130 +223,6 @@ class _EditSeniorScreenState extends State<EditSeniorScreen> {
             ),
             const SizedBox(height: 32),
           ],
-        ),
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────
-  //  HELPERS
-  // ─────────────────────────────────────────────────────────
-
-  Widget _buildSectionLabel(String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: HelpiTheme.accent),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: HelpiTheme.textPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    TextInputType keyboardType = TextInputType.text,
-    bool required = false,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
-      validator: required
-          ? (v) => (v == null || v.trim().isEmpty)
-                ? AppStrings.fieldRequired
-                : null
-          : null,
-    );
-  }
-
-  Widget _buildGenderSelector({
-    required Gender? value,
-    required ValueChanged<Gender?> onChanged,
-  }) {
-    return DropdownButtonFormField<Gender>(
-      initialValue: value,
-      decoration: InputDecoration(
-        labelText: AppStrings.selectGender,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
-      items: [
-        DropdownMenuItem(
-          value: Gender.male,
-          child: Text(AppStrings.genderMale),
-        ),
-        DropdownMenuItem(
-          value: Gender.female,
-          child: Text(AppStrings.genderFemale),
-        ),
-      ],
-      onChanged: onChanged,
-      validator: (v) => v == null ? AppStrings.fieldRequired : null,
-    );
-  }
-
-  Widget _buildDatePicker({
-    required String label,
-    required DateTime? value,
-    required ValueChanged<DateTime> onChanged,
-  }) {
-    return GestureDetector(
-      onTap: () async {
-        final picked = await showDatePicker(
-          context: context,
-          initialDate: value ?? DateTime(1945, 1, 1),
-          firstDate: DateTime(1900),
-          lastDate: DateTime.now(),
-        );
-        if (picked != null) {
-          if (!context.mounted) return;
-          onChanged(picked);
-        }
-      },
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
-          suffixIcon: const Icon(Icons.calendar_today, size: 20),
-        ),
-        child: Text(
-          value != null
-              ? '${value.day.toString().padLeft(2, '0')}.${value.month.toString().padLeft(2, '0')}.${value.year}.'
-              : AppStrings.selectDate,
-          style: TextStyle(
-            fontSize: 14,
-            color: value != null
-                ? HelpiTheme.textPrimary
-                : HelpiTheme.textSecondary,
-          ),
         ),
       ),
     );

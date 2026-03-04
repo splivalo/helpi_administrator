@@ -4,25 +4,26 @@
 
 ## Ukupno stanje
 
-| Modul                 | Status                                                      | Dovršenost |
-| --------------------- | ----------------------------------------------------------- | ---------- |
-| Auth (Login)          | ✅ UI gotov, mock login                                     | 90%        |
-| Dashboard             | ✅ Kompletiran                                              | 95%        |
-| Studenti – Lista      | ✅ Tabovi, pretraga, filteri, sortiranje                    | 95%        |
-| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, recenzije | 95%        |
-| Seniori – Lista       | ✅ Pretraga, filteri                                        | 95%        |
-| Seniori – Detalj      | ✅ Profil, narudžbe, arhiviranje                            | 95%        |
-| Seniori – Dodaj/Uredi | ✅ Forme kompletne                                          | 95%        |
-| Narudžbe – Lista      | ✅ Tabovi, pretraga                                         | 95%        |
-| Narudžbe – Detalj     | ✅ Sesije, dodjela studenta, reprogramiranje                | 95%        |
-| Chat (Moderacija)     | ✅ Lista razgovora + poruke                                 | 90%        |
-| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout                             | 100%       |
-| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid                                 | 95%        |
-| Tema (HelpiTheme)     | ✅ Material 3, sve boje i dimenzije                         | 100%       |
-| Mock Data             | ✅ Kompletni mock podaci                                    | 100%       |
-| Backend integracija   | ❌ Nije započeta                                            | 0%         |
+| Modul                 | Status                                                | Dovršenost |
+| --------------------- | ----------------------------------------------------- | ---------- |
+| Auth (Login)          | ✅ UI gotov, mock login                               | 90%        |
+| Dashboard             | ✅ Kompletiran, DRY refaktorirano                     | 98%        |
+| Studenti – Lista      | ✅ Tabovi, pretraga, filteri, sortiranje, DRY         | 98%        |
+| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, DRY | 98%        |
+| Seniori – Lista       | ✅ Pretraga, filteri, DRY                             | 98%        |
+| Seniori – Detalj      | ✅ Profil, narudžbe, arhiviranje (inline u listi)     | 95%        |
+| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                      | 98%        |
+| Narudžbe – Lista      | ✅ Tabovi, pretraga, DRY                              | 98%        |
+| Narudžbe – Detalj     | ✅ Sesije, dodjela studenta, reprogramiranje, DRY     | 98%        |
+| Chat (Moderacija)     | ✅ Lista razgovora + poruke                           | 90%        |
+| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout                       | 100%       |
+| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid                           | 95%        |
+| Tema (HelpiTheme)     | ✅ Material 3, sve boje i dimenzije                   | 100%       |
+| Mock Data             | ✅ Kompletni mock podaci                              | 100%       |
+| DRY / Shared Widgets  | ✅ Kompletno refaktorirano (7 ekrana)                 | 100%       |
+| Backend integracija   | ❌ Nije započeta                                      | 0%         |
 
-**Ukupna dovršenost frontenda: ~85%**
+**Ukupna dovršenost frontenda: ~90%**
 
 ---
 
@@ -48,6 +49,23 @@
 - [x] Zamjena showDateRangePicker s dva showDatePicker (performanse)
 - [x] Dead code cleanup — uklonjeno 10 nekorištenih konstanti i stringova
 - [x] Dokumentacija (docs/ folder)
+- [x] Copy/call buttons — PhoneCallButton i EmailCopyButton na svim ekranima (trailing uz tekst, ne na rubu)
+- [x] Contact actions fix — GestureDetector umjesto IconButton (Material3 min-size bug)
+- [x] InfoRow trailing pozicioniranje — Flexible umjesto Expanded kad ima trailing (ikona uz tekst)
+- [x] DRY refactor — kompletno za cijelu aplikaciju (7 ekrana)
+  - [x] `core/utils/formatters.dart` — formatDate, formatTime, formatTimeOfDay, formatDateDot
+  - [x] `core/widgets/status_badges.dart` — StatusBadge, ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel
+  - [x] `core/widgets/shared_widgets.dart` — SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar
+  - [x] `core/widgets/contact_actions.dart` — PhoneCallButton, EmailCopyButton
+  - [x] `core/widgets/widgets.dart` — barrel export
+  - [x] `features/seniors/presentation/senior_form_helpers.dart` — SeniorFormHelpers mixin
+  - [x] orders_screen.dart refaktorirano
+  - [x] order_detail_screen.dart refaktorirano
+  - [x] students_screen.dart refaktorirano
+  - [x] student_detail_screen.dart refaktorirano
+  - [x] seniors_screen.dart refaktorirano
+  - [x] dashboard_screen.dart refaktorirano
+  - [x] add_senior_screen.dart + edit_senior_screen.dart — shared mixin
 
 ---
 

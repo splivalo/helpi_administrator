@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
-import 'package:helpi_admin/core/widgets/contact_actions.dart';
+import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
@@ -292,21 +293,10 @@ class _RecentOrderCard extends StatelessWidget {
   final OrderModel order;
   final ThemeData theme;
 
-  String _serviceLabel(ServiceType type) => switch (type) {
-    ServiceType.shopping => AppStrings.serviceShopping,
-    ServiceType.houseHelp => AppStrings.serviceHouseHelp,
-    ServiceType.companionship => AppStrings.serviceCompanionship,
-    ServiceType.walk => AppStrings.serviceWalk,
-    ServiceType.escort => AppStrings.serviceEscort,
-    ServiceType.other => AppStrings.serviceOther,
-  };
-
   @override
   Widget build(BuildContext context) {
-    final dateStr =
-        '${order.scheduledDate.day.toString().padLeft(2, '0')}.${order.scheduledDate.month.toString().padLeft(2, '0')}.${order.scheduledDate.year}';
-    final timeStr =
-        '${order.scheduledStart.hour.toString().padLeft(2, '0')}:${order.scheduledStart.minute.toString().padLeft(2, '0')}';
+    final dateStr = formatDate(order.scheduledDate);
+    final timeStr = formatTimeOfDay(order.scheduledStart);
 
     return GestureDetector(
       onTap: () {
@@ -338,7 +328,7 @@ class _RecentOrderCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                _buildStatusChip(order.status),
+                StatusBadge.order(order.status),
               ],
             ),
             const SizedBox(height: 10),
@@ -418,33 +408,9 @@ class _RecentOrderCard extends StatelessWidget {
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
-                        children: order.services.map((s) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: HelpiTheme.textSecondary.withValues(
-                                alpha: 0.08,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: HelpiTheme.textSecondary.withValues(
-                                  alpha: 0.25,
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              _serviceLabel(s),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: HelpiTheme.textSecondary,
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                        children: order.services
+                            .map((s) => ServiceChip(type: s))
+                            .toList(),
                       ),
                     ],
                   ),
@@ -458,48 +424,6 @@ class _RecentOrderCard extends StatelessWidget {
               ],
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(OrderStatus status) {
-    Color textColor;
-    Color bgColor;
-    String label;
-
-    switch (status) {
-      case OrderStatus.processing:
-        textColor = HelpiTheme.statusProcessingText;
-        bgColor = HelpiTheme.statusProcessingBg;
-        label = AppStrings.statusProcessing;
-      case OrderStatus.active:
-        textColor = HelpiTheme.statusActiveText;
-        bgColor = HelpiTheme.statusActiveBg;
-        label = AppStrings.statusActive;
-      case OrderStatus.completed:
-        textColor = HelpiTheme.statusCompletedText;
-        bgColor = HelpiTheme.statusCompletedBg;
-        label = AppStrings.statusCompleted;
-      case OrderStatus.cancelled:
-        textColor = HelpiTheme.statusCancelledText;
-        bgColor = HelpiTheme.statusCancelledBg;
-        label = AppStrings.statusCancelled;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border.all(color: textColor.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: textColor,
         ),
       ),
     );
@@ -518,7 +442,7 @@ class _ExpiringContractCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpired = student.contractStatus == ContractStatus.expired;
     final dateStr = student.contractExpiryDate != null
-        ? '${student.contractExpiryDate!.day.toString().padLeft(2, '0')}.${student.contractExpiryDate!.month.toString().padLeft(2, '0')}.${student.contractExpiryDate!.year}'
+        ? formatDate(student.contractExpiryDate!)
         : '';
 
     final (Color chipTextColor, Color chipBgColor, String chipLabel) = isExpired
@@ -716,42 +640,8 @@ class _ActiveStudentCard extends StatelessWidget {
   final int totalHours;
   final ThemeData theme;
 
-  (Color, Color, String) _contractChip(ContractStatus status) {
-    return switch (status) {
-      ContractStatus.active => (
-        HelpiTheme.statusActiveText,
-        HelpiTheme.statusActiveBg,
-        AppStrings.contractActive,
-      ),
-      ContractStatus.expired => (
-        HelpiTheme.statusCancelledText,
-        HelpiTheme.statusCancelledBg,
-        AppStrings.contractExpired,
-      ),
-      ContractStatus.expiring => (
-        HelpiTheme.statusProcessingText,
-        HelpiTheme.statusProcessingBg,
-        AppStrings.contractExpiring,
-      ),
-      ContractStatus.none => (
-        HelpiTheme.textSecondary,
-        HelpiTheme.chipBg,
-        AppStrings.contractNone,
-      ),
-      ContractStatus.deactivated => (
-        HelpiTheme.statusCancelledText,
-        HelpiTheme.statusCancelledBg,
-        AppStrings.contractDeactivated,
-      ),
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
-    final (chipTextColor, chipBgColor, chipLabel) = _contractChip(
-      student.contractStatus,
-    );
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -811,29 +701,7 @@ class _ActiveStudentCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: chipBgColor,
-                          border: Border.all(
-                            color: chipTextColor.withValues(alpha: 0.3),
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.statusBadgeRadius,
-                          ),
-                        ),
-                        child: Text(
-                          chipLabel,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: chipTextColor,
-                          ),
-                        ),
-                      ),
+                      StatusBadge.contract(student.contractStatus),
                     ],
                   ),
                   const SizedBox(height: 4),

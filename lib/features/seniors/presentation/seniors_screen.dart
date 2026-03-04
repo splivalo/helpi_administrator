@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
-import 'package:helpi_admin/core/widgets/contact_actions.dart';
+import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/add_senior_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/edit_senior_screen.dart';
@@ -216,47 +217,18 @@ class _SeniorsScreenState extends State<SeniorsScreen>
               final count = _filteredSeniors(
                 _tabFilters[_tabCtrl.index],
               ).length;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    AppStrings.seniorResultCount(count),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: HelpiTheme.textSecondary,
-                    ),
-                  ),
-                ),
-              );
+              return ResultCountRow(text: AppStrings.seniorResultCount(count));
             },
           ),
-          const SizedBox(height: 4),
           // ── Senior list ──
           Expanded(
             child: Builder(
               builder: (context) {
                 final seniors = _filteredSeniors(_tabFilters[_tabCtrl.index]);
                 if (seniors.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.elderly_outlined,
-                          size: 64,
-                          color: HelpiTheme.border,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppStrings.noSeniorsFound,
-                          style: const TextStyle(
-                            color: HelpiTheme.textSecondary,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
+                  return EmptyState(
+                    icon: Icons.elderly_outlined,
+                    message: AppStrings.noSeniorsFound,
                   );
                 }
                 return ListView.builder(
@@ -751,88 +723,101 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
           children: [
             // ── Orderer (if exists) ──
             if (_senior.hasOrderer) ...[
-              _buildSection(AppStrings.seniorOrdererTitle, icon: Icons.people, [
-                _buildInfoRow(
-                  AppStrings.seniorOrdererFirstName,
-                  _senior.ordererFirstName!,
-                ),
-                _buildInfoRow(
-                  AppStrings.seniorOrdererLastName,
-                  _senior.ordererLastName ?? '',
-                ),
-                if (_senior.ordererEmail != null)
-                  _buildInfoRow(
-                    AppStrings.seniorOrdererEmail,
-                    _senior.ordererEmail!,
-                    trailing: EmailCopyButton(email: _senior.ordererEmail!),
+              SectionCard(
+                title: AppStrings.seniorOrdererTitle,
+                icon: Icons.people,
+                children: [
+                  InfoRow(
+                    label: AppStrings.seniorOrdererFirstName,
+                    value: _senior.ordererFirstName!,
                   ),
-                if (_senior.ordererPhone != null)
-                  _buildInfoRow(
-                    AppStrings.seniorOrdererPhone,
-                    _senior.ordererPhone!,
-                    trailing: PhoneCallButton(phone: _senior.ordererPhone!),
+                  InfoRow(
+                    label: AppStrings.seniorOrdererLastName,
+                    value: _senior.ordererLastName ?? '',
                   ),
-                if (_senior.ordererAddress != null)
-                  _buildInfoRow(
-                    AppStrings.seniorOrdererAddress,
-                    _senior.ordererAddress!,
-                  ),
-                if (_senior.ordererGender != null)
-                  _buildInfoRow(
-                    AppStrings.seniorOrdererGender,
-                    _senior.ordererGender == Gender.male
-                        ? AppStrings.genderMale
-                        : AppStrings.genderFemale,
-                  ),
-                if (_senior.ordererDateOfBirth != null)
-                  _buildInfoRow(
-                    AppStrings.seniorOrdererDob,
-                    '${_senior.ordererDateOfBirth!.day.toString().padLeft(2, '0')}.${_senior.ordererDateOfBirth!.month.toString().padLeft(2, '0')}.${_senior.ordererDateOfBirth!.year}.',
-                  ),
-              ]),
+                  if (_senior.ordererEmail != null)
+                    InfoRow(
+                      label: AppStrings.seniorOrdererEmail,
+                      value: _senior.ordererEmail!,
+                      trailing: EmailCopyButton(email: _senior.ordererEmail!),
+                    ),
+                  if (_senior.ordererPhone != null)
+                    InfoRow(
+                      label: AppStrings.seniorOrdererPhone,
+                      value: _senior.ordererPhone!,
+                      trailing: PhoneCallButton(phone: _senior.ordererPhone!),
+                    ),
+                  if (_senior.ordererAddress != null)
+                    InfoRow(
+                      label: AppStrings.seniorOrdererAddress,
+                      value: _senior.ordererAddress!,
+                    ),
+                  if (_senior.ordererGender != null)
+                    InfoRow(
+                      label: AppStrings.seniorOrdererGender,
+                      value: _senior.ordererGender == Gender.male
+                          ? AppStrings.genderMale
+                          : AppStrings.genderFemale,
+                    ),
+                  if (_senior.ordererDateOfBirth != null)
+                    InfoRow(
+                      label: AppStrings.seniorOrdererDob,
+                      value: formatDateDot(_senior.ordererDateOfBirth!),
+                    ),
+                ],
+              ),
               const SizedBox(height: 12),
             ],
 
             // ── Service user (senior) ──
-            _buildSection(
-              _senior.hasOrderer
+            SectionCard(
+              title: _senior.hasOrderer
                   ? AppStrings.seniorServiceUser
                   : AppStrings.seniorServiceUser,
               icon: Icons.elderly,
-              [
-                _buildInfoRow(AppStrings.seniorFirstName, _senior.firstName),
-                _buildInfoRow(AppStrings.seniorLastName, _senior.lastName),
+              children: [
+                InfoRow(
+                  label: AppStrings.seniorFirstName,
+                  value: _senior.firstName,
+                ),
+                InfoRow(
+                  label: AppStrings.seniorLastName,
+                  value: _senior.lastName,
+                ),
                 if (!_senior.hasOrderer)
-                  _buildInfoRow(
-                    AppStrings.seniorEmail,
-                    _senior.email,
+                  InfoRow(
+                    label: AppStrings.seniorEmail,
+                    value: _senior.email,
                     trailing: EmailCopyButton(email: _senior.email),
                   ),
-                _buildInfoRow(
-                  AppStrings.seniorPhone,
-                  _senior.phone,
+                InfoRow(
+                  label: AppStrings.seniorPhone,
+                  value: _senior.phone,
                   trailing: PhoneCallButton(phone: _senior.phone),
                 ),
-                _buildInfoRow(AppStrings.seniorAddress, _senior.address),
-                _buildInfoRow(
-                  AppStrings.seniorOrdererGender,
-                  _senior.gender == Gender.male
+                InfoRow(
+                  label: AppStrings.seniorAddress,
+                  value: _senior.address,
+                ),
+                InfoRow(
+                  label: AppStrings.seniorOrdererGender,
+                  value: _senior.gender == Gender.male
                       ? AppStrings.genderMale
                       : AppStrings.genderFemale,
                 ),
-                _buildInfoRow(
-                  AppStrings.seniorOrdererDob,
-                  '${_senior.dateOfBirth.day.toString().padLeft(2, '0')}.${_senior.dateOfBirth.month.toString().padLeft(2, '0')}.${_senior.dateOfBirth.year}.',
+                InfoRow(
+                  label: AppStrings.seniorOrdererDob,
+                  value: formatDateDot(_senior.dateOfBirth),
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
             // ── Credit cards ──
-            _buildSection(
-              AppStrings.seniorCreditCards,
+            SectionCard(
+              title: AppStrings.seniorCreditCards,
               icon: Icons.credit_card,
-              _senior.creditCards.isEmpty
+              children: _senior.creditCards.isEmpty
                   ? [
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -864,38 +849,42 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
 
             // ── Orders ──
             if (widget.orders.isNotEmpty) ...[
-              _buildSection(
-                AppStrings.seniorOrders,
+              SectionCard(
+                title: AppStrings.seniorOrders,
                 icon: Icons.receipt_long,
-                widget.orders.map((o) => _buildOrderRow(o)).toList(),
+                children: widget.orders.map((o) => _buildOrderRow(o)).toList(),
               ),
             ],
 
             // ── Empty orders state ──
             if (widget.orders.isEmpty)
-              _buildSection(AppStrings.seniorOrders, icon: Icons.receipt_long, [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.inbox_outlined,
-                          size: 36,
-                          color: HelpiTheme.border,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          AppStrings.noOrdersFound,
-                          style: const TextStyle(
-                            color: HelpiTheme.textSecondary,
+              SectionCard(
+                title: AppStrings.seniorOrders,
+                icon: Icons.receipt_long,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.inbox_outlined,
+                            size: 36,
+                            color: HelpiTheme.border,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            AppStrings.noOrdersFound,
+                            style: const TextStyle(
+                              color: HelpiTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ]),
+                ],
+              ),
             const SizedBox(height: 12),
 
             // ── Reviews ──
@@ -903,10 +892,10 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
             const SizedBox(height: 12),
 
             // ── Admin actions ──
-            _buildSection(
-              AppStrings.adminActions,
+            SectionCard(
+              title: AppStrings.adminActions,
               icon: Icons.admin_panel_settings,
-              [
+              children: [
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -949,179 +938,128 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
 
   Widget _buildReviewsSection(List<ReviewModel> reviews) {
     if (reviews.isEmpty) {
-      return _buildSection(AppStrings.seniorReviews, icon: Icons.star, [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Center(
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.star_border,
-                  size: 36,
-                  color: HelpiTheme.border,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  AppStrings.seniorNoReviews,
-                  style: const TextStyle(color: HelpiTheme.textSecondary),
-                ),
-              ],
+      return SectionCard(
+        title: AppStrings.seniorReviews,
+        icon: Icons.star,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.star_border,
+                    size: 36,
+                    color: HelpiTheme.border,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.seniorNoReviews,
+                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ]);
+        ],
+      );
     }
 
     final avgRating =
         reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
 
-    return _buildSection(AppStrings.seniorReviews, icon: Icons.star, [
-      // ── Rating summary ──
-      Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: HelpiTheme.starYellow.withValues(alpha: 0.15),
-              border: Border.all(
-                color: HelpiTheme.starYellow.withValues(alpha: 0.3),
-              ),
-              borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.star, size: 18, color: HelpiTheme.starYellow),
-                const SizedBox(width: 4),
-                Text(
-                  avgRating.toStringAsFixed(1),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18,
-                  ),
+    return SectionCard(
+      title: AppStrings.seniorReviews,
+      icon: Icons.star,
+      children: [
+        // ── Rating summary ──
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: HelpiTheme.starYellow.withValues(alpha: 0.15),
+                border: Border.all(
+                  color: HelpiTheme.starYellow.withValues(alpha: 0.3),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            '${AppStrings.studentTotalRatings}: ${reviews.length}',
-            style: const TextStyle(
-              color: HelpiTheme.textSecondary,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-      const Divider(height: 20),
-      ...reviews.map(
-        (r) => Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: HelpiTheme.scaffold,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+                borderRadius: BorderRadius.circular(
+                  HelpiTheme.statusBadgeRadius,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  ...List.generate(
-                    5,
-                    (i) => Icon(
-                      i < r.rating ? Icons.star : Icons.star_border,
-                      size: 16,
-                      color: HelpiTheme.starYellow,
-                    ),
+                  const Icon(
+                    Icons.star,
+                    size: 18,
+                    color: HelpiTheme.starYellow,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 4),
                   Text(
-                    r.studentName,
+                    avgRating.toStringAsFixed(1),
                     style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: HelpiTheme.textSecondary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
                     ),
                   ),
                 ],
               ),
-              if (r.comment != null && r.comment!.isNotEmpty) ...[
-                const SizedBox(height: 6),
-                Text(
-                  r.comment!,
-                  style: const TextStyle(fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(width: 16),
+            Text(
+              '${AppStrings.studentTotalRatings}: ${reviews.length}',
+              style: const TextStyle(
+                color: HelpiTheme.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        const Divider(height: 20),
+        ...reviews.map(
+          (r) => Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: HelpiTheme.scaffold,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    ...List.generate(
+                      5,
+                      (i) => Icon(
+                        i < r.rating ? Icons.star : Icons.star_border,
+                        size: 16,
+                        color: HelpiTheme.starYellow,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      r.studentName,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
+                if (r.comment != null && r.comment!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    r.comment!,
+                    style: const TextStyle(fontSize: 13, height: 1.4),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
-      ),
-    ]);
-  }
-
-  Widget _buildSection(String title, List<Widget> children, {IconData? icon}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 20, color: HelpiTheme.accent),
-                const SizedBox(width: 8),
-              ],
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: HelpiTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value, {Widget? trailing}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: trailing != null
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: HelpiTheme.textSecondary,
-              ),
-            ),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ),
-          if (trailing != null) ...[const SizedBox(width: 4), trailing],
-        ],
-      ),
+      ],
     );
   }
 
@@ -1177,29 +1115,6 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
   }
 
   Widget _buildOrderRow(OrderModel order) {
-    Color statusColor;
-    Color statusBg;
-    String statusLabel;
-
-    switch (order.status) {
-      case OrderStatus.processing:
-        statusColor = HelpiTheme.statusProcessingText;
-        statusBg = HelpiTheme.statusProcessingBg;
-        statusLabel = AppStrings.statusProcessing;
-      case OrderStatus.active:
-        statusColor = HelpiTheme.statusActiveText;
-        statusBg = HelpiTheme.statusActiveBg;
-        statusLabel = AppStrings.statusActive;
-      case OrderStatus.completed:
-        statusColor = HelpiTheme.statusActiveText;
-        statusBg = HelpiTheme.statusActiveBg;
-        statusLabel = AppStrings.statusCompleted;
-      case OrderStatus.cancelled:
-        statusColor = HelpiTheme.statusCancelledText;
-        statusBg = HelpiTheme.statusCancelledBg;
-        statusLabel = AppStrings.statusCancelled;
-    }
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -1229,7 +1144,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    order.services.map((s) => _serviceLabel(s)).join(', '),
+                    order.services.map((s) => serviceLabel(s)).join(', '),
                     style: const TextStyle(
                       fontSize: 13,
                       color: HelpiTheme.textSecondary,
@@ -1240,44 +1155,10 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: statusBg,
-                border: Border.all(color: statusColor.withValues(alpha: 0.3)),
-                borderRadius: BorderRadius.circular(
-                  HelpiTheme.statusBadgeRadius,
-                ),
-              ),
-              child: Text(
-                statusLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: statusColor,
-                ),
-              ),
-            ),
+            StatusBadge.order(order.status),
           ],
         ),
       ),
     );
-  }
-
-  String _serviceLabel(ServiceType type) {
-    switch (type) {
-      case ServiceType.shopping:
-        return AppStrings.serviceShopping;
-      case ServiceType.houseHelp:
-        return AppStrings.serviceHouseHelp;
-      case ServiceType.walk:
-        return AppStrings.serviceWalk;
-      case ServiceType.companionship:
-        return AppStrings.serviceCompanionship;
-      case ServiceType.escort:
-        return AppStrings.serviceEscort;
-      case ServiceType.other:
-        return AppStrings.serviceOther;
-    }
   }
 }

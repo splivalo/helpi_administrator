@@ -4,7 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
-import 'package:helpi_admin/core/widgets/contact_actions.dart';
+import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/widgets/widgets.dart';
 
 /// Order Detail Screen — detalji narudžbe + dodjela studenta.
 class OrderDetailScreen extends StatefulWidget {
@@ -27,8 +28,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dateStr =
-        '${_order.scheduledDate.day.toString().padLeft(2, '0')}.${_order.scheduledDate.month.toString().padLeft(2, '0')}.${_order.scheduledDate.year}';
+    final dateStr = formatDate(_order.scheduledDate);
 
     return Scaffold(
       appBar: AppBar(
@@ -42,7 +42,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            _buildOrderStatusChip(_order.status),
+            StatusBadge.order(_order.status, size: StatusBadgeSize.large),
           ],
         ),
       ),
@@ -53,21 +53,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           children: [
             // ── Orderer (if exists) ──
             if (_order.senior.hasOrderer) ...[
-              _SectionCard(
+              SectionCard(
                 title: AppStrings.seniorOrdererTitle,
                 icon: Icons.people,
                 children: [
-                  _InfoRow(
+                  InfoRow(
                     label: AppStrings.seniorOrdererFirstName,
                     value: _order.senior.ordererFirstName ?? '',
                   ),
                   if (_order.senior.ordererLastName != null)
-                    _InfoRow(
+                    InfoRow(
                       label: AppStrings.seniorOrdererLastName,
                       value: _order.senior.ordererLastName!,
                     ),
                   if (_order.senior.ordererEmail != null)
-                    _InfoRow(
+                    InfoRow(
                       label: AppStrings.seniorOrdererEmail,
                       value: _order.senior.ordererEmail!,
                       trailing: EmailCopyButton(
@@ -75,7 +75,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                     ),
                   if (_order.senior.ordererPhone != null)
-                    _InfoRow(
+                    InfoRow(
                       label: AppStrings.seniorOrdererPhone,
                       value: _order.senior.ordererPhone!,
                       trailing: PhoneCallButton(
@@ -83,22 +83,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                     ),
                   if (_order.senior.ordererAddress != null)
-                    _InfoRow(
+                    InfoRow(
                       label: AppStrings.seniorOrdererAddress,
                       value: _order.senior.ordererAddress!,
                     ),
                   if (_order.senior.ordererGender != null)
-                    _InfoRow(
+                    InfoRow(
                       label: AppStrings.seniorOrdererGender,
                       value: _order.senior.ordererGender == Gender.male
                           ? AppStrings.genderMale
                           : AppStrings.genderFemale,
                     ),
                   if (_order.senior.ordererDateOfBirth != null)
-                    _InfoRow(
+                    InfoRow(
                       label: AppStrings.seniorOrdererDob,
-                      value:
-                          '${_order.senior.ordererDateOfBirth!.day.toString().padLeft(2, '0')}.${_order.senior.ordererDateOfBirth!.month.toString().padLeft(2, '0')}.${_order.senior.ordererDateOfBirth!.year}.',
+                      value: formatDateDot(_order.senior.ordererDateOfBirth!),
                     ),
                 ],
               ),
@@ -106,73 +105,72 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ],
 
             // ── Service user (senior) ──
-            _SectionCard(
+            SectionCard(
               title: AppStrings.seniorServiceUser,
               icon: Icons.elderly,
               children: [
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.seniorFirstName,
                   value: _order.senior.firstName,
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.seniorLastName,
                   value: _order.senior.lastName,
                 ),
                 if (!_order.senior.hasOrderer)
-                  _InfoRow(
+                  InfoRow(
                     label: AppStrings.seniorOrdererEmail,
                     value: _order.senior.email,
                     trailing: EmailCopyButton(email: _order.senior.email),
                   ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.seniorPhone,
                   value: _order.senior.phone,
                   trailing: PhoneCallButton(phone: _order.senior.phone),
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.seniorAddress,
                   value: _order.senior.address,
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.seniorOrdererGender,
                   value: _order.senior.gender == Gender.male
                       ? AppStrings.genderMale
                       : AppStrings.genderFemale,
                 ),
-                _InfoRow(
+                InfoRow(
                   label: AppStrings.seniorOrdererDob,
-                  value:
-                      '${_order.senior.dateOfBirth.day.toString().padLeft(2, '0')}.${_order.senior.dateOfBirth.month.toString().padLeft(2, '0')}.${_order.senior.dateOfBirth.year}.',
+                  value: formatDateDot(_order.senior.dateOfBirth),
                 ),
               ],
             ),
             const SizedBox(height: 12),
 
             // ── Student info / dodjela ──
-            _SectionCard(
+            SectionCard(
               title: AppStrings.orderStudent,
               icon: Icons.school,
               children: [
                 if (_order.student != null) ...[
-                  _InfoRow(
+                  InfoRow(
                     label: AppStrings.studentFirstName,
                     value: _order.student!.firstName,
                   ),
-                  _InfoRow(
+                  InfoRow(
                     label: AppStrings.studentLastName,
                     value: _order.student!.lastName,
                   ),
-                  _InfoRow(
+                  InfoRow(
                     label: AppStrings.studentEmail,
                     value: _order.student!.email,
                     trailing: EmailCopyButton(email: _order.student!.email),
                   ),
-                  _InfoRow(
+                  InfoRow(
                     label: AppStrings.studentPhone,
                     value: _order.student!.phone,
                     trailing: PhoneCallButton(phone: _order.student!.phone),
                   ),
-                  _InfoRow(
+                  InfoRow(
                     label: AppStrings.studentRating,
                     value:
                         '${_order.student!.avgRating}/5 (${_order.student!.totalReviews})',
@@ -224,72 +222,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             const SizedBox(height: 12),
 
             // ── Detalji narudžbe ──
-            _SectionCard(
+            SectionCard(
               title: AppStrings.orderDetails,
               icon: Icons.receipt_long,
               children: [
-                _InfoRow(label: AppStrings.orderDate, value: dateStr),
-                _InfoRow(
+                InfoRow(label: AppStrings.orderDate, value: dateStr),
+                InfoRow(
                   label: AppStrings.orderFrequency,
                   value: _frequencyLabel(),
                 ),
-                _InfoRow(
-                  label: AppStrings.seniorAddress,
-                  value: _order.address,
-                ),
+                InfoRow(label: AppStrings.seniorAddress, value: _order.address),
                 if (_order.notes != null && _order.notes!.isNotEmpty)
-                  _InfoRow(label: AppStrings.orderNotes, value: _order.notes!),
-
-                // ── Usluge ──
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 140,
-                        child: Text(
-                          AppStrings.orderServices,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: HelpiTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: _order.services.map((s) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: HelpiTheme.textSecondary.withValues(
-                                  alpha: 0.08,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: HelpiTheme.textSecondary.withValues(
-                                    alpha: 0.25,
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                _serviceLabel(s),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: HelpiTheme.textSecondary,
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
+                  InfoRow(label: AppStrings.orderNotes, value: _order.notes!),
+                InfoRow(
+                  label: AppStrings.orderServices,
+                  valueWidget: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _order.services
+                        .map((s) => ServiceChip(type: s))
+                        .toList(),
                   ),
                 ),
               ],
@@ -383,14 +335,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final isCancelled = session.status == SessionStatus.cancelled;
 
     final dateStr =
-        '${_dayName(session.weekday)}, '
-        '${session.date.day.toString().padLeft(2, '0')}.'
-        '${session.date.month.toString().padLeft(2, '0')}.'
-        '${session.date.year}.';
+        '${_dayName(session.weekday)}, ${formatDateDot(session.date)}';
 
-    final timeStr =
-        '${session.startTime.hour.toString().padLeft(2, '0')}:'
-        '${session.startTime.minute.toString().padLeft(2, '0')}';
+    final timeStr = formatTimeOfDay(session.startTime);
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -675,13 +622,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setSheetState) {
-            final dateLabel =
-                '${selectedDate.day.toString().padLeft(2, '0')}.'
-                '${selectedDate.month.toString().padLeft(2, '0')}.'
-                '${selectedDate.year}';
-            final timeLabel =
-                '${selectedTime.hour.toString().padLeft(2, '0')}:'
-                '${selectedTime.minute.toString().padLeft(2, '0')}';
+            final dateLabel = formatDate(selectedDate);
+            final timeLabel = formatTimeOfDay(selectedTime);
 
             return Padding(
               padding: EdgeInsets.only(
@@ -694,17 +636,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Handle ──
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: HelpiTheme.border,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
+                  const DragHandle(),
                   const SizedBox(height: 16),
                   Text(
                     AppStrings.sessionRescheduleTitle,
@@ -859,17 +791,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Handle ──
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: HelpiTheme.border,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
+                  const DragHandle(),
                   const SizedBox(height: 16),
                   Text(
                     AppStrings.suggestedStudents,
@@ -971,48 +893,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   //  HELPERS
   // ═══════════════════════════════════════════════════════════════
 
-  Widget _buildOrderStatusChip(OrderStatus status) {
-    Color textColor;
-    Color bgColor;
-    String label;
-
-    switch (status) {
-      case OrderStatus.processing:
-        textColor = HelpiTheme.statusProcessingText;
-        bgColor = HelpiTheme.statusProcessingBg;
-        label = AppStrings.statusProcessing;
-      case OrderStatus.active:
-        textColor = HelpiTheme.statusActiveText;
-        bgColor = HelpiTheme.statusActiveBg;
-        label = AppStrings.statusActive;
-      case OrderStatus.completed:
-        textColor = HelpiTheme.statusCompletedText;
-        bgColor = HelpiTheme.statusCompletedBg;
-        label = AppStrings.statusCompleted;
-      case OrderStatus.cancelled:
-        textColor = HelpiTheme.statusCancelledText;
-        bgColor = HelpiTheme.statusCancelledBg;
-        label = AppStrings.statusCancelled;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border.all(color: textColor.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(HelpiTheme.chipRadius),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
-      ),
-    );
-  }
-
   String _frequencyLabel() {
     switch (_order.frequency) {
       case FrequencyType.oneTime:
@@ -1021,29 +901,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         return AppStrings.recurring;
       case FrequencyType.recurringWithEnd:
         if (_order.endDate != null) {
-          final d = _order.endDate!;
-          return AppStrings.recurringWithEnd(
-            '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}',
-          );
+          return AppStrings.recurringWithEnd(formatDate(_order.endDate!));
         }
         return AppStrings.recurring;
-    }
-  }
-
-  String _serviceLabel(ServiceType type) {
-    switch (type) {
-      case ServiceType.shopping:
-        return AppStrings.serviceShopping;
-      case ServiceType.houseHelp:
-        return AppStrings.serviceHouseHelp;
-      case ServiceType.companionship:
-        return AppStrings.serviceCompanionship;
-      case ServiceType.walk:
-        return AppStrings.serviceWalk;
-      case ServiceType.escort:
-        return AppStrings.serviceEscort;
-      case ServiceType.other:
-        return AppStrings.serviceOther;
     }
   }
 
@@ -1066,96 +926,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       default:
         return '';
     }
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  SECTION CARD
-// ═══════════════════════════════════════════════════════════════
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({
-    required this.title,
-    required this.icon,
-    required this.children,
-  });
-
-  final String title;
-  final IconData icon;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 20, color: HelpiTheme.accent),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: HelpiTheme.textPrimary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...children,
-        ],
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  INFO ROW
-// ═══════════════════════════════════════════════════════════════
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value, this.trailing});
-  final String label;
-  final String value;
-  final Widget? trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: trailing != null
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: HelpiTheme.textSecondary,
-              ),
-            ),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ),
-          if (trailing != null) ...[const SizedBox(width: 4), trailing!],
-        ],
-      ),
-    );
   }
 }
 

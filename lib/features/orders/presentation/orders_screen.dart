@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 
 /// Admin Orders Screen — sve narudžbe s tabovima i filterima.
@@ -133,19 +135,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
           Builder(
             builder: (context) {
               final count = _filteredOrders(_tabs[_tabController.index]).length;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    AppStrings.orderResultCount(count),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: HelpiTheme.textSecondary,
-                    ),
-                  ),
-                ),
-              );
+              return ResultCountRow(text: AppStrings.orderResultCount(count));
             },
           ),
           const SizedBox(height: 4),
@@ -155,25 +145,9 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
               builder: (context) {
                 final orders = _filteredOrders(_tabs[_tabController.index]);
                 if (orders.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.receipt_long,
-                          size: 64,
-                          color: HelpiTheme.border,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppStrings.noOrdersFound,
-                          style: const TextStyle(
-                            color: HelpiTheme.textSecondary,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
+                  return EmptyState(
+                    icon: Icons.receipt_long,
+                    message: AppStrings.noOrdersFound,
                   );
                 }
                 return ListView.builder(
@@ -210,10 +184,8 @@ class _OrderListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateStr =
-        '${order.scheduledDate.day.toString().padLeft(2, '0')}.${order.scheduledDate.month.toString().padLeft(2, '0')}.${order.scheduledDate.year}';
-    final timeStr =
-        '${order.scheduledStart.hour.toString().padLeft(2, '0')}:${order.scheduledStart.minute.toString().padLeft(2, '0')}';
+    final dateStr = formatDate(order.scheduledDate);
+    final timeStr = formatTimeOfDay(order.scheduledStart);
 
     return GestureDetector(
       onTap: onTap,
@@ -240,7 +212,7 @@ class _OrderListCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                _buildStatusChip(order.status),
+                StatusBadge.order(order.status),
               ],
             ),
             const SizedBox(height: 10),
@@ -320,33 +292,9 @@ class _OrderListCard extends StatelessWidget {
                       Wrap(
                         spacing: 6,
                         runSpacing: 6,
-                        children: order.services.map((s) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: HelpiTheme.textSecondary.withValues(
-                                alpha: 0.08,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: HelpiTheme.textSecondary.withValues(
-                                  alpha: 0.25,
-                                ),
-                              ),
-                            ),
-                            child: Text(
-                              _serviceLabel(s),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: HelpiTheme.textSecondary,
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                        children: order.services
+                            .map((s) => ServiceChip(type: s))
+                            .toList(),
                       ),
                     ],
                   ),
@@ -363,64 +311,5 @@ class _OrderListCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildStatusChip(OrderStatus status) {
-    Color textColor;
-    Color bgColor;
-    String label;
-
-    switch (status) {
-      case OrderStatus.processing:
-        textColor = HelpiTheme.statusProcessingText;
-        bgColor = HelpiTheme.statusProcessingBg;
-        label = AppStrings.statusProcessing;
-      case OrderStatus.active:
-        textColor = HelpiTheme.statusActiveText;
-        bgColor = HelpiTheme.statusActiveBg;
-        label = AppStrings.statusActive;
-      case OrderStatus.completed:
-        textColor = HelpiTheme.statusCompletedText;
-        bgColor = HelpiTheme.statusCompletedBg;
-        label = AppStrings.statusCompleted;
-      case OrderStatus.cancelled:
-        textColor = HelpiTheme.statusCancelledText;
-        bgColor = HelpiTheme.statusCancelledBg;
-        label = AppStrings.statusCancelled;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border.all(color: textColor.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
-      ),
-    );
-  }
-
-  String _serviceLabel(ServiceType type) {
-    switch (type) {
-      case ServiceType.shopping:
-        return AppStrings.serviceShopping;
-      case ServiceType.houseHelp:
-        return AppStrings.serviceHouseHelp;
-      case ServiceType.companionship:
-        return AppStrings.serviceCompanionship;
-      case ServiceType.walk:
-        return AppStrings.serviceWalk;
-      case ServiceType.escort:
-        return AppStrings.serviceEscort;
-      case ServiceType.other:
-        return AppStrings.serviceOther;
-    }
   }
 }

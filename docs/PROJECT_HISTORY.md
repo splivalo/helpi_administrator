@@ -37,6 +37,20 @@
 - **Dokumentacija** — Kreirani `docs/` folder s PROGRESS.md, ROADMAP.md, PROJECT_HISTORY.md, ARCHITECTURE.md
 - **SVG logo brzina** — Istraženo (precaching u `main()` i `initState()`), zaključeno da je debug mode artefakt. Odustano.
 
+## 2026-03-04 — DRY Refactor & Contact Actions
+
+- **Kompletni DRY refactor** — 22 duplicirana patterna identificirana kroz audit svih 18 Dart fajlova. Kreirano 6 shared fajlova:
+  - `core/utils/formatters.dart` — formatDate, formatTime, formatTimeOfDay, formatDateDot
+  - `core/widgets/status_badges.dart` — StatusBadge (.order/.contract factory), ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel
+  - `core/widgets/shared_widgets.dart` — SectionCard, InfoRow (label+value+trailing), DragHandle, EmptyState, ResultCountRow, HelpiSearchBar
+  - `core/widgets/contact_actions.dart` — PhoneCallButton, EmailCopyButton
+  - `core/widgets/widgets.dart` — barrel export
+  - `features/seniors/presentation/senior_form_helpers.dart` — SeniorFormHelpers mixin (buildSectionLabel, buildTextField, buildGenderSelector, buildDatePicker)
+- **7 ekrana refaktorirano** — orders_screen, order_detail_screen, students_screen, student_detail_screen, seniors_screen, dashboard_screen, add/edit_senior_screen
+- **~1000+ linija duplikata uklonjeno** — svaki ekran koristi shared widgete umjesto privatnih kopija
+- **Contact actions fix** — IconButton u SizedBox(20x20) nije renderirao ikone zbog Material 3 min tap target (48x48). Zamijenjeno s GestureDetector + Icon + Padding.
+- **InfoRow trailing pozicioniranje** — Flexible umjesto Expanded kad ima trailing widget, pa ikona stoji uz tekst a ne na desnom rubu.
+
 ---
 
 ## Arhitekturalne odluke
@@ -49,3 +63,6 @@
 | Dva showDatePicker umjesto showDateRangePicker | Performanse — DateRangePicker preopterećen     | 2026-03-04 |
 | LayoutBuilder za responsive gumbe              | Inline responsive bez globalnog breakpointa    | 2026-03-04 |
 | Nema state management libraryja (zasad)        | Mock faza, lokalni state dovoljan              | 2026-02    |
+| DRY refactor — shared widgeti + mixin          | Eliminacija ~1000+ linija duplikata            | 2026-03-04 |
+| GestureDetector umjesto IconButton za contact  | Material 3 min tap target 48px blokira 20px    | 2026-03-04 |
+| InfoRow Flexible trailing                      | Ikona uz tekst, ne na rubu                     | 2026-03-04 |

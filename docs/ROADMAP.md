@@ -24,6 +24,8 @@
 - [x] **UI polish** — Order kartice styling, italic fix, boja ikone (2026-03-04)
 - [x] **Dead code cleanup** — Uklonjeno 10 nekorištenih konstanti/stringova, 0 errors (2026-03-04)
 - [x] **Dokumentacija** — docs/ folder s PROGRESS, ROADMAP, ARCHITECTURE, PROJECT_HISTORY (2026-03-04)
+- [x] **DRY refactor cijele aplikacije** — 7 ekrana refaktorirano, 6 shared fajlova kreirano, ~1000+ linija duplikata uklonjeno (2026-03-04)
+- [x] **Contact actions fix** — PhoneCallButton/EmailCopyButton trailing uz tekst, GestureDetector fix (2026-03-04)
 
 ---
 
