@@ -363,6 +363,7 @@ class AppStrings {
       'thisWeek': 'Ovaj tjedan',
       'thisMonth': 'Ovaj mjesec',
       'emailCopied': 'Email kopiran',
+      'copyEmail': 'Kopiraj email',
       'phoneCopied': 'Telefon kopiran',
 
       // ── Auth ──────────────────────────────────
@@ -743,6 +744,7 @@ class AppStrings {
       'thisWeek': 'This week',
       'thisMonth': 'This month',
       'emailCopied': 'Email copied',
+      'copyEmail': 'Copy email',
       'phoneCopied': 'Phone copied',
 
       // ── Auth ──────────────────────────────────
@@ -1197,5 +1199,6 @@ class AppStrings {
   static String get sessionReactivate => _t('sessionReactivate');
   static String get sessionReactivateConfirm => _t('sessionReactivateConfirm');
   static String get emailCopied => _t('emailCopied');
+  static String get copyEmail => _t('copyEmail');
   static String get phoneCopied => _t('phoneCopied');
 }

@@ -448,7 +448,7 @@ class _RecentOrderCard extends StatelessWidget {
                               fontSize: 14,
                               color: order.student != null
                                   ? HelpiTheme.textPrimary
-                                  : HelpiTheme.statusCancelledText,
+                                  : HelpiTheme.textSecondary,
                             ),
                           ),
                         ],

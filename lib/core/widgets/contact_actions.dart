@@ -13,12 +13,13 @@ class PhoneCallButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => launchUrl(Uri.parse('tel:$phone')),
-      child: const Padding(
-        padding: EdgeInsets.all(4),
-        child: Icon(Icons.phone, size: 16, color: HelpiTheme.accent),
-      ),
+    return IconButton(
+      onPressed: () => launchUrl(Uri.parse('tel:$phone')),
+      icon: const Icon(Icons.phone, size: 16, color: HelpiTheme.accent),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+      splashRadius: 14,
+      tooltip: phone,
     );
   }
 }
@@ -30,8 +31,8 @@ class EmailCopyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
+    return IconButton(
+      onPressed: () {
         Clipboard.setData(ClipboardData(text: email));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -40,10 +41,11 @@ class EmailCopyButton extends StatelessWidget {
           ),
         );
       },
-      child: const Padding(
-        padding: EdgeInsets.all(4),
-        child: Icon(Icons.copy, size: 16, color: HelpiTheme.textSecondary),
-      ),
+      icon: const Icon(Icons.copy, size: 16, color: HelpiTheme.textSecondary),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+      splashRadius: 14,
+      tooltip: AppStrings.copyEmail,
     );
   }
 }
