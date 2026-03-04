@@ -18,6 +18,10 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _isGridView = false;
+  late DateTime _selectedMonth = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -42,10 +46,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         )
         .toList();
 
-    // ── Studenti koji su radili ovaj mjesec ──
-    final now = DateTime.now();
-    final monthStart = DateTime(now.year, now.month);
-    final monthEnd = DateTime(now.year, now.month + 1);
+    // ── Studenti koji su radili u odabranom mjesecu ──
+    final monthStart = _selectedMonth;
+    final monthEnd = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
     final activeStudentMap =
         <String, ({StudentModel student, int sessions, int hours})>{};
     for (final order in MockData.orders) {
@@ -195,10 +198,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             const SizedBox(height: 24),
 
-            // ── Aktivni studenti ovaj mjesec ──
-            if (activeStudentsList.isNotEmpty) ...[
-              _SectionHeader(title: AppStrings.activeStudentsThisMonth),
-              const SizedBox(height: 8),
+            // ── Aktivni studenti — odabrani mjesec ──
+            _SectionHeader(
+              title: AppStrings.activeStudents,
+              trailing: _MonthDropdown(
+                selected: _selectedMonth,
+                onChanged: (m) => setState(() => _selectedMonth = m),
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (activeStudentsList.isNotEmpty)
               _buildCardSection(
                 gridColumns: gridColumns,
                 children: activeStudentsList
@@ -211,8 +220,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     )
                     .toList(),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Text(
+                  AppStrings.noData,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                ),
               ),
-            ],
 
             const SizedBox(height: 24),
 
@@ -341,18 +360,92 @@ class _KpiCard extends StatelessWidget {
 //  SECTION HEADER
 // ═══════════════════════════════════════════════════════════════
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
+  const _SectionHeader({required this.title, this.trailing});
   final String title;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: HelpiTheme.textPrimary,
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: HelpiTheme.textPrimary,
+          ),
+        ),
+        if (trailing != null) ...[const SizedBox(width: 8), trailing!],
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MONTH DROPDOWN
+// ═══════════════════════════════════════════════════════════════
+class _MonthDropdown extends StatelessWidget {
+  const _MonthDropdown({required this.selected, required this.onChanged});
+  final DateTime selected;
+  final ValueChanged<DateTime> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    // Generate last 6 months including current
+    final months = List.generate(6, (i) {
+      final m = DateTime(now.year, now.month - i);
+      return m;
+    });
+
+    final selectedLabel =
+        '${AppStrings.monthName(selected.month)} ${selected.year}';
+
+    return PopupMenuButton<DateTime>(
+      onSelected: onChanged,
+      tooltip: '',
+      position: PopupMenuPosition.under,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: HelpiTheme.accent.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              selectedLabel,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: HelpiTheme.accent,
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: HelpiTheme.accent,
+            ),
+          ],
+        ),
       ),
+      itemBuilder: (_) => months.map((m) {
+        final label = '${AppStrings.monthName(m.month)} ${m.year}';
+        return PopupMenuItem<DateTime>(
+          value: m,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: m.year == selected.year && m.month == selected.month
+                  ? FontWeight.w700
+                  : FontWeight.w400,
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

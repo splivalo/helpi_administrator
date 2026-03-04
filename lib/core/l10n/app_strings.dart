@@ -399,6 +399,20 @@ class AppStrings {
       'daySatFull': 'Subota',
       'daySunFull': 'Nedjelja',
 
+      // ── Mjeseci ───────────────────────────────
+      'monthJan': 'Siječanj',
+      'monthFeb': 'Veljača',
+      'monthMar': 'Ožujak',
+      'monthApr': 'Travanj',
+      'monthMay': 'Svibanj',
+      'monthJun': 'Lipanj',
+      'monthJul': 'Srpanj',
+      'monthAug': 'Kolovoz',
+      'monthSep': 'Rujan',
+      'monthOct': 'Listopad',
+      'monthNov': 'Studeni',
+      'monthDec': 'Prosinac',
+
       // ── Parametrizirani ───────────────────────
       'deleteConfirm': 'Obriši {item}?',
       'itemCount': '{count} stavki',
@@ -406,6 +420,7 @@ class AppStrings {
       'hoursFormat': '{hours}h',
       'priceFormat': '{price} €',
       'pricePerHour': '{price} €/sat',
+      'activeStudentsMonth': 'Aktivni studenti — {monthYear}',
     },
 
     'en': {
@@ -789,6 +804,20 @@ class AppStrings {
       'daySatFull': 'Saturday',
       'daySunFull': 'Sunday',
 
+      // ── Mjeseci ───────────────────────────────
+      'monthJan': 'January',
+      'monthFeb': 'February',
+      'monthMar': 'March',
+      'monthApr': 'April',
+      'monthMay': 'May',
+      'monthJun': 'June',
+      'monthJul': 'July',
+      'monthAug': 'August',
+      'monthSep': 'September',
+      'monthOct': 'October',
+      'monthNov': 'November',
+      'monthDec': 'December',
+
       // ── Parametrizirani ───────────────────────
       'deleteConfirm': 'Delete {item}?',
       'itemCount': '{count} items',
@@ -796,6 +825,7 @@ class AppStrings {
       'hoursFormat': '{hours}h',
       'priceFormat': '€{price}',
       'pricePerHour': '€{price}/hour',
+      'activeStudentsMonth': 'Active students — {monthYear}',
     },
   };
 
@@ -1184,6 +1214,25 @@ class AppStrings {
   static String get daySatFull => _t('daySatFull');
   static String get daySunFull => _t('daySunFull');
 
+  // ── Mjeseci ──
+  static const _monthKeys = [
+    'monthJan',
+    'monthFeb',
+    'monthMar',
+    'monthApr',
+    'monthMay',
+    'monthJun',
+    'monthJul',
+    'monthAug',
+    'monthSep',
+    'monthOct',
+    'monthNov',
+    'monthDec',
+  ];
+
+  /// Returns localized month name (1-based: 1 = January/Siječanj).
+  static String monthName(int month) => _t(_monthKeys[month - 1]);
+
   // ── Parametrizirani ──
   static String deleteConfirm(String item) =>
       _t('deleteConfirm', params: {'item': item});
@@ -1197,6 +1246,8 @@ class AppStrings {
       _t('priceFormat', params: {'price': price});
   static String pricePerHour(String price) =>
       _t('pricePerHour', params: {'price': price});
+  static String activeStudentsMonth(String monthYear) =>
+      _t('activeStudentsMonth', params: {'monthYear': monthYear});
 
   // ── Termini ──
   static String get sessionsTitle => _t('sessionsTitle');
