@@ -33,7 +33,7 @@ class AppStrings {
       // ── Dashboard ─────────────────────────────
       'dashboardTitle': 'Pregled',
       'totalOrders': 'Ukupno narudžbi',
-      'processingOrders': 'U obradi',
+      'processingOrders': 'Narudžbe u obradi',
       'activeOrders': 'Aktivne',
       'completedOrders': 'Završene',
       'totalStudents': 'Studenata',
@@ -414,7 +414,7 @@ class AppStrings {
       // ── Dashboard ─────────────────────────────
       'dashboardTitle': 'Dashboard',
       'totalOrders': 'Total orders',
-      'processingOrders': 'Processing',
+      'processingOrders': 'Orders in processing',
       'activeOrders': 'Active',
       'completedOrders': 'Completed',
       'totalStudents': 'Students',
