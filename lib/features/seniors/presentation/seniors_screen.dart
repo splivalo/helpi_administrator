@@ -820,12 +820,23 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               _senior.creditCards.isEmpty
                   ? [
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          AppStrings.seniorNoCards,
-                          style: const TextStyle(
-                            color: HelpiTheme.textSecondary,
-                            fontStyle: FontStyle.italic,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.credit_card_off,
+                                size: 36,
+                                color: HelpiTheme.border,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                AppStrings.seniorNoCards,
+                                style: const TextStyle(
+                                  color: HelpiTheme.textSecondary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -846,27 +857,31 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               const SizedBox(height: 16),
             ],
 
-            // ── Empty state ──
+            // ── Empty orders state ──
             if (widget.orders.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  child: Column(
-                    children: [
-                      const Icon(
-                        Icons.inbox_outlined,
-                        size: 48,
-                        color: HelpiTheme.border,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        AppStrings.noOrdersFound,
-                        style: const TextStyle(color: HelpiTheme.textSecondary),
-                      ),
-                    ],
+              _buildSection(AppStrings.seniorOrders, icon: Icons.receipt_long, [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        const Icon(
+                          Icons.inbox_outlined,
+                          size: 36,
+                          color: HelpiTheme.border,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          AppStrings.noOrdersFound,
+                          style: const TextStyle(
+                            color: HelpiTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+              ]),
 
             // ── Reviews ──
             if (_seniorReviews.isNotEmpty) ...[

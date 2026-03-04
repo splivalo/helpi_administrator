@@ -173,24 +173,28 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                     ),
                 ] else ...[
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.warning_amber,
-                        color: HelpiTheme.statusCancelledText,
-                        size: 18,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.person_off_outlined,
+                            size: 36,
+                            color: HelpiTheme.border,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            AppStrings.noStudentAssigned,
+                            style: const TextStyle(
+                              color: HelpiTheme.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        AppStrings.noStudentAssigned,
-                        style: TextStyle(
-                          color: HelpiTheme.statusCancelledText,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 4),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
