@@ -285,6 +285,7 @@ class AppStrings {
       'seniorPhone': 'Telefon',
       'seniorAddress': 'Adresa',
       'seniorReviews': 'Ocjene seniora',
+      'seniorNoReviews': 'Nema ocjena',
       'seniorOrders': 'Narudžbe seniora',
       'seniorTotalOrders': 'Ukupno narudžbi',
       'seniorActiveOrders': 'Aktivnih',
@@ -665,6 +666,7 @@ class AppStrings {
       'seniorPhone': 'Phone',
       'seniorAddress': 'Address',
       'seniorReviews': 'Senior reviews',
+      'seniorNoReviews': 'No reviews',
       'seniorOrders': 'Senior orders',
       'seniorTotalOrders': 'Total orders',
       'seniorActiveOrders': 'Active',
@@ -1078,6 +1080,7 @@ class AppStrings {
   static String get seniorPhone => _t('seniorPhone');
   static String get seniorAddress => _t('seniorAddress');
   static String get seniorReviews => _t('seniorReviews');
+  static String get seniorNoReviews => _t('seniorNoReviews');
   static String get seniorOrders => _t('seniorOrders');
   static String get seniorTotalOrders => _t('seniorTotalOrders');
   static String get seniorActiveOrders => _t('seniorActiveOrders');

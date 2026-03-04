@@ -252,9 +252,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF0F0F0),
-                                borderRadius: BorderRadius.circular(
-                                  HelpiTheme.chipRadius,
+                                color: HelpiTheme.textSecondary.withValues(
+                                  alpha: 0.08,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: HelpiTheme.textSecondary.withValues(
+                                    alpha: 0.25,
+                                  ),
                                 ),
                               ),
                               child: Text(
@@ -262,7 +267,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFF757575),
+                                  color: HelpiTheme.textSecondary,
                                 ),
                               ),
                             );

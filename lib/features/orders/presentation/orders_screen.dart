@@ -328,15 +328,21 @@ class _OrderListCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: HelpiTheme.chipBg,
-                              borderRadius: BorderRadius.circular(
-                                HelpiTheme.pillRadius,
+                              color: HelpiTheme.textSecondary.withValues(
+                                alpha: 0.08,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: HelpiTheme.textSecondary.withValues(
+                                  alpha: 0.25,
+                                ),
                               ),
                             ),
                             child: Text(
                               _serviceLabel(s),
                               style: const TextStyle(
                                 fontSize: 12,
+                                fontWeight: FontWeight.w600,
                                 color: HelpiTheme.textSecondary,
                               ),
                             ),

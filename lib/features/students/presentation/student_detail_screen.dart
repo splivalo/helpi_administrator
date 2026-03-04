@@ -166,6 +166,49 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   //  CONTRACT SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildContractSection() {
+    if (_student.contractStatus == ContractStatus.none) {
+      return _SectionCard(
+        title: AppStrings.studentContractTitle,
+        icon: Icons.description,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.description_outlined,
+                    size: 36,
+                    color: HelpiTheme.border,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.contractNone,
+                    style: const TextStyle(
+                      color: HelpiTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _simulateContractUpload,
+              icon: const Icon(Icons.upload_file, size: 18),
+              label: Text(AppStrings.studentUploadContract),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: HelpiTheme.accent,
+                side: const BorderSide(color: HelpiTheme.accent, width: 2),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return _SectionCard(
       title: AppStrings.studentContractTitle,
       icon: Icons.description,
@@ -727,29 +770,39 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         const SizedBox(height: 12),
 
         // ── Job counts ──
-        _InfoRow(
-          label: AppStrings.studentCompletedJobs,
-          value: '$completedCount',
-        ),
-        _InfoRow(
-          label: AppStrings.studentCancelledJobs,
-          value: '$cancelledCount',
-        ),
-        const Divider(height: 20),
-
         if (totalHrs == 0)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              AppStrings.workNoOrders,
-              style: const TextStyle(
-                fontSize: 13,
-                fontStyle: FontStyle.italic,
-                color: HelpiTheme.textSecondary,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.work_off_outlined,
+                    size: 36,
+                    color: HelpiTheme.border,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.workNoOrders,
+                    style: const TextStyle(
+                      color: HelpiTheme.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ),
           )
         else ...[
+          // Job counts
+          _InfoRow(
+            label: AppStrings.studentCompletedJobs,
+            value: '$completedCount',
+          ),
+          _InfoRow(
+            label: AppStrings.studentCancelledJobs,
+            value: '$cancelledCount',
+          ),
+          const Divider(height: 20),
           // Hours breakdown
           _InfoRow(
             label: AppStrings.workRegularHours,
@@ -806,6 +859,28 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       title: AppStrings.studentAssignedOrders,
       icon: Icons.receipt_long,
       children: [
+        if (orders.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.inbox_outlined,
+                    size: 36,
+                    color: HelpiTheme.border,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.noOrdersFound,
+                    style: const TextStyle(
+                      color: HelpiTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ...orders.map((o) {
           return GestureDetector(
             onTap: () {
@@ -885,6 +960,36 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   //  REVIEWS SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildReviewsSection(List<ReviewModel> reviews) {
+    if (reviews.isEmpty) {
+      return _SectionCard(
+        title: AppStrings.studentReviews,
+        icon: Icons.star,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.star_border,
+                    size: 36,
+                    color: HelpiTheme.border,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.seniorNoReviews,
+                    style: const TextStyle(
+                      color: HelpiTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return _SectionCard(
       title: AppStrings.studentReviews,
       icon: Icons.star,
@@ -896,6 +1001,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: HelpiTheme.starYellow.withValues(alpha: 0.15),
+                border: Border.all(
+                  color: HelpiTheme.starYellow.withValues(alpha: 0.3),
+                ),
                 borderRadius: BorderRadius.circular(
                   HelpiTheme.statusBadgeRadius,
                 ),

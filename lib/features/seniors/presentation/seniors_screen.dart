@@ -854,7 +854,6 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                 icon: Icons.receipt_long,
                 widget.orders.map((o) => _buildOrderRow(o)).toList(),
               ),
-              const SizedBox(height: 16),
             ],
 
             // ── Empty orders state ──
@@ -882,15 +881,13 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   ),
                 ),
               ]),
+            const SizedBox(height: 12),
 
             // ── Reviews ──
-            if (_seniorReviews.isNotEmpty) ...[
-              _buildReviewsSection(_seniorReviews),
-              const SizedBox(height: 12),
-            ],
+            _buildReviewsSection(_seniorReviews),
+            const SizedBox(height: 12),
 
             // ── Admin actions ──
-            const SizedBox(height: 12),
             _buildSection(
               AppStrings.adminActions,
               icon: Icons.admin_panel_settings,
@@ -936,9 +933,32 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
       MockData.reviews.where((r) => r.seniorName == _senior.fullName).toList();
 
   Widget _buildReviewsSection(List<ReviewModel> reviews) {
-    final avgRating = reviews.isEmpty
-        ? 0.0
-        : reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
+    if (reviews.isEmpty) {
+      return _buildSection(AppStrings.seniorReviews, icon: Icons.star, [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Center(
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.star_border,
+                  size: 36,
+                  color: HelpiTheme.border,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  AppStrings.seniorNoReviews,
+                  style: const TextStyle(color: HelpiTheme.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ]);
+    }
+
+    final avgRating =
+        reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
 
     return _buildSection(AppStrings.seniorReviews, icon: Icons.star, [
       // ── Rating summary ──
@@ -948,6 +968,9 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: HelpiTheme.starYellow.withValues(alpha: 0.15),
+              border: Border.all(
+                color: HelpiTheme.starYellow.withValues(alpha: 0.3),
+              ),
               borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
             ),
             child: Row(
@@ -975,52 +998,50 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
           ),
         ],
       ),
-      if (reviews.isNotEmpty) ...[
-        const Divider(height: 20),
-        ...reviews.map(
-          (r) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: HelpiTheme.scaffold,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ...List.generate(
-                      5,
-                      (i) => Icon(
-                        i < r.rating ? Icons.star : Icons.star_border,
-                        size: 16,
-                        color: HelpiTheme.starYellow,
-                      ),
+      const Divider(height: 20),
+      ...reviews.map(
+        (r) => Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: HelpiTheme.scaffold,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  ...List.generate(
+                    5,
+                    (i) => Icon(
+                      i < r.rating ? Icons.star : Icons.star_border,
+                      size: 16,
+                      color: HelpiTheme.starYellow,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      r.studentName,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                if (r.comment != null && r.comment!.isNotEmpty) ...[
-                  const SizedBox(height: 6),
+                  ),
+                  const SizedBox(width: 8),
                   Text(
-                    r.comment!,
-                    style: const TextStyle(fontSize: 13, height: 1.4),
+                    r.studentName,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: HelpiTheme.textSecondary,
+                    ),
                   ),
                 ],
+              ),
+              if (r.comment != null && r.comment!.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  r.comment!,
+                  style: const TextStyle(fontSize: 13, height: 1.4),
+                ),
               ],
-            ),
+            ],
           ),
         ),
-      ],
+      ),
     ]);
   }
 
