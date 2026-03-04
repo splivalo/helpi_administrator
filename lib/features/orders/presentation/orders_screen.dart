@@ -344,9 +344,7 @@ class _OrderListCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: bgColor,
-        border: Border.all(
-          color: textColor.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: textColor.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(HelpiTheme.chipRadius),
       ),
       child: Text(

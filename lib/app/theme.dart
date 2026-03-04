@@ -205,6 +205,7 @@ class HelpiTheme {
       backgroundColor: accent,
       foregroundColor: Colors.white,
       elevation: 2,
+      shape: CircleBorder(),
     ),
     dividerTheme: const DividerThemeData(
       color: dividerColor,
