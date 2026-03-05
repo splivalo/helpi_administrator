@@ -1260,11 +1260,13 @@ class _FilterPanelState extends State<_FilterPanel> {
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: FilledButton.icon(
-                onPressed: () {
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: ActionChipButton(
+                icon: Icons.check,
+                label: AppStrings.filterApply,
+                color: HelpiTheme.accent,
+                onTap: () {
                   widget.onApply(
                     activityPeriod: _activityPeriod,
                     activityWorked: _activityWorked,
@@ -1280,20 +1282,6 @@ class _FilterPanelState extends State<_FilterPanel> {
                     seniorFilter: _seniorFilter,
                   );
                 },
-                icon: const Icon(Icons.check),
-                label: Text(
-                  AppStrings.filterApply,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: HelpiTheme.accent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
               ),
             ),
           ),
