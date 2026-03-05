@@ -388,6 +388,12 @@ class AppStrings {
       'sessionKeepCurrentStudent': 'Zadrži trenutnog',
       'noStudentsForSlot': 'Nema dostupnih studenata za odabrani termin',
       'selectTime': 'Odaberi vrijeme',
+      'availableAllDays': 'Dostupan sve dane',
+      'availablePartial': 'Dostupan {matched}/{total} dana',
+      'availableDifferentTimes': 'Dostupan, drugi termini',
+      'notAvailableForOrder': 'Nedostupan za ovu narudžbu',
+      'reviewSessions': 'Pregled termina',
+      'timeMismatch': 'Razlika u satima',
       'sessionReactivate': 'Vrati termin',
       'sessionReactivateConfirm':
           'Želite li vratiti ovaj termin kao nadolazeći?',
@@ -844,6 +850,12 @@ class AppStrings {
       'sessionNoStudentAssigned': 'Not assigned',
       'sessionKeepCurrentStudent': 'Keep current',
       'noStudentsForSlot': 'No students available for selected time slot',
+      'availableAllDays': 'Available all days',
+      'availablePartial': 'Available {matched}/{total} days',
+      'availableDifferentTimes': 'Available, different schedule',
+      'notAvailableForOrder': 'Not available for this order',
+      'reviewSessions': 'Review sessions',
+      'timeMismatch': 'Time mismatch',
       'selectTime': 'Select time',
       'sessionReactivate': 'Restore session',
       'sessionReactivateConfirm':
@@ -1438,4 +1450,13 @@ class AppStrings {
   static String get minutesAgo => _t('minutesAgo');
   static String get hoursAgo => _t('hoursAgo');
   static String get daysAgo => _t('daysAgo');
+  static String get availableAllDays => _t('availableAllDays');
+  static String availablePartial(int matched, int total) => _t(
+    'availablePartial',
+    params: {'matched': matched.toString(), 'total': total.toString()},
+  );
+  static String get availableDifferentTimes => _t('availableDifferentTimes');
+  static String get notAvailableForOrder => _t('notAvailableForOrder');
+  static String get reviewSessions => _t('reviewSessions');
+  static String get timeMismatch => _t('timeMismatch');
 }

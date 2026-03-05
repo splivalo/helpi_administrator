@@ -1296,38 +1296,23 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
     return unassigned.where((order) {
       if (order.dayEntries.isNotEmpty) {
-        // Recurring: every dayEntry must fall within student's availability
-        return order.dayEntries.every((entry) => _entryFitsAvailability(entry));
+        // Recurring: student must have the day enabled for every dayEntry
+        // (time mismatches are handled in the session preview)
+        return order.dayEntries.every(
+          (entry) => _dayIsEnabled(entry.dayOfWeek),
+        );
       }
-      // One-time: check scheduledDate's weekday
-      final dow = order.scheduledDate.weekday; // 1=Mon..7=Sun
-      final endMin =
-          order.scheduledStart.hour * 60 +
-          order.scheduledStart.minute +
-          order.durationHours * 60;
-      return _student.availability.any(
-        (a) =>
-            a.dayOfWeek == dow &&
-            a.isEnabled &&
-            a.from.hour * 60 + a.from.minute <=
-                order.scheduledStart.hour * 60 + order.scheduledStart.minute &&
-            a.to.hour * 60 + a.to.minute >= endMin,
-      );
+      // One-time: check scheduledDate's weekday is enabled
+      return _dayIsEnabled(order.scheduledDate.weekday);
     }).toList();
   }
 
-  bool _entryFitsAvailability(DayEntry entry) {
-    final endMin =
-        entry.startTime.hour * 60 +
-        entry.startTime.minute +
-        entry.durationHours * 60;
+  /// Returns true if the student has that weekday enabled (or has no
+  /// availability set at all, which means "always available").
+  bool _dayIsEnabled(int dayOfWeek) {
+    if (_student.availability.isEmpty) return true;
     return _student.availability.any(
-      (a) =>
-          a.dayOfWeek == entry.dayOfWeek &&
-          a.isEnabled &&
-          a.from.hour * 60 + a.from.minute <=
-              entry.startTime.hour * 60 + entry.startTime.minute &&
-          a.to.hour * 60 + a.to.minute >= endMin,
+      (a) => a.dayOfWeek == dayOfWeek && a.isEnabled,
     );
   }
 
@@ -2064,16 +2049,60 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
           if (!isFree && !s.isSkipped) ...[
             const SizedBox(height: 8),
             if (s.rescheduledStart != null)
-              _infoRow(
-                Icons.schedule,
-                '${AppStrings.sessionRescheduled}: ${formatTimeOfDay(s.rescheduledStart!)}',
-                HelpiTheme.statusProcessingText,
+              Row(
+                children: [
+                  const Icon(
+                    Icons.schedule,
+                    size: 14,
+                    color: HelpiTheme.statusProcessingText,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    formatTimeOfDay(s.rescheduledStart!),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: HelpiTheme.statusProcessingText,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _actionBtn(
+                    Icons.undo,
+                    AppStrings.undoSkip,
+                    HelpiTheme.accent,
+                    () => setState(() {
+                      _sessions[index].rescheduledStart = null;
+                    }),
+                  ),
+                ],
               )
             else if (s.substituteStudent != null)
-              _infoRow(
-                Icons.person_outline,
-                '${AppStrings.sessionSubstitute}: ${s.substituteStudent!.fullName}',
-                HelpiTheme.accent,
+              Row(
+                children: [
+                  const Icon(
+                    Icons.person_outline,
+                    size: 14,
+                    color: HelpiTheme.accent,
+                  ),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      s.substituteStudent!.fullName,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: HelpiTheme.accent,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _actionBtn(
+                    Icons.undo,
+                    AppStrings.undoSkip,
+                    HelpiTheme.accent,
+                    () => setState(() {
+                      _sessions[index].substituteStudent = null;
+                    }),
+                  ),
+                ],
               )
             else ...[
               Row(
@@ -2139,11 +2168,16 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
             const SizedBox(height: 6),
             Row(
               children: [
+                const Icon(
+                  Icons.skip_next,
+                  size: 14,
+                  color: HelpiTheme.textSecondary,
+                ),
+                const SizedBox(width: 4),
                 Text(
                   AppStrings.sessionSkipped,
                   style: const TextStyle(
                     fontSize: 12,
-                    fontStyle: FontStyle.italic,
                     color: HelpiTheme.textSecondary,
                   ),
                 ),
@@ -2377,18 +2411,6 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _infoRow(IconData icon, String text, Color color) {
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 4),
-        Expanded(
-          child: Text(text, style: TextStyle(fontSize: 12, color: color)),
-        ),
-      ],
     );
   }
 

@@ -562,8 +562,8 @@ class MockData {
         DayAvailability(
           dayOfWeek: 4,
           isEnabled: true,
-          from: TimeOfDay(hour: 10, minute: 0),
-          to: TimeOfDay(hour: 16, minute: 0),
+          from: TimeOfDay(hour: 14, minute: 0),
+          to: TimeOfDay(hour: 20, minute: 0),
         ),
         DayAvailability(
           dayOfWeek: 5,
@@ -1277,16 +1277,37 @@ class MockData {
       scheduledDate: DateTime(2026, 3, 10),
       scheduledStart: const TimeOfDay(hour: 11, minute: 0),
       durationHours: 2,
-      notes: 'Pomoć s čišćenjem svaki ponedjeljak.',
+      notes: 'Pomoć s čišćenjem svaki utorak i četvrtak.',
       address: 'Savska 25, Zagreb',
       dayEntries: [
         const DayEntry(
-          dayOfWeek: 1,
+          dayOfWeek: 2,
+          startTime: TimeOfDay(hour: 11, minute: 0),
+          durationHours: 2,
+        ),
+        const DayEntry(
+          dayOfWeek: 4,
           startTime: TimeOfDay(hour: 11, minute: 0),
           durationHours: 2,
         ),
       ],
       sessions: [
+        SessionModel(
+          id: 'o11s0a',
+          date: DateTime(2026, 2, 24),
+          weekday: 2,
+          startTime: const TimeOfDay(hour: 11, minute: 0),
+          durationHours: 2,
+          status: SessionStatus.completed,
+        ),
+        SessionModel(
+          id: 'o11s0b',
+          date: DateTime(2026, 3, 3),
+          weekday: 2,
+          startTime: const TimeOfDay(hour: 11, minute: 0),
+          durationHours: 2,
+          status: SessionStatus.completed,
+        ),
         SessionModel(
           id: 'o11s1',
           date: DateTime(2026, 3, 10),
@@ -1295,9 +1316,23 @@ class MockData {
           durationHours: 2,
         ),
         SessionModel(
+          id: 'o11s1b',
+          date: DateTime(2026, 3, 12),
+          weekday: 4,
+          startTime: const TimeOfDay(hour: 11, minute: 0),
+          durationHours: 2,
+        ),
+        SessionModel(
           id: 'o11s2',
           date: DateTime(2026, 3, 17),
           weekday: 2,
+          startTime: const TimeOfDay(hour: 11, minute: 0),
+          durationHours: 2,
+        ),
+        SessionModel(
+          id: 'o11s2b',
+          date: DateTime(2026, 3, 19),
+          weekday: 4,
           startTime: const TimeOfDay(hour: 11, minute: 0),
           durationHours: 2,
         ),

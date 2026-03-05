@@ -1164,77 +1164,128 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  //  ASSIGN STUDENT BOTTOM SHEET
+  //  AVAILABILITY HELPERS
+  // ═══════════════════════════════════════════════════════════════
+
+  /// Returns the order's schedule slots as (dayOfWeek, startTime) pairs.
+  List<({int dayOfWeek, TimeOfDay startTime})> _orderSlots() {
+    if (_order.dayEntries.isNotEmpty) {
+      return _order.dayEntries
+          .map((e) => (dayOfWeek: e.dayOfWeek, startTime: e.startTime))
+          .toList();
+    }
+    return [
+      (
+        dayOfWeek: _order.scheduledDate.weekday,
+        startTime: _order.scheduledStart,
+      ),
+    ];
+  }
+
+  /// Classify student availability for this order.
+  ///   full          – covers all days at the right times
+  ///   differentTimes – covers all days but some at wrong times
+  ///   unavailable    – doesn't cover one or more days
+  _StudentAvail _classifyStudent(StudentModel student) {
+    if (student.availability.isEmpty) return _StudentAvail.full;
+    final slots = _orderSlots();
+    bool allTimesMatch = true;
+    for (final slot in slots) {
+      final dayEntries = student.availability.where(
+        (a) => a.dayOfWeek == slot.dayOfWeek,
+      );
+      if (dayEntries.isEmpty || !dayEntries.first.isEnabled) {
+        return _StudentAvail.unavailable;
+      }
+      final avail = dayEntries.first;
+      final selMin = slot.startTime.hour * 60 + slot.startTime.minute;
+      final fromMin = avail.from.hour * 60 + avail.from.minute;
+      final toMin = avail.to.hour * 60 + avail.to.minute;
+      if (selMin < fromMin || selMin >= toMin) {
+        allTimesMatch = false;
+      }
+    }
+    return allTimesMatch ? _StudentAvail.full : _StudentAvail.differentTimes;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  ASSIGN STUDENT (single-modal flow with back navigation)
   // ═══════════════════════════════════════════════════════════════
   void _showAssignSheet() {
-    // Filter available students based on availability
-    final availableStudents = MockData.students
-        .where((s) => s.isActive && s.contractStatus == ContractStatus.active)
-        .toList();
-
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-    Widget buildContent(ScrollController? scrollCtrl) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isWide)
-            const Padding(
-              padding: EdgeInsets.only(top: 12, bottom: 4),
-              child: DragHandle(),
-            ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: Text(
-              AppStrings.suggestedStudents,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-            ),
-          ),
-          const SizedBox(height: 16),
+    void onConfirmed(StudentModel student) {
+      if (!context.mounted) return;
+      setState(() {
+        final updatedSessions = _order.sessions.map((s) {
+          if (s.status == SessionStatus.upcoming) {
+            return s.copyWith(studentName: () => student.fullName);
+          }
+          return s;
+        }).toList();
 
-          // ── Student list ──
-          Expanded(
-            child: availableStudents.isEmpty
-                ? Center(
-                    child: Text(
-                      AppStrings.noStudentsFound,
-                      style: const TextStyle(color: HelpiTheme.textSecondary),
-                    ),
-                  )
-                : ListView.builder(
-                    controller: scrollCtrl,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemCount: availableStudents.length,
-                    itemBuilder: (ctx, i) {
-                      final student = availableStudents[i];
-                      return _StudentAssignCard(
-                        student: student,
-                        onAssign: () => _assignStudent(student, ctx),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      );
+        _order = OrderModel(
+          id: _order.id,
+          orderNumber: _order.orderNumber,
+          senior: _order.senior,
+          student: student,
+          status: OrderStatus.active,
+          frequency: _order.frequency,
+          services: _order.services,
+          createdAt: _order.createdAt,
+          scheduledDate: _order.scheduledDate,
+          scheduledStart: _order.scheduledStart,
+          durationHours: _order.durationHours,
+          notes: _order.notes,
+          address: _order.address,
+          endDate: _order.endDate,
+          dayEntries: _order.dayEntries,
+          sessions: updatedSessions,
+        );
+        final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
+        if (idx != -1) MockData.orders[idx] = _order;
+      });
     }
+
+    // Classify & filter out unavailable
+    final activeStudents = MockData.students
+        .where((s) => s.isActive && s.contractStatus == ContractStatus.active)
+        .toList();
+    final classified = <(StudentModel, _StudentAvail)>[];
+    for (final s in activeStudents) {
+      final avail = _classifyStudent(s);
+      if (avail != _StudentAvail.unavailable) classified.add((s, avail));
+    }
+    classified.sort((a, b) {
+      final aIdx = a.$2.index;
+      final bIdx = b.$2.index;
+      if (aIdx != bIdx) return aIdx.compareTo(bIdx);
+      return b.$1.avgRating.compareTo(a.$1.avgRating);
+    });
 
     if (isWide) {
       showDialog<void>(
         context: context,
-        builder: (ctx) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620, maxHeight: 750),
+            child: _OrderAssignFlowSheet(
+              order: _order,
+              classified: classified,
+              useDialog: true,
+              onAssignDirect: (student) {
+                _assignStudent(student, ctx);
+              },
+              onAssignConfirmed: (student) {
+                Navigator.pop(ctx);
+                onConfirmed(student);
+              },
             ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560, maxHeight: 700),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: buildContent(null),
-              ),
-            ),
-          );
-        },
+          ),
+        ),
       );
     } else {
       showModalBottomSheet(
@@ -1245,17 +1296,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             top: Radius.circular(HelpiTheme.bottomSheetRadius),
           ),
         ),
-        builder: (ctx) {
-          return DraggableScrollableSheet(
-            initialChildSize: 0.6,
-            maxChildSize: 0.9,
-            minChildSize: 0.3,
-            expand: false,
-            builder: (ctx, scrollCtrl) {
-              return buildContent(scrollCtrl);
-            },
-          );
-        },
+        builder: (ctx) => _OrderAssignFlowSheet(
+          order: _order,
+          classified: classified,
+          useDialog: false,
+          onAssignDirect: (student) {
+            _assignStudent(student, ctx);
+          },
+          onAssignConfirmed: (student) {
+            Navigator.pop(ctx);
+            onConfirmed(student);
+          },
+        ),
       );
     }
   }
@@ -1279,6 +1331,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Navigator.pop(ctx);
               Navigator.pop(sheetContext);
               setState(() {
+                // Propagate student to all upcoming sessions
+                final updatedSessions = _order.sessions.map((s) {
+                  if (s.status == SessionStatus.upcoming) {
+                    return s.copyWith(studentName: () => student.fullName);
+                  }
+                  return s;
+                }).toList();
+
                 _order = OrderModel(
                   id: _order.id,
                   orderNumber: _order.orderNumber,
@@ -1295,7 +1355,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   address: _order.address,
                   endDate: _order.endDate,
                   dayEntries: _order.dayEntries,
-                  sessions: _order.sessions,
+                  sessions: updatedSessions,
                 );
                 // Persist to MockData so all screens see the change
                 final idx = MockData.orders.indexWhere(
@@ -1358,13 +1418,45 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 // ═══════════════════════════════════════════════════════════════
 //  STUDENT ASSIGN CARD (bottom sheet)
 // ═══════════════════════════════════════════════════════════════
+//  STUDENT AVAILABILITY CATEGORY
+// ═══════════════════════════════════════════════════════════════
+enum _StudentAvail { full, differentTimes, unavailable }
+
+// ═══════════════════════════════════════════════════════════════
+//  STUDENT ASSIGN CARD (bottom sheet)
+// ═══════════════════════════════════════════════════════════════
 class _StudentAssignCard extends StatelessWidget {
-  const _StudentAssignCard({required this.student, required this.onAssign});
+  const _StudentAssignCard({
+    required this.student,
+    required this.avail,
+    required this.onAssign,
+  });
   final StudentModel student;
+  final _StudentAvail avail;
   final VoidCallback onAssign;
 
   @override
   Widget build(BuildContext context) {
+    final String availLabel;
+    final Color availColor;
+    final IconData availIcon;
+    final String buttonLabel;
+    final IconData buttonIcon;
+
+    if (avail == _StudentAvail.full) {
+      availLabel = AppStrings.availableAllDays;
+      availColor = HelpiTheme.accent;
+      availIcon = Icons.check_circle_outline;
+      buttonLabel = AppStrings.assignStudent;
+      buttonIcon = Icons.person_add;
+    } else {
+      availLabel = AppStrings.availableDifferentTimes;
+      availColor = const Color(0xFFE65100);
+      availIcon = Icons.schedule;
+      buttonLabel = AppStrings.reviewSessions;
+      buttonIcon = Icons.calendar_month;
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -1426,18 +1518,49 @@ class _StudentAssignCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: 5),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: availColor.withValues(alpha: 0.08),
+                    border: Border.all(
+                      color: availColor.withValues(alpha: 0.3),
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      HelpiTheme.statusBadgeRadius,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(availIcon, size: 12, color: availColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        availLabel,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: availColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
 
-          // ── Assign button ──
+          // ── Action button ──
           Material(
-            color: HelpiTheme.accent.withValues(alpha: 0.08),
+            color: availColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
             child: InkWell(
               borderRadius: BorderRadius.circular(8),
-              hoverColor: HelpiTheme.accent.withValues(alpha: 0.15),
-              splashColor: HelpiTheme.accent.withValues(alpha: 0.2),
+              hoverColor: availColor.withValues(alpha: 0.15),
+              splashColor: availColor.withValues(alpha: 0.2),
               mouseCursor: SystemMouseCursors.click,
               onTap: onAssign,
               child: Container(
@@ -1447,25 +1570,19 @@ class _StudentAssignCard extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: HelpiTheme.accent.withValues(alpha: 0.25),
-                  ),
+                  border: Border.all(color: availColor.withValues(alpha: 0.25)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.person_add,
-                      size: 14,
-                      color: HelpiTheme.accent,
-                    ),
+                    Icon(buttonIcon, size: 14, color: availColor),
                     const SizedBox(width: 4),
                     Text(
-                      AppStrings.assignStudent,
-                      style: const TextStyle(
+                      buttonLabel,
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: HelpiTheme.accent,
+                        color: availColor,
                       ),
                     ),
                   ],
@@ -1585,6 +1702,1117 @@ class _RescheduleRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ORDER ASSIGN FLOW SHEET (single modal: student list ↔ session preview)
+// ═══════════════════════════════════════════════════════════════
+class _OrderAssignFlowSheet extends StatefulWidget {
+  const _OrderAssignFlowSheet({
+    required this.order,
+    required this.classified,
+    required this.onAssignDirect,
+    required this.onAssignConfirmed,
+    this.useDialog = false,
+  });
+
+  final OrderModel order;
+  final List<(StudentModel, _StudentAvail)> classified;
+  final void Function(StudentModel student) onAssignDirect;
+  final void Function(StudentModel student) onAssignConfirmed;
+  final bool useDialog;
+
+  @override
+  State<_OrderAssignFlowSheet> createState() => _OrderAssignFlowSheetState();
+}
+
+class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
+  StudentModel? _selectedStudent;
+
+  void _selectStudent(StudentModel student) {
+    setState(() => _selectedStudent = student);
+  }
+
+  void _goBack() {
+    setState(() => _selectedStudent = null);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final content = _selectedStudent != null
+        ? _OrderSessionPreview(
+            key: ValueKey(_selectedStudent!.id),
+            student: _selectedStudent!,
+            order: widget.order,
+            onBack: _goBack,
+            onAssigned: () => widget.onAssignConfirmed(_selectedStudent!),
+            useDialog: widget.useDialog,
+          )
+        : _buildStudentList();
+
+    if (widget.useDialog) {
+      return Container(
+        decoration: const BoxDecoration(
+          color: HelpiTheme.scaffold,
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
+        child: content,
+      );
+    }
+
+    final height = _selectedStudent != null ? 0.9 : 0.65;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      height: MediaQuery.of(context).size.height * height,
+      decoration: const BoxDecoration(
+        color: HelpiTheme.scaffold,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: content,
+    );
+  }
+
+  Widget _buildStudentList() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!widget.useDialog)
+          const Padding(
+            padding: EdgeInsets.only(top: 12, bottom: 4),
+            child: DragHandle(),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+          child: Row(
+            children: [
+              const Icon(Icons.people_outline, color: HelpiTheme.accent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  AppStrings.suggestedStudents,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                '${widget.classified.length}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: HelpiTheme.accent,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: widget.classified.isEmpty
+              ? Center(
+                  child: Text(
+                    AppStrings.noStudentsFound,
+                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                  itemCount: widget.classified.length,
+                  itemBuilder: (_, i) {
+                    final (student, avail) = widget.classified[i];
+                    return _StudentAssignCard(
+                      student: student,
+                      avail: avail,
+                      onAssign: avail == _StudentAvail.full
+                          ? () => widget.onAssignDirect(student)
+                          : () => _selectStudent(student),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ORDER SESSION PREVIEW (for partial-availability assign flow)
+// ═══════════════════════════════════════════════════════════════
+class _OrderSessionPreview extends StatefulWidget {
+  const _OrderSessionPreview({
+    super.key,
+    required this.student,
+    required this.order,
+    required this.onBack,
+    required this.onAssigned,
+    this.useDialog = false,
+  });
+
+  final StudentModel student;
+  final OrderModel order;
+  final VoidCallback onBack;
+  final VoidCallback onAssigned;
+  final bool useDialog;
+
+  @override
+  State<_OrderSessionPreview> createState() => _OrderSessionPreviewState();
+}
+
+class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
+  late List<SessionInstancePreview> _sessions;
+  int? _expandedIndex;
+  String? _expandedType; // 'time' or 'substitute'
+
+  @override
+  void initState() {
+    super.initState();
+    _sessions = _generateSessions();
+  }
+
+  // ── Generate upcoming sessions with conflict detection ──────
+
+  List<SessionInstancePreview> _generateSessions() {
+    final order = widget.order;
+    final student = widget.student;
+
+    final studentOrders = MockData.orders
+        .where(
+          (o) =>
+              o.student?.id == student.id &&
+              o.status != OrderStatus.cancelled &&
+              o.id != order.id,
+        )
+        .toList();
+
+    final List<SessionInstancePreview> result = [];
+    for (final session in order.sessions) {
+      if (session.status != SessionStatus.upcoming) continue;
+      final startMin = _toMin(session.startTime);
+      final endMin = startMin + session.durationHours * 60;
+
+      SessionConflictType conflictType = SessionConflictType.free;
+      OrderModel? conflictingOrder;
+
+      // 1) Check student availability window
+      if (student.availability.isNotEmpty) {
+        final dayAvail = student.availability.where(
+          (a) => a.dayOfWeek == session.weekday,
+        );
+        if (dayAvail.isEmpty || !dayAvail.first.isEnabled) {
+          conflictType = SessionConflictType.conflict;
+        } else {
+          final avail = dayAvail.first;
+          final fromMin = _toMin(avail.from);
+          final toMin = _toMin(avail.to);
+          if (startMin < fromMin || startMin >= toMin) {
+            conflictType = SessionConflictType.conflict;
+          }
+        }
+      }
+
+      // 2) Check scheduling conflicts with other orders
+      if (conflictType == SessionConflictType.free) {
+        conflictingOrder = _findConflict(
+          date: session.date,
+          weekday: session.weekday,
+          startMin: startMin,
+          endMin: endMin,
+          studentOrders: studentOrders,
+        );
+        if (conflictingOrder != null) {
+          conflictType = SessionConflictType.conflict;
+        }
+      }
+
+      result.add(
+        SessionInstancePreview(
+          date: session.date,
+          weekday: session.weekday,
+          startTime: session.startTime,
+          durationHours: session.durationHours,
+          conflictType: conflictType,
+          conflictingOrder: conflictingOrder,
+        ),
+      );
+    }
+    result.sort((a, b) => a.date.compareTo(b.date));
+    return result;
+  }
+
+  OrderModel? _findConflict({
+    required DateTime date,
+    required int weekday,
+    required int startMin,
+    required int endMin,
+    required List<OrderModel> studentOrders,
+  }) {
+    for (final existing in studentOrders) {
+      if (existing.dayEntries.isNotEmpty) {
+        for (final entry in existing.dayEntries) {
+          if (entry.dayOfWeek == weekday) {
+            final exStart = _toMin(entry.startTime);
+            final exEnd = exStart + entry.durationHours * 60;
+            if (_overlap(startMin, endMin, exStart, exEnd)) return existing;
+          }
+        }
+      } else if (_sameDay(existing.scheduledDate, date)) {
+        final exStart = _toMin(existing.scheduledStart);
+        final exEnd = exStart + existing.durationHours * 60;
+        if (_overlap(startMin, endMin, exStart, exEnd)) return existing;
+      }
+    }
+    return null;
+  }
+
+  List<StudentModel> _findSubstitutes(SessionInstancePreview session) {
+    return MockData.students.where((s) {
+      if (s.id == widget.student.id) return false;
+      if (!s.isActive || s.contractStatus != ContractStatus.active) {
+        return false;
+      }
+      final avail = s.availability.where(
+        (a) => a.dayOfWeek == session.weekday && a.isEnabled,
+      );
+      if (avail.isEmpty) return s.availability.isEmpty;
+      final a = avail.first;
+      final sStart = _toMin(session.startTime);
+      final sEnd = sStart + session.durationHours * 60;
+      if (_toMin(a.from) > sStart || _toMin(a.to) < sEnd) return false;
+      final subOrders = MockData.orders.where(
+        (o) => o.student?.id == s.id && o.status != OrderStatus.cancelled,
+      );
+      for (final o in subOrders) {
+        if (o.dayEntries.isNotEmpty) {
+          for (final entry in o.dayEntries) {
+            if (entry.dayOfWeek == session.weekday) {
+              final exS = _toMin(entry.startTime);
+              if (_overlap(sStart, sEnd, exS, exS + entry.durationHours * 60)) {
+                return false;
+              }
+            }
+          }
+        } else if (_sameDay(o.scheduledDate, session.date)) {
+          final exS = _toMin(o.scheduledStart);
+          if (_overlap(sStart, sEnd, exS, exS + o.durationHours * 60)) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }).toList();
+  }
+
+  List<TimeOfDay> _findAltSlots(SessionInstancePreview session) {
+    final avail = widget.student.availability.where(
+      (a) => a.dayOfWeek == session.weekday && a.isEnabled,
+    );
+    if (avail.isEmpty) return [];
+    final a = avail.first;
+    final availFrom = _toMin(a.from);
+    final availTo = _toMin(a.to);
+    final dur = session.durationHours * 60;
+
+    final busy = <({int start, int end})>[];
+    for (final o in MockData.orders.where(
+      (o) =>
+          o.student?.id == widget.student.id &&
+          o.status != OrderStatus.cancelled,
+    )) {
+      if (o.dayEntries.isNotEmpty) {
+        for (final e in o.dayEntries) {
+          if (e.dayOfWeek == session.weekday) {
+            final s = _toMin(e.startTime);
+            busy.add((start: s, end: s + e.durationHours * 60));
+          }
+        }
+      } else if (_sameDay(o.scheduledDate, session.date)) {
+        final s = _toMin(o.scheduledStart);
+        busy.add((start: s, end: s + o.durationHours * 60));
+      }
+    }
+    busy.sort((a, b) => a.start.compareTo(b.start));
+
+    final List<TimeOfDay> slots = [];
+    int cursor = availFrom;
+    for (final b in busy) {
+      if (cursor + dur <= b.start) {
+        slots.add(TimeOfDay(hour: cursor ~/ 60, minute: cursor % 60));
+      }
+      if (b.end > cursor) cursor = b.end;
+    }
+    if (cursor + dur <= availTo) {
+      slots.add(TimeOfDay(hour: cursor ~/ 60, minute: cursor % 60));
+    }
+    slots.removeWhere(
+      (t) =>
+          t.hour == session.startTime.hour &&
+          t.minute == session.startTime.minute,
+    );
+    return slots;
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────
+
+  static int _toMin(TimeOfDay t) => t.hour * 60 + t.minute;
+  static bool _overlap(int s1, int e1, int s2, int e2) => s1 < e2 && s2 < e1;
+  static bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  int get _freeCount =>
+      _sessions.where((s) => s.conflictType == SessionConflictType.free).length;
+  int get _conflictCount => _sessions
+      .where((s) => s.conflictType == SessionConflictType.conflict)
+      .length;
+  int get _unresolvedCount =>
+      _sessions.where((s) => s.hasUnresolvedConflict).length;
+
+  static const _dayLabelsShort = [
+    'Pon',
+    'Uto',
+    'Sri',
+    'Čet',
+    'Pet',
+    'Sub',
+    'Ned',
+  ];
+
+  // ── Actions ─────────────────────────────────────────────────
+
+  void _skipSession(int i) => setState(() => _sessions[i].isSkipped = true);
+  void _undoSkip(int i) => setState(() => _sessions[i].isSkipped = false);
+
+  void _toggleTimePicker(int index) {
+    final session = _sessions[index];
+    final slots = _findAltSlots(session);
+    if (slots.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.noSubstitutesAvailable),
+          backgroundColor: HelpiTheme.error,
+        ),
+      );
+      return;
+    }
+    setState(() {
+      if (_expandedIndex == index && _expandedType == 'time') {
+        _expandedIndex = null;
+        _expandedType = null;
+      } else {
+        _expandedIndex = index;
+        _expandedType = 'time';
+      }
+    });
+  }
+
+  void _toggleSubstitutePicker(int index) {
+    final session = _sessions[index];
+    final subs = _findSubstitutes(session);
+    if (subs.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.noSubstitutesAvailable),
+          backgroundColor: HelpiTheme.error,
+        ),
+      );
+      return;
+    }
+    setState(() {
+      if (_expandedIndex == index && _expandedType == 'substitute') {
+        _expandedIndex = null;
+        _expandedType = null;
+      } else {
+        _expandedIndex = index;
+        _expandedType = 'substitute';
+      }
+    });
+  }
+
+  void _confirmAssign() {
+    if (_unresolvedCount > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.unresolvedConflicts),
+          backgroundColor: HelpiTheme.error,
+        ),
+      );
+      return;
+    }
+    widget.onAssigned();
+  }
+
+  // ── Build ───────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (!widget.useDialog)
+          const Padding(
+            padding: EdgeInsets.only(top: 12, bottom: 4),
+            child: DragHandle(),
+          ),
+        // Header with back button
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 4, 20, 4),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back, size: 20),
+                onPressed: widget.onBack,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+              const Icon(Icons.calendar_month, color: HelpiTheme.accent),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  AppStrings.sessionPreviewTitle,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Sub-header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '#${widget.order.orderNumber} '
+                '${widget.order.senior.fullName}  →  '
+                '${widget.student.fullName}',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: HelpiTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildStatsBar(),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        // Session list
+        Expanded(
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: _sessions.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
+            itemBuilder: (_, i) => _buildSessionTile(i),
+          ),
+        ),
+        // Bottom bar
+        _buildBottomBar(),
+      ],
+    );
+  }
+
+  Widget _buildStatsBar() {
+    return Row(
+      children: [
+        _statChip(
+          Icons.check_box_outlined,
+          '$_freeCount',
+          HelpiTheme.statusActiveBg,
+          HelpiTheme.statusActiveText,
+        ),
+        const SizedBox(width: 8),
+        if (_conflictCount > 0) ...[
+          _statChip(
+            Icons.warning_amber_rounded,
+            '$_conflictCount',
+            HelpiTheme.statusCancelledBg,
+            HelpiTheme.statusCancelledText,
+          ),
+          const SizedBox(width: 8),
+        ],
+        _statChip(
+          Icons.event_note,
+          AppStrings.sessionCountChip(_sessions.length),
+          HelpiTheme.chipBg,
+          HelpiTheme.textSecondary,
+        ),
+      ],
+    );
+  }
+
+  Widget _statChip(IconData icon, String text, Color bg, Color fg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border.all(color: fg.withAlpha(50)),
+        borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: fg),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSessionTile(int index) {
+    final s = _sessions[index];
+    final isFree = s.conflictType == SessionConflictType.free;
+    final isResolved =
+        s.isSkipped ||
+        s.rescheduledStart != null ||
+        s.substituteStudent != null;
+
+    Color borderColor;
+    Color bgColor;
+    if (s.isSkipped) {
+      borderColor = HelpiTheme.border;
+      bgColor = HelpiTheme.chipBg;
+    } else if (isFree || isResolved) {
+      borderColor = HelpiTheme.statusActiveText.withAlpha(80);
+      bgColor = Colors.white;
+    } else {
+      borderColor = HelpiTheme.statusCancelledText.withAlpha(120);
+      bgColor = Colors.white;
+    }
+
+    final displayStart = s.rescheduledStart ?? s.startTime;
+    final endMin = _toMin(displayStart) + s.durationHours * 60;
+    final endTime = TimeOfDay(hour: endMin ~/ 60, minute: endMin % 60);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Row 1: Date + Status
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: (!isFree && !isResolved && !s.isSkipped)
+                      ? HelpiTheme.statusCancelledText.withAlpha(20)
+                      : HelpiTheme.accent.withAlpha(20),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  _dayLabelsShort[s.weekday - 1],
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: (!isFree && !isResolved && !s.isSkipped)
+                        ? HelpiTheme.statusCancelledText
+                        : HelpiTheme.accent,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                formatDate(s.date),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  decoration: s.isSkipped ? TextDecoration.lineThrough : null,
+                  color: s.isSkipped ? HelpiTheme.textSecondary : null,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${formatTimeOfDay(displayStart)} – ${formatTimeOfDay(endTime)}',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: s.isSkipped ? HelpiTheme.textSecondary : null,
+                  decoration: s.isSkipped ? TextDecoration.lineThrough : null,
+                ),
+              ),
+              const Spacer(),
+              _buildBadge(s),
+            ],
+          ),
+
+          // Conflict info / resolution
+          if (!isFree && !s.isSkipped) ...[
+            const SizedBox(height: 8),
+            if (s.rescheduledStart != null)
+              Row(
+                children: [
+                  const Icon(
+                    Icons.schedule,
+                    size: 14,
+                    color: HelpiTheme.statusProcessingText,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    formatTimeOfDay(s.rescheduledStart!),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: HelpiTheme.statusProcessingText,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _actionBtn(
+                    Icons.undo,
+                    AppStrings.undoSkip,
+                    HelpiTheme.accent,
+                    () => setState(() {
+                      _sessions[index].rescheduledStart = null;
+                    }),
+                  ),
+                ],
+              )
+            else if (s.substituteStudent != null)
+              Row(
+                children: [
+                  const Icon(
+                    Icons.person_outline,
+                    size: 14,
+                    color: HelpiTheme.accent,
+                  ),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      s.substituteStudent!.fullName,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: HelpiTheme.accent,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _actionBtn(
+                    Icons.undo,
+                    AppStrings.undoSkip,
+                    HelpiTheme.accent,
+                    () => setState(() {
+                      _sessions[index].substituteStudent = null;
+                    }),
+                  ),
+                ],
+              )
+            else ...[
+              Row(
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    size: 14,
+                    color: HelpiTheme.statusCancelledText,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      s.conflictingOrder != null
+                          ? '${AppStrings.conflictWith} '
+                                '#${s.conflictingOrder!.orderNumber} '
+                                '${s.conflictingOrder!.senior.fullName}'
+                          : AppStrings.timeMismatch,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: HelpiTheme.statusCancelledText,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  _actionBtn(
+                    Icons.skip_next,
+                    AppStrings.skipSession,
+                    HelpiTheme.textSecondary,
+                    () => _skipSession(index),
+                  ),
+                  const SizedBox(width: 8),
+                  _actionBtn(
+                    Icons.schedule,
+                    AppStrings.changeTime,
+                    _expandedIndex == index && _expandedType == 'time'
+                        ? HelpiTheme.accent
+                        : HelpiTheme.statusProcessingText,
+                    () => _toggleTimePicker(index),
+                  ),
+                  const SizedBox(width: 8),
+                  _actionBtn(
+                    Icons.person_add_alt_1,
+                    AppStrings.findSubstitute,
+                    _expandedIndex == index && _expandedType == 'substitute'
+                        ? HelpiTheme.statusProcessingText
+                        : HelpiTheme.accent,
+                    () => _toggleSubstitutePicker(index),
+                  ),
+                ],
+              ),
+              // ── Inline time picker ──
+              if (_expandedIndex == index && _expandedType == 'time')
+                _buildInlineTimePicker(index),
+              // ── Inline substitute picker ──
+              if (_expandedIndex == index && _expandedType == 'substitute')
+                _buildInlineSubstitutePicker(index),
+            ],
+          ],
+
+          if (s.isSkipped) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Icon(
+                  Icons.skip_next,
+                  size: 14,
+                  color: HelpiTheme.textSecondary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  AppStrings.sessionSkipped,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _actionBtn(
+                  Icons.undo,
+                  AppStrings.undoSkip,
+                  HelpiTheme.accent,
+                  () => _undoSkip(index),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadge(SessionInstancePreview s) {
+    String label;
+    Color bg;
+    Color fg;
+    if (s.isSkipped) {
+      label = AppStrings.sessionSkipped;
+      bg = HelpiTheme.chipBg;
+      fg = HelpiTheme.textSecondary;
+    } else if (s.rescheduledStart != null) {
+      label = AppStrings.sessionRescheduled;
+      bg = HelpiTheme.statusProcessingBg;
+      fg = HelpiTheme.statusProcessingText;
+    } else if (s.substituteStudent != null) {
+      label = AppStrings.sessionSubstitute;
+      bg = HelpiTheme.pastelTeal;
+      fg = HelpiTheme.accent;
+    } else if (s.conflictType == SessionConflictType.free) {
+      label = AppStrings.sessionFree;
+      bg = HelpiTheme.statusActiveBg;
+      fg = HelpiTheme.statusActiveText;
+    } else {
+      label = AppStrings.sessionConflict;
+      bg = HelpiTheme.statusCancelledBg;
+      fg = HelpiTheme.statusCancelledText;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border.all(color: fg.withAlpha(50)),
+        borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
+      ),
+    );
+  }
+
+  // ── Inline pickers ──────────────────────────────────────────
+
+  Widget _buildInlineTimePicker(int index) {
+    final session = _sessions[index];
+    final slots = _findAltSlots(session);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.selectNewTime,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: HelpiTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: slots.map((slot) {
+              final endMin = _toMin(slot) + session.durationHours * 60;
+              final end = TimeOfDay(hour: endMin ~/ 60, minute: endMin % 60);
+              return Material(
+                color: HelpiTheme.statusProcessingBg,
+                borderRadius: BorderRadius.circular(6),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  hoverColor: HelpiTheme.statusProcessingText.withAlpha(20),
+                  splashColor: HelpiTheme.statusProcessingText.withAlpha(30),
+                  mouseCursor: SystemMouseCursors.click,
+                  onTap: () {
+                    setState(() {
+                      _sessions[index].rescheduledStart = slot;
+                      _expandedIndex = null;
+                      _expandedType = null;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: HelpiTheme.statusProcessingText.withAlpha(60),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.access_time,
+                          size: 13,
+                          color: HelpiTheme.statusProcessingText,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${formatTimeOfDay(slot)} – ${formatTimeOfDay(end)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: HelpiTheme.statusProcessingText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInlineSubstitutePicker(int index) {
+    final session = _sessions[index];
+    final subs = _findSubstitutes(session);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.selectSubstitute,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: HelpiTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ...subs.map(
+            (sub) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
+                  hoverColor: HelpiTheme.accent.withAlpha(15),
+                  splashColor: HelpiTheme.accent.withAlpha(25),
+                  mouseCursor: SystemMouseCursors.click,
+                  onTap: () {
+                    setState(() {
+                      _sessions[index].substituteStudent = sub;
+                      _expandedIndex = null;
+                      _expandedType = null;
+                    });
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.pillRadius,
+                      ),
+                      border: Border.all(
+                        color: HelpiTheme.accent.withAlpha(60),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: HelpiTheme.accent.withAlpha(30),
+                          radius: 14,
+                          child: Text(
+                            '${sub.firstName[0]}${sub.lastName[0]}',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: HelpiTheme.accent,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            sub.fullName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.star_rounded,
+                          size: 14,
+                          color: Colors.amber.shade700,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${sub.avgRating}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.amber.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actionBtn(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Material(
+      color: color.withAlpha(20),
+      borderRadius: BorderRadius.circular(6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        hoverColor: color.withAlpha(25),
+        splashColor: color.withAlpha(35),
+        mouseCursor: SystemMouseCursors.click,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: color.withAlpha(60)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 13, color: color),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    final hasUnresolved = _unresolvedCount > 0;
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        12,
+        20,
+        12 + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: HelpiTheme.border)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (hasUnresolved) ...[
+            Row(
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  size: 16,
+                  color: HelpiTheme.statusCancelledText,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '${AppStrings.unresolvedConflicts} ($_unresolvedCount)',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: HelpiTheme.statusCancelledText,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ActionChipButton(
+              icon: Icons.check_circle,
+              label: AppStrings.confirmAssign,
+              color: hasUnresolved
+                  ? HelpiTheme.textSecondary
+                  : HelpiTheme.accent,
+              onTap: _confirmAssign,
+            ),
+          ),
+        ],
       ),
     );
   }
