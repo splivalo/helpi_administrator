@@ -1309,22 +1309,56 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   void _openAssignSheet() {
     final matching = _findMatchingOrders();
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return _AssignFlowSheet(
-          student: _student,
-          matchingOrders: matching,
-          onAssigned: (order) {
-            Navigator.pop(ctx);
-            _simulateAssign(order);
-          },
-        );
-      },
-    );
+    if (isWide) {
+      showDialog(
+        context: context,
+        builder: (ctx) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 80,
+              vertical: 40,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 560,
+                  maxHeight: 700,
+                ),
+                child: _AssignFlowSheet(
+                  student: _student,
+                  matchingOrders: matching,
+                  onAssigned: (order) {
+                    Navigator.pop(ctx);
+                    _simulateAssign(order);
+                  },
+                  useDialog: true,
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) {
+          return _AssignFlowSheet(
+            student: _student,
+            matchingOrders: matching,
+            onAssigned: (order) {
+              Navigator.pop(ctx);
+              _simulateAssign(order);
+            },
+          );
+        },
+      );
+    }
   }
 
   void _simulateAssign(OrderModel order) {
@@ -1349,11 +1383,13 @@ class _AssignFlowSheet extends StatefulWidget {
     required this.student,
     required this.matchingOrders,
     required this.onAssigned,
+    this.useDialog = false,
   });
 
   final StudentModel student;
   final List<OrderModel> matchingOrders;
   final void Function(OrderModel order) onAssigned;
+  final bool useDialog;
 
   @override
   State<_AssignFlowSheet> createState() => _AssignFlowSheetState();
@@ -1372,6 +1408,26 @@ class _AssignFlowSheetState extends State<_AssignFlowSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final content = _selectedOrder != null
+        ? _SessionPreviewContent(
+            key: ValueKey(_selectedOrder!.id),
+            student: widget.student,
+            order: _selectedOrder!,
+            onBack: _goBack,
+            onAssigned: () => widget.onAssigned(_selectedOrder!),
+          )
+        : _buildMatchingList();
+
+    if (widget.useDialog) {
+      return Container(
+        decoration: const BoxDecoration(
+          color: HelpiTheme.scaffold,
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+        ),
+        child: content,
+      );
+    }
+
     final height = _selectedOrder != null ? 0.9 : 0.65;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -1381,15 +1437,7 @@ class _AssignFlowSheetState extends State<_AssignFlowSheet> {
         color: HelpiTheme.scaffold,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: _selectedOrder != null
-          ? _SessionPreviewContent(
-              key: ValueKey(_selectedOrder!.id),
-              student: widget.student,
-              order: _selectedOrder!,
-              onBack: _goBack,
-              onAssigned: () => widget.onAssigned(_selectedOrder!),
-            )
-          : _buildMatchingList(),
+      child: content,
     );
   }
 
@@ -1494,6 +1542,9 @@ class _SessionPreviewContent extends StatefulWidget {
 
 class _SessionPreviewContentState extends State<_SessionPreviewContent> {
   late List<SessionInstancePreview> _sessions;
+  int? _expandedIndex;
+  // 'time' or 'substitute'
+  String? _expandedType;
 
   @override
   void initState() {
@@ -1715,7 +1766,7 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
   void _skipSession(int i) => setState(() => _sessions[i].isSkipped = true);
   void _undoSkip(int i) => setState(() => _sessions[i].isSkipped = false);
 
-  void _showTimePicker(int index) {
+  void _toggleTimePicker(int index) {
     final session = _sessions[index];
     final slots = _findAltSlots(session);
     if (slots.isEmpty) {
@@ -1727,48 +1778,18 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
       );
       return;
     }
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                AppStrings.selectNewTime,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const Divider(height: 1),
-            ...slots.map((slot) {
-              final endMin = _toMin(slot) + session.durationHours * 60;
-              final end = TimeOfDay(hour: endMin ~/ 60, minute: endMin % 60);
-              return ListTile(
-                leading: const Icon(
-                  Icons.access_time,
-                  color: HelpiTheme.accent,
-                ),
-                title: Text(
-                  '${formatTimeOfDay(slot)} – ${formatTimeOfDay(end)}',
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  setState(() => _sessions[index].rescheduledStart = slot);
-                },
-              );
-            }),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
+    setState(() {
+      if (_expandedIndex == index && _expandedType == 'time') {
+        _expandedIndex = null;
+        _expandedType = null;
+      } else {
+        _expandedIndex = index;
+        _expandedType = 'time';
+      }
+    });
   }
 
-  void _showSubstitutePicker(int index) {
+  void _toggleSubstitutePicker(int index) {
     final session = _sessions[index];
     final subs = _findSubstitutes(session);
     if (subs.isEmpty) {
@@ -1780,53 +1801,15 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
       );
       return;
     }
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                AppStrings.selectSubstitute,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const Divider(height: 1),
-            ...subs.map(
-              (sub) => ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: HelpiTheme.pastelTeal,
-                  radius: 18,
-                  child: Text(
-                    '${sub.firstName[0]}${sub.lastName[0]}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: HelpiTheme.accent,
-                    ),
-                  ),
-                ),
-                title: Text(sub.fullName),
-                subtitle: Text(
-                  '⭐ ${sub.avgRating}  •  ${sub.completedJobs} poslova',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  setState(() => _sessions[index].substituteStudent = sub);
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
+    setState(() {
+      if (_expandedIndex == index && _expandedType == 'substitute') {
+        _expandedIndex = null;
+        _expandedType = null;
+      } else {
+        _expandedIndex = index;
+        _expandedType = 'substitute';
+      }
+    });
   }
 
   void _confirmAssign() {
@@ -1947,7 +1930,8 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: fg.withAlpha(50)),
+        borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -2094,18 +2078,28 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
                   _actionBtn(
                     Icons.schedule,
                     AppStrings.changeTime,
-                    HelpiTheme.statusProcessingText,
-                    () => _showTimePicker(index),
+                    _expandedIndex == index && _expandedType == 'time'
+                        ? HelpiTheme.accent
+                        : HelpiTheme.statusProcessingText,
+                    () => _toggleTimePicker(index),
                   ),
                   const SizedBox(width: 8),
                   _actionBtn(
                     Icons.person_add_alt_1,
                     AppStrings.findSubstitute,
-                    HelpiTheme.accent,
-                    () => _showSubstitutePicker(index),
+                    _expandedIndex == index && _expandedType == 'substitute'
+                        ? HelpiTheme.statusProcessingText
+                        : HelpiTheme.accent,
+                    () => _toggleSubstitutePicker(index),
                   ),
                 ],
               ),
+              // ── Inline time picker ──
+              if (_expandedIndex == index && _expandedType == 'time')
+                _buildInlineTimePicker(index),
+              // ── Inline substitute picker ──
+              if (_expandedIndex == index && _expandedType == 'substitute')
+                _buildInlineSubstitutePicker(index),
             ],
           ],
 
@@ -2165,11 +2159,179 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: fg.withAlpha(50)),
+        borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
       ),
       child: Text(
         label,
         style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
+      ),
+    );
+  }
+
+  // ── Inline pickers ──────────────────────────────────────────
+
+  Widget _buildInlineTimePicker(int index) {
+    final session = _sessions[index];
+    final slots = _findAltSlots(session);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.selectNewTime,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: HelpiTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: slots.map((slot) {
+              final endMin = _toMin(slot) + session.durationHours * 60;
+              final end = TimeOfDay(hour: endMin ~/ 60, minute: endMin % 60);
+              return MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _sessions[index].rescheduledStart = slot;
+                      _expandedIndex = null;
+                      _expandedType = null;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: HelpiTheme.statusProcessingBg,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: HelpiTheme.statusProcessingText.withAlpha(60),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.access_time,
+                          size: 13,
+                          color: HelpiTheme.statusProcessingText,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${formatTimeOfDay(slot)} – ${formatTimeOfDay(end)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: HelpiTheme.statusProcessingText,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInlineSubstitutePicker(int index) {
+    final session = _sessions[index];
+    final subs = _findSubstitutes(session);
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.selectSubstitute,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: HelpiTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ...subs.map(
+            (sub) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _sessions[index].substituteStudent = sub;
+                      _expandedIndex = null;
+                      _expandedType = null;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: HelpiTheme.pastelTeal,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: HelpiTheme.accent.withAlpha(60),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: HelpiTheme.accent.withAlpha(30),
+                          radius: 12,
+                          child: Text(
+                            '${sub.firstName[0]}${sub.lastName[0]}',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: HelpiTheme.accent,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          sub.fullName,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: HelpiTheme.accent,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.star_rounded,
+                          size: 13,
+                          color: Colors.amber.shade700,
+                        ),
+                        Text(
+                          '${sub.avgRating}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.amber.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -2368,23 +2530,7 @@ class _MatchingOrderCard extends StatelessWidget {
           Wrap(
             spacing: 6,
             runSpacing: 4,
-            children: order.services.map((s) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: HelpiTheme.chipBg,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  serviceLabel(s),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: HelpiTheme.textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              );
-            }).toList(),
+            children: order.services.map((s) => ServiceChip(type: s)).toList(),
           ),
 
           // ── Address ──
