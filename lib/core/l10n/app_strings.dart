@@ -386,6 +386,8 @@ class AppStrings {
       'sessionRescheduleTitle': 'Promjena termina',
       'sessionNoStudentAssigned': 'Nije dodijeljen',
       'sessionKeepCurrentStudent': 'Zadrži trenutnog',
+      'noStudentsForSlot': 'Nema dostupnih studenata za odabrani termin',
+      'selectTime': 'Odaberi vrijeme',
       'sessionReactivate': 'Vrati termin',
       'sessionReactivateConfirm':
           'Želite li vratiti ovaj termin kao nadolazeći?',
@@ -840,6 +842,8 @@ class AppStrings {
       'sessionRescheduleTitle': 'Reschedule session',
       'sessionNoStudentAssigned': 'Not assigned',
       'sessionKeepCurrentStudent': 'Keep current',
+      'noStudentsForSlot': 'No students available for selected time slot',
+      'selectTime': 'Select time',
       'sessionReactivate': 'Restore session',
       'sessionReactivateConfirm':
           'Do you want to restore this session as upcoming?',
@@ -1417,6 +1421,8 @@ class AppStrings {
   static String get sessionNoStudentAssigned => _t('sessionNoStudentAssigned');
   static String get sessionKeepCurrentStudent =>
       _t('sessionKeepCurrentStudent');
+  static String get noStudentsForSlot => _t('noStudentsForSlot');
+  static String get selectTime => _t('selectTime');
   static String get sessionReactivate => _t('sessionReactivate');
   static String get sessionReactivateConfirm => _t('sessionReactivateConfirm');
   static String get emailCopied => _t('emailCopied');

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 
@@ -17,19 +18,25 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
+  final _prefs = PreferencesService.instance;
+  static const _screenKey = 'orderDetail';
+  static const _sectionCount = 5;
+
   late OrderModel _order;
   bool _sessionsExpanded = true;
+  late List<int> _sectionOrder;
 
   @override
   void initState() {
     super.initState();
     _order = widget.order;
+    _sectionOrder =
+        _prefs.getSectionOrder(_screenKey) ??
+        List.generate(_sectionCount, (i) => i);
   }
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = formatDate(_order.scheduledDate);
-
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -45,237 +52,436 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             StatusBadge.order(_order.status, size: StatusBadgeSize.large),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.dashboard_customize, size: 22),
+            tooltip: AppStrings.editLayout,
+            onPressed: _showReorderSheet,
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: Builder(
+        builder: (context) {
+          final allSections = _buildAllSections();
+          final sections = <Widget>[
+            for (final idx in _sectionOrder) allSections[idx],
+          ];
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (int i = 0; i < sections.length; i++) ...[
+                  sections[i],
+                  if (i < sections.length - 1) const SizedBox(height: 12),
+                ],
+                const SizedBox(height: 40),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  //  SECTION REORDER HELPERS
+  // ─────────────────────────────────────────────────────────
+
+  static List<String> get _sectionLabels => [
+    AppStrings.seniorOrdererTitle,
+    AppStrings.seniorServiceUser,
+    AppStrings.orderStudent,
+    AppStrings.orderDetails,
+    AppStrings.sessionsTitle,
+  ];
+
+  static const _sectionIcons = [
+    Icons.people,
+    Icons.elderly,
+    Icons.school,
+    Icons.receipt_long,
+    Icons.calendar_month,
+  ];
+
+  List<Widget> _buildAllSections() {
+    return [
+      _buildOrdererSection(),
+      _buildServiceUserSection(),
+      _buildStudentSection(),
+      _buildOrderDetailsSection(),
+      if (_order.sessions.isNotEmpty)
+        _buildSessionsSection()
+      else
+        const SizedBox.shrink(),
+    ];
+  }
+
+  void _showReorderSheet() {
+    final tempOrder = List<int>.from(_sectionOrder);
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    Widget buildContent(BuildContext ctx, StateSetter setSheetState) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isWide)
+            const Padding(
+              padding: EdgeInsets.only(top: 12, bottom: 4),
+              child: DragHandle(),
+            ),
+          const SizedBox(height: 8),
+          Text(
+            AppStrings.sectionLayoutTitle,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            AppStrings.sectionLayoutHint,
+            style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: _sectionCount * 56.0,
+            child: ReorderableListView.builder(
+              shrinkWrap: true,
+              itemCount: tempOrder.length,
+              onReorder: (oldIndex, newIndex) {
+                setSheetState(() {
+                  if (newIndex > oldIndex) newIndex--;
+                  final item = tempOrder.removeAt(oldIndex);
+                  tempOrder.insert(newIndex, item);
+                });
+              },
+              itemBuilder: (_, i) {
+                final sectionIdx = tempOrder[i];
+                return ListTile(
+                  key: ValueKey(sectionIdx),
+                  leading: Icon(
+                    _sectionIcons[sectionIdx],
+                    color: HelpiTheme.accent,
+                    size: 20,
+                  ),
+                  title: Text(
+                    _sectionLabels[sectionIdx],
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  dense: true,
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ActionChipButton(
+                  icon: Icons.restart_alt,
+                  label: AppStrings.resetDefault,
+                  color: HelpiTheme.accent,
+                  outlined: true,
+                  onTap: () {
+                    setSheetState(() {
+                      tempOrder.clear();
+                      tempOrder.addAll(
+                        List.generate(_sectionCount, (i) => i),
+                      );
+                    });
+                  },
+                ),
+                const SizedBox(width: 12),
+                ActionChipButton(
+                  icon: Icons.check,
+                  label: AppStrings.save,
+                  color: HelpiTheme.primary,
+                  onTap: () {
+                    setState(() {
+                      _sectionOrder = List.from(tempOrder);
+                    });
+                    _prefs.setSectionOrder(_screenKey, _sectionOrder);
+                    Navigator.pop(ctx);
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (isWide) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480, maxHeight: 600),
+              child: StatefulBuilder(
+                builder: (ctx, setSheetState) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: buildContent(ctx, setSheetState),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(HelpiTheme.bottomSheetRadius),
+          ),
+        ),
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (ctx, setSheetState) {
+              return SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: buildContent(ctx, setSheetState),
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  //  ORDERER SECTION
+  // ─────────────────────────────────────────────────────────
+  Widget _buildOrdererSection() {
+    if (!_order.senior.hasOrderer) return const SizedBox.shrink();
+    return SectionCard(
+      title: AppStrings.seniorOrdererTitle,
+      icon: Icons.people,
+      children: [
+        ResponsiveFieldGrid(
           children: [
-            // ── Orderer (if exists) ──
-            if (_order.senior.hasOrderer) ...[
-              SectionCard(
-                title: AppStrings.seniorOrdererTitle,
-                icon: Icons.people,
+            InfoField(
+              label: AppStrings.seniorOrdererFirstName,
+              value: _order.senior.ordererFirstName ?? '',
+            ),
+            if (_order.senior.ordererLastName != null)
+              InfoField(
+                label: AppStrings.seniorOrdererLastName,
+                value: _order.senior.ordererLastName!,
+              ),
+            if (_order.senior.ordererEmail != null)
+              InfoField(
+                label: AppStrings.seniorOrdererEmail,
+                value: _order.senior.ordererEmail!,
+                trailing: EmailCopyButton(
+                  email: _order.senior.ordererEmail!,
+                ),
+              ),
+            if (_order.senior.ordererPhone != null)
+              InfoField(
+                label: AppStrings.seniorOrdererPhone,
+                value: _order.senior.ordererPhone!,
+                trailing: PhoneCallButton(
+                  phone: _order.senior.ordererPhone!,
+                ),
+              ),
+            if (_order.senior.ordererAddress != null)
+              InfoField(
+                label: AppStrings.seniorOrdererAddress,
+                value: _order.senior.ordererAddress!,
+              ),
+            if (_order.senior.ordererGender != null)
+              InfoField(
+                label: AppStrings.seniorOrdererGender,
+                value: _order.senior.ordererGender == Gender.male
+                    ? AppStrings.genderMale
+                    : AppStrings.genderFemale,
+              ),
+            if (_order.senior.ordererDateOfBirth != null)
+              InfoField(
+                label: AppStrings.seniorOrdererDob,
+                value: formatDateDot(
+                  _order.senior.ordererDateOfBirth!,
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  //  SERVICE USER SECTION
+  // ─────────────────────────────────────────────────────────
+  Widget _buildServiceUserSection() {
+    return SectionCard(
+      title: AppStrings.seniorServiceUser,
+      icon: Icons.elderly,
+      children: [
+        ResponsiveFieldGrid(
+          children: [
+            InfoField(
+              label: AppStrings.seniorFirstName,
+              value: _order.senior.firstName,
+            ),
+            InfoField(
+              label: AppStrings.seniorLastName,
+              value: _order.senior.lastName,
+            ),
+            if (!_order.senior.hasOrderer)
+              InfoField(
+                label: AppStrings.seniorOrdererEmail,
+                value: _order.senior.email,
+                trailing: EmailCopyButton(email: _order.senior.email),
+              ),
+            InfoField(
+              label: AppStrings.seniorPhone,
+              value: _order.senior.phone,
+              trailing: PhoneCallButton(phone: _order.senior.phone),
+            ),
+            InfoField(
+              label: AppStrings.seniorAddress,
+              value: _order.senior.address,
+            ),
+            InfoField(
+              label: AppStrings.seniorOrdererGender,
+              value: _order.senior.gender == Gender.male
+                  ? AppStrings.genderMale
+                  : AppStrings.genderFemale,
+            ),
+            InfoField(
+              label: AppStrings.seniorOrdererDob,
+              value: formatDateDot(_order.senior.dateOfBirth),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  //  STUDENT SECTION
+  // ─────────────────────────────────────────────────────────
+  Widget _buildStudentSection() {
+    return SectionCard(
+      title: AppStrings.orderStudent,
+      icon: Icons.school,
+      children: [
+        if (_order.student != null) ...[
+          ResponsiveFieldGrid(
+            children: [
+              InfoField(
+                label: AppStrings.studentFirstName,
+                value: _order.student!.firstName,
+              ),
+              InfoField(
+                label: AppStrings.studentLastName,
+                value: _order.student!.lastName,
+              ),
+              InfoField(
+                label: AppStrings.studentEmail,
+                value: _order.student!.email,
+                trailing: EmailCopyButton(email: _order.student!.email),
+              ),
+              InfoField(
+                label: AppStrings.studentPhone,
+                value: _order.student!.phone,
+                trailing: PhoneCallButton(phone: _order.student!.phone),
+              ),
+              InfoField(
+                label: AppStrings.studentRating,
+                value:
+                    '${_order.student!.avgRating}/5 (${_order.student!.totalReviews})',
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (_order.status == OrderStatus.active)
+            ActionChipButton(
+              icon: Icons.swap_horiz,
+              label: AppStrings.reassignStudent,
+              color: HelpiTheme.accent,
+              outlined: true,
+              onTap: () => _showAssignSheet(),
+            ),
+        ] else ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
                 children: [
-                  ResponsiveFieldGrid(
-                    children: [
-                      InfoField(
-                        label: AppStrings.seniorOrdererFirstName,
-                        value: _order.senior.ordererFirstName ?? '',
-                      ),
-                      if (_order.senior.ordererLastName != null)
-                        InfoField(
-                          label: AppStrings.seniorOrdererLastName,
-                          value: _order.senior.ordererLastName!,
-                        ),
-                      if (_order.senior.ordererEmail != null)
-                        InfoField(
-                          label: AppStrings.seniorOrdererEmail,
-                          value: _order.senior.ordererEmail!,
-                          trailing: EmailCopyButton(
-                            email: _order.senior.ordererEmail!,
-                          ),
-                        ),
-                      if (_order.senior.ordererPhone != null)
-                        InfoField(
-                          label: AppStrings.seniorOrdererPhone,
-                          value: _order.senior.ordererPhone!,
-                          trailing: PhoneCallButton(
-                            phone: _order.senior.ordererPhone!,
-                          ),
-                        ),
-                      if (_order.senior.ordererAddress != null)
-                        InfoField(
-                          label: AppStrings.seniorOrdererAddress,
-                          value: _order.senior.ordererAddress!,
-                        ),
-                      if (_order.senior.ordererGender != null)
-                        InfoField(
-                          label: AppStrings.seniorOrdererGender,
-                          value: _order.senior.ordererGender == Gender.male
-                              ? AppStrings.genderMale
-                              : AppStrings.genderFemale,
-                        ),
-                      if (_order.senior.ordererDateOfBirth != null)
-                        InfoField(
-                          label: AppStrings.seniorOrdererDob,
-                          value: formatDateDot(
-                            _order.senior.ordererDateOfBirth!,
-                          ),
-                        ),
-                    ],
+                  const Icon(
+                    Icons.person_off_outlined,
+                    size: 36,
+                    color: HelpiTheme.border,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.noStudentAssigned,
+                    style: const TextStyle(
+                      color: HelpiTheme.textSecondary,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-            ],
-
-            // ── Service user (senior) ──
-            SectionCard(
-              title: AppStrings.seniorServiceUser,
-              icon: Icons.elderly,
-              children: [
-                ResponsiveFieldGrid(
-                  children: [
-                    InfoField(
-                      label: AppStrings.seniorFirstName,
-                      value: _order.senior.firstName,
-                    ),
-                    InfoField(
-                      label: AppStrings.seniorLastName,
-                      value: _order.senior.lastName,
-                    ),
-                    if (!_order.senior.hasOrderer)
-                      InfoField(
-                        label: AppStrings.seniorOrdererEmail,
-                        value: _order.senior.email,
-                        trailing: EmailCopyButton(email: _order.senior.email),
-                      ),
-                    InfoField(
-                      label: AppStrings.seniorPhone,
-                      value: _order.senior.phone,
-                      trailing: PhoneCallButton(phone: _order.senior.phone),
-                    ),
-                    InfoField(
-                      label: AppStrings.seniorAddress,
-                      value: _order.senior.address,
-                    ),
-                    InfoField(
-                      label: AppStrings.seniorOrdererGender,
-                      value: _order.senior.gender == Gender.male
-                          ? AppStrings.genderMale
-                          : AppStrings.genderFemale,
-                    ),
-                    InfoField(
-                      label: AppStrings.seniorOrdererDob,
-                      value: formatDateDot(_order.senior.dateOfBirth),
-                    ),
-                  ],
-                ),
-              ],
             ),
-            const SizedBox(height: 12),
+          ),
+          const SizedBox(height: 4),
+          ActionChipButton(
+            icon: Icons.person_add,
+            label: AppStrings.assignStudent,
+            color: HelpiTheme.accent,
+            onTap: () => _showAssignSheet(),
+          ),
+        ],
+      ],
+    );
+  }
 
-            // ── Student info / dodjela ──
-            SectionCard(
-              title: AppStrings.orderStudent,
-              icon: Icons.school,
-              children: [
-                if (_order.student != null) ...[
-                  ResponsiveFieldGrid(
-                    children: [
-                      InfoField(
-                        label: AppStrings.studentFirstName,
-                        value: _order.student!.firstName,
-                      ),
-                      InfoField(
-                        label: AppStrings.studentLastName,
-                        value: _order.student!.lastName,
-                      ),
-                      InfoField(
-                        label: AppStrings.studentEmail,
-                        value: _order.student!.email,
-                        trailing: EmailCopyButton(email: _order.student!.email),
-                      ),
-                      InfoField(
-                        label: AppStrings.studentPhone,
-                        value: _order.student!.phone,
-                        trailing: PhoneCallButton(phone: _order.student!.phone),
-                      ),
-                      InfoField(
-                        label: AppStrings.studentRating,
-                        value:
-                            '${_order.student!.avgRating}/5 (${_order.student!.totalReviews})',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (_order.status == OrderStatus.active)
-                    ActionChipButton(
-                      icon: Icons.swap_horiz,
-                      label: AppStrings.reassignStudent,
-                      color: HelpiTheme.accent,
-                      outlined: true,
-                      onTap: () => _showAssignSheet(),
-                    ),
-                ] else ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.person_off_outlined,
-                            size: 36,
-                            color: HelpiTheme.border,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            AppStrings.noStudentAssigned,
-                            style: const TextStyle(
-                              color: HelpiTheme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  ActionChipButton(
-                    icon: Icons.person_add,
-                    label: AppStrings.assignStudent,
-                    color: HelpiTheme.accent,
-                    onTap: () => _showAssignSheet(),
-                  ),
-                ],
-              ],
+  // ─────────────────────────────────────────────────────────────
+  //  ORDER DETAILS SECTION
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildOrderDetailsSection() {
+    final dateStr = formatDate(_order.scheduledDate);
+    return SectionCard(
+      title: AppStrings.orderDetails,
+      icon: Icons.receipt_long,
+      children: [
+        ResponsiveFieldGrid(
+          children: [
+            InfoField(label: AppStrings.orderDate, value: dateStr),
+            InfoField(
+              label: AppStrings.orderFrequency,
+              value: _frequencyLabel(),
             ),
-            const SizedBox(height: 12),
-
-            // ── Detalji narudžbe ──
-            SectionCard(
-              title: AppStrings.orderDetails,
-              icon: Icons.receipt_long,
-              children: [
-                ResponsiveFieldGrid(
-                  children: [
-                    InfoField(label: AppStrings.orderDate, value: dateStr),
-                    InfoField(
-                      label: AppStrings.orderFrequency,
-                      value: _frequencyLabel(),
-                    ),
-                    InfoField(
-                      label: AppStrings.seniorAddress,
-                      value: _order.address,
-                    ),
-                    if (_order.notes != null && _order.notes!.isNotEmpty)
-                      InfoField(
-                        label: AppStrings.orderNotes,
-                        value: _order.notes!,
-                      ),
-                    InfoField(
-                      label: AppStrings.orderServices,
-                      valueWidget: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _order.services
-                            .map((s) => ServiceChip(type: s))
-                            .toList(),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+            InfoField(
+              label: AppStrings.seniorAddress,
+              value: _order.address,
             ),
-            const SizedBox(height: 12),
-
-            // ── Termini (sessions) ──
-            if (_order.sessions.isNotEmpty) _buildSessionsSection(),
-
-            const SizedBox(height: 40),
+            if (_order.notes != null && _order.notes!.isNotEmpty)
+              InfoField(
+                label: AppStrings.orderNotes,
+                value: _order.notes!,
+              ),
+            InfoField(
+              label: AppStrings.orderServices,
+              value: _order.services
+                  .map((s) => serviceLabel(s))
+                  .join(', '),
+            ),
           ],
         ),
-      ),
+      ],
     );
   }
 
@@ -629,21 +835,86 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   void _showRescheduleSheet(SessionModel session) {
     DateTime selectedDate = session.date;
-    TimeOfDay selectedTime = session.startTime;
+    // Snap to nearest 15-min interval
+    TimeOfDay selectedTime = TimeOfDay(
+      hour: session.startTime.hour,
+      minute: (session.startTime.minute ~/ 15) * 15,
+    );
     String? selectedStudentName = session.studentName;
 
-    final availableStudents = MockData.students
+    final allActiveStudents = MockData.students
         .where((s) => s.isActive && s.contractStatus == ContractStatus.active)
         .toList();
 
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-    Widget buildContent(BuildContext ctx, StateSetter setSheetState) {
+    Widget buildContent(
+      BuildContext ctx,
+      StateSetter setSheetState, [
+      ScrollController? scrollCtrl,
+    ]) {
       final dateLabel = formatDate(selectedDate);
       final timeLabel = formatTimeOfDay(selectedTime);
 
+      // Filter students by availability for the selected day & time
+      final filteredStudents = allActiveStudents.where((student) {
+        if (student.availability.isEmpty) return true;
+        final dayMatches = student.availability.where(
+          (a) => a.dayOfWeek == selectedDate.weekday,
+        );
+        if (dayMatches.isEmpty) return false;
+        final avail = dayMatches.first;
+        if (!avail.isEnabled) return false;
+        final selMin = selectedTime.hour * 60 + selectedTime.minute;
+        final fromMin = avail.from.hour * 60 + avail.from.minute;
+        final toMin = avail.to.hour * 60 + avail.to.minute;
+        return selMin >= fromMin && selMin < toMin;
+      }).toList();
+
+      final studentListChildren = <Widget>[
+        // "Keep current" option
+        if (session.studentName != null)
+          _StudentRadioTile(
+            name: session.studentName!,
+            subtitle: AppStrings.sessionKeepCurrentStudent,
+            isSelected: selectedStudentName == session.studentName,
+            onTap: () {
+              setSheetState(() {
+                selectedStudentName = session.studentName;
+              });
+            },
+          ),
+        // Filtered students
+        if (filteredStudents.isEmpty && session.studentName == null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Text(
+              AppStrings.noStudentsForSlot,
+              style: const TextStyle(
+                color: HelpiTheme.textSecondary,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ...filteredStudents
+            .where((s) => s.fullName != session.studentName)
+            .map(
+              (student) => _StudentRadioTile(
+                name: student.fullName,
+                subtitle:
+                    '★ ${student.avgRating}  ·  ${student.completedJobs} poslova',
+                isSelected: selectedStudentName == student.fullName,
+                onTap: () {
+                  setSheetState(() {
+                    selectedStudentName = student.fullName;
+                  });
+                },
+              ),
+            ),
+      ];
+
       return Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: scrollCtrl != null ? MainAxisSize.max : MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isWide)
@@ -683,7 +954,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           const SizedBox(height: 12),
 
-          // ── Time picker row ──
+          // ── Time picker row (15-min intervals) ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: _RescheduleRow(
@@ -691,10 +962,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               label: AppStrings.sessionNewTime,
               value: timeLabel,
               onTap: () async {
-                final picked = await showTimePicker(
-                  context: ctx,
-                  initialTime: selectedTime,
-                );
+                final picked = await _showTimeGrid(ctx, selectedTime);
                 if (picked != null) {
                   setSheetState(() => selectedTime = picked);
                 }
@@ -703,7 +971,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           const SizedBox(height: 12),
 
-          // ── Student selector (scrollable list) ──
+          // ── Student selector label ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
@@ -716,45 +984,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 200),
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  // "Keep current" option
-                  if (session.studentName != null)
-                    _StudentRadioTile(
-                      name: session.studentName!,
-                      subtitle: AppStrings.sessionKeepCurrentStudent,
-                      isSelected: selectedStudentName == session.studentName,
-                      onTap: () {
-                        setSheetState(() {
-                          selectedStudentName = session.studentName;
-                        });
-                      },
-                    ),
-                  // Available students
-                  ...availableStudents
-                      .where((s) => s.fullName != session.studentName)
-                      .map(
-                        (student) => _StudentRadioTile(
-                          name: student.fullName,
-                          subtitle:
-                              '★ ${student.avgRating}  ·  ${student.completedJobs} poslova',
-                          isSelected: selectedStudentName == student.fullName,
-                          onTap: () {
-                            setSheetState(() {
-                              selectedStudentName = student.fullName;
-                            });
-                          },
-                        ),
-                      ),
-                ],
+
+          // ── Student list (responsive) ──
+          if (scrollCtrl != null)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: ListView(
+                  controller: scrollCtrl,
+                  children: studentListChildren,
+                ),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 200),
+                child: ListView(
+                  shrinkWrap: true,
+                  children: studentListChildren,
+                ),
               ),
             ),
-          ),
           const SizedBox(height: 24),
 
           // ── Confirm button ──
@@ -821,21 +1073,112 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ),
         builder: (ctx) {
-          return StatefulBuilder(
-            builder: (ctx, setSheetState) {
-              return SafeArea(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(ctx).viewInsets.bottom,
-                  ),
-                  child: buildContent(ctx, setSheetState),
-                ),
+          return DraggableScrollableSheet(
+            initialChildSize: 0.7,
+            maxChildSize: 0.9,
+            minChildSize: 0.3,
+            expand: false,
+            builder: (ctx, scrollCtrl) {
+              return StatefulBuilder(
+                builder: (ctx, setSheetState) {
+                  return buildContent(ctx, setSheetState, scrollCtrl);
+                },
               );
             },
           );
         },
       );
     }
+  }
+
+  /// Custom time picker grid with 15-minute intervals (7:00 – 21:00).
+  Future<TimeOfDay?> _showTimeGrid(
+    BuildContext ctx,
+    TimeOfDay currentTime,
+  ) async {
+    final slots = <TimeOfDay>[];
+    for (int h = 7; h <= 21; h++) {
+      for (int m = 0; m < 60; m += 15) {
+        if (h == 21 && m > 0) break;
+        slots.add(TimeOfDay(hour: h, minute: m));
+      }
+    }
+
+    return showDialog<TimeOfDay>(
+      context: ctx,
+      builder: (dialogCtx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppStrings.selectTime,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Flexible(
+                    child: GridView.builder(
+                      shrinkWrap: true,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                            childAspectRatio: 2.2,
+                          ),
+                      itemCount: slots.length,
+                      itemBuilder: (_, i) {
+                        final slot = slots[i];
+                        final isSelected =
+                            slot.hour == currentTime.hour &&
+                            slot.minute == currentTime.minute;
+                        return Material(
+                          color: isSelected
+                              ? HelpiTheme.primary
+                              : HelpiTheme.surface,
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.pillRadius,
+                          ),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.pillRadius,
+                            ),
+                            onTap: () => Navigator.pop(dialogCtx, slot),
+                            child: Center(
+                              child: Text(
+                                formatTimeOfDay(slot),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : HelpiTheme.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════

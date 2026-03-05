@@ -148,6 +148,8 @@ class InfoField extends StatelessWidget {
         valueWidget ??
         Text(
           value ?? '',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         );
 
