@@ -256,6 +256,12 @@ class AppStrings {
       'assignSuccess': 'Student dodijeljen na nalog',
       'hours': 'h',
 
+      // ── Raspored sekcija ──────────────────────
+      'editLayout': 'Uredi raspored',
+      'sectionLayoutTitle': 'Raspored sekcija',
+      'sectionLayoutHint': 'Povuci za promjenu redoslijeda',
+      'resetDefault': 'Reset',
+
       // ── Detalji seniora ───────────────────────
       'seniorPersonalData': 'Osobni podaci',
       'seniorOrdererTitle': 'Naručitelj usluga',
@@ -681,6 +687,12 @@ class AppStrings {
       'assignSuccess': 'Student assigned to order',
       'hours': 'h',
 
+      // ── Raspored sekcija ──────────────────────
+      'editLayout': 'Edit layout',
+      'sectionLayoutTitle': 'Section layout',
+      'sectionLayoutHint': 'Drag to change order',
+      'resetDefault': 'Reset',
+
       // ── Detalji seniora ───────────────────────
       'seniorPersonalData': 'Personal data',
       'seniorOrdererTitle': 'Service orderer',
@@ -1081,6 +1093,12 @@ class AppStrings {
   static String get noMatchingOrders => _t('noMatchingOrders');
   static String get assignSuccess => _t('assignSuccess');
   static String get hours => _t('hours');
+
+  // ── Raspored sekcija ──
+  static String get editLayout => _t('editLayout');
+  static String get sectionLayoutTitle => _t('sectionLayoutTitle');
+  static String get sectionLayoutHint => _t('sectionLayoutHint');
+  static String get resetDefault => _t('resetDefault');
 
   // ── Napredni filteri ──
   static String get advancedFilters => _t('advancedFilters');

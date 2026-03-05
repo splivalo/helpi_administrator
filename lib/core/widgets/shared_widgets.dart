@@ -13,10 +13,12 @@ class SectionCard extends StatelessWidget {
     required this.title,
     required this.children,
     this.icon,
+    this.trailing,
   });
 
   final String title;
   final IconData? icon;
+  final Widget? trailing;
   final List<Widget> children;
 
   @override
@@ -46,6 +48,7 @@ class SectionCard extends StatelessWidget {
                   color: HelpiTheme.textPrimary,
                 ),
               ),
+              if (trailing != null) ...[const Spacer(), trailing!],
             ],
           ),
           const SizedBox(height: 12),
@@ -114,6 +117,207 @@ class InfoRow extends StatelessWidget {
           ] else
             Expanded(child: valueChild),
         ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INFO FIELD — stacked label (above) + value (below)
+// ═══════════════════════════════════════════════════════════════
+
+/// Stacked field: small grey label on top, value below.
+/// Optional [trailing] widget (e.g. copy icon) shown right of value.
+class InfoField extends StatelessWidget {
+  const InfoField({
+    super.key,
+    required this.label,
+    this.value,
+    this.valueWidget,
+    this.trailing,
+  });
+
+  final String label;
+  final String? value;
+  final Widget? valueWidget;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final val =
+        valueWidget ??
+        Text(
+          value ?? '',
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: HelpiTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 2),
+          if (trailing != null)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(child: val),
+                const SizedBox(width: 4),
+                trailing!,
+              ],
+            )
+          else
+            val,
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INFO FIELD ROW — two InfoFields side by side, equal width
+// ═══════════════════════════════════════════════════════════════
+
+/// Places children side-by-side with equal width (Expanded).
+class InfoFieldRow extends StatelessWidget {
+  const InfoFieldRow({super.key, required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (int i = 0; i < children.length; i++) ...[
+            if (i > 0) const SizedBox(width: 16),
+            Expanded(child: children[i]),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RESPONSIVE FIELD GRID — 4-col desktop → 1-col mobile
+// ═══════════════════════════════════════════════════════════════
+
+/// Responsive grid that places [InfoField] children in up to [maxColumns]
+/// columns.  On mobile (<600 px) it falls back to a single column.
+/// Uses [Wrap] so fields flow naturally to the next row.
+class ResponsiveFieldGrid extends StatelessWidget {
+  const ResponsiveFieldGrid({
+    super.key,
+    required this.children,
+    this.maxColumns = 4,
+    this.spacing = 16,
+    this.runSpacing = 4,
+  });
+
+  final List<Widget> children;
+  final int maxColumns;
+  final double spacing;
+  final double runSpacing;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final cols = w >= 800
+            ? maxColumns
+            : w >= 500
+            ? 2
+            : 1;
+        final itemWidth = (w - spacing * (cols - 1)) / cols;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: runSpacing,
+          children: [
+            for (final child in children)
+              SizedBox(width: cols == 1 ? w : itemWidth, child: child),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RESPONSIVE BUTTON — normal width desktop, fullwidth mobile
+// ═══════════════════════════════════════════════════════════════
+
+/// Wraps a button: full-width on mobile (<600px), natural width on desktop.
+class ResponsiveButton extends StatelessWidget {
+  const ResponsiveButton({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 600) {
+          return SizedBox(width: double.infinity, child: child);
+        }
+        return child;
+      },
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ACTION CHIP BUTTON — compact outlined button with icon
+// ═══════════════════════════════════════════════════════════════
+
+/// Compact chip-style action button: tinted background, small icon + label.
+class ActionChipButton extends StatelessWidget {
+  const ActionChipButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: Colors.white),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

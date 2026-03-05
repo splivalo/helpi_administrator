@@ -34,6 +34,7 @@ class PreferencesService {
   static const _keyGridView = 'gridView_';
   static const _keySort = 'sort_';
   static const _keyTab = 'tab_';
+  static const _keySectionOrder = 'sectionOrder_';
 
   // ─── Grid / List ───────────────────────────────────────────
 
@@ -80,6 +81,26 @@ class PreferencesService {
       await _prefs!.setInt(key, index);
     } else {
       _fallback[key] = index;
+    }
+  }
+
+  // ─── Section Order ─────────────────────────────────────────
+
+  /// Returns saved section order, or null if not set.
+  List<int>? getSectionOrder(String screen) {
+    final key = '$_keySectionOrder$screen';
+    final raw = _prefs?.getStringList(key) ?? _fallback[key] as List<String>?;
+    if (raw == null) return null;
+    return raw.map(int.parse).toList();
+  }
+
+  Future<void> setSectionOrder(String screen, List<int> order) async {
+    final key = '$_keySectionOrder$screen';
+    final raw = order.map((e) => e.toString()).toList();
+    if (_prefs != null) {
+      await _prefs!.setStringList(key, raw);
+    } else {
+      _fallback[key] = raw;
     }
   }
 }

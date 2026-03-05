@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
@@ -19,17 +20,26 @@ class StudentDetailScreen extends StatefulWidget {
 
 class _StudentDetailScreenState extends State<StudentDetailScreen> {
   late StudentModel _student;
+  final _prefs = PreferencesService.instance;
+  static const _screenKey = 'studentDetail';
+  static const _sectionCount = 7;
 
   /// Date range for work summary payout calculation.
   late DateTime _summaryStart;
   late DateTime _summaryEnd;
   bool _isCustomRange = false;
 
+  /// Section order — indices into the _buildSections() list.
+  late List<int> _sectionOrder;
+
   @override
   void initState() {
     super.initState();
     _student = widget.student;
     _initSummaryRange();
+    _sectionOrder =
+        _prefs.getSectionOrder(_screenKey) ??
+        List.generate(_sectionCount, (i) => i);
   }
 
   /// Default: contract period if available, otherwise current month.
@@ -92,82 +102,243 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             ],
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.dashboard_customize, size: 22),
+            tooltip: AppStrings.editLayout,
+            onPressed: _showReorderSheet,
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SectionCard(
-              title: AppStrings.studentPersonalData,
-              icon: Icons.person,
+      body: Builder(
+        builder: (context) {
+          final allSections = _buildAllSections(orders, reviews);
+          final sections = <Widget>[
+            for (final idx in _sectionOrder) allSections[idx],
+          ];
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InfoRow(
-                  label: AppStrings.studentFirstName,
-                  value: _student.firstName,
-                ),
-                InfoRow(
-                  label: AppStrings.studentLastName,
-                  value: _student.lastName,
-                ),
-                InfoRow(
-                  label: AppStrings.studentEmail,
-                  value: _student.email,
-                  trailing: EmailCopyButton(email: _student.email),
-                ),
-                InfoRow(
-                  label: AppStrings.studentPhone,
-                  value: _student.phone,
-                  trailing: PhoneCallButton(phone: _student.phone),
-                ),
-                InfoRow(
-                  label: AppStrings.studentAddress,
-                  value: _student.address,
-                ),
-                InfoRow(
-                  label: AppStrings.studentDateOfBirth,
-                  value: formatDateDot(_student.dateOfBirth),
-                ),
-                InfoRow(
-                  label: AppStrings.studentGender,
-                  value: _student.gender == Gender.male
-                      ? AppStrings.genderMale
-                      : AppStrings.genderFemale,
-                ),
-                InfoRow(
-                  label: AppStrings.studentFaculty,
-                  value: _student.faculty,
-                ),
-                InfoRow(
-                  label: AppStrings.studentIdNumber,
-                  value: _student.studentIdNumber,
-                ),
+                for (int i = 0; i < sections.length; i++) ...[
+                  sections[i],
+                  if (i < sections.length - 1) const SizedBox(height: 12),
+                ],
               ],
             ),
-            const SizedBox(height: 12),
+          );
+        },
+      ),
+    );
+  }
 
-            _buildContractSection(),
-            const SizedBox(height: 12),
+  // ─────────────────────────────────────────────────────────
+  //  SECTION REORDER HELPERS
+  // ─────────────────────────────────────────────────────────
 
-            _buildWorkSummarySection(),
-            const SizedBox(height: 12),
+  static List<String> get _sectionLabels => [
+    AppStrings.studentPersonalData,
+    AppStrings.studentContractTitle,
+    AppStrings.workSummary,
+    AppStrings.studentAvailability,
+    AppStrings.studentAssignedOrders,
+    AppStrings.studentReviews,
+    AppStrings.adminActions,
+  ];
 
-            _buildAvailabilitySection(),
-            const SizedBox(height: 12),
+  static const _sectionIcons = [
+    Icons.person,
+    Icons.description,
+    Icons.work_history,
+    Icons.schedule,
+    Icons.receipt_long,
+    Icons.star,
+    Icons.admin_panel_settings,
+  ];
 
-            _buildOrdersSection(orders),
-            const SizedBox(height: 12),
+  List<Widget> _buildAllSections(
+    List<OrderModel> orders,
+    List<ReviewModel> reviews,
+  ) {
+    return [
+      _buildPersonalDataSection(),
+      _buildContractSection(),
+      _buildWorkSummarySection(),
+      _buildAvailabilitySection(),
+      _buildOrdersSection(orders),
+      _buildReviewsSection(reviews),
+      _buildAdminActionsSection(),
+    ];
+  }
 
-            _buildReviewsSection(reviews),
-            const SizedBox(height: 12),
+  void _showReorderSheet() {
+    final tempOrder = List<int>.from(_sectionOrder);
 
-            // ── Admin actions ──
-            _buildAdminActionsSection(),
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const DragHandle(),
+                    const SizedBox(height: 8),
+                    Text(
+                      AppStrings.sectionLayoutTitle,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      AppStrings.sectionLayoutHint,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: _sectionCount * 56.0,
+                      child: ReorderableListView.builder(
+                        shrinkWrap: true,
+                        itemCount: tempOrder.length,
+                        onReorder: (oldIndex, newIndex) {
+                          setSheetState(() {
+                            if (newIndex > oldIndex) newIndex--;
+                            final item = tempOrder.removeAt(oldIndex);
+                            tempOrder.insert(newIndex, item);
+                          });
+                        },
+                        itemBuilder: (_, i) {
+                          final sectionIdx = tempOrder[i];
+                          return ListTile(
+                            key: ValueKey(sectionIdx),
+                            leading: Icon(
+                              _sectionIcons[sectionIdx],
+                              color: HelpiTheme.accent,
+                              size: 20,
+                            ),
+                            title: Text(
+                              _sectionLabels[sectionIdx],
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            dense: true,
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                setSheetState(() {
+                                  tempOrder.clear();
+                                  tempOrder.addAll(
+                                    List.generate(_sectionCount, (i) => i),
+                                  );
+                                });
+                              },
+                              child: Text(AppStrings.resetDefault),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _sectionOrder = List.from(tempOrder);
+                                });
+                                _prefs.setSectionOrder(
+                                  _screenKey,
+                                  _sectionOrder,
+                                );
+                                Navigator.pop(ctx);
+                              },
+                              child: Text(AppStrings.save),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
-            const SizedBox(height: 32),
+  // ─────────────────────────────────────────────────────────
+  //  PERSONAL DATA SECTION
+  // ─────────────────────────────────────────────────────────
+  Widget _buildPersonalDataSection() {
+    return SectionCard(
+      title: AppStrings.studentPersonalData,
+      icon: Icons.person,
+      children: [
+        ResponsiveFieldGrid(
+          children: [
+            InfoField(
+              label: AppStrings.studentFirstName,
+              value: _student.firstName,
+            ),
+            InfoField(
+              label: AppStrings.studentLastName,
+              value: _student.lastName,
+            ),
+            InfoField(
+              label: AppStrings.studentEmail,
+              value: _student.email,
+              trailing: EmailCopyButton(email: _student.email),
+            ),
+            InfoField(
+              label: AppStrings.studentPhone,
+              value: _student.phone,
+              trailing: PhoneCallButton(phone: _student.phone),
+            ),
+            InfoField(
+              label: AppStrings.studentAddress,
+              value: _student.address,
+            ),
+            InfoField(
+              label: AppStrings.studentDateOfBirth,
+              value: formatDateDot(_student.dateOfBirth),
+            ),
+            InfoField(
+              label: AppStrings.studentGender,
+              value: _student.gender == Gender.male
+                  ? AppStrings.genderMale
+                  : AppStrings.genderFemale,
+            ),
+            InfoField(
+              label: AppStrings.studentFaculty,
+              value: _student.faculty,
+            ),
+            InfoField(
+              label: AppStrings.studentIdNumber,
+              value: _student.studentIdNumber,
+            ),
           ],
         ),
-      ),
+      ],
     );
   }
 
@@ -199,18 +370,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               ),
             ),
           ),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _simulateContractUpload,
-              icon: const Icon(Icons.upload_file, size: 18),
-              label: Text(AppStrings.studentUploadContract),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: HelpiTheme.accent,
-                side: const BorderSide(color: HelpiTheme.accent, width: 2),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-            ),
+          ActionChipButton(
+            icon: Icons.upload_file,
+            label: AppStrings.studentUploadContract,
+            color: HelpiTheme.accent,
+            onTap: _simulateContractUpload,
           ),
         ],
       );
@@ -220,40 +384,37 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       title: AppStrings.studentContractTitle,
       icon: Icons.description,
       children: [
-        InfoRow(
-          label: AppStrings.studentContractStatus,
-          valueWidget: Text(
-            contractStatusStyle(_student.contractStatus).$3,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: contractStatusStyle(_student.contractStatus).$1,
+        ResponsiveFieldGrid(
+          children: [
+            InfoField(
+              label: AppStrings.studentContractStatus,
+              valueWidget: Text(
+                contractStatusStyle(_student.contractStatus).$3,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: contractStatusStyle(_student.contractStatus).$1,
+                ),
+              ),
             ),
-          ),
+            if (_student.contractStartDate != null)
+              InfoField(
+                label: AppStrings.studentContractStart,
+                value: formatDateDot(_student.contractStartDate!),
+              ),
+            if (_student.contractExpiryDate != null)
+              InfoField(
+                label: AppStrings.studentContractExpiry,
+                value: formatDateDot(_student.contractExpiryDate!),
+              ),
+          ],
         ),
-        if (_student.contractStartDate != null)
-          InfoRow(
-            label: AppStrings.studentContractStart,
-            value: formatDateDot(_student.contractStartDate!),
-          ),
-        if (_student.contractExpiryDate != null)
-          InfoRow(
-            label: AppStrings.studentContractExpiry,
-            value: formatDateDot(_student.contractExpiryDate!),
-          ),
         const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: _simulateContractUpload,
-            icon: const Icon(Icons.upload_file, size: 18),
-            label: Text(AppStrings.studentUploadContract),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: HelpiTheme.accent,
-              side: const BorderSide(color: HelpiTheme.accent, width: 2),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-          ),
+        ActionChipButton(
+          icon: Icons.upload_file,
+          label: AppStrings.studentUploadContract,
+          color: HelpiTheme.accent,
+          onTap: _simulateContractUpload,
         ),
       ],
     );
@@ -267,33 +428,16 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       title: AppStrings.adminActions,
       icon: Icons.admin_panel_settings,
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () =>
-                _student.isArchived ? _confirmUnarchive() : _confirmArchive(),
-            icon: Icon(
-              _student.isArchived ? Icons.unarchive : Icons.archive,
-              size: 18,
-            ),
-            label: Text(
-              _student.isArchived
-                  ? AppStrings.studentUnarchive
-                  : AppStrings.studentArchive,
-            ),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: _student.isArchived
-                  ? HelpiTheme.accent
-                  : HelpiTheme.primary,
-              side: BorderSide(
-                color: _student.isArchived
-                    ? HelpiTheme.accent
-                    : HelpiTheme.primary,
-                width: 2,
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-          ),
+        ActionChipButton(
+          icon: _student.isArchived ? Icons.unarchive : Icons.archive,
+          label: _student.isArchived
+              ? AppStrings.studentUnarchive
+              : AppStrings.studentArchive,
+          color: _student.isArchived
+              ? HelpiTheme.accent
+              : HelpiTheme.textSecondary,
+          onTap: () =>
+              _student.isArchived ? _confirmUnarchive() : _confirmArchive(),
         ),
       ],
     );
@@ -495,51 +639,33 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       title: AppStrings.studentAvailability,
       icon: Icons.schedule,
       children: [
-        ...List.generate(_student.availability.length, (i) {
-          final day = _student.availability[i];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 140,
-                  child: Text(
-                    dayLabels[i],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (day.isEnabled)
-                  Expanded(
-                    child: Text(
-                      '${formatTimeOfDay(day.from)}'
-                      ' – '
-                      '${formatTimeOfDay(day.to)}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: HelpiTheme.statusActiveText,
-                        fontWeight: FontWeight.w500,
+        ResponsiveFieldGrid(
+          children: [
+            ...List.generate(_student.availability.length, (i) {
+              final day = _student.availability[i];
+              return InfoField(
+                label: dayLabels[i],
+                valueWidget: day.isEnabled
+                    ? Text(
+                        '${formatTimeOfDay(day.from)} – ${formatTimeOfDay(day.to)}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: HelpiTheme.statusActiveText,
+                        ),
+                      )
+                    : Text(
+                        AppStrings.studentNotAvailable,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: HelpiTheme.textSecondary,
+                        ),
                       ),
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: Text(
-                      AppStrings.studentNotAvailable,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: HelpiTheme.textSecondary,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        }),
+              );
+            }),
+          ],
+        ),
       ],
     );
   }
@@ -856,46 +982,47 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             ),
           )
         else ...[
-          // Job counts
-          InfoRow(
-            label: AppStrings.studentCompletedJobs,
-            value: '$completedCount',
+          // Row 1: counts + rates
+          ResponsiveFieldGrid(
+            children: [
+              InfoField(
+                label: AppStrings.studentCompletedJobs,
+                value: '$completedCount',
+              ),
+              InfoField(
+                label: AppStrings.studentCancelledJobs,
+                value: '$cancelledCount',
+              ),
+              InfoField(
+                label: AppStrings.workHourlyRate,
+                value: '${_student.hourlyRate.toStringAsFixed(2)} €',
+              ),
+              InfoField(
+                label: AppStrings.workSundayRate,
+                value: '${_student.sundayHourlyRate.toStringAsFixed(2)} €',
+              ),
+            ],
           ),
-          InfoRow(
-            label: AppStrings.studentCancelledJobs,
-            value: '$cancelledCount',
-          ),
-          const Divider(height: 20),
-          // Hours breakdown
-          InfoRow(
-            label: AppStrings.workRegularHours,
-            value: '${regularHrs.toStringAsFixed(0)} ${AppStrings.hours}',
-          ),
-          InfoRow(
-            label: AppStrings.workSundayHours,
-            value: '${sundayHrs.toStringAsFixed(0)} ${AppStrings.hours}',
-          ),
-          InfoRow(
-            label: AppStrings.workTotalHours,
-            value: '${totalHrs.toStringAsFixed(0)} ${AppStrings.hours}',
-          ),
-          const Divider(height: 20),
-
-          // Rates
-          InfoRow(
-            label: AppStrings.workHourlyRate,
-            value: '${_student.hourlyRate.toStringAsFixed(2)} €',
-          ),
-          InfoRow(
-            label: AppStrings.workSundayRate,
-            value: '${_student.sundayHourlyRate.toStringAsFixed(2)} €',
-          ),
-          const Divider(height: 20),
-
-          // Estimated payout
-          InfoRow(
-            label: AppStrings.workEstimatedPayout,
-            value: '${totalPay.toStringAsFixed(2)} €',
+          // Row 2: hours + payout
+          ResponsiveFieldGrid(
+            children: [
+              InfoField(
+                label: AppStrings.workRegularHours,
+                value: '${regularHrs.toStringAsFixed(0)} ${AppStrings.hours}',
+              ),
+              InfoField(
+                label: AppStrings.workSundayHours,
+                value: '${sundayHrs.toStringAsFixed(0)} ${AppStrings.hours}',
+              ),
+              InfoField(
+                label: AppStrings.workTotalHours,
+                value: '${totalHrs.toStringAsFixed(0)} ${AppStrings.hours}',
+              ),
+              InfoField(
+                label: AppStrings.workEstimatedPayout,
+                value: '${totalPay.toStringAsFixed(2)} €',
+              ),
+            ],
           ),
           // Breakdown detail
           Padding(
@@ -994,20 +1121,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           );
         }),
         const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: _openAssignSheet,
-            icon: const Icon(Icons.assignment_ind, size: 18),
-            label: Text(AppStrings.assignToOrder),
-            style: FilledButton.styleFrom(
-              backgroundColor: HelpiTheme.accent,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
+        ActionChipButton(
+          icon: Icons.assignment_ind,
+          label: AppStrings.assignToOrder,
+          color: HelpiTheme.accent,
+          onTap: _openAssignSheet,
         ),
       ],
     );
@@ -1367,24 +1485,11 @@ class _MatchingOrderCard extends StatelessWidget {
                   ],
                 ),
               ),
-              FilledButton.icon(
-                onPressed: onAssign,
-                icon: const Icon(Icons.check, size: 16),
-                label: Text(
-                  AppStrings.assignToOrder,
-                  style: const TextStyle(fontSize: 12),
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: HelpiTheme.accent,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  minimumSize: Size.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+              ActionChipButton(
+                icon: Icons.check,
+                label: AppStrings.assignToOrder,
+                color: HelpiTheme.accent,
+                onTap: onAssign,
               ),
             ],
           ),
@@ -1420,35 +1525,6 @@ class _MatchingOrderCard extends StatelessWidget {
               ),
             ],
           ),
-
-          // ── Day entries for recurring ──
-          if (order.dayEntries.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: order.dayEntries.map((e) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: HelpiTheme.pastelTeal,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '${dayLabels[e.dayOfWeek - 1]} ${formatTimeOfDay(e.startTime)} (${e.durationHours}${AppStrings.hours})',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: HelpiTheme.accent,
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
 
           // ── Services ──
           const SizedBox(height: 8),
