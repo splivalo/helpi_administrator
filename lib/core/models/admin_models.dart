@@ -695,8 +695,10 @@ class MockData {
       totalReviews: 3,
       completedJobs: 6,
       cancelledJobs: 0,
-      isVerified: false,
-      contractStatus: ContractStatus.none,
+      isVerified: true,
+      contractStatus: ContractStatus.active,
+      contractStartDate: DateTime(2026, 3, 1),
+      contractExpiryDate: DateTime(2026, 6, 30),
       createdAt: DateTime(2026, 2, 20),
       availability: const [
         DayAvailability(
@@ -1298,7 +1300,6 @@ class MockData {
           weekday: 2,
           startTime: const TimeOfDay(hour: 11, minute: 0),
           durationHours: 2,
-          status: SessionStatus.completed,
         ),
         SessionModel(
           id: 'o11s0b',
@@ -1306,7 +1307,6 @@ class MockData {
           weekday: 2,
           startTime: const TimeOfDay(hour: 11, minute: 0),
           durationHours: 2,
-          status: SessionStatus.completed,
         ),
         SessionModel(
           id: 'o11s1',

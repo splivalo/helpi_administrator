@@ -782,7 +782,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
+  bool _isStudentAvailableForSession(SessionModel session) {
+    if (_order.student == null) return true;
+    final student = _order.student!;
+    if (student.availability.isEmpty) return true;
+    final dayAvail = student.availability.where(
+      (a) => a.dayOfWeek == session.weekday,
+    );
+    if (dayAvail.isEmpty || !dayAvail.first.isEnabled) return false;
+    final avail = dayAvail.first;
+    final startMin = session.startTime.hour * 60 + session.startTime.minute;
+    final fromMin = avail.from.hour * 60 + avail.from.minute;
+    final toMin = avail.to.hour * 60 + avail.to.minute;
+    return startMin >= fromMin && startMin < toMin;
+  }
+
   void _confirmReactivateSession(SessionModel session) {
+    if (!_isStudentAvailableForSession(session)) {
+      // Student not available → open reschedule sheet directly
+      _showRescheduleSheet(session.copyWith(status: SessionStatus.upcoming));
+      return;
+    }
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -853,9 +873,42 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         return selMin >= fromMin && selMin < toMin;
       }).toList();
 
+      // Check if current student is available for selected slot
+      final currentStudentAvailable =
+          session.studentName != null &&
+          (() {
+            final current = allActiveStudents.where(
+              (s) => s.fullName == session.studentName,
+            );
+            if (current.isEmpty) return false;
+            final student = current.first;
+            if (student.availability.isEmpty) return true;
+            final dayMatches = student.availability.where(
+              (a) => a.dayOfWeek == selectedDate.weekday,
+            );
+            if (dayMatches.isEmpty) return false;
+            final avail = dayMatches.first;
+            if (!avail.isEnabled) return false;
+            final selMin = selectedTime.hour * 60 + selectedTime.minute;
+            final fromMin = avail.from.hour * 60 + avail.from.minute;
+            final toMin = avail.to.hour * 60 + avail.to.minute;
+            return selMin >= fromMin && selMin < toMin;
+          })();
+
+      // If current student not available, clear selection
+      if (!currentStudentAvailable &&
+          selectedStudentName == session.studentName) {
+        selectedStudentName = filteredStudents.isNotEmpty
+            ? filteredStudents
+                  .where((s) => s.fullName != session.studentName)
+                  .firstOrNull
+                  ?.fullName
+            : null;
+      }
+
       final studentListChildren = <Widget>[
-        // "Keep current" option
-        if (session.studentName != null)
+        // "Keep current" option (only if available for this slot)
+        if (session.studentName != null && currentStudentAvailable)
           _StudentRadioTile(
             name: session.studentName!,
             subtitle: AppStrings.sessionKeepCurrentStudent,
@@ -867,7 +920,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             },
           ),
         // Filtered students
-        if (filteredStudents.isEmpty && session.studentName == null)
+        if (filteredStudents
+                .where((s) => s.fullName != session.studentName)
+                .isEmpty &&
+            !currentStudentAvailable)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Text(
@@ -1214,14 +1270,48 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void _showAssignSheet() {
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-    void onConfirmed(StudentModel student) {
+    void onConfirmed(
+      StudentModel student,
+      List<SessionInstancePreview> previewSessions,
+    ) {
       if (!context.mounted) return;
       setState(() {
         final updatedSessions = _order.sessions.map((s) {
-          if (s.status == SessionStatus.upcoming) {
+          if (s.status != SessionStatus.upcoming) return s;
+
+          // Find matching preview session by date
+          final preview = previewSessions.where(
+            (p) =>
+                p.date.year == s.date.year &&
+                p.date.month == s.date.month &&
+                p.date.day == s.date.day,
+          );
+
+          if (preview.isEmpty) {
             return s.copyWith(studentName: () => student.fullName);
           }
-          return s;
+
+          final p = preview.first;
+
+          if (p.isSkipped) {
+            return s.copyWith(
+              status: SessionStatus.cancelled,
+              studentName: () => student.fullName,
+            );
+          }
+
+          if (p.rescheduledStart != null) {
+            return s.copyWith(
+              startTime: p.rescheduledStart,
+              studentName: () => student.fullName,
+            );
+          }
+
+          if (p.substituteStudent != null) {
+            return s.copyWith(studentName: () => p.substituteStudent!.fullName);
+          }
+
+          return s.copyWith(studentName: () => student.fullName);
         }).toList();
 
         _order = OrderModel(
@@ -1279,9 +1369,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               onAssignDirect: (student) {
                 _assignStudent(student, ctx);
               },
-              onAssignConfirmed: (student) {
+              onAssignConfirmed: (student, sessions) {
                 Navigator.pop(ctx);
-                onConfirmed(student);
+                onConfirmed(student, sessions);
               },
             ),
           ),
@@ -1303,9 +1393,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           onAssignDirect: (student) {
             _assignStudent(student, ctx);
           },
-          onAssignConfirmed: (student) {
+          onAssignConfirmed: (student, sessions) {
             Navigator.pop(ctx);
-            onConfirmed(student);
+            onConfirmed(student, sessions);
           },
         ),
       );
@@ -1722,7 +1812,11 @@ class _OrderAssignFlowSheet extends StatefulWidget {
   final OrderModel order;
   final List<(StudentModel, _StudentAvail)> classified;
   final void Function(StudentModel student) onAssignDirect;
-  final void Function(StudentModel student) onAssignConfirmed;
+  final void Function(
+    StudentModel student,
+    List<SessionInstancePreview> sessions,
+  )
+  onAssignConfirmed;
   final bool useDialog;
 
   @override
@@ -1748,7 +1842,8 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
             student: _selectedStudent!,
             order: widget.order,
             onBack: _goBack,
-            onAssigned: () => widget.onAssignConfirmed(_selectedStudent!),
+            onAssigned: (sessions) =>
+                widget.onAssignConfirmed(_selectedStudent!, sessions),
             useDialog: widget.useDialog,
           )
         : _buildStudentList();
@@ -1856,7 +1951,7 @@ class _OrderSessionPreview extends StatefulWidget {
   final StudentModel student;
   final OrderModel order;
   final VoidCallback onBack;
-  final VoidCallback onAssigned;
+  final void Function(List<SessionInstancePreview> sessions) onAssigned;
   final bool useDialog;
 
   @override
@@ -2142,7 +2237,7 @@ class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
       );
       return;
     }
-    widget.onAssigned();
+    widget.onAssigned(_sessions);
   }
 
   // ── Build ───────────────────────────────────────────────────

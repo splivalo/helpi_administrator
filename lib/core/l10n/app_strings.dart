@@ -71,6 +71,7 @@ class AppStrings {
       'assignStudent': 'Dodijeli studenta',
       'reassignStudent': 'Promijeni studenta',
       'noStudentAssigned': 'Nije dodijeljen student',
+      'sessionsNoStudent': 'Dodijeli studenta za upravljanje terminima.',
       'suggestedStudents': 'Predloženi studenti',
       'assignConfirm': 'Dodijeliti {student} na ovu narudžbu?',
       'assigned': 'Dodijeljeno',
@@ -397,6 +398,8 @@ class AppStrings {
       'sessionReactivate': 'Vrati termin',
       'sessionReactivateConfirm':
           'Želite li vratiti ovaj termin kao nadolazeći?',
+      'studentUnavailableForSession':
+          'Student nije dostupan za ovaj termin. Promijenite studenta ili termin.',
 
       // ── Općenito ──────────────────────────────
       'loading': 'Učitavanje...',
@@ -535,6 +538,7 @@ class AppStrings {
       'assignStudent': 'Assign student',
       'reassignStudent': 'Reassign student',
       'noStudentAssigned': 'No student assigned',
+      'sessionsNoStudent': 'Assign a student to manage sessions.',
       'suggestedStudents': 'Suggested students',
       'assignConfirm': 'Assign {student} to this order?',
       'assigned': 'Assigned',
@@ -860,6 +864,8 @@ class AppStrings {
       'sessionReactivate': 'Restore session',
       'sessionReactivateConfirm':
           'Do you want to restore this session as upcoming?',
+      'studentUnavailableForSession':
+          'Student is not available for this session. Change the student or reschedule.',
 
       // ── Općenito ──────────────────────────────
       'loading': 'Loading...',
@@ -1014,6 +1020,7 @@ class AppStrings {
   static String get assignStudent => _t('assignStudent');
   static String get reassignStudent => _t('reassignStudent');
   static String get noStudentAssigned => _t('noStudentAssigned');
+  static String get sessionsNoStudent => _t('sessionsNoStudent');
   static String get suggestedStudents => _t('suggestedStudents');
   static String assignConfirm(String student) =>
       _t('assignConfirm', params: {'student': student});
@@ -1439,6 +1446,8 @@ class AppStrings {
   static String get selectTime => _t('selectTime');
   static String get sessionReactivate => _t('sessionReactivate');
   static String get sessionReactivateConfirm => _t('sessionReactivateConfirm');
+  static String get studentUnavailableForSession =>
+      _t('studentUnavailableForSession');
   static String get emailCopied => _t('emailCopied');
   static String get copyEmail => _t('copyEmail');
   static String get callPhone => _t('callPhone');
