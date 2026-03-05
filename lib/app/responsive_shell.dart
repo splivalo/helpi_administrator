@@ -34,17 +34,15 @@ class ResponsiveShell extends StatefulWidget {
 class _ResponsiveShellState extends State<ResponsiveShell> {
   int _currentIndex = 0;
 
-  late final List<Widget> _screens;
-
-  @override
-  void initState() {
-    super.initState();
-    _screens = <Widget>[
-      const DashboardScreen(),
-      const AdminOrdersScreen(),
-      const StudentsScreen(),
-      const SeniorsScreen(),
-      const ChatModScreen(),
+  List<Widget> get _screens {
+    // Use locale-based key so screens rebuild on language change
+    final locale = AppStrings.currentLocale;
+    return <Widget>[
+      DashboardScreen(key: ValueKey('dashboard_$locale')),
+      AdminOrdersScreen(key: ValueKey('orders_$locale')),
+      StudentsScreen(key: ValueKey('students_$locale')),
+      SeniorsScreen(key: ValueKey('seniors_$locale')),
+      ChatModScreen(key: ValueKey('chat_$locale')),
     ];
   }
 
