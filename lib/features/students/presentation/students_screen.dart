@@ -885,14 +885,6 @@ class _FilterPanelState extends State<_FilterPanel> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const Spacer(),
-              TextButton(
-                onPressed: widget.onReset,
-                style: TextButton.styleFrom(
-                  foregroundColor: HelpiTheme.primary,
-                ),
-                child: Text(AppStrings.filterReset),
-              ),
             ],
           ),
         ),
@@ -1028,13 +1020,18 @@ class _FilterPanelState extends State<_FilterPanel> {
                     child: TextField(
                       controller: _minJobsCtrl,
                       keyboardType: TextInputType.number,
+                      style: const TextStyle(fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Min',
+                        hintStyle: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
+                        ),
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 18,
+                          horizontal: 12,
+                          vertical: 12,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
@@ -1072,13 +1069,18 @@ class _FilterPanelState extends State<_FilterPanel> {
                     child: TextField(
                       controller: _maxJobsCtrl,
                       keyboardType: TextInputType.number,
+                      style: const TextStyle(fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Max',
+                        hintStyle: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
+                        ),
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 18,
+                          horizontal: 12,
+                          vertical: 12,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(
@@ -1214,12 +1216,16 @@ class _FilterPanelState extends State<_FilterPanel> {
               DropdownButtonFormField<String?>(
                 initialValue: _seniorFilter,
                 isExpanded: true,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: HelpiTheme.textPrimary,
+                ),
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: Colors.white,
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 18,
+                    horizontal: 12,
+                    vertical: 12,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
@@ -1256,33 +1262,43 @@ class _FilterPanelState extends State<_FilterPanel> {
           ),
         ),
 
-        // ── Apply button ──
+        // ── Action buttons ──
         SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: ActionChipButton(
-                icon: Icons.check,
-                label: AppStrings.filterApply,
-                color: HelpiTheme.accent,
-                onTap: () {
-                  widget.onApply(
-                    activityPeriod: _activityPeriod,
-                    activityWorked: _activityWorked,
-                    customFrom: _customFrom,
-                    customTo: _customTo,
-                    genderFilter: _genderFilter,
-                    minRating: _minRating,
-                    minJobs: _minJobs,
-                    maxJobs: _maxJobs,
-                    selectedDays: _selectedDays,
-                    availableFrom: _availableFrom,
-                    availableTo: _availableTo,
-                    seniorFilter: _seniorFilter,
-                  );
-                },
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ActionChipButton(
+                  icon: Icons.restart_alt,
+                  label: AppStrings.filterReset,
+                  color: HelpiTheme.primary,
+                  outlined: true,
+                  onTap: widget.onReset,
+                ),
+                const SizedBox(width: 12),
+                ActionChipButton(
+                  icon: Icons.check,
+                  label: AppStrings.filterApply,
+                  color: HelpiTheme.accent,
+                  onTap: () {
+                    widget.onApply(
+                      activityPeriod: _activityPeriod,
+                      activityWorked: _activityWorked,
+                      customFrom: _customFrom,
+                      customTo: _customTo,
+                      genderFilter: _genderFilter,
+                      minRating: _minRating,
+                      minJobs: _minJobs,
+                      maxJobs: _maxJobs,
+                      selectedDays: _selectedDays,
+                      availableFrom: _availableFrom,
+                      availableTo: _availableTo,
+                      seniorFilter: _seniorFilter,
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         ),

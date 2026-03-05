@@ -312,7 +312,10 @@ class ActionChipButton extends StatelessWidget {
         mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          padding: EdgeInsets.symmetric(
+            horizontal: outlined ? 9 : 10,
+            vertical: outlined ? 5 : 6,
+          ),
           decoration: outlined
               ? BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
