@@ -66,6 +66,7 @@ class AppStrings {
       'archiveOrderBlockedMsg':
           'Narudžba mora biti otkazana ili završena prije arhiviranja.',
       'editOrderTitle': 'Uredi narudžbu',
+      'editOrderSuccess': 'Narudžba uspješno ažurirana',
       'orderNumber': 'Narudžba #{number}',
       'orderDetails': 'Detalji narudžbe',
       'orderStatus': 'Status',
@@ -543,6 +544,7 @@ class AppStrings {
       'archiveOrderBlockedMsg':
           'Order must be cancelled or completed before archiving.',
       'editOrderTitle': 'Edit order',
+      'editOrderSuccess': 'Order updated successfully',
       'orderNumber': 'Order #{number}',
       'orderDetails': 'Order details',
       'orderStatus': 'Status',
@@ -1032,6 +1034,7 @@ class AppStrings {
   static String get archiveOrderBlockedTitle => _t('archiveOrderBlockedTitle');
   static String get archiveOrderBlockedMsg => _t('archiveOrderBlockedMsg');
   static String get editOrderTitle => _t('editOrderTitle');
+  static String get editOrderSuccess => _t('editOrderSuccess');
   static String orderNumber(String number) =>
       _t('orderNumber', params: {'number': number});
   static String get orderDetails => _t('orderDetails');

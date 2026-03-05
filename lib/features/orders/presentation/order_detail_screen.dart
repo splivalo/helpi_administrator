@@ -7,6 +7,7 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
+import 'package:helpi_admin/features/orders/presentation/create_order_screen.dart';
 
 /// Order Detail Screen — detalji narudžbe + dodjela studenta.
 class OrderDetailScreen extends StatefulWidget {
@@ -59,8 +60,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           IconButton(
             icon: const Icon(Icons.edit, size: 22),
             tooltip: AppStrings.editOrderTitle,
-            onPressed: () {
-              // TODO: navigate to EditOrderScreen
+            onPressed: () async {
+              final result = await Navigator.push<OrderModel>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CreateOrderScreen(existingOrder: _order),
+                ),
+              );
+              if (!context.mounted) return;
+              if (result != null) {
+                setState(() => _order = result);
+              }
             },
           ),
           IconButton(

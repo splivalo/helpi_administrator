@@ -6,14 +6,19 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/status_badges.dart';
 
-/// Single-screen form for creating a new order (admin side).
+/// Single-screen form for creating or editing an order (admin side).
 ///
 /// When [senior] is provided the senior-picker section is skipped
 /// and the order is pre-assigned to that senior (used from senior detail).
+///
+/// When [existingOrder] is provided the form enters **edit mode** —
+/// all fields are pre-filled with the order's current data.
+/// On save the existing order is updated in-place (sessions are kept).
 class CreateOrderScreen extends StatefulWidget {
-  const CreateOrderScreen({super.key, this.senior});
+  const CreateOrderScreen({super.key, this.senior, this.existingOrder});
 
   final SeniorModel? senior;
+  final OrderModel? existingOrder;
 
   @override
   State<CreateOrderScreen> createState() => _CreateOrderScreenState();
@@ -22,18 +27,15 @@ class CreateOrderScreen extends StatefulWidget {
 class _CreateOrderScreenState extends State<CreateOrderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _scrollCtrl = ScrollController();
-  final _notesCtrl = TextEditingController();
+  late final TextEditingController _notesCtrl;
   final _seniorSearchCtrl = TextEditingController();
+
+  // ── Mode ──
+  bool get _isEditMode => widget.existingOrder != null;
 
   // ── Senior ──
   SeniorModel? _selectedSenior;
   bool _showSeniorSearch = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedSenior = widget.senior;
-  }
 
   // ── Frequency ──
   FrequencyType _frequency = FrequencyType.oneTime;
@@ -48,6 +50,50 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   DateTime? _endDate;
   bool _hasEndDate = false;
   final List<_DayEntryState> _dayEntries = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    final order = widget.existingOrder;
+    if (order != null) {
+      // ── Edit mode: pre-fill from existing order ──
+      _selectedSenior = order.senior;
+      _notesCtrl = TextEditingController(text: order.notes ?? '');
+
+      _frequency = order.frequency == FrequencyType.oneTime
+          ? FrequencyType.oneTime
+          : FrequencyType.recurring;
+
+      // One-time fields
+      _scheduledDate = order.scheduledDate;
+      _scheduledTime = order.scheduledStart;
+      _durationHours = order.durationHours;
+
+      // Recurring fields
+      _startDate = order.scheduledDate;
+      _endDate = order.endDate;
+      _hasEndDate = order.endDate != null;
+
+      // Day entries
+      for (final de in order.dayEntries) {
+        _dayEntries.add(
+          _DayEntryState(dayOfWeek: de.dayOfWeek)
+            ..startHour = de.startTime.hour
+            ..startMinute = de.startTime.minute
+            ..durationHours = de.durationHours,
+        );
+      }
+
+      // Services
+      _selectedServices.addAll(order.services);
+    } else {
+      // ── Create mode ──
+      _selectedSenior = widget.senior;
+      _notesCtrl = TextEditingController();
+    }
+  }
+
   bool _showingDayPicker = false;
 
   // ── Services ──
@@ -127,7 +173,11 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.createOrder)),
+      appBar: AppBar(
+        title: Text(
+          _isEditMode ? AppStrings.editOrderTitle : AppStrings.createOrder,
+        ),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -137,7 +187,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
             // ══════════════════════════════════════
             // 1) ODABERI SENIORA
             // ══════════════════════════════════════
-            if (widget.senior == null) ...[
+            if (widget.senior == null && !_isEditMode) ...[
               _buildSectionLabel(AppStrings.selectSenior, Icons.elderly),
               const SizedBox(height: 12),
               _buildSeniorPicker(),
@@ -1003,10 +1053,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       }
     }
 
-    // Build order
-    final orderNum = (MockData.orders.length + 1).toString().padLeft(4, '0');
-    final orderId = 'o${MockData.orders.length + 1}';
-
+    // Build shared values
     final FrequencyType freq;
     if (_frequency == FrequencyType.oneTime) {
       freq = FrequencyType.oneTime;
@@ -1048,6 +1095,66 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
           )
           .toList();
     }
+
+    if (_isEditMode) {
+      _saveEdit(freq, scheduledDate, scheduledTime, duration, dayEntries);
+    } else {
+      _saveNew(freq, scheduledDate, scheduledTime, duration, dayEntries);
+    }
+  }
+
+  // ── Edit mode: update existing order, keep sessions ──
+  void _saveEdit(
+    FrequencyType freq,
+    DateTime scheduledDate,
+    TimeOfDay scheduledTime,
+    int duration,
+    List<DayEntry> dayEntries,
+  ) {
+    final existing = widget.existingOrder!;
+
+    final updated = OrderModel(
+      id: existing.id,
+      orderNumber: existing.orderNumber,
+      senior: existing.senior,
+      student: existing.student,
+      status: existing.status,
+      frequency: freq,
+      services: _selectedServices.toList(),
+      createdAt: existing.createdAt,
+      scheduledDate: scheduledDate,
+      scheduledStart: scheduledTime,
+      durationHours: duration,
+      notes: _notesCtrl.text.trim().isNotEmpty ? _notesCtrl.text.trim() : null,
+      address: existing.senior.address,
+      endDate: _endDate,
+      dayEntries: dayEntries,
+      sessions: existing.sessions, // keep existing sessions
+    );
+
+    final idx = MockData.orders.indexWhere((o) => o.id == updated.id);
+    if (idx != -1) MockData.orders[idx] = updated;
+
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppStrings.editOrderSuccess),
+        backgroundColor: HelpiTheme.accent,
+      ),
+    );
+    Navigator.pop(context, updated);
+  }
+
+  // ── Create mode: generate sessions & add new order ──
+  void _saveNew(
+    FrequencyType freq,
+    DateTime scheduledDate,
+    TimeOfDay scheduledTime,
+    int duration,
+    List<DayEntry> dayEntries,
+  ) {
+    final orderNum = (MockData.orders.length + 1).toString().padLeft(4, '0');
+    final orderId = 'o${MockData.orders.length + 1}';
 
     // Generate sessions (for one-time: 1 session, for recurring: ~4 weeks)
     final sessions = <SessionModel>[];
