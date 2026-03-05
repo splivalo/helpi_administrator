@@ -36,6 +36,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
     OrderStatus.active,
     OrderStatus.completed,
     OrderStatus.cancelled,
+    OrderStatus.archived,
   ];
 
   @override
@@ -174,6 +175,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
               Tab(text: AppStrings.ordersActive),
               Tab(text: AppStrings.ordersCompleted),
               Tab(text: AppStrings.ordersCancelled),
+              Tab(text: AppStrings.ordersArchived),
             ],
           ),
 

@@ -580,9 +580,12 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
   void initState() {
     super.initState();
     _senior = widget.senior;
-    _sectionOrder =
-        _prefs.getSectionOrder(_screenKey) ??
-        List.generate(_sectionCount, (i) => i);
+    final saved = _prefs.getSectionOrder(_screenKey);
+    if (saved != null && saved.length == _sectionCount) {
+      _sectionOrder = saved;
+    } else {
+      _sectionOrder = List.generate(_sectionCount, (i) => i);
+    }
   }
 
   SeniorModel _rebuildSenior({bool? isActive, bool? isArchived}) {

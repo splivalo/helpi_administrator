@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 //  ENUMS
 // ═══════════════════════════════════════════════════════════════
 
-enum OrderStatus { processing, active, completed, cancelled }
+enum OrderStatus { processing, active, completed, cancelled, archived }
 
 enum JobStatus { assigned, upcoming, completed, cancelled }
 

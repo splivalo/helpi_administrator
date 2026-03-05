@@ -57,6 +57,15 @@ class AppStrings {
       'ordersActive': 'Aktivne',
       'ordersCompleted': 'Završene',
       'ordersCancelled': 'Otkazane',
+      'ordersArchived': 'Arhivirane',
+      'cancelOrderConfirmTitle': 'Otkaži narudžbu',
+      'cancelOrderConfirmMsg':
+          'Jeste li sigurni da želite otkazati ovu narudžbu? Svi nadolazeći termini će biti otkazani.',
+      'cancelOrderBtn': 'Otkaži narudžbu',
+      'archiveOrderBlockedTitle': 'Nije moguće arhivirati',
+      'archiveOrderBlockedMsg':
+          'Narudžba mora biti otkazana ili završena prije arhiviranja.',
+      'editOrderTitle': 'Uredi narudžbu',
       'orderNumber': 'Narudžba #{number}',
       'orderDetails': 'Detalji narudžbe',
       'orderStatus': 'Status',
@@ -525,6 +534,15 @@ class AppStrings {
       'ordersActive': 'Active',
       'ordersCompleted': 'Completed',
       'ordersCancelled': 'Cancelled',
+      'ordersArchived': 'Archived',
+      'cancelOrderConfirmTitle': 'Cancel order',
+      'cancelOrderConfirmMsg':
+          'Are you sure you want to cancel this order? All upcoming sessions will be cancelled.',
+      'cancelOrderBtn': 'Cancel order',
+      'archiveOrderBlockedTitle': 'Cannot archive',
+      'archiveOrderBlockedMsg':
+          'Order must be cancelled or completed before archiving.',
+      'editOrderTitle': 'Edit order',
       'orderNumber': 'Order #{number}',
       'orderDetails': 'Order details',
       'orderStatus': 'Status',
@@ -1007,6 +1025,13 @@ class AppStrings {
   static String get ordersActive => _t('ordersActive');
   static String get ordersCompleted => _t('ordersCompleted');
   static String get ordersCancelled => _t('ordersCancelled');
+  static String get ordersArchived => _t('ordersArchived');
+  static String get cancelOrderConfirmTitle => _t('cancelOrderConfirmTitle');
+  static String get cancelOrderConfirmMsg => _t('cancelOrderConfirmMsg');
+  static String get cancelOrderBtn => _t('cancelOrderBtn');
+  static String get archiveOrderBlockedTitle => _t('archiveOrderBlockedTitle');
+  static String get archiveOrderBlockedMsg => _t('archiveOrderBlockedMsg');
+  static String get editOrderTitle => _t('editOrderTitle');
   static String orderNumber(String number) =>
       _t('orderNumber', params: {'number': number});
   static String get orderDetails => _t('orderDetails');

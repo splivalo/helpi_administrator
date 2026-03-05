@@ -20,7 +20,7 @@ class OrderDetailScreen extends StatefulWidget {
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final _prefs = PreferencesService.instance;
   static const _screenKey = 'orderDetail';
-  static const _sectionCount = 5;
+  static const _sectionCount = 6;
 
   late OrderModel _order;
   bool _sessionsExpanded = true;
@@ -30,9 +30,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void initState() {
     super.initState();
     _order = widget.order;
-    _sectionOrder =
-        _prefs.getSectionOrder(_screenKey) ??
-        List.generate(_sectionCount, (i) => i);
+    final saved = _prefs.getSectionOrder(_screenKey);
+    if (saved != null && saved.length == _sectionCount) {
+      _sectionOrder = saved;
+    } else {
+      _sectionOrder = List.generate(_sectionCount, (i) => i);
+    }
   }
 
   @override
@@ -53,6 +56,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, size: 22),
+            tooltip: AppStrings.editOrderTitle,
+            onPressed: () {
+              // TODO: navigate to EditOrderScreen
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.dashboard_customize, size: 22),
             tooltip: AppStrings.editLayout,
@@ -95,6 +105,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     AppStrings.orderStudent,
     AppStrings.orderDetails,
     AppStrings.sessionsTitle,
+    AppStrings.adminActions,
   ];
 
   static const _sectionIcons = [
@@ -103,6 +114,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     Icons.school,
     Icons.receipt_long,
     Icons.calendar_month,
+    Icons.admin_panel_settings,
   ];
 
   List<Widget> _buildAllSections() {
@@ -115,6 +127,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         _buildSessionsSection()
       else
         const SizedBox.shrink(),
+      _buildAdminActionsSection(),
     ];
   }
 
@@ -732,6 +745,213 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ),
       ),
     );
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  ADMIN ACTIONS SECTION
+  // ═══════════════════════════════════════════════════════════════
+
+  Widget _buildAdminActionsSection() {
+    final isCancelled = _order.status == OrderStatus.cancelled;
+    final isArchived = _order.status == OrderStatus.archived;
+    final isCompleted = _order.status == OrderStatus.completed;
+    final canCancel = !isCancelled && !isArchived && !isCompleted;
+    final canArchive = isCancelled || isCompleted;
+
+    return SectionCard(
+      title: AppStrings.adminActions,
+      icon: Icons.admin_panel_settings,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (canCancel)
+              ActionChipButton(
+                icon: Icons.cancel_outlined,
+                label: AppStrings.cancelOrderBtn,
+                color: HelpiTheme.primary,
+                onTap: _confirmCancelOrder,
+              ),
+            if (isArchived)
+              ActionChipButton(
+                icon: Icons.unarchive,
+                label: AppStrings.studentUnarchive,
+                color: HelpiTheme.accent,
+                onTap: _confirmUnarchiveOrder,
+              )
+            else
+              ActionChipButton(
+                icon: Icons.archive,
+                label: AppStrings.studentArchive,
+                color: HelpiTheme.textSecondary,
+                onTap: () => canArchive
+                    ? _confirmArchiveOrder()
+                    : _showArchiveBlockedDialog(),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _showArchiveBlockedDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        ),
+        title: Text(AppStrings.archiveOrderBlockedTitle),
+        content: Text(AppStrings.archiveOrderBlockedMsg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmCancelOrder() {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        ),
+        title: Text(AppStrings.cancelOrderConfirmTitle),
+        content: Text(AppStrings.cancelOrderConfirmMsg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              AppStrings.cancelOrderBtn,
+              style: const TextStyle(color: HelpiTheme.primary),
+            ),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed != true || !mounted) return;
+      setState(() {
+        final updatedSessions = _order.sessions.map((s) {
+          if (s.status == SessionStatus.upcoming) {
+            return s.copyWith(status: SessionStatus.cancelled);
+          }
+          return s;
+        }).toList();
+
+        _order = OrderModel(
+          id: _order.id,
+          orderNumber: _order.orderNumber,
+          senior: _order.senior,
+          student: _order.student,
+          status: OrderStatus.cancelled,
+          frequency: _order.frequency,
+          services: _order.services,
+          createdAt: _order.createdAt,
+          scheduledDate: _order.scheduledDate,
+          scheduledStart: _order.scheduledStart,
+          durationHours: _order.durationHours,
+          notes: _order.notes,
+          address: _order.address,
+          endDate: _order.endDate,
+          dayEntries: _order.dayEntries,
+          sessions: updatedSessions,
+        );
+        final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
+        if (idx != -1) MockData.orders[idx] = _order;
+      });
+    });
+  }
+
+  void _confirmArchiveOrder() {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        ),
+        title: Text(AppStrings.archiveConfirmTitle),
+        content: Text(AppStrings.archiveConfirmMsg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(AppStrings.studentArchive),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed != true || !mounted) return;
+      _rebuildOrder(status: OrderStatus.archived);
+    });
+  }
+
+  void _confirmUnarchiveOrder() {
+    showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        ),
+        title: Text(AppStrings.unarchiveConfirmTitle),
+        content: Text(AppStrings.unarchiveConfirmMsg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(AppStrings.studentUnarchive),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed != true || !mounted) return;
+      // Restore to previous meaningful status
+      final hasUpcoming = _order.sessions.any(
+        (s) => s.status == SessionStatus.upcoming,
+      );
+      _rebuildOrder(
+        status: hasUpcoming ? OrderStatus.active : OrderStatus.completed,
+      );
+    });
+  }
+
+  void _rebuildOrder({OrderStatus? status, List<SessionModel>? sessions}) {
+    setState(() {
+      _order = OrderModel(
+        id: _order.id,
+        orderNumber: _order.orderNumber,
+        senior: _order.senior,
+        student: _order.student,
+        status: status ?? _order.status,
+        frequency: _order.frequency,
+        services: _order.services,
+        createdAt: _order.createdAt,
+        scheduledDate: _order.scheduledDate,
+        scheduledStart: _order.scheduledStart,
+        durationHours: _order.durationHours,
+        notes: _order.notes,
+        address: _order.address,
+        endDate: _order.endDate,
+        dayEntries: _order.dayEntries,
+        sessions: sessions ?? _order.sessions,
+      );
+      final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
+      if (idx != -1) MockData.orders[idx] = _order;
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════

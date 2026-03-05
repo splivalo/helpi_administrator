@@ -37,9 +37,12 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     super.initState();
     _student = widget.student;
     _initSummaryRange();
-    _sectionOrder =
-        _prefs.getSectionOrder(_screenKey) ??
-        List.generate(_sectionCount, (i) => i);
+    final saved = _prefs.getSectionOrder(_screenKey);
+    if (saved != null && saved.length == _sectionCount) {
+      _sectionOrder = saved;
+    } else {
+      _sectionOrder = List.generate(_sectionCount, (i) => i);
+    }
   }
 
   /// Default: contract period if available, otherwise current month.

@@ -44,6 +44,11 @@ String serviceLabel(ServiceType type) => switch (type) {
     HelpiTheme.statusCancelledBg,
     AppStrings.statusCancelled,
   ),
+  OrderStatus.archived => (
+    HelpiTheme.textSecondary,
+    HelpiTheme.chipBg,
+    AppStrings.statusArchived,
+  ),
 };
 
 // ═══════════════════════════════════════════════════════════════
