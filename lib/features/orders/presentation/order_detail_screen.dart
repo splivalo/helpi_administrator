@@ -186,9 +186,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   onTap: () {
                     setSheetState(() {
                       tempOrder.clear();
-                      tempOrder.addAll(
-                        List.generate(_sectionCount, (i) => i),
-                      );
+                      tempOrder.addAll(List.generate(_sectionCount, (i) => i));
                     });
                   },
                 ),
@@ -283,17 +281,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               InfoField(
                 label: AppStrings.seniorOrdererEmail,
                 value: _order.senior.ordererEmail!,
-                trailing: EmailCopyButton(
-                  email: _order.senior.ordererEmail!,
-                ),
+                trailing: EmailCopyButton(email: _order.senior.ordererEmail!),
               ),
             if (_order.senior.ordererPhone != null)
               InfoField(
                 label: AppStrings.seniorOrdererPhone,
                 value: _order.senior.ordererPhone!,
-                trailing: PhoneCallButton(
-                  phone: _order.senior.ordererPhone!,
-                ),
+                trailing: PhoneCallButton(phone: _order.senior.ordererPhone!),
               ),
             if (_order.senior.ordererAddress != null)
               InfoField(
@@ -310,9 +304,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             if (_order.senior.ordererDateOfBirth != null)
               InfoField(
                 label: AppStrings.seniorOrdererDob,
-                value: formatDateDot(
-                  _order.senior.ordererDateOfBirth!,
-                ),
+                value: formatDateDot(_order.senior.ordererDateOfBirth!),
               ),
           ],
         ),
@@ -428,9 +420,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.noStudentAssigned,
-                    style: const TextStyle(
-                      color: HelpiTheme.textSecondary,
-                    ),
+                    style: const TextStyle(color: HelpiTheme.textSecondary),
                   ),
                 ],
               ),
@@ -464,20 +454,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               label: AppStrings.orderFrequency,
               value: _frequencyLabel(),
             ),
-            InfoField(
-              label: AppStrings.seniorAddress,
-              value: _order.address,
-            ),
+            InfoField(label: AppStrings.seniorAddress, value: _order.address),
             if (_order.notes != null && _order.notes!.isNotEmpty)
-              InfoField(
-                label: AppStrings.orderNotes,
-                value: _order.notes!,
-              ),
+              InfoField(label: AppStrings.orderNotes, value: _order.notes!),
             InfoField(
               label: AppStrings.orderServices,
-              value: _order.services
-                  .map((s) => serviceLabel(s))
-                  .join(', '),
+              value: _order.services.map((s) => serviceLabel(s)).join(', '),
             ),
           ],
         ),

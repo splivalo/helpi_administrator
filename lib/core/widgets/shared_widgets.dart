@@ -144,14 +144,29 @@ class InfoField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final val =
+    final tooltipText = value ?? '';
+    final valText =
         valueWidget ??
         Text(
-          value ?? '',
+          tooltipText,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
         );
+
+    Widget val = Tooltip(
+      message: tooltipText,
+      waitDuration: const Duration(milliseconds: 400),
+      preferBelow: false,
+      verticalOffset: 14,
+      decoration: BoxDecoration(
+        color: const Color(0xE6616161),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      textStyle: const TextStyle(fontSize: 13, color: Colors.white),
+      child: valText,
+    );
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),

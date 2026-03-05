@@ -19,7 +19,7 @@ class PhoneCallButton extends StatelessWidget {
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
       splashRadius: 14,
-      tooltip: phone,
+      tooltip: AppStrings.callPhone,
     );
   }
 }

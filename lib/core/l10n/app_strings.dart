@@ -417,6 +417,7 @@ class AppStrings {
       'thisMonth': 'Ovaj mjesec',
       'emailCopied': 'Email kopiran',
       'copyEmail': 'Kopiraj email',
+      'callPhone': 'Nazovi',
       'phoneCopied': 'Telefon kopiran',
 
       // ── Notifications ──
@@ -873,6 +874,7 @@ class AppStrings {
       'thisMonth': 'This month',
       'emailCopied': 'Email copied',
       'copyEmail': 'Copy email',
+      'callPhone': 'Call',
       'phoneCopied': 'Phone copied',
 
       // ── Notifications ──
@@ -1427,6 +1429,7 @@ class AppStrings {
   static String get sessionReactivateConfirm => _t('sessionReactivateConfirm');
   static String get emailCopied => _t('emailCopied');
   static String get copyEmail => _t('copyEmail');
+  static String get callPhone => _t('callPhone');
   static String get phoneCopied => _t('phoneCopied');
   static String get notifications => _t('notifications');
   static String get noNotifications => _t('noNotifications');
