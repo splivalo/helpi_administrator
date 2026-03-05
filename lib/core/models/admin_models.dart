@@ -290,6 +290,50 @@ class SessionModel {
   }
 }
 
+// ── Session Preview (for assign flow) ──
+
+/// Conflict type for a generated session preview instance.
+enum SessionConflictType { free, conflict }
+
+/// A single generated session instance used in the assign preview flow.
+/// Generated from a recurring order's dayEntries for the next N weeks.
+class SessionInstancePreview {
+  final DateTime date;
+  final int weekday;
+  final TimeOfDay startTime;
+  final int durationHours;
+  final SessionConflictType conflictType;
+  final OrderModel? conflictingOrder;
+
+  /// Whether admin chose to skip this conflicted session.
+  bool isSkipped;
+
+  /// Alternative start time chosen by admin (same day, different hour).
+  TimeOfDay? rescheduledStart;
+
+  /// Substitute student chosen by admin for this specific session.
+  StudentModel? substituteStudent;
+
+  SessionInstancePreview({
+    required this.date,
+    required this.weekday,
+    required this.startTime,
+    required this.durationHours,
+    required this.conflictType,
+    this.conflictingOrder,
+    this.isSkipped = false,
+    this.rescheduledStart,
+    this.substituteStudent,
+  });
+
+  /// True if this session has an unresolved conflict.
+  bool get hasUnresolvedConflict =>
+      conflictType == SessionConflictType.conflict &&
+      !isSkipped &&
+      rescheduledStart == null &&
+      substituteStudent == null;
+}
+
 class ReviewModel {
   final String id;
   final String seniorName;
@@ -944,11 +988,6 @@ class MockData {
       address: 'Maksimirska 100, Zagreb',
       dayEntries: [
         const DayEntry(
-          dayOfWeek: 1,
-          startTime: TimeOfDay(hour: 10, minute: 0),
-          durationHours: 2,
-        ),
-        const DayEntry(
           dayOfWeek: 3,
           startTime: TimeOfDay(hour: 10, minute: 0),
           durationHours: 2,
@@ -965,15 +1004,6 @@ class MockData {
         ),
       ],
       sessions: [
-        SessionModel(
-          id: 'o3s1',
-          date: DateTime(2026, 2, 24),
-          weekday: 1,
-          startTime: const TimeOfDay(hour: 10, minute: 0),
-          durationHours: 2,
-          studentName: 'Ana Kovačević',
-          status: SessionStatus.completed,
-        ),
         SessionModel(
           id: 'o3s2',
           date: DateTime(2026, 2, 26),
@@ -1000,14 +1030,6 @@ class MockData {
           durationHours: 2,
           studentName: 'Ana Kovačević',
           status: SessionStatus.completed,
-        ),
-        SessionModel(
-          id: 'o3s5',
-          date: DateTime(2026, 3, 3),
-          weekday: 1,
-          startTime: const TimeOfDay(hour: 10, minute: 0),
-          durationHours: 2,
-          studentName: 'Ana Kovačević',
         ),
         SessionModel(
           id: 'o3s6',
@@ -1440,6 +1462,79 @@ class MockData {
           startTime: const TimeOfDay(hour: 15, minute: 0),
           durationHours: 2,
           studentName: 'Dino Barišić',
+        ),
+      ],
+    ),
+    // ── Lukine jednokratne narudžbe na specifične ponedjeljke ──
+    OrderModel(
+      id: 'o15',
+      orderNumber: '0015',
+      senior: seniors[0],
+      student: students[0], // Luka Perić
+      status: OrderStatus.active,
+      frequency: FrequencyType.oneTime,
+      services: [ServiceType.shopping],
+      createdAt: DateTime(2026, 3, 5, 9, 0),
+      scheduledDate: DateTime(2026, 3, 16), // Pon
+      scheduledStart: const TimeOfDay(hour: 10, minute: 0),
+      durationHours: 2,
+      address: 'Ilica 45, Zagreb',
+      sessions: [
+        SessionModel(
+          id: 'o15s1',
+          date: DateTime(2026, 3, 16),
+          weekday: 1,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Luka Perić',
+        ),
+      ],
+    ),
+    OrderModel(
+      id: 'o16',
+      orderNumber: '0016',
+      senior: seniors[2],
+      student: students[0], // Luka Perić
+      status: OrderStatus.active,
+      frequency: FrequencyType.oneTime,
+      services: [ServiceType.walk],
+      createdAt: DateTime(2026, 3, 5, 10, 0),
+      scheduledDate: DateTime(2026, 3, 30), // Pon
+      scheduledStart: const TimeOfDay(hour: 10, minute: 0),
+      durationHours: 2,
+      address: 'Maksimirska 100, Zagreb',
+      sessions: [
+        SessionModel(
+          id: 'o16s1',
+          date: DateTime(2026, 3, 30),
+          weekday: 1,
+          startTime: const TimeOfDay(hour: 10, minute: 0),
+          durationHours: 2,
+          studentName: 'Luka Perić',
+        ),
+      ],
+    ),
+    OrderModel(
+      id: 'o17',
+      orderNumber: '0017',
+      senior: seniors[5],
+      student: students[0], // Luka Perić
+      status: OrderStatus.active,
+      frequency: FrequencyType.oneTime,
+      services: [ServiceType.companionship],
+      createdAt: DateTime(2026, 3, 5, 11, 0),
+      scheduledDate: DateTime(2026, 4, 13), // Pon
+      scheduledStart: const TimeOfDay(hour: 9, minute: 0),
+      durationHours: 3,
+      address: 'Draškovićeva 33, Zagreb',
+      sessions: [
+        SessionModel(
+          id: 'o17s1',
+          date: DateTime(2026, 4, 13),
+          weekday: 1,
+          startTime: const TimeOfDay(hour: 9, minute: 0),
+          durationHours: 3,
+          studentName: 'Luka Perić',
         ),
       ],
     ),

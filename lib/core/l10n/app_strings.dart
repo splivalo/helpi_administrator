@@ -256,6 +256,28 @@ class AppStrings {
       'assignSuccess': 'Student dodijeljen na nalog',
       'hours': 'h',
 
+      // ── Session Preview (assign flow) ────────
+      'sessionPreviewTitle': 'Pregled sesija',
+      'sessionPreviewWeeks': 'Sljedećih 8 tjedana',
+      'sessionFree': 'Slobodan',
+      'sessionConflict': 'Zauzet',
+      'sessionSkipped': 'Preskočeno',
+      'sessionRescheduled': 'Pomaknut termin',
+      'sessionSubstitute': 'Zamjena',
+      'skipSession': 'Preskoči',
+      'changeTime': 'Pomakni',
+      'findSubstitute': 'Zamjena',
+      'undoSkip': 'Vrati',
+      'confirmAssign': 'Potvrdi dodjelu',
+      'unresolvedConflicts': 'Još imate neriješenih konflikata',
+      'conflictWith': 'Konflikt s',
+      'selectNewTime': 'Odaberi novi termin',
+      'selectSubstitute': 'Odaberi zamjenu',
+      'noSubstitutesAvailable': 'Nema dostupnih zamjena za ovaj termin',
+      'sessionCountChip': '{count} sesija',
+      'oneTimeOrder': 'Jednokratna',
+      'recurringOrder': 'Ponavljajuća',
+
       // ── Raspored sekcija ──────────────────────
       'editLayout': 'Uredi raspored',
       'sectionLayoutTitle': 'Raspored sekcija',
@@ -687,6 +709,28 @@ class AppStrings {
       'assignSuccess': 'Student assigned to order',
       'hours': 'h',
 
+      // ── Session Preview (assign flow) ────────
+      'sessionPreviewTitle': 'Session preview',
+      'sessionPreviewWeeks': 'Next 8 weeks',
+      'sessionFree': 'Available',
+      'sessionConflict': 'Busy',
+      'sessionSkipped': 'Skipped',
+      'sessionRescheduled': 'Rescheduled',
+      'sessionSubstitute': 'Substitute',
+      'skipSession': 'Skip',
+      'changeTime': 'Reschedule',
+      'findSubstitute': 'Substitute',
+      'undoSkip': 'Undo',
+      'confirmAssign': 'Confirm assignment',
+      'unresolvedConflicts': 'You still have unresolved conflicts',
+      'conflictWith': 'Conflict with',
+      'selectNewTime': 'Select new time',
+      'selectSubstitute': 'Select substitute',
+      'noSubstitutesAvailable': 'No substitutes available for this slot',
+      'sessionCountChip': '{count} sessions',
+      'oneTimeOrder': 'One-time',
+      'recurringOrder': 'Recurring',
+
       // ── Raspored sekcija ──────────────────────
       'editLayout': 'Edit layout',
       'sectionLayoutTitle': 'Section layout',
@@ -1093,6 +1137,29 @@ class AppStrings {
   static String get noMatchingOrders => _t('noMatchingOrders');
   static String get assignSuccess => _t('assignSuccess');
   static String get hours => _t('hours');
+
+  // ── Session Preview ──
+  static String get sessionPreviewTitle => _t('sessionPreviewTitle');
+  static String get sessionPreviewWeeks => _t('sessionPreviewWeeks');
+  static String get sessionFree => _t('sessionFree');
+  static String get sessionConflict => _t('sessionConflict');
+  static String get sessionSkipped => _t('sessionSkipped');
+  static String get sessionRescheduled => _t('sessionRescheduled');
+  static String get sessionSubstitute => _t('sessionSubstitute');
+  static String get skipSession => _t('skipSession');
+  static String get changeTime => _t('changeTime');
+  static String get findSubstitute => _t('findSubstitute');
+  static String get undoSkip => _t('undoSkip');
+  static String get confirmAssign => _t('confirmAssign');
+  static String get unresolvedConflicts => _t('unresolvedConflicts');
+  static String get conflictWith => _t('conflictWith');
+  static String get selectNewTime => _t('selectNewTime');
+  static String get selectSubstitute => _t('selectSubstitute');
+  static String sessionCountChip(int count) =>
+      _t('sessionCountChip', params: {'count': count.toString()});
+  static String get noSubstitutesAvailable => _t('noSubstitutesAvailable');
+  static String get oneTimeOrder => _t('oneTimeOrder');
+  static String get recurringOrder => _t('recurringOrder');
 
   // ── Raspored sekcija ──
   static String get editLayout => _t('editLayout');

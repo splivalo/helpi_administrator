@@ -268,6 +268,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'orders_fab',
         backgroundColor: HelpiTheme.accent,
         onPressed: () async {
           final result = await Navigator.push<bool>(

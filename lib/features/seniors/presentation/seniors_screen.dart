@@ -151,6 +151,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'seniors_fab',
         onPressed: () async {
           final result = await Navigator.push<bool>(
             context,
