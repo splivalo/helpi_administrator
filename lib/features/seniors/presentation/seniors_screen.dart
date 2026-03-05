@@ -664,12 +664,15 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
       showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          ),
           title: Text(AppStrings.archiveBlockedTitle),
           content: Text(AppStrings.archiveBlockedMsg),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('OK'),
+              child: Text(AppStrings.ok),
             ),
           ],
         ),
@@ -680,6 +683,9 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        ),
         title: Text(AppStrings.archiveConfirmTitle),
         content: Text(AppStrings.archiveConfirmMsg),
         actions: [
@@ -706,6 +712,9 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        ),
         title: Text(AppStrings.unarchiveConfirmTitle),
         content: Text(AppStrings.unarchiveConfirmMsg),
         actions: [
@@ -978,15 +987,19 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
             ),
           ),
           const Divider(height: 1),
-          const SizedBox(height: 4),
-          Text(
-            AppStrings.sectionLayoutHint,
-            style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              AppStrings.sectionLayoutHint,
+              style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
+            ),
           ),
           const SizedBox(height: 12),
           SizedBox(
             height: _sectionCount * 56.0,
             child: ReorderableListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               shrinkWrap: true,
               itemCount: tempOrder.length,
               onReorder: (oldIndex, newIndex) {
@@ -1016,7 +1029,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
           ),
           const SizedBox(height: 12),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -1064,10 +1077,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               constraints: const BoxConstraints(maxWidth: 480, maxHeight: 600),
               child: StatefulBuilder(
                 builder: (ctx, setSheetState) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: buildContent(ctx, setSheetState),
-                  );
+                  return buildContent(ctx, setSheetState);
                 },
               ),
             ),

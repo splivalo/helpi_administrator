@@ -146,6 +146,9 @@ class HelpiTheme {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: accent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(buttonRadius),
+        ),
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
     ),
