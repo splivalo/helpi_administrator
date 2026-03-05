@@ -390,10 +390,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               label: AppStrings.studentContractStatus,
               valueWidget: Text(
                 contractStatusStyle(_student.contractStatus).$3,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: contractStatusStyle(_student.contractStatus).$1,
+                  color: HelpiTheme.textPrimary,
                 ),
               ),
             ),
@@ -651,7 +651,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          color: HelpiTheme.statusActiveText,
+                          color: HelpiTheme.textPrimary,
                         ),
                       )
                     : Text(
