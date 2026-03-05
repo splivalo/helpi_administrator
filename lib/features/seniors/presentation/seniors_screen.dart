@@ -570,11 +570,19 @@ class _SeniorDetailScreen extends StatefulWidget {
 
 class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
   late SeniorModel _senior;
+  final _prefs = PreferencesService.instance;
+  static const _screenKey = 'seniorDetail';
+  static const _sectionCount = 6;
+
+  late List<int> _sectionOrder;
 
   @override
   void initState() {
     super.initState();
     _senior = widget.senior;
+    _sectionOrder =
+        _prefs.getSectionOrder(_screenKey) ??
+        List.generate(_sectionCount, (i) => i);
   }
 
   SeniorModel _rebuildSenior({bool? isActive, bool? isArchived}) {
@@ -787,247 +795,404 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
             tooltip: AppStrings.editSeniorTitle,
             onPressed: _openEditSenior,
           ),
+          IconButton(
+            icon: const Icon(Icons.dashboard_customize, size: 22),
+            tooltip: AppStrings.editLayout,
+            onPressed: _showReorderSheet,
+          ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Orderer (if exists) ──
-            if (_senior.hasOrderer) ...[
-              SectionCard(
-                title: AppStrings.seniorOrdererTitle,
-                icon: Icons.people,
-                children: [
-                  InfoRow(
-                    label: AppStrings.seniorOrdererFirstName,
-                    value: _senior.ordererFirstName!,
-                  ),
-                  InfoRow(
-                    label: AppStrings.seniorOrdererLastName,
-                    value: _senior.ordererLastName ?? '',
-                  ),
-                  if (_senior.ordererEmail != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererEmail,
-                      value: _senior.ordererEmail!,
-                      trailing: EmailCopyButton(email: _senior.ordererEmail!),
-                    ),
-                  if (_senior.ordererPhone != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererPhone,
-                      value: _senior.ordererPhone!,
-                      trailing: PhoneCallButton(phone: _senior.ordererPhone!),
-                    ),
-                  if (_senior.ordererAddress != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererAddress,
-                      value: _senior.ordererAddress!,
-                    ),
-                  if (_senior.ordererGender != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererGender,
-                      value: _senior.ordererGender == Gender.male
-                          ? AppStrings.genderMale
-                          : AppStrings.genderFemale,
-                    ),
-                  if (_senior.ordererDateOfBirth != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererDob,
-                      value: formatDateDot(_senior.ordererDateOfBirth!),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
+      body: Builder(
+        builder: (context) {
+          final allSections = _buildAllSections();
+          final sections = <Widget>[
+            for (final idx in _sectionOrder) allSections[idx],
+          ];
 
-            // ── Service user (senior) ──
-            SectionCard(
-              title: _senior.hasOrderer
-                  ? AppStrings.seniorServiceUser
-                  : AppStrings.seniorServiceUser,
-              icon: Icons.elderly,
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InfoRow(
-                  label: AppStrings.seniorFirstName,
-                  value: _senior.firstName,
-                ),
-                InfoRow(
-                  label: AppStrings.seniorLastName,
-                  value: _senior.lastName,
-                ),
-                if (!_senior.hasOrderer)
-                  InfoRow(
-                    label: AppStrings.seniorEmail,
-                    value: _senior.email,
-                    trailing: EmailCopyButton(email: _senior.email),
+                for (int i = 0; i < sections.length; i++) ...[
+                  sections[i],
+                  if (i < sections.length - 1) const SizedBox(height: 12),
+                ],
+                const SizedBox(height: 40),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  //  SECTION REORDER HELPERS
+  // ─────────────────────────────────────────────────────────
+
+  static List<String> get _sectionLabels => [
+    AppStrings.seniorOrdererTitle,
+    AppStrings.seniorServiceUser,
+    AppStrings.seniorCreditCards,
+    AppStrings.seniorOrders,
+    AppStrings.seniorReviews,
+    AppStrings.adminActions,
+  ];
+
+  static const _sectionIcons = [
+    Icons.people,
+    Icons.elderly,
+    Icons.credit_card,
+    Icons.receipt_long,
+    Icons.star,
+    Icons.admin_panel_settings,
+  ];
+
+  List<Widget> _buildAllSections() {
+    return [
+      _buildOrdererSection(),
+      _buildServiceUserSection(),
+      _buildCreditCardsSection(),
+      _buildOrdersSection(),
+      _buildReviewsSection(_seniorReviews),
+      _buildAdminActionsSection(),
+    ];
+  }
+
+  void _showReorderSheet() {
+    final tempOrder = List<int>.from(_sectionOrder);
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    Widget buildContent(BuildContext ctx, StateSetter setSheetState) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isWide)
+            const Padding(
+              padding: EdgeInsets.only(top: 12, bottom: 4),
+              child: DragHandle(),
+            ),
+          const SizedBox(height: 8),
+          Text(
+            AppStrings.sectionLayoutTitle,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            AppStrings.sectionLayoutHint,
+            style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: _sectionCount * 56.0,
+            child: ReorderableListView.builder(
+              shrinkWrap: true,
+              itemCount: tempOrder.length,
+              onReorder: (oldIndex, newIndex) {
+                setSheetState(() {
+                  if (newIndex > oldIndex) newIndex--;
+                  final item = tempOrder.removeAt(oldIndex);
+                  tempOrder.insert(newIndex, item);
+                });
+              },
+              itemBuilder: (_, i) {
+                final sectionIdx = tempOrder[i];
+                return ListTile(
+                  key: ValueKey(sectionIdx),
+                  leading: Icon(
+                    _sectionIcons[sectionIdx],
+                    color: HelpiTheme.accent,
+                    size: 20,
                   ),
-                InfoRow(
-                  label: AppStrings.seniorPhone,
-                  value: _senior.phone,
-                  trailing: PhoneCallButton(phone: _senior.phone),
+                  title: Text(
+                    _sectionLabels[sectionIdx],
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  dense: true,
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ActionChipButton(
+                  icon: Icons.restart_alt,
+                  label: AppStrings.resetDefault,
+                  color: HelpiTheme.accent,
+                  outlined: true,
+                  onTap: () {
+                    setSheetState(() {
+                      tempOrder.clear();
+                      tempOrder.addAll(List.generate(_sectionCount, (i) => i));
+                    });
+                  },
                 ),
-                InfoRow(
-                  label: AppStrings.seniorAddress,
-                  value: _senior.address,
-                ),
-                InfoRow(
-                  label: AppStrings.seniorOrdererGender,
-                  value: _senior.gender == Gender.male
-                      ? AppStrings.genderMale
-                      : AppStrings.genderFemale,
-                ),
-                InfoRow(
-                  label: AppStrings.seniorOrdererDob,
-                  value: formatDateDot(_senior.dateOfBirth),
+                const SizedBox(width: 12),
+                ActionChipButton(
+                  icon: Icons.check,
+                  label: AppStrings.save,
+                  color: HelpiTheme.primary,
+                  onTap: () {
+                    setState(() {
+                      _sectionOrder = List.from(tempOrder);
+                    });
+                    _prefs.setSectionOrder(_screenKey, _sectionOrder);
+                    Navigator.pop(ctx);
+                  },
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+          ),
+        ],
+      );
+    }
 
-            // ── Credit cards ──
-            SectionCard(
-              title: AppStrings.seniorCreditCards,
-              icon: Icons.credit_card,
-              children: _senior.creditCards.isEmpty
-                  ? [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Center(
-                          child: Column(
-                            children: [
-                              const Icon(
-                                Icons.credit_card_off,
-                                size: 36,
-                                color: HelpiTheme.border,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                AppStrings.seniorNoCards,
-                                style: const TextStyle(
-                                  color: HelpiTheme.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ]
-                  : _senior.creditCards
-                        .map((card) => _buildCreditCardRow(card))
-                        .toList(),
+    if (isWide) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
             ),
-            const SizedBox(height: 12),
-
-            // ── Orders ──
-            if (widget.orders.isNotEmpty) ...[
-              SectionCard(
-                title: AppStrings.seniorOrders,
-                icon: Icons.receipt_long,
-                children: widget.orders.map((o) => _buildOrderRow(o)).toList(),
-              ),
-            ],
-
-            // ── Empty orders state ──
-            if (widget.orders.isEmpty)
-              SectionCard(
-                title: AppStrings.seniorOrders,
-                icon: Icons.receipt_long,
-                children: [
-                  Padding(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480, maxHeight: 600),
+              child: StatefulBuilder(
+                builder: (ctx, setSheetState) {
+                  return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.inbox_outlined,
-                            size: 36,
-                            color: HelpiTheme.border,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            AppStrings.noOrdersFound,
-                            style: const TextStyle(
-                              color: HelpiTheme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 12),
-
-            // ── Add order button ──
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () async {
-                  await Navigator.push<void>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CreateOrderScreen(senior: widget.senior),
-                    ),
+                    child: buildContent(ctx, setSheetState),
                   );
-                  if (!context.mounted) return;
-                  // TODO: refresh orders when backend is wired
                 },
-                icon: const Icon(Icons.add),
-                label: Text(AppStrings.addOrder),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: HelpiTheme.accent,
-                  side: const BorderSide(color: HelpiTheme.accent, width: 2),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
               ),
             ),
-            const SizedBox(height: 12),
-
-            // ── Reviews ──
-            _buildReviewsSection(_seniorReviews),
-            const SizedBox(height: 12),
-
-            // ── Admin actions ──
-            SectionCard(
-              title: AppStrings.adminActions,
-              icon: Icons.admin_panel_settings,
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _senior.isArchived
-                        ? _confirmUnarchive()
-                        : _confirmArchive(),
-                    icon: Icon(
-                      _senior.isArchived ? Icons.unarchive : Icons.archive,
-                      size: 18,
-                    ),
-                    label: Text(
-                      _senior.isArchived
-                          ? AppStrings.studentUnarchive
-                          : AppStrings.studentArchive,
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _senior.isArchived
-                          ? HelpiTheme.accent
-                          : HelpiTheme.primary,
-                      side: BorderSide(
-                        color: _senior.isArchived
-                            ? HelpiTheme.accent
-                            : HelpiTheme.primary,
-                        width: 2,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
+          );
+        },
+      );
+    } else {
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(HelpiTheme.bottomSheetRadius),
+          ),
+        ),
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (ctx, setSheetState) {
+              return SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: buildContent(ctx, setSheetState),
                 ),
-              ],
+              );
+            },
+          );
+        },
+      );
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  //  SECTION BUILDERS
+  // ─────────────────────────────────────────────────────────
+
+  Widget _buildOrdererSection() {
+    if (!_senior.hasOrderer) return const SizedBox.shrink();
+    return SectionCard(
+      title: AppStrings.seniorOrdererTitle,
+      icon: Icons.people,
+      children: [
+        ResponsiveFieldGrid(
+          children: [
+            InfoField(
+              label: AppStrings.seniorOrdererFirstName,
+              value: _senior.ordererFirstName!,
+            ),
+            InfoField(
+              label: AppStrings.seniorOrdererLastName,
+              value: _senior.ordererLastName ?? '',
+            ),
+            if (_senior.ordererEmail != null)
+              InfoField(
+                label: AppStrings.seniorOrdererEmail,
+                value: _senior.ordererEmail!,
+                trailing: EmailCopyButton(email: _senior.ordererEmail!),
+              ),
+            if (_senior.ordererPhone != null)
+              InfoField(
+                label: AppStrings.seniorOrdererPhone,
+                value: _senior.ordererPhone!,
+                trailing: PhoneCallButton(phone: _senior.ordererPhone!),
+              ),
+            if (_senior.ordererAddress != null)
+              InfoField(
+                label: AppStrings.seniorOrdererAddress,
+                value: _senior.ordererAddress!,
+              ),
+            if (_senior.ordererGender != null)
+              InfoField(
+                label: AppStrings.seniorOrdererGender,
+                value: _senior.ordererGender == Gender.male
+                    ? AppStrings.genderMale
+                    : AppStrings.genderFemale,
+              ),
+            if (_senior.ordererDateOfBirth != null)
+              InfoField(
+                label: AppStrings.seniorOrdererDob,
+                value: formatDateDot(_senior.ordererDateOfBirth!),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildServiceUserSection() {
+    return SectionCard(
+      title: AppStrings.seniorServiceUser,
+      icon: Icons.elderly,
+      children: [
+        ResponsiveFieldGrid(
+          children: [
+            InfoField(
+              label: AppStrings.seniorFirstName,
+              value: _senior.firstName,
+            ),
+            InfoField(
+              label: AppStrings.seniorLastName,
+              value: _senior.lastName,
+            ),
+            if (!_senior.hasOrderer)
+              InfoField(
+                label: AppStrings.seniorEmail,
+                value: _senior.email,
+                trailing: EmailCopyButton(email: _senior.email),
+              ),
+            InfoField(
+              label: AppStrings.seniorPhone,
+              value: _senior.phone,
+              trailing: PhoneCallButton(phone: _senior.phone),
+            ),
+            InfoField(label: AppStrings.seniorAddress, value: _senior.address),
+            InfoField(
+              label: AppStrings.seniorOrdererGender,
+              value: _senior.gender == Gender.male
+                  ? AppStrings.genderMale
+                  : AppStrings.genderFemale,
+            ),
+            InfoField(
+              label: AppStrings.seniorOrdererDob,
+              value: formatDateDot(_senior.dateOfBirth),
             ),
           ],
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _buildCreditCardsSection() {
+    return SectionCard(
+      title: AppStrings.seniorCreditCards,
+      icon: Icons.credit_card,
+      children: _senior.creditCards.isEmpty
+          ? [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Center(
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.credit_card_off,
+                        size: 36,
+                        color: HelpiTheme.border,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppStrings.seniorNoCards,
+                        style: const TextStyle(color: HelpiTheme.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ]
+          : _senior.creditCards
+                .map((card) => _buildCreditCardRow(card))
+                .toList(),
+    );
+  }
+
+  Widget _buildOrdersSection() {
+    return SectionCard(
+      title: AppStrings.seniorOrders,
+      icon: Icons.receipt_long,
+      children: [
+        if (widget.orders.isNotEmpty)
+          ...widget.orders.map((o) => _buildOrderRow(o)),
+        if (widget.orders.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.inbox_outlined,
+                    size: 36,
+                    color: HelpiTheme.border,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.noOrdersFound,
+                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        const SizedBox(height: 8),
+        ActionChipButton(
+          icon: Icons.add,
+          label: AppStrings.addOrder,
+          color: HelpiTheme.accent,
+          onTap: () async {
+            await Navigator.push<void>(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CreateOrderScreen(senior: widget.senior),
+              ),
+            );
+            if (!context.mounted) return;
+            // TODO: refresh orders when backend is wired
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdminActionsSection() {
+    return SectionCard(
+      title: AppStrings.adminActions,
+      icon: Icons.admin_panel_settings,
+      children: [
+        ActionChipButton(
+          icon: _senior.isArchived ? Icons.unarchive : Icons.archive,
+          label: _senior.isArchived
+              ? AppStrings.studentUnarchive
+              : AppStrings.studentArchive,
+          color: _senior.isArchived
+              ? HelpiTheme.accent
+              : HelpiTheme.textSecondary,
+          onTap: () =>
+              _senior.isArchived ? _confirmUnarchive() : _confirmArchive(),
+        ),
+      ],
     );
   }
 
