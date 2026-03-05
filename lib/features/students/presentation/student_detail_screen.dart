@@ -231,32 +231,32 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      setSheetState(() {
-                        tempOrder.clear();
-                        tempOrder.addAll(
-                          List.generate(_sectionCount, (i) => i),
-                        );
-                      });
-                    },
-                    child: Text(AppStrings.resetDefault),
-                  ),
+                ActionChipButton(
+                  icon: Icons.restart_alt,
+                  label: AppStrings.resetDefault,
+                  color: HelpiTheme.accent,
+                  outlined: true,
+                  onTap: () {
+                    setSheetState(() {
+                      tempOrder.clear();
+                      tempOrder.addAll(List.generate(_sectionCount, (i) => i));
+                    });
+                  },
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _sectionOrder = List.from(tempOrder);
-                      });
-                      _prefs.setSectionOrder(_screenKey, _sectionOrder);
-                      Navigator.pop(ctx);
-                    },
-                    child: Text(AppStrings.save),
-                  ),
+                ActionChipButton(
+                  icon: Icons.check,
+                  label: AppStrings.save,
+                  color: HelpiTheme.primary,
+                  onTap: () {
+                    setState(() {
+                      _sectionOrder = List.from(tempOrder);
+                    });
+                    _prefs.setSectionOrder(_screenKey, _sectionOrder);
+                    Navigator.pop(ctx);
+                  },
                 ),
               ],
             ),

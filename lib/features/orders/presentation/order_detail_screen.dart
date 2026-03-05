@@ -735,10 +735,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           // ── Confirm button ──
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: ActionChipButton(
+                icon: Icons.check,
+                label: AppStrings.confirm,
+                color: HelpiTheme.primary,
+                onTap: () {
                   Navigator.pop(ctx);
                   if (!context.mounted) return;
                   _updateSession(
@@ -751,7 +754,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                   );
                 },
-                child: Text(AppStrings.confirm),
               ),
             ),
           ),

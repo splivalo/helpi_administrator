@@ -286,37 +286,50 @@ class ActionChipButton extends StatelessWidget {
     required this.label,
     required this.color,
     required this.onTap,
+    this.outlined = false,
   });
 
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
+  final bool outlined;
 
   @override
   Widget build(BuildContext context) {
+    final bgColor = outlined ? Colors.white : color;
+    final fgColor = outlined ? color : Colors.white;
+
     return Material(
-      color: color,
+      color: bgColor,
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        hoverColor: Colors.white.withAlpha(25),
-        splashColor: Colors.white.withAlpha(40),
+        hoverColor: outlined ? color.withAlpha(20) : Colors.white.withAlpha(25),
+        splashColor: outlined
+            ? color.withAlpha(35)
+            : Colors.white.withAlpha(40),
         mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
-        child: Padding(
+        child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: outlined
+              ? BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: color),
+                )
+              : null,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: Colors.white),
+              Icon(icon, size: 14, color: fgColor),
               const SizedBox(width: 4),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: fgColor,
                 ),
               ),
             ],
