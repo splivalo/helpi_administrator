@@ -96,23 +96,81 @@
 - **main.dart ažuriran** — async main s `await PreferencesService.instance.init()`
 - **Buduća napomena**: Preferencije su trenutno globalne; kad se doda autentifikacija, trebaju postati per-user
 
+## 2026-03-05 — Session Preview Sheet & Edit Order
+
+- **SessionPreviewSheet** kreiran (851 linija) — `core/widgets/session_preview_sheet.dart`:
+  - Generira pregled sesija na temelju frekvencije, odabranih dana i trajanja
+  - Koristi se u CreateOrderScreen i OrderDetailScreen (assign/change student flow)
+  - Prikaz: lista sesija, ukupan broj, potvrda dodjele studenta
+- **Edit Order modal** — uređivanje narudžbe: promjena usluge, frekvencije, datuma, sati
+- **Assign flow (dodjela studenta)** — 2-step modalni flow:
+  - Step 1: Odabir studenta iz liste (pretraga, filtriranje)
+  - Step 2: Pregled sesija i potvrda dodjele
+  - Fix: `ClipRRect(cardRadius)` za zaobljene rubove na step 2 sadržaju
+
+## 2026-03-05 — UI Consistency Audit & Fixes
+
+- **AlertDialog konzistentnost** — Svih 13 AlertDialoga u aplikaciji popravljeno:
+  - Dodan `shape: RoundedRectangleBorder(borderRadius: cardRadius)` na svaki
+  - `ElevatedButton` → `TextButton` za OK/Cancel akcije
+  - Hardkodirani "OK" / "Da" / "U redu" → `AppStrings.ok`
+  - Uklonjena custom crvena boja na cancel order buttonu
+  - Fajlovi: order_detail_screen, student_detail_screen, seniors_screen
+- **TextButton hover shape fix** — Globalno dodano `shape: RoundedRectangleBorder(borderRadius: buttonRadius)` u `textButtonTheme` (theme.dart). Prije toga TextButton-i su imali stadium (pill) hover efekt.
+- **Reorder sheet spacing fix** — Na sva 3 reorder modala (order_detail, student_detail, seniors):
+  - Uklonjen `Padding(vertical: 16)` na Dialog wrapperu koji je gurao sadržaj predaleko od vrha
+  - Header padding: `fromLTRB(20, 12, 8, 8)` — matching "Novi senior" modal pattern
+  - Hint text: horizontalni padding 20
+  - Action buttons: padding `fromLTRB(16, 0, 16, 16)`
+- **StatusBadge size konzistentnost** — Order detail AppBar koristio `StatusBadgeSize.large`, student i senior koristili default `small` → unificirano na `small` svugdje u AppBarima
+- **ActionChipButton size varijante** — Dodan `ActionChipButtonSize` enum:
+  - `small` (default): icon 14, font 12, padding 10×6, radius 8 — za inline card akcije
+  - `medium`: icon 18, font 14, padding 14×8, radius 10 — za modal primary akcije
+  - Primijenjeno `medium` na 7 fajlova: sve spremi/potvrdi/poništi/primijeni akcije u modalima
+- **Assign flow zaobljeni rubovi** — `_OrderAssignFlowSheet` i student assign:
+  - Dodan `ClipRRect(borderRadius: cardRadius)` na content area
+  - Hardkodirani `Radius.circular(20)` → `Radius.circular(HelpiTheme.cardRadius)`
+
+## 2026-03-05 — Locale Fix & Web Deploy
+
+- **Locale switching bug fix** — Promjena jezika nije ažurirala sadržaj tabova:
+  - Root cause: `_screens` u `ResponsiveShell` bio `late final List<Widget>` kreiran u `initState` → `IndexedStack` cachirao const instance
+  - Fix: `_screens` pretvoren u getter s `ValueKey('screenName_$locale')` — kad se locale promijeni, `IndexedStack` tretira ekrane kao nove widgete
+- **Flutter Web build & deploy** — `flutter build web --base-href /helpi/` za deploy na `https://kungfu.digital/helpi/index.html`
+
+## 2026-03-05 — DatePicker Global Theme
+
+- **DatePicker tema definirana globalno** u `datePickerTheme` unutar `ThemeData`:
+  - Accent (teal) boja za odabrani dan, header pozadinu, godine — umjesto default coral
+  - Header font smanjen na 20px (default Material 3 ~32px je prevelik, lomi datum u 2 reda)
+  - Shape: `cardRadius` (12px) zaobljenje — konzistentno s ostalim dijalozima
+  - Confirm/Cancel button stilovi: accent za potvrdu, textSecondary za odustani
+- **"U REDU" → "U redu"** — Svi `showDatePicker` pozivi (6 lokacija) dodali `confirmText: AppStrings.ok, cancelText: AppStrings.cancel` umjesto Material default lokalizacije koja je koristila caps lock "U REDU"
+- **Builder override uklonjeni** — `student_detail_screen.dart` `_pickStartDate`/`_pickEndDate` imali lokalne builder-e s `ColorScheme.light(primary: accent)` → uklonjeni jer globalna tema to sada rješava
+
 ---
 
 ## Arhitekturalne odluke
 
-| Odluka                                         | Razlog                                         | Datum      |
-| ---------------------------------------------- | ---------------------------------------------- | ---------- |
-| Feature-based folder struktura                 | Skalabilnost, jasna separacija                 | 2026-02    |
-| AppStrings Gemini Hybrid pattern               | Backend šalje labelKey, Flutter mapira lokalno | 2026-02    |
-| MockData umjesto API-ja                        | Brži frontend development bez backenda         | 2026-02    |
-| Dva showDatePicker umjesto showDateRangePicker | Performanse — DateRangePicker preopterećen     | 2026-03-04 |
-| LayoutBuilder za responsive gumbe              | Inline responsive bez globalnog breakpointa    | 2026-03-04 |
-| Nema state management libraryja (zasad)        | Mock faza, lokalni state dovoljan              | 2026-02    |
-| DRY refactor — shared widgeti + mixin          | Eliminacija ~1000+ linija duplikata            | 2026-03-04 |
-| GestureDetector umjesto IconButton za contact  | Material 3 min tap target 48px blokira 20px    | 2026-03-04 |
-| InfoRow Flexible trailing                      | Ikona uz tekst, ne na rubu                     | 2026-03-04 |
-| SharedPreferences za UI preferencije           | Pamti korisničke UI odabire između sesija      | 2026-03-04 |
-| Web-safe PreferencesService s fallback         | Sprječava crash na web hot-restart             | 2026-03-04 |
-| bodyLarge 16px globalno                        | Konzistentna veličina teksta u svim inputima   | 2026-03-04 |
-| CreateOrderScreen single-page forma            | Sve na jednom ekranu, auto-scroll UX           | 2026-03-04 |
-| Senior status → hasStudentAssigned logika      | Automatski "U obradi" / "Aktivan" po podacima  | 2026-03-04 |
+| Odluka                                         | Razlog                                                  | Datum      |
+| ---------------------------------------------- | ------------------------------------------------------- | ---------- |
+| Feature-based folder struktura                 | Skalabilnost, jasna separacija                          | 2026-02    |
+| AppStrings Gemini Hybrid pattern               | Backend šalje labelKey, Flutter mapira lokalno          | 2026-02    |
+| MockData umjesto API-ja                        | Brži frontend development bez backenda                  | 2026-02    |
+| Dva showDatePicker umjesto showDateRangePicker | Performanse — DateRangePicker preopterećen              | 2026-03-04 |
+| LayoutBuilder za responsive gumbe              | Inline responsive bez globalnog breakpointa             | 2026-03-04 |
+| Nema state management libraryja (zasad)        | Mock faza, lokalni state dovoljan                       | 2026-02    |
+| DRY refactor — shared widgeti + mixin          | Eliminacija ~1000+ linija duplikata                     | 2026-03-04 |
+| GestureDetector umjesto IconButton za contact  | Material 3 min tap target 48px blokira 20px             | 2026-03-04 |
+| InfoRow Flexible trailing                      | Ikona uz tekst, ne na rubu                              | 2026-03-04 |
+| SharedPreferences za UI preferencije           | Pamti korisničke UI odabire između sesija               | 2026-03-04 |
+| Web-safe PreferencesService s fallback         | Sprječava crash na web hot-restart                      | 2026-03-04 |
+| bodyLarge 16px globalno                        | Konzistentna veličina teksta u svim inputima            | 2026-03-04 |
+| CreateOrderScreen single-page forma            | Sve na jednom ekranu, auto-scroll UX                    | 2026-03-04 |
+| Senior status → hasStudentAssigned logika      | Automatski "U obradi" / "Aktivan" po podacima           | 2026-03-04 |
+| SessionPreviewSheet kao shared widget          | Reusable između create i assign flowova                 | 2026-03-05 |
+| ActionChipButtonSize enum (small/medium)       | Konzistentni gumbi — mali za kartice, srednji za modale | 2026-03-05 |
+| DatePicker theme globalno u ThemeData          | Jedan izvor istine za boje/font/shape svuda             | 2026-03-05 |
+| confirmText/cancelText na showDatePicker       | "U redu" umjesto "U REDU" caps lock                     | 2026-03-05 |
+| ValueKey locale rebuild u IndexedStack         | Force rebuild ekrana pri promjeni jezika                | 2026-03-05 |
+| ClipRRect na assign flow step 2                | Content clipping za zaobljene rubove                    | 2026-03-05 |

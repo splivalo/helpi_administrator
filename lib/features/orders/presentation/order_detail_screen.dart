@@ -1291,6 +1291,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   initialDate: selectedDate,
                   firstDate: DateTime.now(),
                   lastDate: DateTime.now().add(const Duration(days: 365)),
+                  confirmText: AppStrings.ok,
+                  cancelText: AppStrings.cancel,
                 );
                 if (picked != null) {
                   setSheetState(() => selectedDate = picked);

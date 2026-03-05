@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-04
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-06
 
 ---
 
@@ -19,6 +19,9 @@
 | Ikone           | cupertino_icons          | ^1.0.8      |
 | State mgmt      | StatefulWidget (lokalni) | —           |
 | Backend         | ❌ Mock (MockData klasa) | —           |
+| Deploy          | Flutter Web              | Chrome      |
+
+**Deploy URL:** `https://kungfu.digital/helpi/index.html` (build: `flutter build web --base-href /helpi/`)
 
 ---
 
@@ -26,68 +29,70 @@
 
 ```
 lib/
-├── main.dart                          # Entry point (async, init SharedPreferences)
+├── main.dart                          # Entry point (async, init SharedPreferences) (8 linija)
 ├── app/
-│   ├── app.dart                       # Root widget (HelpiAdminApp)
-│   ├── theme.dart                     # HelpiTheme – boje, dimenzije, ThemeData
-│   └── responsive_shell.dart          # Responsive shell (sidebar/rail/bottomnav)
+│   ├── app.dart                       # Root widget (HelpiAdminApp) (59 linija)
+│   ├── theme.dart                     # HelpiTheme – boje, dimenzije, ThemeData (212 linija)
+│   └── responsive_shell.dart          # Responsive shell (sidebar/rail/bottomnav) (387 linija)
 ├── core/
 │   ├── l10n/
-│   │   ├── app_strings.dart           # i18n stringovi (HR + EN, ~1337 linija)
-│   │   └── locale_notifier.dart       # ValueNotifier<Locale>
+│   │   ├── app_strings.dart           # i18n stringovi (HR + EN) (1417 linija)
+│   │   └── locale_notifier.dart       # ValueNotifier<Locale> (11 linija)
 │   ├── models/
-│   │   └── admin_models.dart          # Svi modeli + MockData + enumi (~1641 linija)
+│   │   └── admin_models.dart          # Svi modeli + MockData + enumi (1717 linija)
 │   ├── services/
-│   │   └── preferences_service.dart   # SharedPreferences wrapper (singleton, web-safe)
+│   │   └── preferences_service.dart   # SharedPreferences wrapper (singleton, web-safe) (88 linija)
 │   ├── utils/
-│   │   └── formatters.dart            # Formatiranje datuma/vremena
+│   │   └── formatters.dart            # Formatiranje datuma/vremena (14 linija)
 │   └── widgets/
-│       ├── widgets.dart               # Barrel export
-│       ├── status_badges.dart         # StatusBadge, ServiceChip
-│       ├── shared_widgets.dart        # SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar
-│       ├── contact_actions.dart       # PhoneCallButton, EmailCopyButton
-│       └── notification_bell.dart     # NotificationBell + NotificationsDrawer
+│       ├── widgets.dart               # Barrel export (6 linija)
+│       ├── status_badges.dart         # StatusBadge (size enum), ServiceChip (177 linija)
+│       ├── shared_widgets.dart        # SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (size enum) (459 linija)
+│       ├── session_preview_sheet.dart # SessionPreviewSheet — prikaz sesija, dodjela studenta iz narudžbe (851 linija)
+│       ├── contact_actions.dart       # PhoneCallButton, EmailCopyButton (45 linija)
+│       └── notification_bell.dart     # NotificationBell + NotificationsDrawer (283 linija)
 └── features/
     ├── auth/
     │   └── presentation/
-    │       └── login_screen.dart       # Login ekran
+    │       └── login_screen.dart       # Login ekran (160 linija)
     ├── dashboard/
     │   └── presentation/
-    │       └── dashboard_screen.dart   # Dashboard s KPI karticama (~935 linija)
+    │       └── dashboard_screen.dart   # Dashboard s KPI karticama (888 linija)
     ├── students/
     │   └── presentation/
-    │       ├── students_screen.dart    # Lista studenata (~1574 linija)
-    │       └── student_detail_screen.dart # Detalj studenta
+    │       ├── students_screen.dart    # Lista studenata (1571 linija)
+    │       └── student_detail_screen.dart # Detalj studenta (2550 linija)
     ├── seniors/
     │   └── presentation/
-    │       ├── seniors_screen.dart     # Lista + inline detalj seniora (~1261 linija)
-    │       ├── add_senior_screen.dart  # Dodaj seniora
-    │       ├── edit_senior_screen.dart # Uredi seniora
-    │       └── senior_form_helpers.dart # Shared form mixin
+    │       ├── seniors_screen.dart     # Lista + inline detalj seniora (1459 linija)
+    │       ├── add_senior_screen.dart  # Dodaj seniora (295 linija)
+    │       ├── edit_senior_screen.dart # Uredi seniora (268 linija)
+    │       └── senior_form_helpers.dart # Shared form mixin (122 linija)
     ├── orders/
     │   └── presentation/
-    │       ├── orders_screen.dart      # Lista narudžbi (~454 linija)
-    │       ├── order_detail_screen.dart # Detalj narudžbe (~1217 linija)
-    │       └── create_order_screen.dart # Kreiranje narudžbe (~1141 linija)
+    │       ├── orders_screen.dart      # Lista narudžbi (462 linija)
+    │       ├── order_detail_screen.dart # Detalj narudžbe (3152 linija)
+    │       └── create_order_screen.dart # Kreiranje narudžbe (1223 linija)
     └── chat/
         └── presentation/
-            └── chat_screen.dart        # Chat moderacija (~492 linija)
+            └── chat_screen.dart        # Chat moderacija (461 linija)
 ```
 
-**26 Dart fajlova, ~11.200 linija koda**
+**27 Dart fajlova, ~18.345 linija koda**
 
 ### Shared widgeti/utilitiji (core/)
 
-| Fajl                                            | Sadržaj                                                                       |
-| ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| `core/utils/formatters.dart`                    | formatDate, formatTime, formatTimeOfDay, formatDateDot                        |
-| `core/services/preferences_service.dart`        | PreferencesService singleton — grid/sort/tab per screen, web-safe fallback    |
-| `core/widgets/status_badges.dart`               | StatusBadge, ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel |
-| `core/widgets/shared_widgets.dart`              | SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar  |
-| `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                              |
-| `core/widgets/notification_bell.dart`           | NotificationBell (badge + drawer s mock notifikacijama)                       |
-| `core/widgets/widgets.dart`                     | Barrel export svih widgeta                                                    |
-| `seniors/presentation/senior_form_helpers.dart` | SeniorFormHelpers mixin (forme za add/edit senior)                            |
+| Fajl                                            | Sadržaj                                                                                                                                  |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/utils/formatters.dart`                    | formatDate, formatTime, formatTimeOfDay, formatDateDot                                                                                   |
+| `core/services/preferences_service.dart`        | PreferencesService singleton — grid/sort/tab per screen, web-safe fallback                                                               |
+| `core/widgets/status_badges.dart`               | StatusBadge (StatusBadgeSize enum: small/large), ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel                        |
+| `core/widgets/shared_widgets.dart`              | SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (ActionChipButtonSize enum: small/medium) |
+| `core/widgets/session_preview_sheet.dart`       | SessionPreviewSheet — prikaz generiranih sesija, dodjela studenta iz narudžbe/uređivanja                                                 |
+| `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                                                                                         |
+| `core/widgets/notification_bell.dart`           | NotificationBell (badge + drawer s mock notifikacijama)                                                                                  |
+| `core/widgets/widgets.dart`                     | Barrel export svih widgeta                                                                                                               |
+| `seniors/presentation/senior_form_helpers.dart` | SeniorFormHelpers mixin (forme za add/edit senior)                                                                                       |
 
 ---
 
@@ -102,6 +107,8 @@ Tri breakpointa definirana u `ResponsiveShell`:
 | ≥ 900px    | Desktop | Extended Sidebar (260px, SVG logo, labele, jezični toggle, logout) |
 
 Navigacija koristi `IndexedStack` s 5 ekrana: Dashboard, Narudžbe, Studenti, Seniori, Chat.
+
+**Locale-aware rebuild:** `_screens` je getter (ne `late final`) koji koristi `ValueKey('screenName_$locale')`. Kad se promijeni jezik, `IndexedStack` tretira ekrane kao nove widgete i rebuilda ih sa svježim stringovima.
 
 **Responsive gumbi:** Action gumbi koriste `LayoutBuilder` — full-width na <800px, 1/3 širine na ≥800px.
 
@@ -176,17 +183,42 @@ Centralizirana u `lib/app/theme.dart`:
 | Star yellow         | `#FFC107`                  |
 | Button height       | 56px                       |
 | Card/Button radius  | 12px                       |
+| Chip radius         | 100px (pill)               |
+| StatusBadge radius  | 100px (pill)               |
+| BottomSheet radius  | 12px                       |
 | Sidebar width       | 260px                      |
 | bodyLarge fontSize  | 16px                       |
 | bodyMedium fontSize | 16px                       |
 
 Status boje: Processing (plava), Active/Completed (zelena), Cancelled (coral/crvena).
 
+### DatePicker tema
+
+Globalno definirana u `datePickerTheme` unutar `ThemeData`:
+
+- **Boje:** accent (teal) za odabrani dan, header pozadina, godine
+- **Header:** manji font (20px umjesto Material 3 default ~32px) da se datum ne lomi u 2 reda
+- **Shape:** `cardRadius` (12px) zaobljenje — konzistentno s ostatkom UI-ja
+- **Gumbi:** "U redu" / "Odustani" (iz AppStrings) umjesto Material default "U REDU" (caps lock)
+- Svi `showDatePicker` pozivi koriste `confirmText: AppStrings.ok, cancelText: AppStrings.cancel`
+
+### Widget Size Enumi
+
+**StatusBadgeSize** (u `status_badges.dart`):
+
+- `small` (default) — padding 10×3, fontSize 11, `statusBadgeRadius` (100)
+- `large` — padding 14×6, fontSize 13, `chipRadius` (100)
+
+**ActionChipButtonSize** (u `shared_widgets.dart`):
+
+- `small` (default) — icon 14, font 12, padding 10×6, radius 8 — za inline card akcije
+- `medium` — icon 18, font 14, padding 14×8, radius 10 — za modal primary akcije (spremi, potvrdi, poništi)
+
 ---
 
 ## Modeli podataka
 
-Definirani u `lib/core/models/admin_models.dart` (~1641 linija):
+Definirani u `lib/core/models/admin_models.dart` (1717 linija):
 
 | Model               | Opis                                                                              |
 | ------------------- | --------------------------------------------------------------------------------- |
@@ -224,3 +256,30 @@ Definirani u `lib/core/models/admin_models.dart` (~1641 linija):
 - **Nema `dynamic` bez casta** — uvijek `as Map<String, dynamic>`
 - **0 linter issues** — `flutter analyze` mora uvijek proći čisto
 - **Incremental changes** — jedan fajl po promjeni, potvrda testa prije sljedećeg
+
+---
+
+## UI Consistency Standards
+
+### AlertDialog
+
+- Uvijek `shape: RoundedRectangleBorder(borderRadius: cardRadius)` — zaobljeni rubovi
+- Gumbi: `TextButton` (ne `ElevatedButton`) s `AppStrings.ok` / `AppStrings.cancel`
+- Nema hardkodiranog teksta ("OK", "Da", "Ne")
+
+### Modal / Bottom Sheet
+
+- Desktop (≥600px): `showDialog` s `maxWidth: 620, maxHeight: 750`
+- Mobile: `showModalBottomSheet` s `heightFactor: 0.92`
+- Standard header: `Padding(fromLTRB(20, 12, 8, 8))` → `Row(Icon(accent) + Text(18/w700) + IconButton(close))` → `Divider(height:1)`
+- Content clipping: `ClipRRect(cardRadius)` na sadržaju koji može prelaziti granice
+
+### TextButton
+
+- Globalni `textButtonTheme` definira `shape: RoundedRectangleBorder(borderRadius: buttonRadius)` — nema stadium hover efekta
+
+### DatePicker
+
+- Globalni `datePickerTheme` — teal boje, manji header font, zaobljeni rubovi
+- `confirmText: AppStrings.ok, cancelText: AppStrings.cancel` na svim pozivima
+- Nema per-call `builder` overridea — sve iz teme

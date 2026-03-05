@@ -1086,6 +1086,8 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       initialDate: initial ?? now,
       firstDate: firstDate ?? now,
       lastDate: DateTime(now.year + 2),
+      confirmText: AppStrings.ok,
+      cancelText: AppStrings.cancel,
     );
     if (!context.mounted) return;
     if (picked != null) onPicked(picked);

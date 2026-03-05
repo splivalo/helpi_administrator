@@ -94,6 +94,8 @@ mixin SeniorFormHelpers<T extends StatefulWidget> on State<T> {
           initialDate: value ?? DateTime(1945, 1, 1),
           firstDate: DateTime(1900),
           lastDate: DateTime.now(),
+          confirmText: AppStrings.ok,
+          cancelText: AppStrings.cancel,
         );
         if (picked != null) {
           if (!context.mounted) return;

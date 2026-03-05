@@ -1377,6 +1377,8 @@ class _FilterPanelState extends State<_FilterPanel> {
           initialDate: value ?? DateTime.now(),
           firstDate: DateTime(2020),
           lastDate: DateTime.now(),
+          confirmText: AppStrings.ok,
+          cancelText: AppStrings.cancel,
         );
         if (!mounted) return;
         if (picked != null) onPick(picked);

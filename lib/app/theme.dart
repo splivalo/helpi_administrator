@@ -215,5 +215,52 @@ class HelpiTheme {
       ),
       unselectedLabelTextStyle: TextStyle(color: navUnselected, fontSize: 14),
     ),
+    datePickerTheme: DatePickerThemeData(
+      backgroundColor: surface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(cardRadius),
+      ),
+      headerBackgroundColor: accent,
+      headerForegroundColor: Colors.white,
+      headerHeadlineStyle: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+      ),
+      headerHelpStyle: const TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+      ),
+      dayForegroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return Colors.white;
+        if (states.contains(WidgetState.disabled)) {
+          return textSecondary.withAlpha(100);
+        }
+        return textPrimary;
+      }),
+      dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return accent;
+        return null;
+      }),
+      todayForegroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return Colors.white;
+        return accent;
+      }),
+      todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return accent;
+        return null;
+      }),
+      todayBorder: const BorderSide(color: accent),
+      yearForegroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return Colors.white;
+        return textPrimary;
+      }),
+      yearBackgroundColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return accent;
+        return null;
+      }),
+      cancelButtonStyle: TextButton.styleFrom(foregroundColor: textSecondary),
+      confirmButtonStyle: TextButton.styleFrom(foregroundColor: accent),
+    ),
   );
 }

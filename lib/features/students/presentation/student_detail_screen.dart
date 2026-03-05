@@ -816,18 +816,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       initialDate: _summaryStart,
       firstDate: DateTime(now.year - 1, 1, 1),
       lastDate: _summaryEnd,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: HelpiTheme.accent,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-            ),
-          ),
-          child: child!,
-        );
-      },
+      confirmText: AppStrings.ok,
+      cancelText: AppStrings.cancel,
     );
     if (!mounted) return;
     if (picked != null) {
@@ -845,18 +835,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       initialDate: _summaryEnd,
       firstDate: _summaryStart,
       lastDate: DateTime(now.year, 12, 31),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: HelpiTheme.accent,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-            ),
-          ),
-          child: child!,
-        );
-      },
+      confirmText: AppStrings.ok,
+      cancelText: AppStrings.cancel,
     );
     if (!mounted) return;
     if (picked != null) {
