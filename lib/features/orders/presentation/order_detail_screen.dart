@@ -57,48 +57,54 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 title: AppStrings.seniorOrdererTitle,
                 icon: Icons.people,
                 children: [
-                  InfoRow(
-                    label: AppStrings.seniorOrdererFirstName,
-                    value: _order.senior.ordererFirstName ?? '',
+                  ResponsiveFieldGrid(
+                    children: [
+                      InfoField(
+                        label: AppStrings.seniorOrdererFirstName,
+                        value: _order.senior.ordererFirstName ?? '',
+                      ),
+                      if (_order.senior.ordererLastName != null)
+                        InfoField(
+                          label: AppStrings.seniorOrdererLastName,
+                          value: _order.senior.ordererLastName!,
+                        ),
+                      if (_order.senior.ordererEmail != null)
+                        InfoField(
+                          label: AppStrings.seniorOrdererEmail,
+                          value: _order.senior.ordererEmail!,
+                          trailing: EmailCopyButton(
+                            email: _order.senior.ordererEmail!,
+                          ),
+                        ),
+                      if (_order.senior.ordererPhone != null)
+                        InfoField(
+                          label: AppStrings.seniorOrdererPhone,
+                          value: _order.senior.ordererPhone!,
+                          trailing: PhoneCallButton(
+                            phone: _order.senior.ordererPhone!,
+                          ),
+                        ),
+                      if (_order.senior.ordererAddress != null)
+                        InfoField(
+                          label: AppStrings.seniorOrdererAddress,
+                          value: _order.senior.ordererAddress!,
+                        ),
+                      if (_order.senior.ordererGender != null)
+                        InfoField(
+                          label: AppStrings.seniorOrdererGender,
+                          value: _order.senior.ordererGender == Gender.male
+                              ? AppStrings.genderMale
+                              : AppStrings.genderFemale,
+                        ),
+                      if (_order.senior.ordererDateOfBirth != null)
+                        InfoField(
+                          label: AppStrings.seniorOrdererDob,
+                          value: formatDateDot(
+                            _order.senior.ordererDateOfBirth!,
+                          ),
+                        ),
+                    ],
                   ),
-                  if (_order.senior.ordererLastName != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererLastName,
-                      value: _order.senior.ordererLastName!,
-                    ),
-                  if (_order.senior.ordererEmail != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererEmail,
-                      value: _order.senior.ordererEmail!,
-                      trailing: EmailCopyButton(
-                        email: _order.senior.ordererEmail!,
-                      ),
-                    ),
-                  if (_order.senior.ordererPhone != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererPhone,
-                      value: _order.senior.ordererPhone!,
-                      trailing: PhoneCallButton(
-                        phone: _order.senior.ordererPhone!,
-                      ),
-                    ),
-                  if (_order.senior.ordererAddress != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererAddress,
-                      value: _order.senior.ordererAddress!,
-                    ),
-                  if (_order.senior.ordererGender != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererGender,
-                      value: _order.senior.ordererGender == Gender.male
-                          ? AppStrings.genderMale
-                          : AppStrings.genderFemale,
-                    ),
-                  if (_order.senior.ordererDateOfBirth != null)
-                    InfoRow(
-                      label: AppStrings.seniorOrdererDob,
-                      value: formatDateDot(_order.senior.ordererDateOfBirth!),
-                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -109,38 +115,42 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               title: AppStrings.seniorServiceUser,
               icon: Icons.elderly,
               children: [
-                InfoRow(
-                  label: AppStrings.seniorFirstName,
-                  value: _order.senior.firstName,
-                ),
-                InfoRow(
-                  label: AppStrings.seniorLastName,
-                  value: _order.senior.lastName,
-                ),
-                if (!_order.senior.hasOrderer)
-                  InfoRow(
-                    label: AppStrings.seniorOrdererEmail,
-                    value: _order.senior.email,
-                    trailing: EmailCopyButton(email: _order.senior.email),
-                  ),
-                InfoRow(
-                  label: AppStrings.seniorPhone,
-                  value: _order.senior.phone,
-                  trailing: PhoneCallButton(phone: _order.senior.phone),
-                ),
-                InfoRow(
-                  label: AppStrings.seniorAddress,
-                  value: _order.senior.address,
-                ),
-                InfoRow(
-                  label: AppStrings.seniorOrdererGender,
-                  value: _order.senior.gender == Gender.male
-                      ? AppStrings.genderMale
-                      : AppStrings.genderFemale,
-                ),
-                InfoRow(
-                  label: AppStrings.seniorOrdererDob,
-                  value: formatDateDot(_order.senior.dateOfBirth),
+                ResponsiveFieldGrid(
+                  children: [
+                    InfoField(
+                      label: AppStrings.seniorFirstName,
+                      value: _order.senior.firstName,
+                    ),
+                    InfoField(
+                      label: AppStrings.seniorLastName,
+                      value: _order.senior.lastName,
+                    ),
+                    if (!_order.senior.hasOrderer)
+                      InfoField(
+                        label: AppStrings.seniorOrdererEmail,
+                        value: _order.senior.email,
+                        trailing: EmailCopyButton(email: _order.senior.email),
+                      ),
+                    InfoField(
+                      label: AppStrings.seniorPhone,
+                      value: _order.senior.phone,
+                      trailing: PhoneCallButton(phone: _order.senior.phone),
+                    ),
+                    InfoField(
+                      label: AppStrings.seniorAddress,
+                      value: _order.senior.address,
+                    ),
+                    InfoField(
+                      label: AppStrings.seniorOrdererGender,
+                      value: _order.senior.gender == Gender.male
+                          ? AppStrings.genderMale
+                          : AppStrings.genderFemale,
+                    ),
+                    InfoField(
+                      label: AppStrings.seniorOrdererDob,
+                      value: formatDateDot(_order.senior.dateOfBirth),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -152,38 +162,41 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               icon: Icons.school,
               children: [
                 if (_order.student != null) ...[
-                  InfoRow(
-                    label: AppStrings.studentFirstName,
-                    value: _order.student!.firstName,
-                  ),
-                  InfoRow(
-                    label: AppStrings.studentLastName,
-                    value: _order.student!.lastName,
-                  ),
-                  InfoRow(
-                    label: AppStrings.studentEmail,
-                    value: _order.student!.email,
-                    trailing: EmailCopyButton(email: _order.student!.email),
-                  ),
-                  InfoRow(
-                    label: AppStrings.studentPhone,
-                    value: _order.student!.phone,
-                    trailing: PhoneCallButton(phone: _order.student!.phone),
-                  ),
-                  InfoRow(
-                    label: AppStrings.studentRating,
-                    value:
-                        '${_order.student!.avgRating}/5 (${_order.student!.totalReviews})',
+                  ResponsiveFieldGrid(
+                    children: [
+                      InfoField(
+                        label: AppStrings.studentFirstName,
+                        value: _order.student!.firstName,
+                      ),
+                      InfoField(
+                        label: AppStrings.studentLastName,
+                        value: _order.student!.lastName,
+                      ),
+                      InfoField(
+                        label: AppStrings.studentEmail,
+                        value: _order.student!.email,
+                        trailing: EmailCopyButton(email: _order.student!.email),
+                      ),
+                      InfoField(
+                        label: AppStrings.studentPhone,
+                        value: _order.student!.phone,
+                        trailing: PhoneCallButton(phone: _order.student!.phone),
+                      ),
+                      InfoField(
+                        label: AppStrings.studentRating,
+                        value:
+                            '${_order.student!.avgRating}/5 (${_order.student!.totalReviews})',
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   if (_order.status == OrderStatus.active)
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _showAssignSheet(),
-                        icon: const Icon(Icons.swap_horiz, size: 18),
-                        label: Text(AppStrings.reassignStudent),
-                      ),
+                    ActionChipButton(
+                      icon: Icons.swap_horiz,
+                      label: AppStrings.reassignStudent,
+                      color: HelpiTheme.accent,
+                      outlined: true,
+                      onTap: () => _showAssignSheet(),
                     ),
                 ] else ...[
                   Padding(
@@ -208,13 +221,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showAssignSheet(),
-                      icon: const Icon(Icons.person_add, size: 18),
-                      label: Text(AppStrings.assignStudent),
-                    ),
+                  ActionChipButton(
+                    icon: Icons.person_add,
+                    label: AppStrings.assignStudent,
+                    color: HelpiTheme.accent,
+                    onTap: () => _showAssignSheet(),
                   ),
                 ],
               ],
@@ -226,23 +237,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               title: AppStrings.orderDetails,
               icon: Icons.receipt_long,
               children: [
-                InfoRow(label: AppStrings.orderDate, value: dateStr),
-                InfoRow(
-                  label: AppStrings.orderFrequency,
-                  value: _frequencyLabel(),
-                ),
-                InfoRow(label: AppStrings.seniorAddress, value: _order.address),
-                if (_order.notes != null && _order.notes!.isNotEmpty)
-                  InfoRow(label: AppStrings.orderNotes, value: _order.notes!),
-                InfoRow(
-                  label: AppStrings.orderServices,
-                  valueWidget: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _order.services
-                        .map((s) => ServiceChip(type: s))
-                        .toList(),
-                  ),
+                ResponsiveFieldGrid(
+                  children: [
+                    InfoField(label: AppStrings.orderDate, value: dateStr),
+                    InfoField(
+                      label: AppStrings.orderFrequency,
+                      value: _frequencyLabel(),
+                    ),
+                    InfoField(
+                      label: AppStrings.seniorAddress,
+                      value: _order.address,
+                    ),
+                    if (_order.notes != null && _order.notes!.isNotEmpty)
+                      InfoField(
+                        label: AppStrings.orderNotes,
+                        value: _order.notes!,
+                      ),
+                    InfoField(
+                      label: AppStrings.orderServices,
+                      valueWidget: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _order.services
+                            .map((s) => ServiceChip(type: s))
+                            .toList(),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -273,7 +294,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
+          InkWell(
+            borderRadius: BorderRadius.circular(8),
+            hoverColor: HelpiTheme.accent.withAlpha(10),
+            splashColor: HelpiTheme.accent.withAlpha(20),
+            mouseCursor: SystemMouseCursors.click,
             onTap: () {
               HapticFeedback.selectionClick();
               setState(() => _sessionsExpanded = !_sessionsExpanded);
@@ -1081,35 +1106,45 @@ class _StudentAssignCard extends StatelessWidget {
           ),
 
           // ── Assign button ──
-          GestureDetector(
-            onTap: onAssign,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: HelpiTheme.accent.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: HelpiTheme.accent.withValues(alpha: 0.25),
+          Material(
+            color: HelpiTheme.accent.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              hoverColor: HelpiTheme.accent.withValues(alpha: 0.15),
+              splashColor: HelpiTheme.accent.withValues(alpha: 0.2),
+              mouseCursor: SystemMouseCursors.click,
+              onTap: onAssign,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
                 ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.person_add,
-                    size: 14,
-                    color: HelpiTheme.accent,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: HelpiTheme.accent.withValues(alpha: 0.25),
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    AppStrings.assignStudent,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.person_add,
+                      size: 14,
                       color: HelpiTheme.accent,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4),
+                    Text(
+                      AppStrings.assignStudent,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: HelpiTheme.accent,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -1137,29 +1172,36 @@ class _SessionActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withValues(alpha: 0.25)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: color,
+    return Material(
+      color: color.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        hoverColor: color.withValues(alpha: 0.15),
+        splashColor: color.withValues(alpha: 0.2),
+        mouseCursor: SystemMouseCursors.click,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withValues(alpha: 0.25)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: color),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
