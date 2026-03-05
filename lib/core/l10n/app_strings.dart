@@ -1,3 +1,5 @@
+import 'package:helpi_admin/core/models/admin_models.dart';
+
 /// Gemini Hybrid i18n — centralizirani stringovi za Helpi Admin.
 ///
 /// Svaki tekst koji se prikazuje korisniku MORA ići kroz ovu klasu.
@@ -229,6 +231,8 @@ class AppStrings {
       'contractFileSelected': 'Odabran: {name}',
       'contractNoFileSelected': 'Nije odabran dokument.',
       'studentNotAvailable': 'Nedostupan',
+      'studentNotAvailableMale': 'Nedostupan',
+      'studentNotAvailableFemale': 'Nedostupna',
       'studentAssignedOrders': 'Dodijeljene narudžbe',
       'studentRemoveVerification': 'Ukloni verifikaciju',
       'studentVerify': 'Verificiraj',
@@ -682,6 +686,8 @@ class AppStrings {
       'contractFileSelected': 'Selected: {name}',
       'contractNoFileSelected': 'No document selected.',
       'studentNotAvailable': 'Not available',
+      'studentNotAvailableMale': 'Not available',
+      'studentNotAvailableFemale': 'Not available',
       'studentAssignedOrders': 'Assigned orders',
       'studentRemoveVerification': 'Remove verification',
       'studentVerify': 'Verify',
@@ -1113,6 +1119,10 @@ class AppStrings {
       _t('contractFileSelected', params: {'name': name});
   static String get contractNoFileSelected => _t('contractNoFileSelected');
   static String get studentNotAvailable => _t('studentNotAvailable');
+  static String studentNotAvailableGendered(Gender gender) =>
+      gender == Gender.female
+      ? _t('studentNotAvailableFemale')
+      : _t('studentNotAvailableMale');
   static String get studentAssignedOrders => _t('studentAssignedOrders');
   static String get studentRemoveVerification =>
       _t('studentRemoveVerification');

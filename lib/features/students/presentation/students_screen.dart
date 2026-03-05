@@ -598,62 +598,130 @@ class _StudentsScreenState extends State<StudentsScreen>
   //  FILTER BOTTOM SHEET
   // ═══════════════════════════════════════════════════════════════
   void _openFilterSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return _FilterPanel(
-          activityPeriod: _activityPeriod,
-          activityWorked: _activityWorked,
-          customFrom: _customFrom,
-          customTo: _customTo,
-          genderFilter: _genderFilter,
-          minRating: _minRating,
-          minJobs: _minJobs,
-          maxJobs: _maxJobs,
-          selectedDays: _selectedDays,
-          availableFrom: _availableFrom,
-          availableTo: _availableTo,
-          seniorFilter: _seniorFilter,
-          onApply:
-              ({
-                required ActivityPeriod? activityPeriod,
-                required bool? activityWorked,
-                required DateTime? customFrom,
-                required DateTime? customTo,
-                required Gender? genderFilter,
-                required double minRating,
-                required int? minJobs,
-                required int? maxJobs,
-                required Set<int> selectedDays,
-                required TimeOfDay? availableFrom,
-                required TimeOfDay? availableTo,
-                required String? seniorFilter,
-              }) {
-                setState(() {
-                  _activityPeriod = activityPeriod;
-                  _activityWorked = activityWorked;
-                  _customFrom = customFrom;
-                  _customTo = customTo;
-                  _genderFilter = genderFilter;
-                  _minRating = minRating;
-                  _minJobs = minJobs;
-                  _maxJobs = maxJobs;
-                  _selectedDays = selectedDays;
-                  _availableFrom = availableFrom;
-                  _availableTo = availableTo;
-                  _seniorFilter = seniorFilter;
-                });
-                Navigator.pop(ctx);
-              },
-          onReset: () {
-            _resetFilters();
-            Navigator.pop(ctx);
-          },
-        );
-      },
-    );
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    if (isWide) {
+      showDialog(
+        context: context,
+        builder: (ctx) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560, maxHeight: 700),
+              child: _FilterPanel(
+                isDialog: true,
+                activityPeriod: _activityPeriod,
+                activityWorked: _activityWorked,
+                customFrom: _customFrom,
+                customTo: _customTo,
+                genderFilter: _genderFilter,
+                minRating: _minRating,
+                minJobs: _minJobs,
+                maxJobs: _maxJobs,
+                selectedDays: _selectedDays,
+                availableFrom: _availableFrom,
+                availableTo: _availableTo,
+                seniorFilter: _seniorFilter,
+                onApply:
+                    ({
+                      required ActivityPeriod? activityPeriod,
+                      required bool? activityWorked,
+                      required DateTime? customFrom,
+                      required DateTime? customTo,
+                      required Gender? genderFilter,
+                      required double minRating,
+                      required int? minJobs,
+                      required int? maxJobs,
+                      required Set<int> selectedDays,
+                      required TimeOfDay? availableFrom,
+                      required TimeOfDay? availableTo,
+                      required String? seniorFilter,
+                    }) {
+                      setState(() {
+                        _activityPeriod = activityPeriod;
+                        _activityWorked = activityWorked;
+                        _customFrom = customFrom;
+                        _customTo = customTo;
+                        _genderFilter = genderFilter;
+                        _minRating = minRating;
+                        _minJobs = minJobs;
+                        _maxJobs = maxJobs;
+                        _selectedDays = selectedDays;
+                        _availableFrom = availableFrom;
+                        _availableTo = availableTo;
+                        _seniorFilter = seniorFilter;
+                      });
+                      Navigator.pop(ctx);
+                    },
+                onReset: () {
+                  _resetFilters();
+                  Navigator.pop(ctx);
+                },
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) {
+          return _FilterPanel(
+            activityPeriod: _activityPeriod,
+            activityWorked: _activityWorked,
+            customFrom: _customFrom,
+            customTo: _customTo,
+            genderFilter: _genderFilter,
+            minRating: _minRating,
+            minJobs: _minJobs,
+            maxJobs: _maxJobs,
+            selectedDays: _selectedDays,
+            availableFrom: _availableFrom,
+            availableTo: _availableTo,
+            seniorFilter: _seniorFilter,
+            onApply:
+                ({
+                  required ActivityPeriod? activityPeriod,
+                  required bool? activityWorked,
+                  required DateTime? customFrom,
+                  required DateTime? customTo,
+                  required Gender? genderFilter,
+                  required double minRating,
+                  required int? minJobs,
+                  required int? maxJobs,
+                  required Set<int> selectedDays,
+                  required TimeOfDay? availableFrom,
+                  required TimeOfDay? availableTo,
+                  required String? seniorFilter,
+                }) {
+                  setState(() {
+                    _activityPeriod = activityPeriod;
+                    _activityWorked = activityWorked;
+                    _customFrom = customFrom;
+                    _customTo = customTo;
+                    _genderFilter = genderFilter;
+                    _minRating = minRating;
+                    _minJobs = minJobs;
+                    _maxJobs = maxJobs;
+                    _selectedDays = selectedDays;
+                    _availableFrom = availableFrom;
+                    _availableTo = availableTo;
+                    _seniorFilter = seniorFilter;
+                  });
+                  Navigator.pop(ctx);
+                },
+            onReset: () {
+              _resetFilters();
+              Navigator.pop(ctx);
+            },
+          );
+        },
+      );
+    }
   }
 }
 
@@ -662,6 +730,7 @@ class _StudentsScreenState extends State<StudentsScreen>
 // ═══════════════════════════════════════════════════════════════
 class _FilterPanel extends StatefulWidget {
   const _FilterPanel({
+    this.isDialog = false,
     required this.activityPeriod,
     required this.activityWorked,
     required this.customFrom,
@@ -678,6 +747,7 @@ class _FilterPanel extends StatefulWidget {
     required this.onReset,
   });
 
+  final bool isDialog;
   final ActivityPeriod? activityPeriod;
   final bool? activityWorked;
   final DateTime? customFrom;
@@ -770,6 +840,12 @@ class _FilterPanelState extends State<_FilterPanel> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isDialog) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        child: _buildFilterContent(null),
+      );
+    }
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
       minChildSize: 0.5,
@@ -780,367 +856,180 @@ class _FilterPanelState extends State<_FilterPanel> {
             color: HelpiTheme.scaffold,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          child: Column(
+          child: _buildFilterContent(scrollController),
+        );
+      },
+    );
+  }
+
+  Widget _buildFilterContent(ScrollController? scrollController) {
+    return Column(
+      children: [
+        if (!widget.isDialog)
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 4),
+            child: const DragHandle(),
+          ),
+
+        // ── Header ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+          child: Row(
             children: [
-              // ── Drag handle ──
-              Padding(
-                padding: const EdgeInsets.only(top: 12, bottom: 4),
-                child: const DragHandle(),
+              const Icon(Icons.filter_alt, color: HelpiTheme.accent),
+              const SizedBox(width: 8),
+              Text(
+                AppStrings.advancedFilters,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: widget.onReset,
+                style: TextButton.styleFrom(
+                  foregroundColor: HelpiTheme.primary,
+                ),
+                child: Text(AppStrings.filterReset),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+
+        // ── Filter content ──
+        Expanded(
+          child: ListView(
+            controller: scrollController,
+            padding: const EdgeInsets.all(20),
+            children: [
+              // ──────────────────────────────────
+              // 1. Activity period (GA-style)
+              // ──────────────────────────────────
+              _sectionTitle(AppStrings.filterByActivity),
+              const SizedBox(height: 8),
+              _buildChoiceRow<ActivityPeriod?>(
+                [
+                  (null, AppStrings.allStudents),
+                  (ActivityPeriod.thisMonth, AppStrings.filterPeriodThisMonth),
+                  (ActivityPeriod.lastMonth, AppStrings.filterPeriodLastMonth),
+                  (
+                    ActivityPeriod.last60Days,
+                    AppStrings.filterPeriodLast60Days,
+                  ),
+                  (ActivityPeriod.custom, AppStrings.filterPeriodCustom),
+                ],
+                _activityPeriod,
+                (v) {
+                  setState(() {
+                    _activityPeriod = v;
+                    if (v == null) _activityWorked = null;
+                  });
+                },
               ),
 
-              // ── Header ──
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                child: Row(
+              // Custom date range pickers
+              if (_activityPeriod == ActivityPeriod.custom) ...[
+                const SizedBox(height: 12),
+                Row(
                   children: [
-                    const Icon(Icons.filter_alt, color: HelpiTheme.accent),
-                    const SizedBox(width: 8),
-                    Text(
-                      AppStrings.advancedFilters,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+                    Expanded(
+                      child: _datePickerBtn(
+                        label: AppStrings.filterPeriodFrom,
+                        value: _customFrom,
+                        onPick: (d) => setState(() => _customFrom = d),
                       ),
                     ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: widget.onReset,
-                      style: TextButton.styleFrom(
-                        foregroundColor: HelpiTheme.primary,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _datePickerBtn(
+                        label: AppStrings.filterPeriodTo,
+                        value: _customTo,
+                        onPick: (d) => setState(() => _customTo = d),
                       ),
-                      child: Text(AppStrings.filterReset),
                     ),
                   ],
                 ),
+              ],
+
+              // Worked / didn't work (only when period selected)
+              if (_activityPeriod != null) ...[
+                const SizedBox(height: 12),
+                _buildChoiceRow<bool?>(
+                  [
+                    (null, AppStrings.allStudents),
+                    (true, AppStrings.filterWorked),
+                    (false, AppStrings.filterDidNotWork),
+                  ],
+                  _activityWorked,
+                  (v) {
+                    setState(() => _activityWorked = v);
+                  },
+                ),
+              ],
+              const SizedBox(height: 20),
+
+              // ──────────────────────────────────
+              // 2. Gender
+              // ──────────────────────────────────
+              _sectionTitle(AppStrings.filterByGender),
+              const SizedBox(height: 8),
+              _buildChoiceRow<Gender?>(
+                [
+                  (null, AppStrings.anyGender),
+                  (Gender.male, AppStrings.genderMale),
+                  (Gender.female, AppStrings.genderFemale),
+                ],
+                _genderFilter,
+                (v) {
+                  setState(() => _genderFilter = v);
+                },
               ),
-              const Divider(height: 1),
+              const SizedBox(height: 20),
 
-              // ── Filter content ──
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    // ──────────────────────────────────
-                    // 1. Activity period (GA-style)
-                    // ──────────────────────────────────
-                    _sectionTitle(AppStrings.filterByActivity),
-                    const SizedBox(height: 8),
-                    _buildChoiceRow<ActivityPeriod?>(
-                      [
-                        (null, AppStrings.allStudents),
-                        (
-                          ActivityPeriod.thisMonth,
-                          AppStrings.filterPeriodThisMonth,
-                        ),
-                        (
-                          ActivityPeriod.lastMonth,
-                          AppStrings.filterPeriodLastMonth,
-                        ),
-                        (
-                          ActivityPeriod.last60Days,
-                          AppStrings.filterPeriodLast60Days,
-                        ),
-                        (ActivityPeriod.custom, AppStrings.filterPeriodCustom),
-                      ],
-                      _activityPeriod,
-                      (v) {
-                        setState(() {
-                          _activityPeriod = v;
-                          if (v == null) _activityWorked = null;
-                        });
-                      },
+              // ──────────────────────────────────
+              // 4. Min rating
+              // ──────────────────────────────────
+              _sectionTitle(
+                '${AppStrings.filterByRating}: ${_minRating > 0 ? '≥ ${_minRating.toStringAsFixed(1)}' : '-'}',
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.star,
+                    size: 18,
+                    color: HelpiTheme.starYellow,
+                  ),
+                  Expanded(
+                    child: Slider(
+                      value: _minRating,
+                      min: 0,
+                      max: 5,
+                      divisions: 10,
+                      activeColor: HelpiTheme.accent,
+                      label: _minRating.toStringAsFixed(1),
+                      onChanged: (v) => setState(() => _minRating = v),
                     ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
 
-                    // Custom date range pickers
-                    if (_activityPeriod == ActivityPeriod.custom) ...[
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _datePickerBtn(
-                              label: AppStrings.filterPeriodFrom,
-                              value: _customFrom,
-                              onPick: (d) => setState(() => _customFrom = d),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _datePickerBtn(
-                              label: AppStrings.filterPeriodTo,
-                              value: _customTo,
-                              onPick: (d) => setState(() => _customTo = d),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-
-                    // Worked / didn't work (only when period selected)
-                    if (_activityPeriod != null) ...[
-                      const SizedBox(height: 12),
-                      _buildChoiceRow<bool?>(
-                        [
-                          (null, AppStrings.allStudents),
-                          (true, AppStrings.filterWorked),
-                          (false, AppStrings.filterDidNotWork),
-                        ],
-                        _activityWorked,
-                        (v) {
-                          setState(() => _activityWorked = v);
-                        },
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-
-                    // ──────────────────────────────────
-                    // 2. Gender
-                    // ──────────────────────────────────
-                    _sectionTitle(AppStrings.filterByGender),
-                    const SizedBox(height: 8),
-                    _buildChoiceRow<Gender?>(
-                      [
-                        (null, AppStrings.anyGender),
-                        (Gender.male, AppStrings.genderMale),
-                        (Gender.female, AppStrings.genderFemale),
-                      ],
-                      _genderFilter,
-                      (v) {
-                        setState(() => _genderFilter = v);
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // ──────────────────────────────────
-                    // 4. Min rating
-                    // ──────────────────────────────────
-                    _sectionTitle(
-                      '${AppStrings.filterByRating}: ${_minRating > 0 ? '≥ ${_minRating.toStringAsFixed(1)}' : '-'}',
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.star,
-                          size: 18,
-                          color: HelpiTheme.starYellow,
-                        ),
-                        Expanded(
-                          child: Slider(
-                            value: _minRating,
-                            min: 0,
-                            max: 5,
-                            divisions: 10,
-                            activeColor: HelpiTheme.accent,
-                            label: _minRating.toStringAsFixed(1),
-                            onChanged: (v) => setState(() => _minRating = v),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // ──────────────────────────────────
-                    // 5. Min/max jobs
-                    // ──────────────────────────────────
-                    _sectionTitle(AppStrings.filterMinJobs),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _minJobsCtrl,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: 'Min',
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 18,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                  HelpiTheme.cardRadius,
-                                ),
-                                borderSide: const BorderSide(
-                                  color: HelpiTheme.border,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                  HelpiTheme.cardRadius,
-                                ),
-                                borderSide: const BorderSide(
-                                  color: HelpiTheme.border,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                  HelpiTheme.cardRadius,
-                                ),
-                                borderSide: const BorderSide(
-                                  color: HelpiTheme.accent,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            onChanged: (v) {
-                              _minJobs = int.tryParse(v);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextField(
-                            controller: _maxJobsCtrl,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: 'Max',
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 18,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                  HelpiTheme.cardRadius,
-                                ),
-                                borderSide: const BorderSide(
-                                  color: HelpiTheme.border,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                  HelpiTheme.cardRadius,
-                                ),
-                                borderSide: const BorderSide(
-                                  color: HelpiTheme.border,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                  HelpiTheme.cardRadius,
-                                ),
-                                borderSide: const BorderSide(
-                                  color: HelpiTheme.accent,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                            onChanged: (v) {
-                              _maxJobs = int.tryParse(v);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // ──────────────────────────────────
-                    // 6. Availability — days
-                    // ──────────────────────────────────
-                    _sectionTitle(AppStrings.filterByDay),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: List.generate(7, (i) {
-                        final day = i + 1;
-                        final selected = _selectedDays.contains(day);
-                        return Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(right: i < 6 ? 8 : 0),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  if (selected) {
-                                    _selectedDays.remove(day);
-                                  } else {
-                                    _selectedDays.add(day);
-                                  }
-                                });
-                              },
-                              child: Container(
-                                height: 42,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: selected
-                                      ? HelpiTheme.accent
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(
-                                    HelpiTheme.cardRadius,
-                                  ),
-                                  border: Border.all(
-                                    color: selected
-                                        ? HelpiTheme.accent
-                                        : HelpiTheme.border,
-                                  ),
-                                ),
-                                child: Text(
-                                  _dayLabel(day),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: selected
-                                        ? Colors.white
-                                        : HelpiTheme.textPrimary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // ──────────────────────────────────
-                    // 7. Availability — time range
-                    // ──────────────────────────────────
-                    _sectionTitle(AppStrings.filterByAvailability),
-                    const SizedBox(height: 4),
-                    Text(
-                      AppStrings.filterAvailHint,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _timePickerBtn(
-                            label: AppStrings.filterByTimeFrom,
-                            value: _availableFrom,
-                            onPick: (t) => setState(() => _availableFrom = t),
-                            onClear: () =>
-                                setState(() => _availableFrom = null),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _timePickerBtn(
-                            label: AppStrings.filterByTimeTo,
-                            value: _availableTo,
-                            onPick: (t) => setState(() => _availableTo = t),
-                            onClear: () => setState(() => _availableTo = null),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // ──────────────────────────────────
-                    // 8. Worked with senior
-                    // ──────────────────────────────────
-                    _sectionTitle(AppStrings.filterBySenior),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String?>(
-                      initialValue: _seniorFilter,
-                      isExpanded: true,
+              // ──────────────────────────────────
+              // 5. Min/max jobs
+              // ──────────────────────────────────
+              _sectionTitle(AppStrings.filterMinJobs),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _minJobsCtrl,
+                      keyboardType: TextInputType.number,
                       decoration: InputDecoration(
+                        hintText: 'Min',
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
@@ -1173,75 +1062,246 @@ class _FilterPanelState extends State<_FilterPanel> {
                           ),
                         ),
                       ),
-                      items: [
-                        DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text(AppStrings.anySenior),
+                      onChanged: (v) {
+                        _minJobs = int.tryParse(v);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _maxJobsCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: 'Max',
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 18,
                         ),
-                        ...MockData.seniors.map(
-                          (s) => DropdownMenuItem<String?>(
-                            value: s.id,
-                            child: Text(s.fullName),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.cardRadius,
+                          ),
+                          borderSide: const BorderSide(
+                            color: HelpiTheme.border,
                           ),
                         ),
-                      ],
-                      onChanged: (v) => setState(() => _seniorFilter = v),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.cardRadius,
+                          ),
+                          borderSide: const BorderSide(
+                            color: HelpiTheme.border,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.cardRadius,
+                          ),
+                          borderSide: const BorderSide(
+                            color: HelpiTheme.accent,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      onChanged: (v) {
+                        _maxJobs = int.tryParse(v);
+                      },
                     ),
-                    const SizedBox(height: 32),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // ──────────────────────────────────
+              // 6. Availability — days
+              // ──────────────────────────────────
+              _sectionTitle(AppStrings.filterByDay),
+              const SizedBox(height: 8),
+              Row(
+                children: List.generate(7, (i) {
+                  final day = i + 1;
+                  final selected = _selectedDays.contains(day);
+                  return Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(right: i < 6 ? 8 : 0),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (selected) {
+                              _selectedDays.remove(day);
+                            } else {
+                              _selectedDays.add(day);
+                            }
+                          });
+                        },
+                        child: Container(
+                          height: 42,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: selected ? HelpiTheme.accent : Colors.white,
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.cardRadius,
+                            ),
+                            border: Border.all(
+                              color: selected
+                                  ? HelpiTheme.accent
+                                  : HelpiTheme.border,
+                            ),
+                          ),
+                          child: Text(
+                            _dayLabel(day),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: selected
+                                  ? Colors.white
+                                  : HelpiTheme.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 20),
+
+              // ──────────────────────────────────
+              // 7. Availability — time range
+              // ──────────────────────────────────
+              _sectionTitle(AppStrings.filterByAvailability),
+              const SizedBox(height: 4),
+              Text(
+                AppStrings.filterAvailHint,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                  color: HelpiTheme.textSecondary,
                 ),
               ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: _timePickerBtn(
+                      label: AppStrings.filterByTimeFrom,
+                      value: _availableFrom,
+                      onPick: (t) => setState(() => _availableFrom = t),
+                      onClear: () => setState(() => _availableFrom = null),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _timePickerBtn(
+                      label: AppStrings.filterByTimeTo,
+                      value: _availableTo,
+                      onPick: (t) => setState(() => _availableTo = t),
+                      onClear: () => setState(() => _availableTo = null),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
 
-              // ── Apply button ──
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: FilledButton.icon(
-                      onPressed: () {
-                        widget.onApply(
-                          activityPeriod: _activityPeriod,
-                          activityWorked: _activityWorked,
-                          customFrom: _customFrom,
-                          customTo: _customTo,
-                          genderFilter: _genderFilter,
-                          minRating: _minRating,
-                          minJobs: _minJobs,
-                          maxJobs: _maxJobs,
-                          selectedDays: _selectedDays,
-                          availableFrom: _availableFrom,
-                          availableTo: _availableTo,
-                          seniorFilter: _seniorFilter,
-                        );
-                      },
-                      icon: const Icon(Icons.check),
-                      label: Text(
-                        AppStrings.filterApply,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: HelpiTheme.accent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
+              // ──────────────────────────────────
+              // 8. Worked with senior
+              // ──────────────────────────────────
+              _sectionTitle(AppStrings.filterBySenior),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String?>(
+                initialValue: _seniorFilter,
+                isExpanded: true,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 18,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+                    borderSide: const BorderSide(color: HelpiTheme.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+                    borderSide: const BorderSide(color: HelpiTheme.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+                    borderSide: const BorderSide(
+                      color: HelpiTheme.accent,
+                      width: 2,
                     ),
                   ),
                 ),
+                items: [
+                  DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text(AppStrings.anySenior),
+                  ),
+                  ...MockData.seniors.map(
+                    (s) => DropdownMenuItem<String?>(
+                      value: s.id,
+                      child: Text(s.fullName),
+                    ),
+                  ),
+                ],
+                onChanged: (v) => setState(() => _seniorFilter = v),
               ),
+              const SizedBox(height: 32),
             ],
           ),
-        );
-      },
+        ),
+
+        // ── Apply button ──
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton.icon(
+                onPressed: () {
+                  widget.onApply(
+                    activityPeriod: _activityPeriod,
+                    activityWorked: _activityWorked,
+                    customFrom: _customFrom,
+                    customTo: _customTo,
+                    genderFilter: _genderFilter,
+                    minRating: _minRating,
+                    minJobs: _minJobs,
+                    maxJobs: _maxJobs,
+                    selectedDays: _selectedDays,
+                    availableFrom: _availableFrom,
+                    availableTo: _availableTo,
+                    seniorFilter: _seniorFilter,
+                  );
+                },
+                icon: const Icon(Icons.check),
+                label: Text(
+                  AppStrings.filterApply,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: HelpiTheme.accent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  // ── Section title ──
   Widget _sectionTitle(String title) {
     return Text(
       title,

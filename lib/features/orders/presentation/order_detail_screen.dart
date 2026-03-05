@@ -611,155 +611,204 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         .where((s) => s.isActive && s.contractStatus == ContractStatus.active)
         .toList();
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(HelpiTheme.bottomSheetRadius),
-        ),
-      ),
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setSheetState) {
-            final dateLabel = formatDate(selectedDate);
-            final timeLabel = formatTimeOfDay(selectedTime);
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-            return Padding(
-              padding: EdgeInsets.only(
-                top: 20,
-                left: 20,
-                right: 20,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+    Widget buildContent(BuildContext ctx, StateSetter setSheetState) {
+      final dateLabel = formatDate(selectedDate);
+      final timeLabel = formatTimeOfDay(selectedTime);
+
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isWide)
+            const Padding(
+              padding: EdgeInsets.only(top: 12, bottom: 4),
+              child: DragHandle(),
+            ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              AppStrings.sessionRescheduleTitle,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // ── Date picker row ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _RescheduleRow(
+              icon: Icons.calendar_today,
+              label: AppStrings.sessionNewDate,
+              value: dateLabel,
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: ctx,
+                  initialDate: selectedDate,
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                );
+                if (picked != null) {
+                  setSheetState(() => selectedDate = picked);
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // ── Time picker row ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: _RescheduleRow(
+              icon: Icons.access_time,
+              label: AppStrings.sessionNewTime,
+              value: timeLabel,
+              onTap: () async {
+                final picked = await showTimePicker(
+                  context: ctx,
+                  initialTime: selectedTime,
+                );
+                if (picked != null) {
+                  setSheetState(() => selectedTime = picked);
+                }
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // ── Student selector (scrollable list) ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(
+              AppStrings.sessionSelectStudent,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: HelpiTheme.textSecondary,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: ListView(
+                shrinkWrap: true,
                 children: [
-                  const DragHandle(),
-                  const SizedBox(height: 16),
-                  Text(
-                    AppStrings.sessionRescheduleTitle,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Date picker row ──
-                  _RescheduleRow(
-                    icon: Icons.calendar_today,
-                    label: AppStrings.sessionNewDate,
-                    value: dateLabel,
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: ctx,
-                        initialDate: selectedDate,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (picked != null) {
-                        setSheetState(() => selectedDate = picked);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ── Time picker row ──
-                  _RescheduleRow(
-                    icon: Icons.access_time,
-                    label: AppStrings.sessionNewTime,
-                    value: timeLabel,
-                    onTap: () async {
-                      final picked = await showTimePicker(
-                        context: ctx,
-                        initialTime: selectedTime,
-                      );
-                      if (picked != null) {
-                        setSheetState(() => selectedTime = picked);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ── Student selector (scrollable list) ──
-                  Text(
-                    AppStrings.sessionSelectStudent,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: HelpiTheme.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 200),
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: [
-                        // "Keep current" option
-                        if (session.studentName != null)
-                          _StudentRadioTile(
-                            name: session.studentName!,
-                            subtitle: AppStrings.sessionKeepCurrentStudent,
-                            isSelected:
-                                selectedStudentName == session.studentName,
-                            onTap: () {
-                              setSheetState(() {
-                                selectedStudentName = session.studentName;
-                              });
-                            },
-                          ),
-                        // Available students
-                        ...availableStudents
-                            .where((s) => s.fullName != session.studentName)
-                            .map(
-                              (student) => _StudentRadioTile(
-                                name: student.fullName,
-                                subtitle:
-                                    '★ ${student.avgRating}  ·  ${student.completedJobs} poslova',
-                                isSelected:
-                                    selectedStudentName == student.fullName,
-                                onTap: () {
-                                  setSheetState(() {
-                                    selectedStudentName = student.fullName;
-                                  });
-                                },
-                              ),
-                            ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // ── Confirm button ──
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        if (!context.mounted) return;
-                        _updateSession(
-                          session,
-                          session.copyWith(
-                            date: selectedDate,
-                            weekday: selectedDate.weekday,
-                            startTime: selectedTime,
-                            studentName: () => selectedStudentName,
-                          ),
-                        );
+                  // "Keep current" option
+                  if (session.studentName != null)
+                    _StudentRadioTile(
+                      name: session.studentName!,
+                      subtitle: AppStrings.sessionKeepCurrentStudent,
+                      isSelected: selectedStudentName == session.studentName,
+                      onTap: () {
+                        setSheetState(() {
+                          selectedStudentName = session.studentName;
+                        });
                       },
-                      child: Text(AppStrings.confirm),
                     ),
-                  ),
+                  // Available students
+                  ...availableStudents
+                      .where((s) => s.fullName != session.studentName)
+                      .map(
+                        (student) => _StudentRadioTile(
+                          name: student.fullName,
+                          subtitle:
+                              '★ ${student.avgRating}  ·  ${student.completedJobs} poslova',
+                          isSelected: selectedStudentName == student.fullName,
+                          onTap: () {
+                            setSheetState(() {
+                              selectedStudentName = student.fullName;
+                            });
+                          },
+                        ),
+                      ),
                 ],
               ),
-            );
-          },
-        );
-      },
-    );
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // ── Confirm button ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  if (!context.mounted) return;
+                  _updateSession(
+                    session,
+                    session.copyWith(
+                      date: selectedDate,
+                      weekday: selectedDate.weekday,
+                      startTime: selectedTime,
+                      studentName: () => selectedStudentName,
+                    ),
+                  );
+                },
+                child: Text(AppStrings.confirm),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      );
+    }
+
+    if (isWide) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560, maxHeight: 700),
+              child: StatefulBuilder(
+                builder: (ctx, setSheetState) {
+                  return SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: buildContent(ctx, setSheetState),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(HelpiTheme.bottomSheetRadius),
+          ),
+        ),
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (ctx, setSheetState) {
+              return SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                  ),
+                  child: buildContent(ctx, setSheetState),
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -771,67 +820,92 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         .where((s) => s.isActive && s.contractStatus == ContractStatus.active)
         .toList();
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(HelpiTheme.bottomSheetRadius),
-        ),
-      ),
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          maxChildSize: 0.9,
-          minChildSize: 0.3,
-          expand: false,
-          builder: (ctx, scrollCtrl) {
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const DragHandle(),
-                  const SizedBox(height: 16),
-                  Text(
-                    AppStrings.suggestedStudents,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-                  // ── Student list ──
-                  Expanded(
-                    child: availableStudents.isEmpty
-                        ? Center(
-                            child: Text(
-                              AppStrings.noStudentsFound,
-                              style: const TextStyle(
-                                color: HelpiTheme.textSecondary,
-                              ),
-                            ),
-                          )
-                        : ListView.builder(
-                            controller: scrollCtrl,
-                            itemCount: availableStudents.length,
-                            itemBuilder: (ctx, i) {
-                              final student = availableStudents[i];
-                              return _StudentAssignCard(
-                                student: student,
-                                onAssign: () => _assignStudent(student, ctx),
-                              );
-                            },
-                          ),
+    Widget buildContent(ScrollController? scrollCtrl) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isWide)
+            const Padding(
+              padding: EdgeInsets.only(top: 12, bottom: 4),
+              child: DragHandle(),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: Text(
+              AppStrings.suggestedStudents,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ── Student list ──
+          Expanded(
+            child: availableStudents.isEmpty
+                ? Center(
+                    child: Text(
+                      AppStrings.noStudentsFound,
+                      style: const TextStyle(color: HelpiTheme.textSecondary),
+                    ),
+                  )
+                : ListView.builder(
+                    controller: scrollCtrl,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: availableStudents.length,
+                    itemBuilder: (ctx, i) {
+                      final student = availableStudents[i];
+                      return _StudentAssignCard(
+                        student: student,
+                        onAssign: () => _assignStudent(student, ctx),
+                      );
+                    },
                   ),
-                ],
+          ),
+        ],
+      );
+    }
+
+    if (isWide) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560, maxHeight: 700),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: buildContent(null),
               ),
-            );
-          },
-        );
-      },
-    );
+            ),
+          );
+        },
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(HelpiTheme.bottomSheetRadius),
+          ),
+        ),
+        builder: (ctx) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.6,
+            maxChildSize: 0.9,
+            minChildSize: 0.3,
+            expand: false,
+            builder: (ctx, scrollCtrl) {
+              return buildContent(scrollCtrl);
+            },
+          );
+        },
+      );
+    }
   }
 
   void _assignStudent(StudentModel student, BuildContext sheetContext) {

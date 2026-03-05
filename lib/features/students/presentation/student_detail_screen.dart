@@ -175,115 +175,139 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   void _showReorderSheet() {
     final tempOrder = List<int>.from(_sectionOrder);
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setSheetState) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const DragHandle(),
-                    const SizedBox(height: 8),
-                    Text(
-                      AppStrings.sectionLayoutTitle,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      AppStrings.sectionLayoutHint,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: _sectionCount * 56.0,
-                      child: ReorderableListView.builder(
-                        shrinkWrap: true,
-                        itemCount: tempOrder.length,
-                        onReorder: (oldIndex, newIndex) {
-                          setSheetState(() {
-                            if (newIndex > oldIndex) newIndex--;
-                            final item = tempOrder.removeAt(oldIndex);
-                            tempOrder.insert(newIndex, item);
-                          });
-                        },
-                        itemBuilder: (_, i) {
-                          final sectionIdx = tempOrder[i];
-                          return ListTile(
-                            key: ValueKey(sectionIdx),
-                            leading: Icon(
-                              _sectionIcons[sectionIdx],
-                              color: HelpiTheme.accent,
-                              size: 20,
-                            ),
-                            title: Text(
-                              _sectionLabels[sectionIdx],
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            dense: true,
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () {
-                                setSheetState(() {
-                                  tempOrder.clear();
-                                  tempOrder.addAll(
-                                    List.generate(_sectionCount, (i) => i),
-                                  );
-                                });
-                              },
-                              child: Text(AppStrings.resetDefault),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  _sectionOrder = List.from(tempOrder);
-                                });
-                                _prefs.setSectionOrder(
-                                  _screenKey,
-                                  _sectionOrder,
-                                );
-                                Navigator.pop(ctx);
-                              },
-                              child: Text(AppStrings.save),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+    Widget buildContent(BuildContext ctx, StateSetter setSheetState) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!isWide)
+            const Padding(
+              padding: EdgeInsets.only(top: 12, bottom: 4),
+              child: DragHandle(),
+            ),
+          const SizedBox(height: 8),
+          Text(
+            AppStrings.sectionLayoutTitle,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            AppStrings.sectionLayoutHint,
+            style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: _sectionCount * 56.0,
+            child: ReorderableListView.builder(
+              shrinkWrap: true,
+              itemCount: tempOrder.length,
+              onReorder: (oldIndex, newIndex) {
+                setSheetState(() {
+                  if (newIndex > oldIndex) newIndex--;
+                  final item = tempOrder.removeAt(oldIndex);
+                  tempOrder.insert(newIndex, item);
+                });
+              },
+              itemBuilder: (_, i) {
+                final sectionIdx = tempOrder[i];
+                return ListTile(
+                  key: ValueKey(sectionIdx),
+                  leading: Icon(
+                    _sectionIcons[sectionIdx],
+                    color: HelpiTheme.accent,
+                    size: 20,
+                  ),
+                  title: Text(
+                    _sectionLabels[sectionIdx],
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  dense: true,
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setSheetState(() {
+                        tempOrder.clear();
+                        tempOrder.addAll(
+                          List.generate(_sectionCount, (i) => i),
+                        );
+                      });
+                    },
+                    child: Text(AppStrings.resetDefault),
+                  ),
                 ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _sectionOrder = List.from(tempOrder);
+                      });
+                      _prefs.setSectionOrder(_screenKey, _sectionOrder);
+                      Navigator.pop(ctx);
+                    },
+                    child: Text(AppStrings.save),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (isWide) {
+      showDialog<void>(
+        context: context,
+        builder: (ctx) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480, maxHeight: 600),
+              child: StatefulBuilder(
+                builder: (ctx, setSheetState) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: buildContent(ctx, setSheetState),
+                  );
+                },
               ),
-            );
-          },
-        );
-      },
-    );
+            ),
+          );
+        },
+      );
+    } else {
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (ctx, setSheetState) {
+              return SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: buildContent(ctx, setSheetState),
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
   }
 
   // ─────────────────────────────────────────────────────────
@@ -655,7 +679,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                         ),
                       )
                     : Text(
-                        AppStrings.studentNotAvailable,
+                        AppStrings.studentNotAvailableGendered(_student.gender),
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -1415,6 +1439,7 @@ class _AssignFlowSheetState extends State<_AssignFlowSheet> {
             order: _selectedOrder!,
             onBack: _goBack,
             onAssigned: () => widget.onAssigned(_selectedOrder!),
+            useDialog: widget.useDialog,
           )
         : _buildMatchingList();
 
@@ -1444,11 +1469,11 @@ class _AssignFlowSheetState extends State<_AssignFlowSheet> {
   Widget _buildMatchingList() {
     return Column(
       children: [
-        // Drag handle
-        const Padding(
-          padding: EdgeInsets.only(top: 12, bottom: 4),
-          child: DragHandle(),
-        ),
+        if (!widget.useDialog)
+          const Padding(
+            padding: EdgeInsets.only(top: 12, bottom: 4),
+            child: DragHandle(),
+          ),
         // Header
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
@@ -1529,12 +1554,14 @@ class _SessionPreviewContent extends StatefulWidget {
     required this.order,
     required this.onBack,
     required this.onAssigned,
+    this.useDialog = false,
   });
 
   final StudentModel student;
   final OrderModel order;
   final VoidCallback onBack;
   final VoidCallback onAssigned;
+  final bool useDialog;
 
   @override
   State<_SessionPreviewContent> createState() => _SessionPreviewContentState();
@@ -1831,10 +1858,11 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Padding(
-          padding: EdgeInsets.only(top: 12, bottom: 4),
-          child: DragHandle(),
-        ),
+        if (!widget.useDialog)
+          const Padding(
+            padding: EdgeInsets.only(top: 12, bottom: 4),
+            child: DragHandle(),
+          ),
         // Header with back button
         Padding(
           padding: const EdgeInsets.fromLTRB(8, 4, 20, 4),
