@@ -217,6 +217,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   label: AppStrings.resetDefault,
                   color: HelpiTheme.accent,
                   outlined: true,
+                  size: ActionChipButtonSize.medium,
                   onTap: () {
                     setSheetState(() {
                       tempOrder.clear();
@@ -229,6 +230,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   icon: Icons.check,
                   label: AppStrings.save,
                   color: HelpiTheme.primary,
+                  size: ActionChipButtonSize.medium,
                   onTap: () {
                     setState(() {
                       _sectionOrder = List.from(tempOrder);
@@ -1362,6 +1364,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 icon: Icons.check,
                 label: AppStrings.confirm,
                 color: HelpiTheme.primary,
+                size: ActionChipButtonSize.medium,
                 onTap: () {
                   Navigator.pop(ctx);
                   if (!context.mounted) return;
@@ -2161,11 +2164,18 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
 
     if (widget.useDialog) {
       return Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: HelpiTheme.scaffold,
-          borderRadius: BorderRadius.all(Radius.circular(20)),
+          borderRadius: BorderRadius.all(
+            Radius.circular(HelpiTheme.cardRadius),
+          ),
         ),
-        child: content,
+        child: ClipRRect(
+          borderRadius: BorderRadius.all(
+            Radius.circular(HelpiTheme.cardRadius),
+          ),
+          child: content,
+        ),
       );
     }
 
@@ -2174,9 +2184,11 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
       height: MediaQuery.of(context).size.height * height,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: HelpiTheme.scaffold,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(HelpiTheme.cardRadius),
+        ),
       ),
       child: content,
     );
@@ -3215,6 +3227,7 @@ class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
               color: hasUnresolved
                   ? HelpiTheme.textSecondary
                   : HelpiTheme.accent,
+              size: ActionChipButtonSize.medium,
               onTap: _confirmAssign,
             ),
           ),

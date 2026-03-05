@@ -1280,6 +1280,7 @@ class _FilterPanelState extends State<_FilterPanel> {
                   label: AppStrings.filterReset,
                   color: HelpiTheme.primary,
                   outlined: true,
+                  size: ActionChipButtonSize.medium,
                   onTap: widget.onReset,
                 ),
                 const SizedBox(width: 12),
@@ -1287,6 +1288,7 @@ class _FilterPanelState extends State<_FilterPanel> {
                   icon: Icons.check,
                   label: AppStrings.filterApply,
                   color: HelpiTheme.accent,
+                  size: ActionChipButtonSize.medium,
                   onTap: () {
                     widget.onApply(
                       activityPeriod: _activityPeriod,

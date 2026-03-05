@@ -295,6 +295,12 @@ class ResponsiveButton extends StatelessWidget {
 //  ACTION CHIP BUTTON — compact outlined button with icon
 // ═══════════════════════════════════════════════════════════════
 
+/// Visual density for [ActionChipButton].
+///
+/// - `small`  → icon 14, font 12, padding ~10×6  (inline card actions)
+/// - `medium` → icon 18, font 14, padding ~14×8  (modal primary actions)
+enum ActionChipButtonSize { small, medium }
+
 /// Compact chip-style action button: tinted background, small icon + label.
 class ActionChipButton extends StatelessWidget {
   const ActionChipButton({
@@ -304,6 +310,7 @@ class ActionChipButton extends StatelessWidget {
     required this.color,
     required this.onTap,
     this.outlined = false,
+    this.size = ActionChipButtonSize.small,
   });
 
   final IconData icon;
@@ -311,17 +318,25 @@ class ActionChipButton extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
   final bool outlined;
+  final ActionChipButtonSize size;
 
   @override
   Widget build(BuildContext context) {
+    final isMedium = size == ActionChipButtonSize.medium;
     final bgColor = outlined ? Colors.white : color;
     final fgColor = outlined ? color : Colors.white;
+    final radius = isMedium ? 10.0 : 8.0;
+    final iconSize = isMedium ? 18.0 : 14.0;
+    final fontSize = isMedium ? 14.0 : 12.0;
+    final hPad = outlined ? (isMedium ? 13.0 : 9.0) : (isMedium ? 14.0 : 10.0);
+    final vPad = outlined ? (isMedium ? 7.0 : 5.0) : (isMedium ? 8.0 : 6.0);
+    final gap = isMedium ? 6.0 : 4.0;
 
     return Material(
       color: bgColor,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(radius),
       child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(radius),
         hoverColor: outlined ? color.withAlpha(20) : Colors.white.withAlpha(25),
         splashColor: outlined
             ? color.withAlpha(35)
@@ -329,25 +344,22 @@ class ActionChipButton extends StatelessWidget {
         mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: outlined ? 9 : 10,
-            vertical: outlined ? 5 : 6,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
           decoration: outlined
               ? BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(radius),
                   border: Border.all(color: color),
                 )
               : null,
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: fgColor),
-              const SizedBox(width: 4),
+              Icon(icon, size: iconSize, color: fgColor),
+              SizedBox(width: gap),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: fontSize,
                   fontWeight: FontWeight.w600,
                   color: fgColor,
                 ),

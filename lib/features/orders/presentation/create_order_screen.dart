@@ -273,6 +273,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                 icon: Icons.check,
                 label: AppStrings.save,
                 color: HelpiTheme.accent,
+                size: ActionChipButtonSize.medium,
                 onTap: _onSave,
               ),
             )

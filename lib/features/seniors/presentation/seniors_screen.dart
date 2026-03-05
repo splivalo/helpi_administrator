@@ -1038,6 +1038,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   label: AppStrings.resetDefault,
                   color: HelpiTheme.accent,
                   outlined: true,
+                  size: ActionChipButtonSize.medium,
                   onTap: () {
                     setSheetState(() {
                       tempOrder.clear();
@@ -1050,6 +1051,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   icon: Icons.check,
                   label: AppStrings.save,
                   color: HelpiTheme.primary,
+                  size: ActionChipButtonSize.medium,
                   onTap: () {
                     setState(() {
                       _sectionOrder = List.from(tempOrder);

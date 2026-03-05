@@ -263,6 +263,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   label: AppStrings.resetDefault,
                   color: HelpiTheme.accent,
                   outlined: true,
+                  size: ActionChipButtonSize.medium,
                   onTap: () {
                     setSheetState(() {
                       tempOrder.clear();
@@ -275,6 +276,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   icon: Icons.check,
                   label: AppStrings.save,
                   color: HelpiTheme.primary,
+                  size: ActionChipButtonSize.medium,
                   onTap: () {
                     setState(() {
                       _sectionOrder = List.from(tempOrder);
@@ -1356,18 +1358,13 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         context: context,
         builder: (ctx) {
           return Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(
-              horizontal: 80,
-              vertical: 40,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: 560,
-                  maxHeight: 700,
-                ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560, maxHeight: 700),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
                 child: _AssignFlowSheet(
                   student: _student,
                   matchingOrders: matching,
@@ -1461,11 +1458,18 @@ class _AssignFlowSheetState extends State<_AssignFlowSheet> {
 
     if (widget.useDialog) {
       return Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: HelpiTheme.scaffold,
-          borderRadius: BorderRadius.all(Radius.circular(20)),
+          borderRadius: BorderRadius.all(
+            Radius.circular(HelpiTheme.cardRadius),
+          ),
         ),
-        child: content,
+        child: ClipRRect(
+          borderRadius: BorderRadius.all(
+            Radius.circular(HelpiTheme.cardRadius),
+          ),
+          child: content,
+        ),
       );
     }
 
@@ -1474,9 +1478,11 @@ class _AssignFlowSheetState extends State<_AssignFlowSheet> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
       height: MediaQuery.of(context).size.height * height,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: HelpiTheme.scaffold,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(HelpiTheme.cardRadius),
+        ),
       ),
       child: content,
     );
@@ -2530,6 +2536,7 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
               color: hasUnresolved
                   ? HelpiTheme.textSecondary
                   : HelpiTheme.accent,
+              size: ActionChipButtonSize.medium,
               onTap: _confirmAssign,
             ),
           ),

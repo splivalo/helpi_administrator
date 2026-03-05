@@ -916,6 +916,7 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
               color: hasUnresolved
                   ? HelpiTheme.textSecondary
                   : HelpiTheme.accent,
+              size: ActionChipButtonSize.medium,
               onTap: _confirmAssign,
             ),
           ),
