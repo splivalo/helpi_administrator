@@ -1992,15 +1992,19 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: HelpiTheme.accent.withAlpha(20),
+                  color: (!isFree && !isResolved && !s.isSkipped)
+                      ? HelpiTheme.statusCancelledText.withAlpha(20)
+                      : HelpiTheme.accent.withAlpha(20),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   _dayLabelsShort[s.weekday - 1],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    color: HelpiTheme.accent,
+                    color: (!isFree && !isResolved && !s.isSkipped)
+                        ? HelpiTheme.statusCancelledText
+                        : HelpiTheme.accent,
                   ),
                 ),
               ),
@@ -2366,14 +2370,18 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
     Color color,
     VoidCallback onTap,
   ) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
+    return Material(
+      color: color.withAlpha(20),
+      borderRadius: BorderRadius.circular(6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        hoverColor: color.withAlpha(25),
+        splashColor: color.withAlpha(35),
+        mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
-            color: color.withAlpha(20),
             borderRadius: BorderRadius.circular(6),
             border: Border.all(color: color.withAlpha(60)),
           ),

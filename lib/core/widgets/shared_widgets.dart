@@ -295,16 +295,17 @@ class ActionChipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        hoverColor: Colors.white.withAlpha(25),
+        splashColor: Colors.white.withAlpha(40),
+        mouseCursor: SystemMouseCursors.click,
         onTap: onTap,
-        child: Container(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(8),
-          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
