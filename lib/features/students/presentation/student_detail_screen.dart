@@ -1969,7 +1969,7 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
       bgColor = Colors.white;
     } else {
       borderColor = HelpiTheme.statusCancelledText.withAlpha(120);
-      bgColor = HelpiTheme.statusCancelledBg;
+      bgColor = Colors.white;
     }
 
     final displayStart = s.rescheduledStart ?? s.startTime;
@@ -2194,9 +2194,14 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
             children: slots.map((slot) {
               final endMin = _toMin(slot) + session.durationHours * 60;
               final end = TimeOfDay(hour: endMin ~/ 60, minute: endMin % 60);
-              return MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
+              return Material(
+                color: HelpiTheme.statusProcessingBg,
+                borderRadius: BorderRadius.circular(6),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  hoverColor: HelpiTheme.statusProcessingText.withAlpha(20),
+                  splashColor: HelpiTheme.statusProcessingText.withAlpha(30),
+                  mouseCursor: SystemMouseCursors.click,
                   onTap: () {
                     setState(() {
                       _sessions[index].rescheduledStart = slot;
@@ -2210,7 +2215,6 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: HelpiTheme.statusProcessingBg,
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                         color: HelpiTheme.statusProcessingText.withAlpha(60),
@@ -2265,9 +2269,14 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
           ...subs.map(
             (sub) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: GestureDetector(
+              child: Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
+                  hoverColor: HelpiTheme.accent.withAlpha(15),
+                  splashColor: HelpiTheme.accent.withAlpha(25),
+                  mouseCursor: SystemMouseCursors.click,
                   onTap: () {
                     setState(() {
                       _sessions[index].substituteStudent = sub;
@@ -2276,23 +2285,24 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
                     });
                   },
                   child: Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
-                      vertical: 6,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: HelpiTheme.pastelTeal,
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.pillRadius,
+                      ),
                       border: Border.all(
                         color: HelpiTheme.accent.withAlpha(60),
                       ),
                     ),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         CircleAvatar(
                           backgroundColor: HelpiTheme.accent.withAlpha(30),
-                          radius: 12,
+                          radius: 14,
                           child: Text(
                             '${sub.firstName[0]}${sub.lastName[0]}',
                             style: const TextStyle(
@@ -2302,25 +2312,27 @@ class _SessionPreviewContentState extends State<_SessionPreviewContent> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          sub.fullName,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: HelpiTheme.accent,
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            sub.fullName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 6),
                         Icon(
                           Icons.star_rounded,
-                          size: 13,
+                          size: 14,
                           color: Colors.amber.shade700,
                         ),
+                        const SizedBox(width: 2),
                         Text(
                           '${sub.avgRating}',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                             color: Colors.amber.shade700,
                           ),
                         ),
