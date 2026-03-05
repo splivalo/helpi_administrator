@@ -60,18 +60,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           IconButton(
             icon: const Icon(Icons.edit, size: 22),
             tooltip: AppStrings.editOrderTitle,
-            onPressed: () async {
-              final result = await Navigator.push<OrderModel>(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => CreateOrderScreen(existingOrder: _order),
-                ),
-              );
-              if (!context.mounted) return;
-              if (result != null) {
-                setState(() => _order = result);
-              }
-            },
+            onPressed: _showEditOrderModal,
           ),
           IconButton(
             icon: const Icon(Icons.dashboard_customize, size: 22),
@@ -277,6 +266,52 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           );
         },
       );
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  //  EDIT ORDER MODAL (dialog on desktop / bottom sheet on mobile)
+  // ─────────────────────────────────────────────────────────
+  void _showEditOrderModal() {
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    final formWidget = CreateOrderScreen(existingOrder: _order, isModal: true);
+
+    if (isWide) {
+      showDialog<OrderModel>(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620, maxHeight: 750),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+              child: formWidget,
+            ),
+          ),
+        ),
+      ).then((result) {
+        if (!context.mounted) return;
+        if (result != null) setState(() => _order = result);
+      });
+    } else {
+      showModalBottomSheet<OrderModel>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(HelpiTheme.bottomSheetRadius),
+          ),
+        ),
+        builder: (ctx) =>
+            FractionallySizedBox(heightFactor: 0.92, child: formWidget),
+      ).then((result) {
+        if (!context.mounted) return;
+        if (result != null) setState(() => _order = result);
+      });
     }
   }
 

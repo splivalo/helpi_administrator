@@ -3,11 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/seniors/presentation/senior_form_helpers.dart';
 
 /// Ekran za dodavanje novog seniora.
+///
+/// Kad je [isModal] `true`, renderira se bez [Scaffold]
+/// pa se može staviti u dialog ili bottom-sheet.
 class AddSeniorScreen extends StatefulWidget {
-  const AddSeniorScreen({super.key});
+  const AddSeniorScreen({super.key, this.isModal = false});
+
+  final bool isModal;
 
   @override
   State<AddSeniorScreen> createState() => _AddSeniorScreenState();
@@ -53,132 +59,175 @@ class _AddSeniorScreenState extends State<AddSeniorScreen>
 
   @override
   Widget build(BuildContext context) {
+    final formBody = _buildFormBody();
+
+    if (widget.isModal) return formBody;
+
     return Scaffold(
       appBar: AppBar(title: Text(AppStrings.addSeniorTitle)),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // ── Toggle naručitelj ──
+      body: formBody,
+    );
+  }
+
+  Widget _buildFormBody() {
+    return Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // ── Modal header ──
+          if (widget.isModal) ...[
             Row(
               children: [
-                Switch(
-                  value: _hasOrderer,
-                  activeTrackColor: HelpiTheme.accent,
-                  onChanged: (v) => setState(() => _hasOrderer = v),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  AppStrings.addSeniorHasOrderer,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    AppStrings.addSeniorTitle,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: HelpiTheme.textPrimary,
+                    ),
                   ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
+          ],
 
-            // ── Naručitelj sekcija ──
-            if (_hasOrderer) ...[
-              buildSectionLabel(AppStrings.seniorOrdererTitle, Icons.people),
-              const SizedBox(height: 12),
-              buildTextField(
-                controller: _ordFirstNameCtrl,
-                label: AppStrings.seniorOrdererFirstName,
-                required: true,
+          // ── Toggle naručitelj ──
+          Row(
+            children: [
+              Switch(
+                value: _hasOrderer,
+                activeTrackColor: HelpiTheme.accent,
+                onChanged: (v) => setState(() => _hasOrderer = v),
               ),
-              const SizedBox(height: 12),
-              buildTextField(
-                controller: _ordLastNameCtrl,
-                label: AppStrings.seniorOrdererLastName,
-                required: true,
+              const SizedBox(width: 8),
+              Text(
+                AppStrings.addSeniorHasOrderer,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              const SizedBox(height: 12),
-              buildTextField(
-                controller: _ordEmailCtrl,
-                label: AppStrings.seniorOrdererEmail,
-                keyboardType: TextInputType.emailAddress,
-                required: true,
-              ),
-              const SizedBox(height: 12),
-              buildTextField(
-                controller: _ordPhoneCtrl,
-                label: AppStrings.seniorOrdererPhone,
-                keyboardType: TextInputType.phone,
-                required: true,
-              ),
-              const SizedBox(height: 12),
-              buildTextField(
-                controller: _ordAddressCtrl,
-                label: AppStrings.seniorOrdererAddress,
-                required: true,
-              ),
-              const SizedBox(height: 12),
-              buildGenderSelector(
-                value: _ordGender,
-                onChanged: (g) => setState(() => _ordGender = g),
-              ),
-              const SizedBox(height: 12),
-              buildDatePicker(
-                label: AppStrings.seniorOrdererDob,
-                value: _ordDateOfBirth,
-                onChanged: (d) => setState(() => _ordDateOfBirth = d),
-              ),
-              const SizedBox(height: 24),
             ],
+          ),
+          const SizedBox(height: 8),
 
-            // ── Korisnik usluga ──
-            buildSectionLabel(AppStrings.seniorServiceUser, Icons.elderly),
+          // ── Naručitelj sekcija ──
+          if (_hasOrderer) ...[
+            buildSectionLabel(AppStrings.seniorOrdererTitle, Icons.people),
             const SizedBox(height: 12),
             buildTextField(
-              controller: _firstNameCtrl,
-              label: AppStrings.seniorFirstName,
+              controller: _ordFirstNameCtrl,
+              label: AppStrings.seniorOrdererFirstName,
               required: true,
             ),
             const SizedBox(height: 12),
             buildTextField(
-              controller: _lastNameCtrl,
-              label: AppStrings.seniorLastName,
+              controller: _ordLastNameCtrl,
+              label: AppStrings.seniorOrdererLastName,
               required: true,
             ),
             const SizedBox(height: 12),
-            if (!_hasOrderer) ...[
-              buildTextField(
-                controller: _emailCtrl,
-                label: AppStrings.seniorEmail,
-                keyboardType: TextInputType.emailAddress,
-                required: true,
-              ),
-              const SizedBox(height: 12),
-            ],
             buildTextField(
-              controller: _phoneCtrl,
-              label: AppStrings.seniorPhone,
+              controller: _ordEmailCtrl,
+              label: AppStrings.seniorOrdererEmail,
+              keyboardType: TextInputType.emailAddress,
+              required: true,
+            ),
+            const SizedBox(height: 12),
+            buildTextField(
+              controller: _ordPhoneCtrl,
+              label: AppStrings.seniorOrdererPhone,
               keyboardType: TextInputType.phone,
               required: true,
             ),
             const SizedBox(height: 12),
             buildTextField(
-              controller: _addressCtrl,
-              label: AppStrings.seniorAddress,
+              controller: _ordAddressCtrl,
+              label: AppStrings.seniorOrdererAddress,
               required: true,
             ),
             const SizedBox(height: 12),
             buildGenderSelector(
-              value: _gender,
-              onChanged: (g) => setState(() => _gender = g),
+              value: _ordGender,
+              onChanged: (g) => setState(() => _ordGender = g),
             ),
             const SizedBox(height: 12),
             buildDatePicker(
               label: AppStrings.seniorOrdererDob,
-              value: _dateOfBirth,
-              onChanged: (d) => setState(() => _dateOfBirth = d),
+              value: _ordDateOfBirth,
+              onChanged: (d) => setState(() => _ordDateOfBirth = d),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+          ],
 
-            // ── Save button ──
+          // ── Korisnik usluga ──
+          buildSectionLabel(AppStrings.seniorServiceUser, Icons.elderly),
+          const SizedBox(height: 12),
+          buildTextField(
+            controller: _firstNameCtrl,
+            label: AppStrings.seniorFirstName,
+            required: true,
+          ),
+          const SizedBox(height: 12),
+          buildTextField(
+            controller: _lastNameCtrl,
+            label: AppStrings.seniorLastName,
+            required: true,
+          ),
+          const SizedBox(height: 12),
+          if (!_hasOrderer) ...[
+            buildTextField(
+              controller: _emailCtrl,
+              label: AppStrings.seniorEmail,
+              keyboardType: TextInputType.emailAddress,
+              required: true,
+            ),
+            const SizedBox(height: 12),
+          ],
+          buildTextField(
+            controller: _phoneCtrl,
+            label: AppStrings.seniorPhone,
+            keyboardType: TextInputType.phone,
+            required: true,
+          ),
+          const SizedBox(height: 12),
+          buildTextField(
+            controller: _addressCtrl,
+            label: AppStrings.seniorAddress,
+            required: true,
+          ),
+          const SizedBox(height: 12),
+          buildGenderSelector(
+            value: _gender,
+            onChanged: (g) => setState(() => _gender = g),
+          ),
+          const SizedBox(height: 12),
+          buildDatePicker(
+            label: AppStrings.seniorOrdererDob,
+            value: _dateOfBirth,
+            onChanged: (d) => setState(() => _dateOfBirth = d),
+          ),
+          const SizedBox(height: 32),
+
+          // ── Save button ──
+          if (widget.isModal)
+            Align(
+              alignment: Alignment.centerRight,
+              child: ActionChipButton(
+                icon: Icons.check,
+                label: AppStrings.save,
+                color: HelpiTheme.accent,
+                onTap: _onSave,
+              ),
+            )
+          else
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -196,9 +245,8 @@ class _AddSeniorScreenState extends State<AddSeniorScreen>
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-          ],
-        ),
+          const SizedBox(height: 32),
+        ],
       ),
     );
   }

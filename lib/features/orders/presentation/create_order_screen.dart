@@ -4,7 +4,7 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
-import 'package:helpi_admin/core/widgets/status_badges.dart';
+import 'package:helpi_admin/core/widgets/widgets.dart';
 
 /// Single-screen form for creating or editing an order (admin side).
 ///
@@ -14,11 +14,20 @@ import 'package:helpi_admin/core/widgets/status_badges.dart';
 /// When [existingOrder] is provided the form enters **edit mode** —
 /// all fields are pre-filled with the order's current data.
 /// On save the existing order is updated in-place (sessions are kept).
+///
+/// When [isModal] is `true` the widget renders without a [Scaffold]
+/// so it can be placed inside a dialog or bottom-sheet.
 class CreateOrderScreen extends StatefulWidget {
-  const CreateOrderScreen({super.key, this.senior, this.existingOrder});
+  const CreateOrderScreen({
+    super.key,
+    this.senior,
+    this.existingOrder,
+    this.isModal = false,
+  });
 
   final SeniorModel? senior;
   final OrderModel? existingOrder;
+  final bool isModal;
 
   @override
   State<CreateOrderScreen> createState() => _CreateOrderScreenState();
@@ -172,78 +181,125 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final formBody = _buildFormBody();
+
+    if (widget.isModal) return formBody;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           _isEditMode ? AppStrings.editOrderTitle : AppStrings.createOrder,
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          controller: _scrollCtrl,
-          padding: const EdgeInsets.all(16),
-          children: [
-            // ══════════════════════════════════════
-            // 1) ODABERI SENIORA
-            // ══════════════════════════════════════
-            if (widget.senior == null && !_isEditMode) ...[
-              _buildSectionLabel(AppStrings.selectSenior, Icons.elderly),
-              const SizedBox(height: 12),
-              _buildSeniorPicker(),
-              const SizedBox(height: 24),
-            ],
+      body: formBody,
+    );
+  }
 
-            // ══════════════════════════════════════
-            // 2) UČESTALOST
-            // ══════════════════════════════════════
-            _buildSectionLabel(AppStrings.orderFrequency, Icons.repeat),
-            const SizedBox(height: 12),
-            _buildFrequencySelector(),
-            const SizedBox(height: 24),
+  Widget _buildFormBody() {
+    final title = _isEditMode
+        ? AppStrings.editOrderTitle
+        : AppStrings.createOrder;
 
-            // ══════════════════════════════════════
-            // 3) KADA?
-            // ══════════════════════════════════════
-            if (_frequency == FrequencyType.oneTime)
-              _buildOneTimeSection()
-            else
-              _buildRecurringSection(),
-            const SizedBox(height: 24),
-
-            // ══════════════════════════════════════
-            // 4) USLUGE
-            // ══════════════════════════════════════
-            _buildSectionLabel(AppStrings.selectServices, Icons.handyman),
-            const SizedBox(height: 12),
-            _buildServiceChips(),
-            const SizedBox(height: 24),
-
-            // ══════════════════════════════════════
-            // 5) NAPOMENA
-            // ══════════════════════════════════════
-            _buildSectionLabel(AppStrings.orderNotes, Icons.notes),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _notesCtrl,
-              maxLines: 3,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                hintText: AppStrings.orderNotesHint,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+    return Form(
+      key: _formKey,
+      child: ListView(
+        controller: _scrollCtrl,
+        padding: const EdgeInsets.all(16),
+        children: [
+          // ── Modal header ──
+          if (widget.isModal) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: HelpiTheme.textPrimary,
+                    ),
+                  ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
                 ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // ══════════════════════════════════════
+          // 1) ODABERI SENIORA
+          // ══════════════════════════════════════
+          if (widget.senior == null && !_isEditMode) ...[
+            _buildSectionLabel(AppStrings.selectSenior, Icons.elderly),
+            const SizedBox(height: 12),
+            _buildSeniorPicker(),
+            const SizedBox(height: 24),
+          ],
+
+          // ══════════════════════════════════════
+          // 2) UČESTALOST
+          // ══════════════════════════════════════
+          _buildSectionLabel(AppStrings.orderFrequency, Icons.repeat),
+          const SizedBox(height: 12),
+          _buildFrequencySelector(),
+          const SizedBox(height: 24),
+
+          // ══════════════════════════════════════
+          // 3) KADA?
+          // ══════════════════════════════════════
+          if (_frequency == FrequencyType.oneTime)
+            _buildOneTimeSection()
+          else
+            _buildRecurringSection(),
+          const SizedBox(height: 24),
+
+          // ══════════════════════════════════════
+          // 4) USLUGE
+          // ══════════════════════════════════════
+          _buildSectionLabel(AppStrings.selectServices, Icons.handyman),
+          const SizedBox(height: 12),
+          _buildServiceChips(),
+          const SizedBox(height: 24),
+
+          // ══════════════════════════════════════
+          // 5) NAPOMENA
+          // ══════════════════════════════════════
+          _buildSectionLabel(AppStrings.orderNotes, Icons.notes),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _notesCtrl,
+            maxLines: 3,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+              hintText: AppStrings.orderNotesHint,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
               ),
             ),
-            const SizedBox(height: 32),
+          ),
+          const SizedBox(height: 32),
 
-            // ══════════════════════════════════════
-            // SAVE BUTTON
-            // ══════════════════════════════════════
+          // ══════════════════════════════════════
+          // SAVE BUTTON
+          // ══════════════════════════════════════
+          if (widget.isModal)
+            Align(
+              alignment: Alignment.centerRight,
+              child: ActionChipButton(
+                icon: Icons.check,
+                label: AppStrings.save,
+                color: HelpiTheme.accent,
+                onTap: _onSave,
+              ),
+            )
+          else
             SizedBox(
               width: double.infinity,
               height: 48,
@@ -261,9 +317,8 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-          ],
-        ),
+          const SizedBox(height: 32),
+        ],
       ),
     );
   }

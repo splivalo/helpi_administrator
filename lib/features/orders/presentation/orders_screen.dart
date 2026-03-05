@@ -272,17 +272,53 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
       floatingActionButton: FloatingActionButton(
         heroTag: 'orders_fab',
         backgroundColor: HelpiTheme.accent,
-        onPressed: () async {
-          final result = await Navigator.push<bool>(
-            context,
-            MaterialPageRoute(builder: (_) => const CreateOrderScreen()),
-          );
-          if (!mounted) return;
-          if (result == true) setState(() {});
-        },
+        onPressed: _showAddOrderModal,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
+  }
+
+  void _showAddOrderModal() {
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    const formWidget = CreateOrderScreen(isModal: true);
+
+    if (isWide) {
+      showDialog<bool>(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620, maxHeight: 750),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+              child: formWidget,
+            ),
+          ),
+        ),
+      ).then((result) {
+        if (!mounted) return;
+        if (result == true) setState(() {});
+      });
+    } else {
+      showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(HelpiTheme.bottomSheetRadius),
+          ),
+        ),
+        builder: (ctx) =>
+            const FractionallySizedBox(heightFactor: 0.92, child: formWidget),
+      ).then((result) {
+        if (!mounted) return;
+        if (result == true) setState(() {});
+      });
+    }
   }
 
   void _openOrderDetail(OrderModel order) {

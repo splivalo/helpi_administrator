@@ -152,14 +152,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'seniors_fab',
-        onPressed: () async {
-          final result = await Navigator.push<bool>(
-            context,
-            MaterialPageRoute(builder: (_) => const AddSeniorScreen()),
-          );
-          if (!context.mounted) return;
-          if (result == true) setState(() {});
-        },
+        onPressed: _showAddSeniorModal,
         backgroundColor: HelpiTheme.primary,
         child: const Icon(Icons.person_add, color: Colors.white),
       ),
@@ -324,6 +317,49 @@ class _SeniorsScreenState extends State<SeniorsScreen>
             _SeniorDetailScreen(senior: senior, orders: seniorOrders),
       ),
     );
+  }
+
+  void _showAddSeniorModal() {
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    const formWidget = AddSeniorScreen(isModal: true);
+
+    if (isWide) {
+      showDialog<bool>(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620, maxHeight: 750),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+              child: formWidget,
+            ),
+          ),
+        ),
+      ).then((result) {
+        if (!mounted) return;
+        if (result == true) setState(() {});
+      });
+    } else {
+      showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(HelpiTheme.bottomSheetRadius),
+          ),
+        ),
+        builder: (ctx) =>
+            const FractionallySizedBox(heightFactor: 0.92, child: formWidget),
+      ).then((result) {
+        if (!mounted) return;
+        if (result == true) setState(() {});
+      });
+    }
   }
 
   PopupMenuItem<SeniorSort> _sortMenuItem(SeniorSort value, String label) {
@@ -700,6 +736,49 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     if (!mounted) return;
     if (result != null) {
       setState(() => _senior = result);
+    }
+  }
+
+  void _showAddOrderModal(SeniorModel senior) {
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    final formWidget = CreateOrderScreen(senior: senior, isModal: true);
+
+    if (isWide) {
+      showDialog<bool>(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620, maxHeight: 750),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+              child: formWidget,
+            ),
+          ),
+        ),
+      ).then((result) {
+        if (!mounted) return;
+        if (result == true) setState(() {});
+      });
+    } else {
+      showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(HelpiTheme.bottomSheetRadius),
+          ),
+        ),
+        builder: (ctx) =>
+            FractionallySizedBox(heightFactor: 0.92, child: formWidget),
+      ).then((result) {
+        if (!mounted) return;
+        if (result == true) setState(() {});
+      });
     }
   }
 
@@ -1164,16 +1243,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
           icon: Icons.add,
           label: AppStrings.addOrder,
           color: HelpiTheme.accent,
-          onTap: () async {
-            await Navigator.push<void>(
-              context,
-              MaterialPageRoute(
-                builder: (_) => CreateOrderScreen(senior: widget.senior),
-              ),
-            );
-            if (!context.mounted) return;
-            // TODO: refresh orders when backend is wired
-          },
+          onTap: () => _showAddOrderModal(widget.senior),
         ),
       ],
     );
