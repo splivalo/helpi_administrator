@@ -143,11 +143,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               padding: EdgeInsets.only(top: 12, bottom: 4),
               child: DragHandle(),
             ),
-          const SizedBox(height: 8),
-          Text(
-            AppStrings.sectionLayoutTitle,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
+            child: Row(
+              children: [
+                const Icon(Icons.reorder, color: HelpiTheme.accent),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    AppStrings.sectionLayoutTitle,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
           ),
+          const Divider(height: 1),
           const SizedBox(height: 4),
           Text(
             AppStrings.sectionLayoutHint,
@@ -1244,15 +1262,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               padding: EdgeInsets.only(top: 12, bottom: 4),
               child: DragHandle(),
             ),
-          const SizedBox(height: 16),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              AppStrings.sessionRescheduleTitle,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
+            child: Row(
+              children: [
+                const Icon(Icons.event, color: HelpiTheme.accent),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    AppStrings.sessionRescheduleTitle,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 20),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
 
           // ── Date picker row ──
           Padding(
@@ -2170,27 +2203,23 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
             child: DragHandle(),
           ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+          padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
           child: Row(
             children: [
               const Icon(Icons.people_outline, color: HelpiTheme.accent),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  AppStrings.suggestedStudents,
+                  '${AppStrings.suggestedStudents} (${widget.classified.length})',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-              Text(
-                '${widget.classified.length}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: HelpiTheme.accent,
-                ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
               ),
             ],
           ),
@@ -2542,7 +2571,7 @@ class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
           ),
         // Header with back button
         Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 20, 4),
+          padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
           child: Row(
             children: [
               IconButton(
@@ -2561,6 +2590,10 @@ class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
               ),
             ],
           ),

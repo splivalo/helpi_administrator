@@ -200,35 +200,12 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
         ? AppStrings.editOrderTitle
         : AppStrings.createOrder;
 
-    return Form(
+    final form = Form(
       key: _formKey,
       child: ListView(
         controller: _scrollCtrl,
         padding: const EdgeInsets.all(16),
         children: [
-          // ── Modal header ──
-          if (widget.isModal) ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: HelpiTheme.textPrimary,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
-
           // ══════════════════════════════════════
           // 1) ODABERI SENIORA
           // ══════════════════════════════════════
@@ -320,6 +297,41 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
           const SizedBox(height: 32),
         ],
       ),
+    );
+
+    if (!widget.isModal) return form;
+
+    // ── Modal layout: pinned header + scrollable form ──
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
+          child: Row(
+            children: [
+              Icon(
+                _isEditMode ? Icons.edit : Icons.receipt_long,
+                color: HelpiTheme.accent,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(child: form),
+      ],
     );
   }
 

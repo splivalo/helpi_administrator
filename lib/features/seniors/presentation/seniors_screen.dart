@@ -955,11 +955,29 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               padding: EdgeInsets.only(top: 12, bottom: 4),
               child: DragHandle(),
             ),
-          const SizedBox(height: 8),
-          Text(
-            AppStrings.sectionLayoutTitle,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
+            child: Row(
+              children: [
+                const Icon(Icons.reorder, color: HelpiTheme.accent),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    AppStrings.sectionLayoutTitle,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ],
+            ),
           ),
+          const Divider(height: 1),
           const SizedBox(height: 4),
           Text(
             AppStrings.sectionLayoutHint,

@@ -873,17 +873,23 @@ class _FilterPanelState extends State<_FilterPanel> {
 
         // ── Header ──
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+          padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
           child: Row(
             children: [
               const Icon(Icons.filter_alt, color: HelpiTheme.accent),
               const SizedBox(width: 8),
-              Text(
-                AppStrings.advancedFilters,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Text(
+                  AppStrings.advancedFilters,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(context),
               ),
             ],
           ),

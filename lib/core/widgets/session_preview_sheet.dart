@@ -497,7 +497,7 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
 
               // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+                padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -516,6 +516,10 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
                         ),
                       ],
                     ),
