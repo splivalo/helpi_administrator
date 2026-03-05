@@ -580,16 +580,35 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  dateStr,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: isCancelled
-                        ? HelpiTheme.textSecondary
-                        : HelpiTheme.textPrimary,
-                    decoration: isCancelled ? TextDecoration.lineThrough : null,
-                  ),
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        dateStr,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: isCancelled
+                              ? HelpiTheme.textSecondary
+                              : HelpiTheme.textPrimary,
+                          decoration: isCancelled
+                              ? TextDecoration.lineThrough
+                              : null,
+                        ),
+                      ),
+                    ),
+                    if (session.isModified) ...[
+                      const SizedBox(width: 6),
+                      Tooltip(
+                        message: AppStrings.sessionModified,
+                        child: Icon(
+                          Icons.history,
+                          size: 16,
+                          color: HelpiTheme.accent.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               _sessionStatusBadge(session.status),
@@ -1297,6 +1316,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             return s.copyWith(
               status: SessionStatus.cancelled,
               studentName: () => student.fullName,
+              isModified: true,
             );
           }
 
@@ -1304,11 +1324,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             return s.copyWith(
               startTime: p.rescheduledStart,
               studentName: () => student.fullName,
+              isModified: true,
             );
           }
 
           if (p.substituteStudent != null) {
-            return s.copyWith(studentName: () => p.substituteStudent!.fullName);
+            return s.copyWith(
+              studentName: () => p.substituteStudent!.fullName,
+              isModified: true,
+            );
           }
 
           return s.copyWith(studentName: () => student.fullName);

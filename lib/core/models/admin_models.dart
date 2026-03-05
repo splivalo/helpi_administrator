@@ -258,6 +258,7 @@ class SessionModel {
   final int durationHours;
   final String? studentName;
   final SessionStatus status;
+  final bool isModified;
 
   const SessionModel({
     required this.id,
@@ -267,6 +268,7 @@ class SessionModel {
     required this.durationHours,
     this.studentName,
     this.status = SessionStatus.upcoming,
+    this.isModified = false,
   });
 
   SessionModel copyWith({
@@ -277,6 +279,7 @@ class SessionModel {
     int? durationHours,
     String? Function()? studentName,
     SessionStatus? status,
+    bool? isModified,
   }) {
     return SessionModel(
       id: id ?? this.id,
@@ -286,6 +289,7 @@ class SessionModel {
       durationHours: durationHours ?? this.durationHours,
       studentName: studentName != null ? studentName() : this.studentName,
       status: status ?? this.status,
+      isModified: isModified ?? this.isModified,
     );
   }
 }

@@ -400,6 +400,7 @@ class AppStrings {
           'Želite li vratiti ovaj termin kao nadolazeći?',
       'studentUnavailableForSession':
           'Student nije dostupan za ovaj termin. Promijenite studenta ili termin.',
+      'sessionModified': 'Izmijenjeno',
 
       // ── Općenito ──────────────────────────────
       'loading': 'Učitavanje...',
@@ -866,6 +867,7 @@ class AppStrings {
           'Do you want to restore this session as upcoming?',
       'studentUnavailableForSession':
           'Student is not available for this session. Change the student or reschedule.',
+      'sessionModified': 'Modified',
 
       // ── Općenito ──────────────────────────────
       'loading': 'Loading...',
@@ -1448,6 +1450,7 @@ class AppStrings {
   static String get sessionReactivateConfirm => _t('sessionReactivateConfirm');
   static String get studentUnavailableForSession =>
       _t('studentUnavailableForSession');
+  static String get sessionModified => _t('sessionModified');
   static String get emailCopied => _t('emailCopied');
   static String get copyEmail => _t('copyEmail');
   static String get callPhone => _t('callPhone');
