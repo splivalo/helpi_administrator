@@ -20,6 +20,9 @@ class PhoneCallButton extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
       splashRadius: 14,
       tooltip: AppStrings.callPhone,
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
     );
   }
 }
@@ -46,6 +49,9 @@ class EmailCopyButton extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
       splashRadius: 14,
       tooltip: AppStrings.copyEmail,
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
     );
   }
 }
