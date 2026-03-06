@@ -389,7 +389,9 @@ class AppStrings {
       'sessionStatusCompleted': 'Obavljen',
       'sessionStatusCancelled': 'Otkazan',
       'sessionCancel': 'Otkaži termin',
+      'sessionCancelShort': 'Otkaži',
       'sessionReschedule': 'Promijeni termin',
+      'sessionRescheduleShort': 'Promijeni',
       'sessionSelectStudent': 'Odaberi studenta',
       'sessionNewDate': 'Novi datum',
       'sessionNewTime': 'Novo vrijeme',
@@ -869,7 +871,9 @@ class AppStrings {
       'sessionStatusCompleted': 'Completed',
       'sessionStatusCancelled': 'Cancelled',
       'sessionCancel': 'Cancel session',
+      'sessionCancelShort': 'Cancel',
       'sessionReschedule': 'Reschedule',
+      'sessionRescheduleShort': 'Reschedule',
       'sessionSelectStudent': 'Select student',
       'sessionNewDate': 'New date',
       'sessionNewTime': 'New time',
@@ -1468,7 +1472,9 @@ class AppStrings {
   static String get sessionStatusCompleted => _t('sessionStatusCompleted');
   static String get sessionStatusCancelled => _t('sessionStatusCancelled');
   static String get sessionCancel => _t('sessionCancel');
+  static String get sessionCancelShort => _t('sessionCancelShort');
   static String get sessionReschedule => _t('sessionReschedule');
+  static String get sessionRescheduleShort => _t('sessionRescheduleShort');
   static String get sessionSelectStudent => _t('sessionSelectStudent');
   static String get sessionNewDate => _t('sessionNewDate');
   static String get sessionNewTime => _t('sessionNewTime');

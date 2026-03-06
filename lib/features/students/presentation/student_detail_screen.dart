@@ -700,27 +700,19 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           children: [
             ...List.generate(_student.availability.length, (i) {
               final day = _student.availability[i];
+              if (!day.isEnabled) return null;
               return InfoField(
                 label: dayLabels[i],
-                valueWidget: day.isEnabled
-                    ? Text(
-                        '${formatTimeOfDay(day.from)} – ${formatTimeOfDay(day.to)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: HelpiTheme.textPrimary,
-                        ),
-                      )
-                    : Text(
-                        AppStrings.studentNotAvailableGendered(_student.gender),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: HelpiTheme.textSecondary,
-                        ),
-                      ),
+                valueWidget: Text(
+                  '${formatTimeOfDay(day.from)} – ${formatTimeOfDay(day.to)}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: HelpiTheme.textPrimary,
+                  ),
+                ),
               );
-            }),
+            }).nonNulls,
           ],
         ),
       ],
@@ -937,9 +929,17 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                         child: Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                '${AppStrings.workFrom}: ${formatDate(_summaryStart)}',
-                                style: const TextStyle(fontSize: 13),
+                              child: Builder(
+                                builder: (context) {
+                                  final narrow =
+                                      MediaQuery.sizeOf(context).width < 600;
+                                  return Text(
+                                    narrow
+                                        ? formatDate(_summaryStart)
+                                        : '${AppStrings.workFrom}: ${formatDate(_summaryStart)}',
+                                    style: const TextStyle(fontSize: 13),
+                                  );
+                                },
                               ),
                             ),
                             const Icon(
@@ -952,13 +952,16 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                       ),
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      '→',
-                      style: TextStyle(color: HelpiTheme.textSecondary),
-                    ),
-                  ),
+                  if (MediaQuery.sizeOf(context).width >= 600)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        '→',
+                        style: TextStyle(color: HelpiTheme.textSecondary),
+                      ),
+                    )
+                  else
+                    const SizedBox(width: 8),
                   Expanded(
                     child: GestureDetector(
                       onTap: _pickEndDate,
@@ -975,9 +978,17 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                         child: Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                '${AppStrings.workTo}: ${formatDate(_summaryEnd)}',
-                                style: const TextStyle(fontSize: 13),
+                              child: Builder(
+                                builder: (context) {
+                                  final narrow =
+                                      MediaQuery.sizeOf(context).width < 600;
+                                  return Text(
+                                    narrow
+                                        ? formatDate(_summaryEnd)
+                                        : '${AppStrings.workTo}: ${formatDate(_summaryEnd)}',
+                                    style: const TextStyle(fontSize: 13),
+                                  );
+                                },
                               ),
                             ),
                             const Icon(

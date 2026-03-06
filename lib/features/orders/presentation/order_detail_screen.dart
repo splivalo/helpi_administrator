@@ -647,10 +647,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             children: [
               Icon(
                 isCompleted
-                    ? Icons.check_circle
+                    ? Icons.event_available
                     : isCancelled
-                    ? Icons.cancel
-                    : Icons.schedule,
+                    ? Icons.event_busy
+                    : Icons.event,
                 size: 18,
                 color: isCompleted
                     ? HelpiTheme.statusActiveText
@@ -699,12 +699,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           // Row 2: time · duration
           Padding(
             padding: const EdgeInsets.only(left: 26),
-            child: Text(
-              '$timeStr  ·  ${session.durationHours}h',
-              style: const TextStyle(
-                fontSize: 13,
-                color: HelpiTheme.textSecondary,
-              ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.access_time,
+                  size: 14,
+                  color: HelpiTheme.accent,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '$timeStr  ·  ${session.durationHours}h',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -738,22 +748,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.only(left: 26),
-              child: Row(
-                children: [
-                  _SessionActionButton(
-                    icon: Icons.edit_calendar,
-                    label: AppStrings.sessionReschedule,
-                    color: HelpiTheme.accent,
-                    onTap: () => _showRescheduleSheet(session),
-                  ),
-                  const SizedBox(width: 12),
-                  _SessionActionButton(
-                    icon: Icons.cancel_outlined,
-                    label: AppStrings.sessionCancel,
-                    color: HelpiTheme.primary,
-                    onTap: () => _confirmCancelSession(session),
-                  ),
-                ],
+              child: Builder(
+                builder: (context) {
+                  final narrow = MediaQuery.sizeOf(context).width < 600;
+                  return Row(
+                    children: [
+                      _SessionActionButton(
+                        icon: Icons.edit_calendar,
+                        label: narrow
+                            ? AppStrings.sessionRescheduleShort
+                            : AppStrings.sessionReschedule,
+                        color: HelpiTheme.accent,
+                        onTap: () => _showRescheduleSheet(session),
+                      ),
+                      const SizedBox(width: 12),
+                      _SessionActionButton(
+                        icon: Icons.cancel_outlined,
+                        label: narrow
+                            ? AppStrings.sessionCancelShort
+                            : AppStrings.sessionCancel,
+                        color: HelpiTheme.primary,
+                        onTap: () => _confirmCancelSession(session),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
