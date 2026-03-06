@@ -154,7 +154,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
       floatingActionButton: FloatingActionButton(
         heroTag: 'seniors_fab',
         onPressed: _showAddSeniorModal,
-        backgroundColor: HelpiTheme.primary,
+        backgroundColor: HelpiTheme.accent,
         child: const Icon(Icons.person_add, color: Colors.white),
       ),
       body: Column(
@@ -455,14 +455,14 @@ class _SeniorCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: const BoxDecoration(
-                    color: HelpiTheme.pastelCoral,
+                    color: HelpiTheme.pastelTeal,
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text(
                       senior.firstName[0] + senior.lastName[0],
                       style: const TextStyle(
-                        color: HelpiTheme.primary,
+                        color: HelpiTheme.accent,
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),

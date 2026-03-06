@@ -132,8 +132,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       icon: Icons.elderly_outlined,
                       label: AppStrings.totalSeniors,
                       value: '${MockData.seniors.length}',
-                      color: HelpiTheme.primary,
-                      bgColor: HelpiTheme.pastelCoral,
+                      color: HelpiTheme.accent,
+                      bgColor: HelpiTheme.pastelTeal,
                     ),
                   ),
                 ],
@@ -182,8 +182,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           icon: Icons.elderly_outlined,
                           label: AppStrings.totalSeniors,
                           value: '${MockData.seniors.length}',
-                          color: HelpiTheme.primary,
-                          bgColor: HelpiTheme.pastelCoral,
+                          color: HelpiTheme.accent,
+                          bgColor: HelpiTheme.pastelTeal,
                         ),
                       ),
                     ],
@@ -332,25 +332,29 @@ class _KpiCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 22),
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             label,
             style: const TextStyle(
