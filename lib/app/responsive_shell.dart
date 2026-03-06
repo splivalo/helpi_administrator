@@ -169,6 +169,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                                 value: AppStrings.currentLocale,
                                 isExpanded: true,
                                 isDense: true,
+                                focusColor: Colors.transparent,
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w400,

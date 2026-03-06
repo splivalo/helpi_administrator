@@ -137,6 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: DropdownButton<String>(
                           value: _selectedLang,
                           isDense: true,
+                          focusColor: Colors.transparent,
                           style: TextStyle(
                             color: theme.colorScheme.onSurface,
                             fontSize: 15,
