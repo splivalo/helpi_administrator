@@ -266,6 +266,7 @@ class AppStrings {
       'statusArchived': 'Arhiviran',
       'adminActions': 'Admin akcije',
       'assignToOrder': 'Dodijeli narudžbu',
+      'assignShort': 'Dodijeli',
       'matchingOrders': 'Nalozi koje može pokriti',
       'noMatchingOrders': 'Nema naloga koji odgovaraju dostupnosti.',
       'assignSuccess': 'Student dodijeljen na nalog',
@@ -744,6 +745,7 @@ class AppStrings {
       'statusArchived': 'Archived',
       'adminActions': 'Admin actions',
       'assignToOrder': 'Assign order',
+      'assignShort': 'Assign',
       'matchingOrders': 'Matching orders',
       'noMatchingOrders': 'No orders match this student\'s availability.',
       'assignSuccess': 'Student assigned to order',
@@ -1198,6 +1200,7 @@ class AppStrings {
   static String get statusArchived => _t('statusArchived');
   static String get adminActions => _t('adminActions');
   static String get assignToOrder => _t('assignToOrder');
+  static String get assignShort => _t('assignShort');
   static String get matchingOrders => _t('matchingOrders');
   static String get noMatchingOrders => _t('noMatchingOrders');
   static String get assignSuccess => _t('assignSuccess');

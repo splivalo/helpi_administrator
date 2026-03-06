@@ -2574,7 +2574,9 @@ class _MatchingOrderCard extends StatelessWidget {
               ),
               ActionChipButton(
                 icon: Icons.check,
-                label: AppStrings.assignToOrder,
+                label: MediaQuery.sizeOf(context).width < 600
+                    ? AppStrings.assignShort
+                    : AppStrings.assignToOrder,
                 color: HelpiTheme.accent,
                 onTap: onAssign,
               ),
