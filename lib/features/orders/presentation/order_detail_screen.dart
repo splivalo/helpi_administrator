@@ -626,8 +626,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final isCompleted = session.status == SessionStatus.completed;
     final isCancelled = session.status == SessionStatus.cancelled;
 
+    final useShort = MediaQuery.sizeOf(context).width < 600;
     final dateStr =
-        '${_dayName(session.weekday)}, ${formatDateDot(session.date)}';
+        '${_dayName(session.weekday, short: useShort)}, ${formatDateDot(session.date)}';
 
     final timeStr = formatTimeOfDay(session.startTime);
 
@@ -1799,22 +1800,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
-  String _dayName(int dayOfWeek) {
+  String _dayName(int dayOfWeek, {bool short = false}) {
     switch (dayOfWeek) {
       case 1:
-        return AppStrings.dayMonFull;
+        return short ? AppStrings.dayMon : AppStrings.dayMonFull;
       case 2:
-        return AppStrings.dayTueFull;
+        return short ? AppStrings.dayTue : AppStrings.dayTueFull;
       case 3:
-        return AppStrings.dayWedFull;
+        return short ? AppStrings.dayWed : AppStrings.dayWedFull;
       case 4:
-        return AppStrings.dayThuFull;
+        return short ? AppStrings.dayThu : AppStrings.dayThuFull;
       case 5:
-        return AppStrings.dayFriFull;
+        return short ? AppStrings.dayFri : AppStrings.dayFriFull;
       case 6:
-        return AppStrings.daySatFull;
+        return short ? AppStrings.daySat : AppStrings.daySatFull;
       case 7:
-        return AppStrings.daySunFull;
+        return short ? AppStrings.daySun : AppStrings.daySunFull;
       default:
         return '';
     }

@@ -874,7 +874,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   // ═══════════════════════════════════════════════════════════════
   Widget _buildServiceChips() {
     final allServices = ServiceType.values;
-    const perRow = 3;
+    final perRow = MediaQuery.sizeOf(context).width < 600 ? 2 : 3;
     final rows = <Widget>[];
     for (var i = 0; i < allServices.length; i += perRow) {
       final rowItems = allServices.sublist(
