@@ -1850,17 +1850,23 @@ class _StudentAssignCard extends StatelessWidget {
     final String buttonLabel;
     final IconData buttonIcon;
 
+    final isNarrow = MediaQuery.sizeOf(context).width < 600;
+
     if (avail == _StudentAvail.full) {
       availLabel = AppStrings.availableAllDays;
       availColor = HelpiTheme.accent;
       availIcon = Icons.check_circle_outline;
-      buttonLabel = AppStrings.assignStudent;
+      buttonLabel = isNarrow
+          ? AppStrings.assignShort
+          : AppStrings.assignStudent;
       buttonIcon = Icons.person_add;
     } else {
       availLabel = AppStrings.availableDifferentTimes;
       availColor = const Color(0xFFE65100);
       availIcon = Icons.schedule;
-      buttonLabel = AppStrings.reviewSessions;
+      buttonLabel = isNarrow
+          ? AppStrings.reviewShort
+          : AppStrings.reviewSessions;
       buttonIcon = Icons.calendar_month;
     }
 
@@ -1902,6 +1908,8 @@ class _StudentAssignCard extends StatelessWidget {
               children: [
                 Text(
                   student.fullName,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,

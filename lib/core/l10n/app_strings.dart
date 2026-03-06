@@ -405,6 +405,7 @@ class AppStrings {
       'availableDifferentTimes': 'Dostupan, drugi termini',
       'notAvailableForOrder': 'Nedostupan za ovu narudžbu',
       'reviewSessions': 'Pregled termina',
+      'reviewShort': 'Pregled',
       'timeMismatch': 'Razlika u satima',
       'sessionReactivate': 'Vrati termin',
       'sessionReactivateConfirm':
@@ -882,6 +883,7 @@ class AppStrings {
       'availableDifferentTimes': 'Available, different schedule',
       'notAvailableForOrder': 'Not available for this order',
       'reviewSessions': 'Review sessions',
+      'reviewShort': 'Review',
       'timeMismatch': 'Time mismatch',
       'selectTime': 'Select time',
       'sessionReactivate': 'Restore session',
@@ -1501,5 +1503,6 @@ class AppStrings {
   static String get availableDifferentTimes => _t('availableDifferentTimes');
   static String get notAvailableForOrder => _t('notAvailableForOrder');
   static String get reviewSessions => _t('reviewSessions');
+  static String get reviewShort => _t('reviewShort');
   static String get timeMismatch => _t('timeMismatch');
 }
