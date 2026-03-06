@@ -117,9 +117,8 @@ class AppStrings {
       'statusCancelled': 'Otkazana',
 
       // ── Statusi termina (job) ─────────────────
-      'jobAssigned': 'Dodijeljen',
+      'jobScheduled': 'Zakazan',
       'jobCompleted': 'Završen',
-      'jobUpcoming': 'Predstojeći',
       'jobCancelled': 'Otkazan',
 
       // ── Studenti ──────────────────────────────
@@ -373,7 +372,7 @@ class AppStrings {
       'serviceShopping': 'Kupovina',
       'serviceHouseHelp': 'Pomoć u kući',
       'serviceCompanionship': 'Društvo',
-      'serviceWalk': 'Šetnja',
+      'serviceWalking': 'Šetnja',
       'serviceEscort': 'Pratnja',
       'serviceOther': 'Ostalo',
 
@@ -385,7 +384,7 @@ class AppStrings {
       // ── Termini ──────────────────────────────────
       'sessionsTitle': 'Termini',
       'sessionsMonthlySubtitle': 'Prikazani termini za tekući mjesec.',
-      'sessionStatusUpcoming': 'Nadolazeći',
+      'sessionStatusScheduled': 'Nadolazeći',
       'sessionStatusCompleted': 'Obavljen',
       'sessionStatusCancelled': 'Otkazan',
       'sessionCancel': 'Otkaži termin',
@@ -599,9 +598,8 @@ class AppStrings {
       'statusCancelled': 'Cancelled',
 
       // ── Statusi termina (job) ─────────────────
-      'jobAssigned': 'Assigned',
+      'jobScheduled': 'Scheduled',
       'jobCompleted': 'Completed',
-      'jobUpcoming': 'Upcoming',
       'jobCancelled': 'Cancelled',
 
       // ── Studenti ──────────────────────────────
@@ -855,7 +853,7 @@ class AppStrings {
       'serviceShopping': 'Shopping',
       'serviceHouseHelp': 'Home help',
       'serviceCompanionship': 'Companionship',
-      'serviceWalk': 'Walk',
+      'serviceWalking': 'Walking',
       'serviceEscort': 'Escort',
       'serviceOther': 'Other',
 
@@ -867,7 +865,7 @@ class AppStrings {
       // ── Termini ──────────────────────────────────
       'sessionsTitle': 'Sessions',
       'sessionsMonthlySubtitle': 'Sessions for the current month.',
-      'sessionStatusUpcoming': 'Upcoming',
+      'sessionStatusScheduled': 'Scheduled',
       'sessionStatusCompleted': 'Completed',
       'sessionStatusCancelled': 'Cancelled',
       'sessionCancel': 'Cancel session',
@@ -1095,9 +1093,8 @@ class AppStrings {
   static String get statusCancelled => _t('statusCancelled');
 
   // ── Job statusi ──
-  static String get jobAssigned => _t('jobAssigned');
+  static String get jobScheduled => _t('jobScheduled');
   static String get jobCompleted => _t('jobCompleted');
-  static String get jobUpcoming => _t('jobUpcoming');
   static String get jobCancelled => _t('jobCancelled');
 
   // ── Studenti ──
@@ -1371,7 +1368,7 @@ class AppStrings {
   static String get serviceShopping => _t('serviceShopping');
   static String get serviceHouseHelp => _t('serviceHouseHelp');
   static String get serviceCompanionship => _t('serviceCompanionship');
-  static String get serviceWalk => _t('serviceWalk');
+  static String get serviceWalking => _t('serviceWalking');
   static String get serviceEscort => _t('serviceEscort');
   static String get serviceOther => _t('serviceOther');
 
@@ -1468,7 +1465,7 @@ class AppStrings {
   // ── Termini ──
   static String get sessionsTitle => _t('sessionsTitle');
   static String get sessionsMonthlySubtitle => _t('sessionsMonthlySubtitle');
-  static String get sessionStatusUpcoming => _t('sessionStatusUpcoming');
+  static String get sessionStatusScheduled => _t('sessionStatusScheduled');
   static String get sessionStatusCompleted => _t('sessionStatusCompleted');
   static String get sessionStatusCancelled => _t('sessionStatusCancelled');
   static String get sessionCancel => _t('sessionCancel');

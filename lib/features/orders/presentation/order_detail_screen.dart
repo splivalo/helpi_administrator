@@ -744,7 +744,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ],
 
           // Row 4: action buttons (only for upcoming)
-          if (session.status == SessionStatus.upcoming) ...[
+          if (session.status == SessionStatus.scheduled) ...[
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.only(left: 26),
@@ -801,8 +801,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final Color bgColor;
 
     switch (status) {
-      case SessionStatus.upcoming:
-        label = AppStrings.sessionStatusUpcoming;
+      case SessionStatus.scheduled:
+        label = AppStrings.sessionStatusScheduled;
         textColor = const Color(0xFF1976D2);
         bgColor = const Color(0xFFE3F2FD);
       case SessionStatus.completed:
@@ -924,7 +924,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (confirmed != true || !mounted) return;
       setState(() {
         final updatedSessions = _order.sessions.map((s) {
-          if (s.status == SessionStatus.upcoming) {
+          if (s.status == SessionStatus.scheduled) {
             return s.copyWith(status: SessionStatus.cancelled);
           }
           return s;
@@ -1004,7 +1004,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (confirmed != true || !mounted) return;
       // Restore to previous meaningful status
       final hasUpcoming = _order.sessions.any(
-        (s) => s.status == SessionStatus.upcoming,
+        (s) => s.status == SessionStatus.scheduled,
       );
       _rebuildOrder(
         status: hasUpcoming ? OrderStatus.active : OrderStatus.completed,
@@ -1117,7 +1117,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void _confirmReactivateSession(SessionModel session) {
     if (!_isStudentAvailableForSession(session)) {
       // Student not available → open reschedule sheet directly
-      _showRescheduleSheet(session.copyWith(status: SessionStatus.upcoming));
+      _showRescheduleSheet(session.copyWith(status: SessionStatus.scheduled));
       return;
     }
     showDialog(
@@ -1138,7 +1138,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Navigator.pop(ctx);
               _updateSession(
                 session,
-                session.copyWith(status: SessionStatus.upcoming),
+                session.copyWith(status: SessionStatus.scheduled),
               );
             },
             child: Text(AppStrings.confirm),
@@ -1608,7 +1608,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (!context.mounted) return;
       setState(() {
         final updatedSessions = _order.sessions.map((s) {
-          if (s.status != SessionStatus.upcoming) return s;
+          if (s.status != SessionStatus.scheduled) return s;
 
           // Find matching preview session by date
           final preview = previewSessions.where(
@@ -1759,7 +1759,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               setState(() {
                 // Propagate student to all upcoming sessions
                 final updatedSessions = _order.sessions.map((s) {
-                  if (s.status == SessionStatus.upcoming) {
+                  if (s.status == SessionStatus.scheduled) {
                     return s.copyWith(studentName: () => student.fullName);
                   }
                   return s;
@@ -2335,7 +2335,7 @@ class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
 
     final List<SessionInstancePreview> result = [];
     for (final session in order.sessions) {
-      if (session.status != SessionStatus.upcoming) continue;
+      if (session.status != SessionStatus.scheduled) continue;
       final startMin = _toMin(session.startTime);
       final endMin = startMin + session.durationHours * 60;
 

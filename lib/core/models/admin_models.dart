@@ -6,15 +6,32 @@ import 'package:flutter/material.dart';
 
 enum OrderStatus { processing, active, completed, cancelled, archived }
 
-enum JobStatus { assigned, upcoming, completed, cancelled }
+enum JobStatus { scheduled, completed, cancelled }
 
-enum ServiceType { shopping, houseHelp, companionship, walk, escort, other }
+enum ServiceType {
+  shopping,
+  houseHelp,
+  companionship,
+  walking,
+  escort,
+  other;
+
+  /// Maps legacy/alias codes from backend to canonical enum values.
+  static ServiceType fromCode(String code) => switch (code) {
+    'shopping' => ServiceType.shopping,
+    'house_help' || 'houseHelp' => ServiceType.houseHelp,
+    'companionship' || 'socializing' => ServiceType.companionship,
+    'walking' || 'walk' => ServiceType.walking,
+    'escort' => ServiceType.escort,
+    _ => ServiceType.other,
+  };
+}
 
 enum FrequencyType { oneTime, recurring, recurringWithEnd }
 
 enum ContractStatus { active, expired, expiring, none, deactivated }
 
-enum SessionStatus { upcoming, completed, cancelled }
+enum SessionStatus { scheduled, completed, cancelled }
 
 enum Gender { male, female }
 
@@ -252,6 +269,7 @@ class DayEntry {
 
 class SessionModel {
   final String id;
+  final String? orderId;
   final DateTime date;
   final int weekday;
   final TimeOfDay startTime;
@@ -262,17 +280,19 @@ class SessionModel {
 
   const SessionModel({
     required this.id,
+    this.orderId,
     required this.date,
     required this.weekday,
     required this.startTime,
     required this.durationHours,
     this.studentName,
-    this.status = SessionStatus.upcoming,
+    this.status = SessionStatus.scheduled,
     this.isModified = false,
   });
 
   SessionModel copyWith({
     String? id,
+    String? Function()? orderId,
     DateTime? date,
     int? weekday,
     TimeOfDay? startTime,
@@ -283,6 +303,7 @@ class SessionModel {
   }) {
     return SessionModel(
       id: id ?? this.id,
+      orderId: orderId != null ? orderId() : this.orderId,
       date: date ?? this.date,
       weekday: weekday ?? this.weekday,
       startTime: startTime ?? this.startTime,
@@ -340,6 +361,9 @@ class SessionInstancePreview {
 
 class ReviewModel {
   final String id;
+  final String? sessionId;
+  final String? studentId;
+  final String? seniorId;
   final String seniorName;
   final String studentName;
   final int rating;
@@ -348,6 +372,9 @@ class ReviewModel {
 
   const ReviewModel({
     required this.id,
+    this.sessionId,
+    this.studentId,
+    this.seniorId,
     required this.seniorName,
     required this.studentName,
     required this.rating,
@@ -986,7 +1013,7 @@ class MockData {
       student: students[0],
       status: OrderStatus.active,
       frequency: FrequencyType.recurring,
-      services: [ServiceType.walk, ServiceType.companionship],
+      services: [ServiceType.walking, ServiceType.companionship],
       createdAt: DateTime(2026, 2, 20, 9, 0),
       scheduledDate: DateTime(2026, 2, 24),
       scheduledStart: const TimeOfDay(hour: 10, minute: 0),
@@ -1095,7 +1122,7 @@ class MockData {
       student: students[0],
       status: OrderStatus.cancelled,
       frequency: FrequencyType.oneTime,
-      services: [ServiceType.walk],
+      services: [ServiceType.walking],
       createdAt: DateTime(2026, 3, 1, 8, 0),
       scheduledDate: DateTime(2026, 3, 3),
       scheduledStart: const TimeOfDay(hour: 14, minute: 0),
@@ -1229,7 +1256,7 @@ class MockData {
       student: null,
       status: OrderStatus.cancelled,
       frequency: FrequencyType.oneTime,
-      services: [ServiceType.walk],
+      services: [ServiceType.walking],
       createdAt: DateTime(2026, 2, 10, 12, 0),
       scheduledDate: DateTime(2026, 2, 14),
       scheduledStart: const TimeOfDay(hour: 16, minute: 0),
@@ -1403,7 +1430,7 @@ class MockData {
       student: students[5], // Maja Knežević (st6)
       status: OrderStatus.active,
       frequency: FrequencyType.recurring,
-      services: [ServiceType.houseHelp, ServiceType.walk],
+      services: [ServiceType.houseHelp, ServiceType.walking],
       createdAt: DateTime(2026, 2, 20, 14, 0),
       scheduledDate: DateTime(2026, 3, 3),
       scheduledStart: const TimeOfDay(hour: 10, minute: 0),
@@ -1456,7 +1483,7 @@ class MockData {
       student: students[6], // Dino Barišić (st7)
       status: OrderStatus.active,
       frequency: FrequencyType.recurringWithEnd,
-      services: [ServiceType.walk, ServiceType.escort],
+      services: [ServiceType.walking, ServiceType.escort],
       createdAt: DateTime(2026, 2, 28, 16, 0),
       scheduledDate: DateTime(2026, 3, 1),
       scheduledStart: const TimeOfDay(hour: 15, minute: 0),
@@ -1536,7 +1563,7 @@ class MockData {
       student: students[0], // Luka Perić
       status: OrderStatus.active,
       frequency: FrequencyType.oneTime,
-      services: [ServiceType.walk],
+      services: [ServiceType.walking],
       createdAt: DateTime(2026, 3, 5, 10, 0),
       scheduledDate: DateTime(2026, 3, 30), // Pon
       scheduledStart: const TimeOfDay(hour: 10, minute: 0),

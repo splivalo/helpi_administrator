@@ -150,6 +150,19 @@
 
 ---
 
+## 2026-03-06 — Canonical Domain V1 usklađivanje
+
+- **SessionStatus enum**: `upcoming` → `scheduled` — kanonski termin za pre-execution stanje
+- **JobStatus enum**: `assigned`/`upcoming` uklonjen → jedini `scheduled` — ujednačeno s SessionStatus
+- **ServiceType enum**: `walk` → `walking` — kanonski service code; dodan `ServiceType.fromCode()` za alias mapping (`socializing` → `companionship`, `walk` → `walking`, `house_help` → `houseHelp`)
+- **SessionModel**: dodan `orderId` (explicit foreign key prema OrderModel)
+- **ReviewModel**: dodani `sessionId`, `studentId`, `seniorId` (explicit linkage ID-ovi)
+- **AppStrings**: ključevi preimenovani (`sessionStatusUpcoming` → `sessionStatusScheduled`, `serviceWalk` → `serviceWalking`, `jobAssigned`/`jobUpcoming` → `jobScheduled`); UI labeli ostaju lokalizirani ("Nadolazeći" HR, "Scheduled" EN)
+- **Cancel semantika potvrđena**: cancel order = `OrderStatus.cancelled` status promjena, nikad brisanje
+- **Rezultat**: 0 errors → 0 errors (dart analyze)
+
+---
+
 ## Arhitekturalne odluke
 
 | Odluka                                         | Razlog                                                  | Datum      |

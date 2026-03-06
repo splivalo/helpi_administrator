@@ -146,3 +146,17 @@
 ## Sljedeći koraci (Next Steps)
 
 Pogledaj [ROADMAP.md](ROADMAP.md) za prioritizirane buduće zadatke.
+
+---
+
+## Canonical Domain V1 usklađivanje (2026-03-06)
+
+- [x] `SessionStatus.upcoming` → `SessionStatus.scheduled` (UI label ostaje "Nadolazeći" HR / "Scheduled" EN)
+- [x] `JobStatus` enum: `assigned`/`upcoming` → `scheduled` (kanonski single pre-execution state)
+- [x] `ServiceType.walk` → `ServiceType.walking` (kanonski code)
+- [x] `ServiceType.fromCode()` alias mapper: `socializing` → `companionship`, `walk` → `walking`, `house_help` → `houseHelp`
+- [x] `SessionModel.orderId` dodan (explicit foreign key)
+- [x] `ReviewModel`: dodani `sessionId`, `studentId`, `seniorId` (explicit linkage IDs)
+- [x] AppStrings: `sessionStatusUpcoming` → `sessionStatusScheduled`, `serviceWalk` → `serviceWalking`, `jobAssigned`/`jobUpcoming` → `jobScheduled`
+- [x] Cancel order = status promjena (potvrđeno, nikad brisanje)
+- [x] OrderStatus transition rules: već ispravni (processing→active→completed→cancelled→archived)

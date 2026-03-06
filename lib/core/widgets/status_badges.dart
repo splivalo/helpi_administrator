@@ -13,7 +13,7 @@ String serviceLabel(ServiceType type) => switch (type) {
   ServiceType.shopping => AppStrings.serviceShopping,
   ServiceType.houseHelp => AppStrings.serviceHouseHelp,
   ServiceType.companionship => AppStrings.serviceCompanionship,
-  ServiceType.walk => AppStrings.serviceWalk,
+  ServiceType.walking => AppStrings.serviceWalking,
   ServiceType.escort => AppStrings.serviceEscort,
   ServiceType.other => AppStrings.serviceOther,
 };
