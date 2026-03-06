@@ -17,12 +17,12 @@ class HelpiTheme {
   static const Color navUnselected = Color(0xFFB0B0B0);
 
   // Status boje — unija senior + student statusa
-  static const Color statusProcessingText = Color(0xFF1976D2);
-  static const Color statusProcessingBg = Color(0xFFE8F1FB);
+  static const Color statusProcessingText = Color(0xFFF57C00); // amber/orange
+  static const Color statusProcessingBg = Color(0xFFFFF3E0);
   static const Color statusActiveText = Color(0xFF4CAF50);
   static const Color statusActiveBg = Color(0xFFE8F5E9);
-  static const Color statusCompletedText = Color(0xFF4CAF50);
-  static const Color statusCompletedBg = Color(0xFFE8F5E9);
+  static const Color statusCompletedText = Color(0xFF1976D2); // blue
+  static const Color statusCompletedBg = Color(0xFFE8F1FB);
   static const Color statusCancelledText = Color(0xFFEF5B5B);
   static const Color statusCancelledBg = Color(0xFFFFEBEE);
 

@@ -221,37 +221,62 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: _sectionCount * 56.0,
-            child: ReorderableListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              shrinkWrap: true,
-              itemCount: tempOrder.length,
-              onReorder: (oldIndex, newIndex) {
-                setSheetState(() {
-                  if (newIndex > oldIndex) newIndex--;
-                  final item = tempOrder.removeAt(oldIndex);
-                  tempOrder.insert(newIndex, item);
-                });
-              },
-              itemBuilder: (_, i) {
-                final sectionIdx = tempOrder[i];
-                return ListTile(
-                  key: ValueKey(sectionIdx),
-                  leading: Icon(
-                    _sectionIcons[sectionIdx],
-                    color: HelpiTheme.accent,
-                    size: 20,
-                  ),
-                  title: Text(
-                    _sectionLabels[sectionIdx],
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  dense: true,
-                );
-              },
-            ),
-          ),
+          ...List.generate(tempOrder.length, (i) {
+            final sectionIdx = tempOrder[i];
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: SizedBox(
+                height: 44,
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_upward, size: 18),
+                      color: i == 0
+                          ? HelpiTheme.border
+                          : HelpiTheme.textSecondary,
+                      onPressed: i == 0
+                          ? null
+                          : () => setSheetState(() {
+                              final item = tempOrder.removeAt(i);
+                              tempOrder.insert(i - 1, item);
+                            }),
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_downward, size: 18),
+                      color: i == tempOrder.length - 1
+                          ? HelpiTheme.border
+                          : HelpiTheme.textSecondary,
+                      onPressed: i == tempOrder.length - 1
+                          ? null
+                          : () => setSheetState(() {
+                              final item = tempOrder.removeAt(i);
+                              tempOrder.insert(i + 1, item);
+                            }),
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      _sectionIcons[sectionIdx],
+                      color: HelpiTheme.accent,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _sectionLabels[sectionIdx],
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
