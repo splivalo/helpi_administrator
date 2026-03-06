@@ -738,14 +738,46 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     });
   }
 
-  Future<void> _openEditSenior() async {
-    final result = await Navigator.push<SeniorModel>(
-      context,
-      MaterialPageRoute(builder: (_) => EditSeniorScreen(senior: _senior)),
-    );
-    if (!mounted) return;
-    if (result != null) {
-      setState(() => _senior = result);
+  void _openEditSenior() {
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    final formWidget = EditSeniorScreen(senior: _senior, isModal: true);
+
+    if (isWide) {
+      showDialog<SeniorModel>(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620, maxHeight: 750),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+              child: formWidget,
+            ),
+          ),
+        ),
+      ).then((result) {
+        if (!mounted) return;
+        if (result != null) setState(() => _senior = result);
+      });
+    } else {
+      showModalBottomSheet<SeniorModel>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(HelpiTheme.bottomSheetRadius),
+          ),
+        ),
+        builder: (ctx) =>
+            FractionallySizedBox(heightFactor: 0.92, child: formWidget),
+      ).then((result) {
+        if (!mounted) return;
+        if (result != null) setState(() => _senior = result);
+      });
     }
   }
 
