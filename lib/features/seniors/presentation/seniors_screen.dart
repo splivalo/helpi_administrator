@@ -140,13 +140,14 @@ class _SeniorsScreenState extends State<SeniorsScreen>
       appBar: AppBar(
         title: Text(AppStrings.seniorsTitle),
         actions: [
-          IconButton(
-            icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
-            onPressed: () {
-              setState(() => _isGridView = !_isGridView);
-              _prefs.setGridView(_screenKey, isGrid: _isGridView);
-            },
-          ),
+          if (MediaQuery.sizeOf(context).width >= 900)
+            IconButton(
+              icon: Icon(_isGridView ? Icons.view_list : Icons.grid_view),
+              onPressed: () {
+                setState(() => _isGridView = !_isGridView);
+                _prefs.setGridView(_screenKey, isGrid: _isGridView);
+              },
+            ),
           const NotificationBell(),
         ],
       ),
