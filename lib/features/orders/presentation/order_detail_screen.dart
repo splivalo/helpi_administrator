@@ -540,6 +540,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               label: AppStrings.orderServices,
               value: _order.services.map((s) => serviceLabel(s)).join(', '),
             ),
+            if (_order.promoCode != null && _order.promoCode!.isNotEmpty)
+              InfoField(label: AppStrings.promoCode, value: _order.promoCode!),
           ],
         ),
       ],
@@ -875,6 +877,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ? _confirmArchiveOrder()
                     : _showArchiveBlockedDialog(),
               ),
+            if (!isCancelled && !isArchived)
+              ActionChipButton(
+                icon: Icons.discount_outlined,
+                label: AppStrings.promoCodeApply,
+                color: HelpiTheme.accent,
+                onTap: _showPromoCodeDialog,
+              ),
           ],
         ),
       ],
@@ -885,11 +894,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
         title: Text(AppStrings.archiveOrderBlockedTitle),
-        content: Text(AppStrings.archiveOrderBlockedMsg),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.archiveOrderBlockedMsg),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -900,15 +909,51 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
+  void _showPromoCodeDialog() {
+    final controller = TextEditingController(text: _order.promoCode ?? '');
+    showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStrings.promoCodeApply),
+        content: SizedBox(
+          width: 400,
+          child: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              hintText: AppStrings.promoCodeHint,
+              labelText: AppStrings.promoCode,
+              prefixIcon: const Icon(Icons.discount_outlined),
+            ),
+            autofocus: true,
+            textCapitalization: TextCapitalization.characters,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: Text(AppStrings.confirm),
+          ),
+        ],
+      ),
+    ).then((code) {
+      if (code == null || !mounted) return;
+      _rebuildOrder(promoCode: () => code.isEmpty ? null : code);
+    });
+  }
+
   void _confirmCancelOrder() {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
         title: Text(AppStrings.cancelOrderConfirmTitle),
-        content: Text(AppStrings.cancelOrderConfirmMsg),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.cancelOrderConfirmMsg),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -947,6 +992,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           endDate: _order.endDate,
           dayEntries: _order.dayEntries,
           sessions: updatedSessions,
+          promoCode: _order.promoCode,
         );
         final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
         if (idx != -1) MockData.orders[idx] = _order;
@@ -958,11 +1004,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
         title: Text(AppStrings.archiveConfirmTitle),
-        content: Text(AppStrings.archiveConfirmMsg),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.archiveConfirmMsg),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -984,11 +1030,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
         title: Text(AppStrings.unarchiveConfirmTitle),
-        content: Text(AppStrings.unarchiveConfirmMsg),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.unarchiveConfirmMsg),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -1012,7 +1058,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     });
   }
 
-  void _rebuildOrder({OrderStatus? status, List<SessionModel>? sessions}) {
+  void _rebuildOrder({
+    OrderStatus? status,
+    List<SessionModel>? sessions,
+    String? Function()? promoCode,
+  }) {
     setState(() {
       _order = OrderModel(
         id: _order.id,
@@ -1031,6 +1081,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         endDate: _order.endDate,
         dayEntries: _order.dayEntries,
         sessions: sessions ?? _order.sessions,
+        promoCode: promoCode != null ? promoCode() : _order.promoCode,
       );
       final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
       if (idx != -1) MockData.orders[idx] = _order;
@@ -1064,6 +1115,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         endDate: _order.endDate,
         dayEntries: _order.dayEntries,
         sessions: updatedSessions,
+        promoCode: _order.promoCode,
       );
       final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
       if (idx != -1) MockData.orders[idx] = _order;
@@ -1074,11 +1126,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
         title: Text(AppStrings.sessionCancel),
-        content: Text(AppStrings.sessionCancelConfirm),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.sessionCancelConfirm),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -1123,11 +1175,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
         title: Text(AppStrings.sessionReactivate),
-        content: Text(AppStrings.sessionReactivateConfirm),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.sessionReactivateConfirm),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -1667,6 +1719,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           endDate: _order.endDate,
           dayEntries: _order.dayEntries,
           sessions: updatedSessions,
+          promoCode: _order.promoCode,
         );
         final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
         if (idx != -1) MockData.orders[idx] = _order;
@@ -1742,11 +1795,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
         title: Text(AppStrings.confirm),
-        content: Text(AppStrings.assignConfirm(student.fullName)),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.assignConfirm(student.fullName)),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -1782,6 +1835,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   endDate: _order.endDate,
                   dayEntries: _order.dayEntries,
                   sessions: updatedSessions,
+                  promoCode: _order.promoCode,
                 );
                 // Persist to MockData so all screens see the change
                 final idx = MockData.orders.indexWhere(

@@ -234,6 +234,7 @@ class OrderModel {
   final DateTime? endDate;
   final List<DayEntry> dayEntries;
   final List<SessionModel> sessions;
+  final String? promoCode;
 
   const OrderModel({
     required this.id,
@@ -252,6 +253,7 @@ class OrderModel {
     this.endDate,
     this.dayEntries = const [],
     this.sessions = const [],
+    this.promoCode,
   });
 }
 

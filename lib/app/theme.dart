@@ -199,6 +199,14 @@ class HelpiTheme {
       elevation: 2,
       shape: CircleBorder(),
     ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: surface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(cardRadius),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+    ),
     dividerTheme: const DividerThemeData(
       color: dividerColor,
       thickness: 1,

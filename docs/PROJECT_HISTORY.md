@@ -163,6 +163,24 @@
 
 ---
 
+## 2026-03-08 — Promo kod & Dialog unifikacija
+
+- **Promo kod polje** — `promoCode` (String?) dodano u `OrderModel` za Stripe promo kod integraciju:
+  - Prikaz u detaljima narudžbe kao zadnje polje (nakon Usluga/Services)
+  - "Primijeni promo kod" ActionChipButton u admin akcijama s dijalogom za unos
+  - `_rebuildOrder` proširena s `promoCode` parametrom
+  - Svi OrderModel konstruktori u order_detail_screen.dart prosljeđuju `promoCode`
+  - CreateOrderScreen edit mode čuva `promoCode` iz postojeće narudžbe
+- **AppStrings promo ključevi** — `promoCode` ("Promo kod"/"Promo code"), `promoCodeHint`, `promoCodeApply` (HR + EN + getteri)
+- **DialogTheme** — Dodan `dialogTheme` u `theme.dart` (backgroundColor, surfaceTintColor, shape s cardRadius, actionsPadding)
+- **Dialog unifikacija (SizedBox width: 400)** — Svih 14 AlertDialoga unificirano:
+  - Uklonjeno redundantno `shape: RoundedRectangleBorder(...)` — koristi se globalni dialogTheme
+  - Content wrappan u `SizedBox(width: 400)` za konzistentnu širinu svih dijaloga
+  - Fajlovi: order_detail_screen (8), student_detail_screen (3), seniors_screen (3)
+- **Rezultat**: 0 errors → 0 errors (dart analyze)
+
+---
+
 ## Arhitekturalne odluke
 
 | Odluka                                         | Razlog                                                  | Datum      |

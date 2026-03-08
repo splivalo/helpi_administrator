@@ -1200,6 +1200,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       endDate: _endDate,
       dayEntries: dayEntries,
       sessions: existing.sessions, // keep existing sessions
+      promoCode: existing.promoCode,
     );
 
     final idx = MockData.orders.indexWhere((o) => o.id == updated.id);

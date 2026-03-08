@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-05
+> Zadnja izmjena: 2026-03-08
 
 ## TODO (čeka potvrdu)
 
@@ -40,7 +40,7 @@
 - [x] **SessionPreviewSheet** — Shared widget za prikaz generiranih sesija i dodjelu studenta (851 linija) (2026-03-05)
 - [x] **Edit Order modal** — Uređivanje narudžbi (usluga, frekvencija, datum, sati) (2026-03-05)
 - [x] **Assign flow** — 2-step dodjela studenta s ClipRRect zaobljenim rubovima (2026-03-05)
-- [x] **AlertDialog konzistentnost** — Svih 13 dialoga: shape, TextButton, AppStrings.ok (2026-03-05)
+- [x] **AlertDialog konzistentnost** — Svih 14 dialoga: dialogTheme, SizedBox(width:400), TextButton, AppStrings.ok (2026-03-05 → 2026-03-08)
 - [x] **TextButton hover shape** — Globalni RoundedRectangleBorder(buttonRadius) umjesto stadium (2026-03-05)
 - [x] **Reorder sheet spacing** — Uklonjen suvišni padding, header pattern ujednačen (2026-03-05)
 - [x] **StatusBadge size** — Konzistentni mali badgevi u svim AppBarima (2026-03-05)
@@ -48,6 +48,8 @@
 - [x] **Locale switching fix** — ValueKey rebuild za IndexedStack ekrane (2026-03-05)
 - [x] **DatePicker globalna tema** — datePickerTheme: teal boje, manji header (20px), cardRadius, "U redu" umjesto "U REDU" (2026-03-05)
 - [x] **Flutter Web deploy** — Build s `--base-href /helpi/`, deploy na kungfu.digital/helpi/ (2026-03-05)
+- [x] **Promo kod (Stripe priprema)** — promoCode polje u OrderModel, AppStrings, prikaz u detaljima, admin akcija s dijalogom (2026-03-08)
+- [x] **Dialog unifikacija** — dialogTheme u theme.dart, SizedBox(width:400) na svih 14 AlertDialoga (2026-03-08)
 
 ---
 

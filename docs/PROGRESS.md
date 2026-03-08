@@ -1,6 +1,6 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-03-05
+> Zadnja izmjena: 2026-03-08
 
 ## Ukupno stanje
 
@@ -14,7 +14,7 @@
 | Seniori – Detalj      | ✅ Profil, narudžbe, "Dodaj narudžbu", status logika                          | 100%       |
 | Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                              | 100%       |
 | Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                   | 100%       |
-| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje, uređivanje narudžbe    | 100%       |
+| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje, uređivanje, promo kod  | 100%       |
 | Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                    | 100%       |
 | Chat (Moderacija)     | ✅ Lista razgovora + poruke                                                   | 90%        |
 | Notifikacije          | ✅ NotificationBell widget + drawer sa mock podacima                          | 90%        |
@@ -24,7 +24,7 @@
 | Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                      | 100%       |
 | DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum | 100%       |
 | SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                  | 100%       |
-| UI Consistency        | ✅ AlertDialogs, modali, DatePicker, TextButton hover, StatusBadge sizes      | 100%       |
+| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges  | 100%       |
 | Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                         | 100%       |
 | Backend integracija   | ❌ Nije započeta                                                              | 0%         |
 
@@ -111,7 +111,8 @@
 - [x] "Poništi sve" button coral hover (foregroundColor: HelpiTheme.primary)
 - [x] Order count font size 12 → 14 na senior kartici
 - [x] Button border width fix
-- [x] **Svih 13 AlertDialoga** — konzistentni shape (cardRadius), TextButton umjesto ElevatedButton, AppStrings.ok
+- [x] **Svih 14 AlertDialoga** — konzistentni shape (dialogTheme), SizedBox(width: 400), TextButton, AppStrings.ok
+- [x] **DialogTheme** — globalni dialogTheme u theme.dart (shape, backgroundColor, actionsPadding)
 - [x] **TextButton hover shape** — globalni textButtonTheme s RoundedRectangleBorder(buttonRadius) umjesto stadium
 - [x] **Reorder sheet spacing** — uklonjen Padding(vertical:16) na Dialogu, header fromLTRB(20,12,8,8), čist spacing
 - [x] **StatusBadge size konzistentnost** — svi AppBar-ovi koriste default small, large samo za posebne slučajeve
@@ -120,6 +121,14 @@
 - [x] **DatePicker globalna tema** — datePickerTheme u ThemeData: teal boje, manji header font (20px), cardRadius zaobljenje
 - [x] **DatePicker gumbi** — confirmText/cancelText iz AppStrings ("U redu" umjesto "U REDU")
 - [x] **Locale switching** — ValueKey rebuild svih ekrana u IndexedStack pri promjeni jezika
+
+### Promo kod (Stripe priprema)
+
+- [x] `promoCode` (String?) polje dodano u OrderModel
+- [x] AppStrings: `promoCode`, `promoCodeHint`, `promoCodeApply` (HR + EN)
+- [x] Prikaz promo koda u detaljima narudžbe (zadnje polje, nakon usluga)
+- [x] "Primijeni promo kod" gumb u Admin akcijama s dijalogom za unos
+- [x] CreateOrderScreen čuva promoCode pri uređivanju
 
 ### Persistencija (SharedPreferences)
 

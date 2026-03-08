@@ -91,6 +91,11 @@ class AppStrings {
       'filterByService': 'Filtriraj po usluzi',
       'searchOrders': 'Pretraži narudžbe...',
 
+      // ── Promo kod ─────────────────────────────
+      'promoCode': 'Promo kod',
+      'promoCodeHint': 'Unesite promo kod...',
+      'promoCodeApply': 'Primijeni promo kod',
+
       // ── Kreiranje narudžbe ────────────────────
       'createOrder': 'Nova narudžba',
       'addOrder': 'Dodaj narudžbu',
@@ -572,6 +577,11 @@ class AppStrings {
       'filterByService': 'Filter by service',
       'searchOrders': 'Search orders...',
 
+      // ── Promo kod ─────────────────────────────
+      'promoCode': 'Promo code',
+      'promoCodeHint': 'Enter promo code...',
+      'promoCodeApply': 'Apply promo code',
+
       // ── Kreiranje narudžbe ────────────────────
       'createOrder': 'New order',
       'addOrder': 'Add order',
@@ -1051,6 +1061,9 @@ class AppStrings {
   static String get orderServices => _t('orderServices');
   static String get orderNotes => _t('orderNotes');
   static String get orderFrequency => _t('orderFrequency');
+  static String get promoCode => _t('promoCode');
+  static String get promoCodeHint => _t('promoCodeHint');
+  static String get promoCodeApply => _t('promoCodeApply');
   static String get orderSenior => _t('orderSenior');
   static String get orderStudent => _t('orderStudent');
   static String get assignStudent => _t('assignStudent');

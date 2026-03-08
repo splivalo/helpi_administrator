@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-06
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-08
 
 ---
 
@@ -224,7 +224,7 @@ Definirani u `lib/core/models/admin_models.dart` (1717 linija):
 | ------------------- | --------------------------------------------------------------------------------- |
 | `SeniorModel`       | Senior (korisnik usluge) — ime, adresa, kontakt, potrebe, status                  |
 | `StudentModel`      | Student (pružatelj usluge) — profil, ugovor, satnica, dostupnost, bankovni podaci |
-| `OrderModel`        | Narudžba — senior ↔ student, usluga, frekvencija, lokacija, status                |
+| `OrderModel`        | Narudžba — senior ↔ student, usluga, frekvencija, lokacija, status, promoCode     |
 | `SessionModel`      | Pojedinačna sesija unutar narudžbe — datum, trajanje, status                      |
 | `ChatRoom`          | Chat soba za moderaciju                                                           |
 | `ChatMessage`       | Pojedinačna poruka u chatu                                                        |

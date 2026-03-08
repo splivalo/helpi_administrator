@@ -531,11 +531,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          ),
           title: Text(AppStrings.archiveBlockedTitle),
-          content: Text(AppStrings.archiveBlockedMsg),
+          content: SizedBox(
+            width: 400,
+            child: Text(AppStrings.archiveBlockedMsg),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
@@ -550,11 +550,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
         title: Text(AppStrings.archiveConfirmTitle),
-        content: Text(AppStrings.archiveConfirmMsg),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.archiveConfirmMsg),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -579,11 +579,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        ),
         title: Text(AppStrings.unarchiveConfirmTitle),
-        content: Text(AppStrings.unarchiveConfirmMsg),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.unarchiveConfirmMsg),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
