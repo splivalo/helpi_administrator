@@ -209,6 +209,8 @@ class AppStrings {
       'filterByTimeTo': 'Dostupan do',
       'filterByRating': 'Minimalna ocjena',
       'filterByGender': 'Spol',
+      'filterByFaculty': 'Fakultet',
+      'anyFaculty': 'Bilo koji',
       'filterBySenior': 'Radio/la kod seniora',
       'filterApply': 'Primijeni',
       'filterReset': 'Poništi sve',
@@ -695,6 +697,8 @@ class AppStrings {
       'filterByTimeTo': 'Available to',
       'filterByRating': 'Minimum rating',
       'filterByGender': 'Gender',
+      'filterByFaculty': 'Faculty',
+      'anyFaculty': 'Any',
       'filterBySenior': 'Worked with senior',
       'filterApply': 'Apply',
       'filterReset': 'Reset all',
@@ -1273,6 +1277,8 @@ class AppStrings {
   static String get filterByTimeTo => _t('filterByTimeTo');
   static String get filterByRating => _t('filterByRating');
   static String get filterByGender => _t('filterByGender');
+  static String get filterByFaculty => _t('filterByFaculty');
+  static String get anyFaculty => _t('anyFaculty');
   static String get filterBySenior => _t('filterBySenior');
   static String get filterApply => _t('filterApply');
   static String get filterReset => _t('filterReset');

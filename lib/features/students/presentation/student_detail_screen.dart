@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/models/faculty.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
@@ -403,7 +404,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             ),
             InfoField(
               label: AppStrings.studentFaculty,
-              value: _student.faculty,
+              value:
+                  Faculty.byAcronym(_student.faculty)?.fullName ??
+                  _student.faculty,
             ),
             InfoField(
               label: AppStrings.studentIdNumber,

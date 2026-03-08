@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/models/faculty.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
@@ -57,6 +58,7 @@ class _StudentsScreenState extends State<StudentsScreen>
   TimeOfDay? _availableFrom;
   TimeOfDay? _availableTo;
   String? _seniorFilter;
+  String? _facultyFilter;
 
   static const _tabFilters = _StudentFilter.values;
 
@@ -106,6 +108,7 @@ class _StudentsScreenState extends State<StudentsScreen>
     if (_selectedDays.isNotEmpty) count++;
     if (_availableFrom != null || _availableTo != null) count++;
     if (_seniorFilter != null) count++;
+    if (_facultyFilter != null) count++;
     return count;
   }
 
@@ -272,6 +275,11 @@ class _StudentsScreenState extends State<StudentsScreen>
       }).toList();
     }
 
+    // Faculty filter
+    if (_facultyFilter != null) {
+      students = students.where((s) => s.faculty == _facultyFilter).toList();
+    }
+
     // Worked with specific senior
     if (_seniorFilter != null) {
       students = students.where((s) {
@@ -318,6 +326,7 @@ class _StudentsScreenState extends State<StudentsScreen>
       _availableFrom = null;
       _availableTo = null;
       _seniorFilter = null;
+      _facultyFilter = null;
     });
   }
 
@@ -625,6 +634,7 @@ class _StudentsScreenState extends State<StudentsScreen>
                 availableFrom: _availableFrom,
                 availableTo: _availableTo,
                 seniorFilter: _seniorFilter,
+                facultyFilter: _facultyFilter,
                 onApply:
                     ({
                       required ActivityPeriod? activityPeriod,
@@ -639,6 +649,7 @@ class _StudentsScreenState extends State<StudentsScreen>
                       required TimeOfDay? availableFrom,
                       required TimeOfDay? availableTo,
                       required String? seniorFilter,
+                      required String? facultyFilter,
                     }) {
                       setState(() {
                         _activityPeriod = activityPeriod;
@@ -653,6 +664,7 @@ class _StudentsScreenState extends State<StudentsScreen>
                         _availableFrom = availableFrom;
                         _availableTo = availableTo;
                         _seniorFilter = seniorFilter;
+                        _facultyFilter = facultyFilter;
                       });
                       Navigator.pop(ctx);
                     },
@@ -684,6 +696,7 @@ class _StudentsScreenState extends State<StudentsScreen>
             availableFrom: _availableFrom,
             availableTo: _availableTo,
             seniorFilter: _seniorFilter,
+            facultyFilter: _facultyFilter,
             onApply:
                 ({
                   required ActivityPeriod? activityPeriod,
@@ -698,6 +711,7 @@ class _StudentsScreenState extends State<StudentsScreen>
                   required TimeOfDay? availableFrom,
                   required TimeOfDay? availableTo,
                   required String? seniorFilter,
+                  required String? facultyFilter,
                 }) {
                   setState(() {
                     _activityPeriod = activityPeriod;
@@ -712,6 +726,7 @@ class _StudentsScreenState extends State<StudentsScreen>
                     _availableFrom = availableFrom;
                     _availableTo = availableTo;
                     _seniorFilter = seniorFilter;
+                    _facultyFilter = facultyFilter;
                   });
                   Navigator.pop(ctx);
                 },
@@ -744,6 +759,7 @@ class _FilterPanel extends StatefulWidget {
     required this.availableFrom,
     required this.availableTo,
     required this.seniorFilter,
+    required this.facultyFilter,
     required this.onApply,
     required this.onReset,
   });
@@ -761,6 +777,7 @@ class _FilterPanel extends StatefulWidget {
   final TimeOfDay? availableFrom;
   final TimeOfDay? availableTo;
   final String? seniorFilter;
+  final String? facultyFilter;
   final void Function({
     required ActivityPeriod? activityPeriod,
     required bool? activityWorked,
@@ -774,6 +791,7 @@ class _FilterPanel extends StatefulWidget {
     required TimeOfDay? availableFrom,
     required TimeOfDay? availableTo,
     required String? seniorFilter,
+    required String? facultyFilter,
   })
   onApply;
   final VoidCallback onReset;
@@ -795,6 +813,7 @@ class _FilterPanelState extends State<_FilterPanel> {
   late TimeOfDay? _availableFrom;
   late TimeOfDay? _availableTo;
   late String? _seniorFilter;
+  late String? _facultyFilter;
 
   final _minJobsCtrl = TextEditingController();
   final _maxJobsCtrl = TextEditingController();
@@ -814,6 +833,7 @@ class _FilterPanelState extends State<_FilterPanel> {
     _availableFrom = widget.availableFrom;
     _availableTo = widget.availableTo;
     _seniorFilter = widget.seniorFilter;
+    _facultyFilter = widget.facultyFilter;
 
     _minJobsCtrl.text = _minJobs?.toString() ?? '';
     _maxJobsCtrl.text = _maxJobs?.toString() ?? '';
@@ -1216,7 +1236,58 @@ class _FilterPanelState extends State<_FilterPanel> {
               const SizedBox(height: 20),
 
               // ──────────────────────────────────
-              // 8. Worked with senior
+              // 8. Faculty
+              // ──────────────────────────────────
+              _sectionTitle(AppStrings.filterByFaculty),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String?>(
+                initialValue: _facultyFilter,
+                isExpanded: true,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: HelpiTheme.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+                    borderSide: const BorderSide(color: HelpiTheme.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+                    borderSide: const BorderSide(color: HelpiTheme.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+                    borderSide: const BorderSide(
+                      color: HelpiTheme.accent,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                items: [
+                  DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text(AppStrings.anyFaculty),
+                  ),
+                  ...Faculty.all.map(
+                    (f) => DropdownMenuItem<String?>(
+                      value: f.acronym,
+                      child: Text(f.fullName),
+                    ),
+                  ),
+                ],
+                onChanged: (v) => setState(() => _facultyFilter = v),
+              ),
+              const SizedBox(height: 20),
+
+              // ──────────────────────────────────
+              // 9. Worked with senior
               // ──────────────────────────────────
               _sectionTitle(AppStrings.filterBySenior),
               const SizedBox(height: 8),
@@ -1304,6 +1375,7 @@ class _FilterPanelState extends State<_FilterPanel> {
                       availableFrom: _availableFrom,
                       availableTo: _availableTo,
                       seniorFilter: _seniorFilter,
+                      facultyFilter: _facultyFilter,
                     );
                   },
                 ),
