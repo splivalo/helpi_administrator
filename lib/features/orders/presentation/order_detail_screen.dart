@@ -541,7 +541,63 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               value: _order.services.map((s) => serviceLabel(s)).join(', '),
             ),
             if (_order.promoCode != null && _order.promoCode!.isNotEmpty)
-              InfoField(label: AppStrings.promoCode, value: _order.promoCode!),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppStrings.promoCode,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: HelpiTheme.textSecondary.withValues(alpha: 0.1),
+                        border: Border.all(
+                          color: HelpiTheme.textSecondary.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
+                        borderRadius: BorderRadius.circular(
+                          HelpiTheme.statusBadgeRadius,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _order.promoCode!,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: HelpiTheme.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () {
+                              _rebuildOrder(promoCode: () => null);
+                            },
+                            child: const Icon(
+                              Icons.close,
+                              size: 12,
+                              color: HelpiTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ],
