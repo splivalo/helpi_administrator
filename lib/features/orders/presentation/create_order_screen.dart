@@ -177,6 +177,28 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   List<int> get _availableDays =>
       [1, 2, 3, 4, 5, 6, 7].where((d) => !_usedDays.contains(d)).toList();
 
+  // ── Step-by-step visibility ──
+  bool get _seniorReady =>
+      _selectedSenior != null || widget.senior != null || _isEditMode;
+
+  bool get _whenReady {
+    if (_frequency == FrequencyType.oneTime) {
+      return _scheduledDate != null &&
+          _scheduledTime != null &&
+          _durationHours != null;
+    }
+    return _startDate != null &&
+        _dayEntries.isNotEmpty &&
+        _dayEntries.every(
+          (e) =>
+              e.startHour != null &&
+              e.startMinute != null &&
+              e.durationHours != null,
+        );
+  }
+
+  bool get _servicesReady => _selectedServices.isNotEmpty;
+
   // ─── BUILD ────────────────────────────────────────────────────
 
   @override
@@ -219,83 +241,91 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
           // ══════════════════════════════════════
           // 2) UČESTALOST
           // ══════════════════════════════════════
-          _buildSectionLabel(AppStrings.orderFrequency, Icons.repeat),
-          const SizedBox(height: 12),
-          _buildFrequencySelector(),
-          const SizedBox(height: 24),
+          if (_seniorReady) ...[
+            _buildSectionLabel(AppStrings.orderFrequency, Icons.repeat),
+            const SizedBox(height: 12),
+            _buildFrequencySelector(),
+            const SizedBox(height: 24),
 
-          // ══════════════════════════════════════
-          // 3) KADA?
-          // ══════════════════════════════════════
-          if (_frequency == FrequencyType.oneTime)
-            _buildOneTimeSection()
-          else
-            _buildRecurringSection(),
-          const SizedBox(height: 24),
+            // ══════════════════════════════════════
+            // 3) KADA?
+            // ══════════════════════════════════════
+            if (_frequency == FrequencyType.oneTime)
+              _buildOneTimeSection()
+            else
+              _buildRecurringSection(),
+            const SizedBox(height: 24),
 
-          // ══════════════════════════════════════
-          // 4) USLUGE
-          // ══════════════════════════════════════
-          _buildSectionLabel(AppStrings.selectServices, Icons.handyman),
-          const SizedBox(height: 12),
-          _buildServiceChips(),
-          const SizedBox(height: 24),
+            // ══════════════════════════════════════
+            // 4) USLUGE
+            // ══════════════════════════════════════
+            if (_whenReady) ...[
+              _buildSectionLabel(AppStrings.selectServices, Icons.handyman),
+              const SizedBox(height: 12),
+              _buildServiceChips(),
+              const SizedBox(height: 24),
 
-          // ══════════════════════════════════════
-          // 5) NAPOMENA
-          // ══════════════════════════════════════
-          _buildSectionLabel(AppStrings.orderNotes, Icons.notes),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _notesCtrl,
-            maxLines: 3,
-            textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(
-              hintText: AppStrings.orderNotesHint,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // ══════════════════════════════════════
-          // SAVE BUTTON
-          // ══════════════════════════════════════
-          if (widget.isModal)
-            Align(
-              alignment: Alignment.centerRight,
-              child: ActionChipButton(
-                icon: Icons.check,
-                label: AppStrings.save,
-                color: HelpiTheme.accent,
-                size: ActionChipButtonSize.medium,
-                onTap: _onSave,
-              ),
-            )
-          else
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: FilledButton.icon(
-                onPressed: _onSave,
-                icon: const Icon(Icons.check, size: 20),
-                label: Text(AppStrings.save),
-                style: FilledButton.styleFrom(
-                  backgroundColor: HelpiTheme.accent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      HelpiTheme.buttonRadius,
+              // ══════════════════════════════════════
+              // 5) NAPOMENA
+              // ══════════════════════════════════════
+              if (_servicesReady) ...[
+                _buildSectionLabel(AppStrings.orderNotes, Icons.notes),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _notesCtrl,
+                  maxLines: 3,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    hintText: AppStrings.orderNotesHint,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.cardRadius,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
                     ),
                   ),
                 ),
-              ),
-            ),
-          const SizedBox(height: 32),
+                const SizedBox(height: 32),
+
+                // ══════════════════════════════════════
+                // SAVE BUTTON
+                // ══════════════════════════════════════
+                if (widget.isModal)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ActionChipButton(
+                      icon: Icons.check,
+                      label: AppStrings.save,
+                      color: HelpiTheme.accent,
+                      size: ActionChipButtonSize.medium,
+                      onTap: _onSave,
+                    ),
+                  )
+                else
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton.icon(
+                      onPressed: _onSave,
+                      icon: const Icon(Icons.check, size: 20),
+                      label: Text(AppStrings.save),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: HelpiTheme.accent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            HelpiTheme.buttonRadius,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 32),
+              ], // _servicesReady
+            ], // _whenReady
+          ], // _seniorReady
         ],
       ),
     );
@@ -899,6 +929,9 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                               _selectedServices.add(rowItems[j]);
                             }
                           });
+                          if (_selectedServices.length == 1) {
+                            _scrollToBottom();
+                          }
                         },
                       )
                     : const SizedBox(),
