@@ -152,7 +152,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   }
 
   String _dayShortName(int weekday) {
-    return switch (weekday) {
+    final label = switch (weekday) {
       1 => AppStrings.dayMon,
       2 => AppStrings.dayTue,
       3 => AppStrings.dayWed,
@@ -162,6 +162,10 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       7 => AppStrings.daySun,
       _ => '',
     };
+    if (MediaQuery.sizeOf(context).width < 600 && label.isNotEmpty) {
+      return label[0];
+    }
+    return label;
   }
 
   List<SeniorModel> get _filteredSeniors {
@@ -963,6 +967,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
