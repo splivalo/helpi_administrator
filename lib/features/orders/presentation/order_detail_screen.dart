@@ -1996,7 +1996,9 @@ class _StudentAssignCard extends StatelessWidget {
           : AppStrings.assignStudent;
       buttonIcon = Icons.person_add;
     } else {
-      availLabel = AppStrings.availableDifferentTimes;
+      availLabel = isNarrow
+          ? AppStrings.availableDifferentTimesShort
+          : AppStrings.availableDifferentTimes;
       availColor = const Color(0xFFE65100);
       availIcon = Icons.schedule;
       buttonLabel = isNarrow

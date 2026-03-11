@@ -482,7 +482,10 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
       bg = HelpiTheme.chipBg;
       fg = HelpiTheme.textSecondary;
     } else if (s.rescheduledStart != null) {
-      label = AppStrings.sessionRescheduled;
+      final isNarrow = MediaQuery.sizeOf(context).width < 600;
+      label = isNarrow
+          ? AppStrings.sessionRescheduledShort
+          : AppStrings.sessionRescheduled;
       bg = HelpiTheme.statusProcessingBg;
       fg = HelpiTheme.statusProcessingText;
     } else if (s.substituteStudent != null) {

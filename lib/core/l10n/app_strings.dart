@@ -285,6 +285,7 @@ class AppStrings {
       'sessionConflict': 'Zauzet',
       'sessionSkipped': 'Preskočeno',
       'sessionRescheduled': 'Pomaknut termin',
+      'sessionRescheduledShort': 'Pomaknut',
       'sessionSubstitute': 'Zamjena',
       'skipSession': 'Preskoči',
       'changeTime': 'Pomakni',
@@ -412,6 +413,7 @@ class AppStrings {
       'availableAllDays': 'Dostupan sve dane',
       'availablePartial': 'Dostupan {matched}/{total} dana',
       'availableDifferentTimes': 'Dostupan, drugi termini',
+      'availableDifferentTimesShort': 'Dostupan',
       'notAvailableForOrder': 'Nedostupan za ovu narudžbu',
       'reviewSessions': 'Pregled termina',
       'reviewShort': 'Pregled',
@@ -774,6 +776,7 @@ class AppStrings {
       'sessionConflict': 'Busy',
       'sessionSkipped': 'Skipped',
       'sessionRescheduled': 'Rescheduled',
+      'sessionRescheduledShort': 'Rescheduled',
       'sessionSubstitute': 'Substitute',
       'skipSession': 'Skip',
       'changeTime': 'Reschedule',
@@ -899,6 +902,7 @@ class AppStrings {
       'availableAllDays': 'Available all days',
       'availablePartial': 'Available {matched}/{total} days',
       'availableDifferentTimes': 'Available, different schedule',
+      'availableDifferentTimesShort': 'Available',
       'notAvailableForOrder': 'Not available for this order',
       'reviewSessions': 'Review sessions',
       'reviewShort': 'Review',
@@ -1235,6 +1239,7 @@ class AppStrings {
   static String get sessionConflict => _t('sessionConflict');
   static String get sessionSkipped => _t('sessionSkipped');
   static String get sessionRescheduled => _t('sessionRescheduled');
+  static String get sessionRescheduledShort => _t('sessionRescheduledShort');
   static String get sessionSubstitute => _t('sessionSubstitute');
   static String get skipSession => _t('skipSession');
   static String get changeTime => _t('changeTime');
@@ -1526,6 +1531,8 @@ class AppStrings {
     params: {'matched': matched.toString(), 'total': total.toString()},
   );
   static String get availableDifferentTimes => _t('availableDifferentTimes');
+  static String get availableDifferentTimesShort =>
+      _t('availableDifferentTimesShort');
   static String get notAvailableForOrder => _t('notAvailableForOrder');
   static String get reviewSessions => _t('reviewSessions');
   static String get reviewShort => _t('reviewShort');
