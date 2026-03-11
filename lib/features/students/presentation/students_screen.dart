@@ -578,7 +578,10 @@ class _StudentsScreenState extends State<StudentsScreen>
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => StudentDetailScreen(student: student)),
-    );
+    ).then((_) {
+      if (!mounted) return;
+      setState(() {});
+    });
   }
 
   PopupMenuItem<StudentSort> _sortMenuItem(StudentSort value, String label) {

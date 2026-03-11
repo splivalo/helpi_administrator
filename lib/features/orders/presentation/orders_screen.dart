@@ -326,7 +326,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order)),
-    );
+    ).then((_) {
+      if (!mounted) return;
+      setState(() {});
+    });
   }
 
   PopupMenuItem<OrderSort> _sortMenuItem(OrderSort value, String label) {

@@ -296,6 +296,7 @@ class AppStrings {
       'selectNewTime': 'Odaberi novi termin',
       'selectSubstitute': 'Odaberi zamjenu',
       'noSubstitutesAvailable': 'Nema dostupnih zamjena za ovaj termin',
+      'noAlternativeSlots': 'Nema dostupnih alternativnih termina',
       'sessionCountChip': '{count} sesija',
       'oneTimeOrder': 'Jednokratna',
       'recurringOrder': 'Ponavljajuća',
@@ -784,6 +785,7 @@ class AppStrings {
       'selectNewTime': 'Select new time',
       'selectSubstitute': 'Select substitute',
       'noSubstitutesAvailable': 'No substitutes available for this slot',
+      'noAlternativeSlots': 'No alternative time slots available',
       'sessionCountChip': '{count} sessions',
       'oneTimeOrder': 'One-time',
       'recurringOrder': 'Recurring',
@@ -1246,6 +1248,7 @@ class AppStrings {
   static String sessionCountChip(int count) =>
       _t('sessionCountChip', params: {'count': count.toString()});
   static String get noSubstitutesAvailable => _t('noSubstitutesAvailable');
+  static String get noAlternativeSlots => _t('noAlternativeSlots');
   static String get oneTimeOrder => _t('oneTimeOrder');
   static String get recurringOrder => _t('recurringOrder');
 

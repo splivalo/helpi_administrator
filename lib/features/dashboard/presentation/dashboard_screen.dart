@@ -200,7 +200,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               gridColumns: gridColumns,
               children: MockData.orders
                   .where((o) => o.status == OrderStatus.processing)
-                  .map((order) => _RecentOrderCard(order: order, theme: theme))
+                  .map(
+                    (order) => _RecentOrderCard(
+                      order: order,
+                      theme: theme,
+                      onReturn: () {
+                        if (!mounted) return;
+                        setState(() {});
+                      },
+                    ),
+                  )
                   .toList(),
             ),
 
@@ -225,6 +234,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         sessionCount: entry.sessions,
                         totalHours: entry.hours,
                         theme: theme,
+                        onReturn: () {
+                          if (!mounted) return;
+                          setState(() {});
+                        },
                       ),
                     )
                     .toList(),
@@ -251,8 +264,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 gridColumns: gridColumns,
                 children: expiringStudents
                     .map(
-                      (student) =>
-                          _ExpiringContractCard(student: student, theme: theme),
+                      (student) => _ExpiringContractCard(
+                        student: student,
+                        theme: theme,
+                        onReturn: () {
+                          if (!mounted) return;
+                          setState(() {});
+                        },
+                      ),
                     )
                     .toList(),
               ),
@@ -466,9 +485,14 @@ class _MonthDropdown extends StatelessWidget {
 //  RECENT ORDER CARD (matches _OrderListCard from orders_screen)
 // ═══════════════════════════════════════════════════════════════
 class _RecentOrderCard extends StatelessWidget {
-  const _RecentOrderCard({required this.order, required this.theme});
+  const _RecentOrderCard({
+    required this.order,
+    required this.theme,
+    this.onReturn,
+  });
   final OrderModel order;
   final ThemeData theme;
+  final VoidCallback? onReturn;
 
   @override
   Widget build(BuildContext context) {
@@ -480,7 +504,7 @@ class _RecentOrderCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order)),
-        );
+        ).then((_) => onReturn?.call());
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
@@ -607,9 +631,14 @@ class _RecentOrderCard extends StatelessWidget {
 //  EXPIRING CONTRACT CARD (matches _StudentCard style)
 // ═══════════════════════════════════════════════════════════════
 class _ExpiringContractCard extends StatelessWidget {
-  const _ExpiringContractCard({required this.student, required this.theme});
+  const _ExpiringContractCard({
+    required this.student,
+    required this.theme,
+    this.onReturn,
+  });
   final StudentModel student;
   final ThemeData theme;
+  final VoidCallback? onReturn;
 
   @override
   Widget build(BuildContext context) {
@@ -620,7 +649,7 @@ class _ExpiringContractCard extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => StudentDetailScreen(student: student),
           ),
-        );
+        ).then((_) => onReturn?.call());
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
@@ -776,12 +805,14 @@ class _ActiveStudentCard extends StatelessWidget {
     required this.sessionCount,
     required this.totalHours,
     required this.theme,
+    this.onReturn,
   });
 
   final StudentModel student;
   final int sessionCount;
   final int totalHours;
   final ThemeData theme;
+  final VoidCallback? onReturn;
 
   @override
   Widget build(BuildContext context) {
@@ -792,7 +823,7 @@ class _ActiveStudentCard extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => StudentDetailScreen(student: student),
           ),
-        );
+        ).then((_) => onReturn?.call());
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),

@@ -1782,9 +1782,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       });
     }
 
-    // Classify & filter out unavailable
+    // Classify & filter out unavailable + current student
     final activeStudents = MockData.students
-        .where((s) => s.isActive && s.contractStatus == ContractStatus.active)
+        .where(
+          (s) =>
+              s.isActive &&
+              s.contractStatus == ContractStatus.active &&
+              s.id != _order.student?.id,
+        )
         .toList();
     final classified = <(StudentModel, _StudentAvail)>[];
     for (final s in activeStudents) {
@@ -2291,14 +2296,26 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
   @override
   Widget build(BuildContext context) {
     final content = _selectedStudent != null
-        ? _OrderSessionPreview(
-            key: ValueKey(_selectedStudent!.id),
-            student: _selectedStudent!,
-            order: widget.order,
-            onBack: _goBack,
-            onAssigned: (sessions) =>
-                widget.onAssignConfirmed(_selectedStudent!, sessions),
-            useDialog: widget.useDialog,
+        ? Builder(
+            builder: (_) {
+              final helper = _OrderSessionPreviewHelper(
+                student: _selectedStudent!,
+                order: widget.order,
+              );
+              return SessionPreviewContent(
+                key: ValueKey(_selectedStudent!.id),
+                student: _selectedStudent!,
+                order: widget.order,
+                onBack: _goBack,
+                onAssigned: (sessions) =>
+                    widget.onAssignConfirmed(_selectedStudent!, sessions),
+                useDialog: widget.useDialog,
+                generateSessions: helper.generateSessions,
+                findSubstitutes: helper.findSubstitutes,
+                findAltSlots: helper.findAltSlots,
+                buildConflictMessage: helper.buildConflictMessage,
+              );
+            },
           )
         : _buildStudentList();
 
@@ -2395,45 +2412,20 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  ORDER SESSION PREVIEW (for partial-availability assign flow)
+//  ORDER SESSION PREVIEW — helper with order-specific logic
 // ═══════════════════════════════════════════════════════════════
-class _OrderSessionPreview extends StatefulWidget {
-  const _OrderSessionPreview({
-    super.key,
-    required this.student,
-    required this.order,
-    required this.onBack,
-    required this.onAssigned,
-    this.useDialog = false,
-  });
+
+/// Holds order-detail-specific session generation, substitute filtering,
+/// and conflict messaging. Passed as callbacks to [SessionPreviewContent].
+class _OrderSessionPreviewHelper {
+  _OrderSessionPreviewHelper({required this.student, required this.order});
 
   final StudentModel student;
   final OrderModel order;
-  final VoidCallback onBack;
-  final void Function(List<SessionInstancePreview> sessions) onAssigned;
-  final bool useDialog;
 
-  @override
-  State<_OrderSessionPreview> createState() => _OrderSessionPreviewState();
-}
+  // ── Generate sessions ───────────────────────────────────────
 
-class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
-  late List<SessionInstancePreview> _sessions;
-  int? _expandedIndex;
-  String? _expandedType; // 'time' or 'substitute'
-
-  @override
-  void initState() {
-    super.initState();
-    _sessions = _generateSessions();
-  }
-
-  // ── Generate upcoming sessions with conflict detection ──────
-
-  List<SessionInstancePreview> _generateSessions() {
-    final order = widget.order;
-    final student = widget.student;
-
+  List<SessionInstancePreview> generateSessions() {
     final studentOrders = MockData.orders
         .where(
           (o) =>
@@ -2523,9 +2515,11 @@ class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
     return null;
   }
 
-  List<StudentModel> _findSubstitutes(SessionInstancePreview session) {
+  // ── Find substitutes ───────────────────────────────────────
+
+  List<StudentModel> findSubstitutes(SessionInstancePreview session) {
     return MockData.students.where((s) {
-      if (s.id == widget.student.id) return false;
+      if (s.id == student.id) return false;
       if (!s.isActive || s.contractStatus != ContractStatus.active) {
         return false;
       }
@@ -2561,8 +2555,10 @@ class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
     }).toList();
   }
 
-  List<TimeOfDay> _findAltSlots(SessionInstancePreview session) {
-    final avail = widget.student.availability.where(
+  // ── Find alternative time slots ─────────────────────────────
+
+  List<TimeOfDay> findAltSlots(SessionInstancePreview session) {
+    final avail = student.availability.where(
       (a) => a.dayOfWeek == session.weekday && a.isEnabled,
     );
     if (avail.isEmpty) return [];
@@ -2573,9 +2569,7 @@ class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
 
     final busy = <({int start, int end})>[];
     for (final o in MockData.orders.where(
-      (o) =>
-          o.student?.id == widget.student.id &&
-          o.status != OrderStatus.cancelled,
+      (o) => o.student?.id == student.id && o.status != OrderStatus.cancelled,
     )) {
       if (o.dayEntries.isNotEmpty) {
         for (final e in o.dayEntries) {
@@ -2610,771 +2604,23 @@ class _OrderSessionPreviewState extends State<_OrderSessionPreview> {
     return slots;
   }
 
+  // ── Conflict message ────────────────────────────────────────
+
+  String buildConflictMessage(SessionInstancePreview s) {
+    if (s.conflictingOrder != null) {
+      return '${AppStrings.conflictWith} '
+          '#${s.conflictingOrder!.orderNumber} '
+          '${s.conflictingOrder!.senior.fullName}';
+    }
+    return AppStrings.timeMismatch;
+  }
+
   // ── Helpers ─────────────────────────────────────────────────
 
   static int _toMin(TimeOfDay t) => t.hour * 60 + t.minute;
   static bool _overlap(int s1, int e1, int s2, int e2) => s1 < e2 && s2 < e1;
   static bool _sameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
-
-  int get _freeCount =>
-      _sessions.where((s) => s.conflictType == SessionConflictType.free).length;
-  int get _conflictCount => _sessions
-      .where((s) => s.conflictType == SessionConflictType.conflict)
-      .length;
-  int get _unresolvedCount =>
-      _sessions.where((s) => s.hasUnresolvedConflict).length;
-
-  static const _dayLabelsShort = [
-    'Pon',
-    'Uto',
-    'Sri',
-    'Čet',
-    'Pet',
-    'Sub',
-    'Ned',
-  ];
-
-  // ── Actions ─────────────────────────────────────────────────
-
-  void _skipSession(int i) => setState(() => _sessions[i].isSkipped = true);
-  void _undoSkip(int i) => setState(() => _sessions[i].isSkipped = false);
-
-  void _toggleTimePicker(int index) {
-    final session = _sessions[index];
-    final slots = _findAltSlots(session);
-    if (slots.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.noSubstitutesAvailable),
-          backgroundColor: HelpiTheme.error,
-        ),
-      );
-      return;
-    }
-    setState(() {
-      if (_expandedIndex == index && _expandedType == 'time') {
-        _expandedIndex = null;
-        _expandedType = null;
-      } else {
-        _expandedIndex = index;
-        _expandedType = 'time';
-      }
-    });
-  }
-
-  void _toggleSubstitutePicker(int index) {
-    final session = _sessions[index];
-    final subs = _findSubstitutes(session);
-    if (subs.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.noSubstitutesAvailable),
-          backgroundColor: HelpiTheme.error,
-        ),
-      );
-      return;
-    }
-    setState(() {
-      if (_expandedIndex == index && _expandedType == 'substitute') {
-        _expandedIndex = null;
-        _expandedType = null;
-      } else {
-        _expandedIndex = index;
-        _expandedType = 'substitute';
-      }
-    });
-  }
-
-  void _confirmAssign() {
-    if (_unresolvedCount > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.unresolvedConflicts),
-          backgroundColor: HelpiTheme.error,
-        ),
-      );
-      return;
-    }
-    widget.onAssigned(_sessions);
-  }
-
-  // ── Build ───────────────────────────────────────────────────
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (!widget.useDialog)
-          const Padding(
-            padding: EdgeInsets.only(top: 12, bottom: 4),
-            child: DragHandle(),
-          ),
-        // Header with back button
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back, size: 20),
-                onPressed: widget.onBack,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-              const Icon(Icons.calendar_month, color: HelpiTheme.accent),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  AppStrings.sessionPreviewTitle,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        ),
-        // Sub-header
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '#${widget.order.orderNumber} '
-                '${widget.order.senior.fullName}  →  '
-                '${widget.student.fullName}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: HelpiTheme.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              _buildStatsBar(),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        // Session list
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: _sessions.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 8),
-            itemBuilder: (_, i) => _buildSessionTile(i),
-          ),
-        ),
-        // Bottom bar
-        _buildBottomBar(),
-      ],
-    );
-  }
-
-  Widget _buildStatsBar() {
-    return Row(
-      children: [
-        _statChip(
-          Icons.check_box_outlined,
-          '$_freeCount',
-          HelpiTheme.statusActiveBg,
-          HelpiTheme.statusActiveText,
-        ),
-        const SizedBox(width: 8),
-        if (_conflictCount > 0) ...[
-          _statChip(
-            Icons.warning_amber_rounded,
-            '$_conflictCount',
-            HelpiTheme.statusCancelledBg,
-            HelpiTheme.statusCancelledText,
-          ),
-          const SizedBox(width: 8),
-        ],
-        _statChip(
-          Icons.event_note,
-          AppStrings.sessionCountChip(_sessions.length),
-          HelpiTheme.chipBg,
-          HelpiTheme.textSecondary,
-        ),
-      ],
-    );
-  }
-
-  Widget _statChip(IconData icon, String text, Color bg, Color fg) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        border: Border.all(color: fg.withAlpha(50)),
-        borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: fg),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: fg,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSessionTile(int index) {
-    final s = _sessions[index];
-    final isFree = s.conflictType == SessionConflictType.free;
-    final isResolved =
-        s.isSkipped ||
-        s.rescheduledStart != null ||
-        s.substituteStudent != null;
-
-    Color borderColor;
-    Color bgColor;
-    if (s.isSkipped) {
-      borderColor = HelpiTheme.border;
-      bgColor = HelpiTheme.chipBg;
-    } else if (isFree || isResolved) {
-      borderColor = HelpiTheme.statusActiveText.withAlpha(80);
-      bgColor = Colors.white;
-    } else {
-      borderColor = HelpiTheme.statusCancelledText.withAlpha(120);
-      bgColor = Colors.white;
-    }
-
-    final displayStart = s.rescheduledStart ?? s.startTime;
-    final endMin = _toMin(displayStart) + s.durationHours * 60;
-    final endTime = TimeOfDay(hour: endMin ~/ 60, minute: endMin % 60);
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Row 1: Date + Status
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: (!isFree && !isResolved && !s.isSkipped)
-                      ? HelpiTheme.statusCancelledText.withAlpha(20)
-                      : HelpiTheme.accent.withAlpha(20),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  _dayLabelsShort[s.weekday - 1],
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: (!isFree && !isResolved && !s.isSkipped)
-                        ? HelpiTheme.statusCancelledText
-                        : HelpiTheme.accent,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                formatDate(s.date),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  decoration: s.isSkipped ? TextDecoration.lineThrough : null,
-                  color: s.isSkipped ? HelpiTheme.textSecondary : null,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${formatTimeOfDay(displayStart)} – ${formatTimeOfDay(endTime)}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: s.isSkipped ? HelpiTheme.textSecondary : null,
-                  decoration: s.isSkipped ? TextDecoration.lineThrough : null,
-                ),
-              ),
-              const Spacer(),
-              _buildBadge(s),
-            ],
-          ),
-
-          // Conflict info / resolution
-          if (!isFree && !s.isSkipped) ...[
-            const SizedBox(height: 8),
-            if (s.rescheduledStart != null)
-              Row(
-                children: [
-                  const Icon(
-                    Icons.schedule,
-                    size: 14,
-                    color: HelpiTheme.statusProcessingText,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    formatTimeOfDay(s.rescheduledStart!),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: HelpiTheme.statusProcessingText,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _actionBtn(
-                    Icons.undo,
-                    AppStrings.undoSkip,
-                    HelpiTheme.accent,
-                    () => setState(() {
-                      _sessions[index].rescheduledStart = null;
-                    }),
-                  ),
-                ],
-              )
-            else if (s.substituteStudent != null)
-              Row(
-                children: [
-                  const Icon(
-                    Icons.person_outline,
-                    size: 14,
-                    color: HelpiTheme.accent,
-                  ),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      s.substituteStudent!.fullName,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: HelpiTheme.accent,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _actionBtn(
-                    Icons.undo,
-                    AppStrings.undoSkip,
-                    HelpiTheme.accent,
-                    () => setState(() {
-                      _sessions[index].substituteStudent = null;
-                    }),
-                  ),
-                ],
-              )
-            else ...[
-              Row(
-                children: [
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    size: 14,
-                    color: HelpiTheme.statusCancelledText,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      s.conflictingOrder != null
-                          ? '${AppStrings.conflictWith} '
-                                '#${s.conflictingOrder!.orderNumber} '
-                                '${s.conflictingOrder!.senior.fullName}'
-                          : AppStrings.timeMismatch,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: HelpiTheme.statusCancelledText,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  _actionBtn(
-                    Icons.skip_next,
-                    AppStrings.skipSession,
-                    HelpiTheme.textSecondary,
-                    () => _skipSession(index),
-                  ),
-                  const SizedBox(width: 8),
-                  _actionBtn(
-                    Icons.schedule,
-                    AppStrings.changeTime,
-                    _expandedIndex == index && _expandedType == 'time'
-                        ? HelpiTheme.accent
-                        : HelpiTheme.statusProcessingText,
-                    () => _toggleTimePicker(index),
-                  ),
-                  const SizedBox(width: 8),
-                  _actionBtn(
-                    Icons.person_add_alt_1,
-                    AppStrings.findSubstitute,
-                    _expandedIndex == index && _expandedType == 'substitute'
-                        ? HelpiTheme.statusProcessingText
-                        : HelpiTheme.accent,
-                    () => _toggleSubstitutePicker(index),
-                  ),
-                ],
-              ),
-              // ── Inline time picker ──
-              if (_expandedIndex == index && _expandedType == 'time')
-                _buildInlineTimePicker(index),
-              // ── Inline substitute picker ──
-              if (_expandedIndex == index && _expandedType == 'substitute')
-                _buildInlineSubstitutePicker(index),
-            ],
-          ],
-
-          if (s.isSkipped) ...[
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                const Icon(
-                  Icons.skip_next,
-                  size: 14,
-                  color: HelpiTheme.textSecondary,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  AppStrings.sessionSkipped,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                _actionBtn(
-                  Icons.undo,
-                  AppStrings.undoSkip,
-                  HelpiTheme.accent,
-                  () => _undoSkip(index),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBadge(SessionInstancePreview s) {
-    String label;
-    Color bg;
-    Color fg;
-    if (s.isSkipped) {
-      label = AppStrings.sessionSkipped;
-      bg = HelpiTheme.chipBg;
-      fg = HelpiTheme.textSecondary;
-    } else if (s.rescheduledStart != null) {
-      label = AppStrings.sessionRescheduled;
-      bg = HelpiTheme.statusProcessingBg;
-      fg = HelpiTheme.statusProcessingText;
-    } else if (s.substituteStudent != null) {
-      label = AppStrings.sessionSubstitute;
-      bg = HelpiTheme.pastelTeal;
-      fg = HelpiTheme.accent;
-    } else if (s.conflictType == SessionConflictType.free) {
-      label = AppStrings.sessionFree;
-      bg = HelpiTheme.statusActiveBg;
-      fg = HelpiTheme.statusActiveText;
-    } else {
-      label = AppStrings.sessionConflict;
-      bg = HelpiTheme.statusCancelledBg;
-      fg = HelpiTheme.statusCancelledText;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: bg,
-        border: Border.all(color: fg.withAlpha(50)),
-        borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
-      ),
-    );
-  }
-
-  // ── Inline pickers ──────────────────────────────────────────
-
-  Widget _buildInlineTimePicker(int index) {
-    final session = _sessions[index];
-    final slots = _findAltSlots(session);
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppStrings.selectNewTime,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: HelpiTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: slots.map((slot) {
-              final endMin = _toMin(slot) + session.durationHours * 60;
-              final end = TimeOfDay(hour: endMin ~/ 60, minute: endMin % 60);
-              return Material(
-                color: HelpiTheme.statusProcessingBg,
-                borderRadius: BorderRadius.circular(6),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(6),
-                  hoverColor: HelpiTheme.statusProcessingText.withAlpha(20),
-                  splashColor: HelpiTheme.statusProcessingText.withAlpha(30),
-                  mouseCursor: SystemMouseCursors.click,
-                  onTap: () {
-                    setState(() {
-                      _sessions[index].rescheduledStart = slot;
-                      _expandedIndex = null;
-                      _expandedType = null;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: HelpiTheme.statusProcessingText.withAlpha(60),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.access_time,
-                          size: 13,
-                          color: HelpiTheme.statusProcessingText,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${formatTimeOfDay(slot)} – ${formatTimeOfDay(end)}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: HelpiTheme.statusProcessingText,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInlineSubstitutePicker(int index) {
-    final session = _sessions[index];
-    final subs = _findSubstitutes(session);
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppStrings.selectSubstitute,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: HelpiTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          ...subs.map(
-            (sub) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
-                  hoverColor: HelpiTheme.accent.withAlpha(15),
-                  splashColor: HelpiTheme.accent.withAlpha(25),
-                  mouseCursor: SystemMouseCursors.click,
-                  onTap: () {
-                    setState(() {
-                      _sessions[index].substituteStudent = sub;
-                      _expandedIndex = null;
-                      _expandedType = null;
-                    });
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(
-                        HelpiTheme.pillRadius,
-                      ),
-                      border: Border.all(
-                        color: HelpiTheme.accent.withAlpha(60),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: HelpiTheme.accent.withAlpha(30),
-                          radius: 14,
-                          child: Text(
-                            '${sub.firstName[0]}${sub.lastName[0]}',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: HelpiTheme.accent,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            sub.fullName,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        Icon(
-                          Icons.star_rounded,
-                          size: 14,
-                          color: Colors.amber.shade700,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          '${sub.avgRating}',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.amber.shade700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _actionBtn(
-    IconData icon,
-    String label,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return Material(
-      color: color.withAlpha(20),
-      borderRadius: BorderRadius.circular(6),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(6),
-        hoverColor: color.withAlpha(25),
-        splashColor: color.withAlpha(35),
-        mouseCursor: SystemMouseCursors.click,
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: color.withAlpha(60)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 13, color: color),
-              const SizedBox(width: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomBar() {
-    final hasUnresolved = _unresolvedCount > 0;
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        12,
-        20,
-        12 + MediaQuery.of(context).padding.bottom,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: HelpiTheme.border)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (hasUnresolved) ...[
-            Row(
-              children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  size: 16,
-                  color: HelpiTheme.statusCancelledText,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${AppStrings.unresolvedConflicts} ($_unresolvedCount)',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: HelpiTheme.statusCancelledText,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-          ],
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ActionChipButton(
-              icon: Icons.check_circle,
-              label: AppStrings.confirmAssign,
-              color: hasUnresolved
-                  ? HelpiTheme.textSecondary
-                  : HelpiTheme.accent,
-              size: ActionChipButtonSize.medium,
-              onTap: _confirmAssign,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════
