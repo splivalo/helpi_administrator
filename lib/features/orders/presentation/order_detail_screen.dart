@@ -6,6 +6,7 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/utils/session_preview_helper.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/create_order_screen.dart';
 
@@ -2417,14 +2418,20 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
 
 /// Holds order-detail-specific session generation, substitute filtering,
 /// and conflict messaging. Passed as callbacks to [SessionPreviewContent].
-class _OrderSessionPreviewHelper {
-  _OrderSessionPreviewHelper({required this.student, required this.order});
+class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
+  _OrderSessionPreviewHelper({required super.student, required super.order});
 
-  final StudentModel student;
-  final OrderModel order;
+  @override
+  bool isSubstituteCandidate(StudentModel s) {
+    if (s.id == student.id) return false;
+    if (!s.isActive || s.contractStatus != ContractStatus.active) return false;
+    return true;
+  }
 
-  // ── Generate sessions ───────────────────────────────────────
+  @override
+  bool onNoAvailability(StudentModel s) => s.availability.isEmpty;
 
+  @override
   List<SessionInstancePreview> generateSessions() {
     final studentOrders = MockData.orders
         .where(
@@ -2438,7 +2445,7 @@ class _OrderSessionPreviewHelper {
     final List<SessionInstancePreview> result = [];
     for (final session in order.sessions) {
       if (session.status != SessionStatus.scheduled) continue;
-      final startMin = _toMin(session.startTime);
+      final startMin = toMinutes(session.startTime);
       final endMin = startMin + session.durationHours * 60;
 
       SessionConflictType conflictType = SessionConflictType.free;
@@ -2453,8 +2460,8 @@ class _OrderSessionPreviewHelper {
           conflictType = SessionConflictType.conflict;
         } else {
           final avail = dayAvail.first;
-          final fromMin = _toMin(avail.from);
-          final toMin = _toMin(avail.to);
+          final fromMin = toMinutes(avail.from);
+          final toMin = toMinutes(avail.to);
           if (startMin < fromMin || startMin >= toMin) {
             conflictType = SessionConflictType.conflict;
           }
@@ -2463,7 +2470,7 @@ class _OrderSessionPreviewHelper {
 
       // 2) Check scheduling conflicts with other orders
       if (conflictType == SessionConflictType.free) {
-        conflictingOrder = _findConflict(
+        conflictingOrder = findConflict(
           date: session.date,
           weekday: session.weekday,
           startMin: startMin,
@@ -2490,122 +2497,7 @@ class _OrderSessionPreviewHelper {
     return result;
   }
 
-  OrderModel? _findConflict({
-    required DateTime date,
-    required int weekday,
-    required int startMin,
-    required int endMin,
-    required List<OrderModel> studentOrders,
-  }) {
-    for (final existing in studentOrders) {
-      if (existing.dayEntries.isNotEmpty) {
-        for (final entry in existing.dayEntries) {
-          if (entry.dayOfWeek == weekday) {
-            final exStart = _toMin(entry.startTime);
-            final exEnd = exStart + entry.durationHours * 60;
-            if (_overlap(startMin, endMin, exStart, exEnd)) return existing;
-          }
-        }
-      } else if (_sameDay(existing.scheduledDate, date)) {
-        final exStart = _toMin(existing.scheduledStart);
-        final exEnd = exStart + existing.durationHours * 60;
-        if (_overlap(startMin, endMin, exStart, exEnd)) return existing;
-      }
-    }
-    return null;
-  }
-
-  // ── Find substitutes ───────────────────────────────────────
-
-  List<StudentModel> findSubstitutes(SessionInstancePreview session) {
-    return MockData.students.where((s) {
-      if (s.id == student.id) return false;
-      if (!s.isActive || s.contractStatus != ContractStatus.active) {
-        return false;
-      }
-      final avail = s.availability.where(
-        (a) => a.dayOfWeek == session.weekday && a.isEnabled,
-      );
-      if (avail.isEmpty) return s.availability.isEmpty;
-      final a = avail.first;
-      final sStart = _toMin(session.startTime);
-      final sEnd = sStart + session.durationHours * 60;
-      if (_toMin(a.from) > sStart || _toMin(a.to) < sEnd) return false;
-      final subOrders = MockData.orders.where(
-        (o) => o.student?.id == s.id && o.status != OrderStatus.cancelled,
-      );
-      for (final o in subOrders) {
-        if (o.dayEntries.isNotEmpty) {
-          for (final entry in o.dayEntries) {
-            if (entry.dayOfWeek == session.weekday) {
-              final exS = _toMin(entry.startTime);
-              if (_overlap(sStart, sEnd, exS, exS + entry.durationHours * 60)) {
-                return false;
-              }
-            }
-          }
-        } else if (_sameDay(o.scheduledDate, session.date)) {
-          final exS = _toMin(o.scheduledStart);
-          if (_overlap(sStart, sEnd, exS, exS + o.durationHours * 60)) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }).toList();
-  }
-
-  // ── Find alternative time slots ─────────────────────────────
-
-  List<TimeOfDay> findAltSlots(SessionInstancePreview session) {
-    final avail = student.availability.where(
-      (a) => a.dayOfWeek == session.weekday && a.isEnabled,
-    );
-    if (avail.isEmpty) return [];
-    final a = avail.first;
-    final availFrom = _toMin(a.from);
-    final availTo = _toMin(a.to);
-    final dur = session.durationHours * 60;
-
-    final busy = <({int start, int end})>[];
-    for (final o in MockData.orders.where(
-      (o) => o.student?.id == student.id && o.status != OrderStatus.cancelled,
-    )) {
-      if (o.dayEntries.isNotEmpty) {
-        for (final e in o.dayEntries) {
-          if (e.dayOfWeek == session.weekday) {
-            final s = _toMin(e.startTime);
-            busy.add((start: s, end: s + e.durationHours * 60));
-          }
-        }
-      } else if (_sameDay(o.scheduledDate, session.date)) {
-        final s = _toMin(o.scheduledStart);
-        busy.add((start: s, end: s + o.durationHours * 60));
-      }
-    }
-    busy.sort((a, b) => a.start.compareTo(b.start));
-
-    final List<TimeOfDay> slots = [];
-    int cursor = availFrom;
-    for (final b in busy) {
-      if (cursor + dur <= b.start) {
-        slots.add(TimeOfDay(hour: cursor ~/ 60, minute: cursor % 60));
-      }
-      if (b.end > cursor) cursor = b.end;
-    }
-    if (cursor + dur <= availTo) {
-      slots.add(TimeOfDay(hour: cursor ~/ 60, minute: cursor % 60));
-    }
-    slots.removeWhere(
-      (t) =>
-          t.hour == session.startTime.hour &&
-          t.minute == session.startTime.minute,
-    );
-    return slots;
-  }
-
-  // ── Conflict message ────────────────────────────────────────
-
+  @override
   String buildConflictMessage(SessionInstancePreview s) {
     if (s.conflictingOrder != null) {
       return '${AppStrings.conflictWith} '
@@ -2614,13 +2506,6 @@ class _OrderSessionPreviewHelper {
     }
     return AppStrings.timeMismatch;
   }
-
-  // ── Helpers ─────────────────────────────────────────────────
-
-  static int _toMin(TimeOfDay t) => t.hour * 60 + t.minute;
-  static bool _overlap(int s1, int e1, int s2, int e2) => s1 < e2 && s2 < e1;
-  static bool _sameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
 // ═══════════════════════════════════════════════════════════════

@@ -56,8 +56,6 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
 
   // ── Helpers ─────────────────────────────────────────────────
 
-  static int _toMin(TimeOfDay t) => t.hour * 60 + t.minute;
-
   int get _freeCount =>
       _sessions.where((s) => s.conflictType == SessionConflictType.free).length;
   int get _conflictCount => _sessions
@@ -271,7 +269,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
     }
 
     final displayStart = s.rescheduledStart ?? s.startTime;
-    final endMin = _toMin(displayStart) + s.durationHours * 60;
+    final endMin = toMinutes(displayStart) + s.durationHours * 60;
     final endTime = TimeOfDay(hour: endMin ~/ 60, minute: endMin % 60);
 
     return Container(
@@ -543,7 +541,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
             spacing: 6,
             runSpacing: 6,
             children: slots.map((slot) {
-              final endMin = _toMin(slot) + session.durationHours * 60;
+              final endMin = toMinutes(slot) + session.durationHours * 60;
               final end = TimeOfDay(hour: endMin ~/ 60, minute: endMin % 60);
               return Material(
                 color: HelpiTheme.accent.withAlpha(20),

@@ -17,3 +17,13 @@ String formatTimeOfDay(TimeOfDay t) =>
 /// Formats a [DateTime] as `dd.MM.yyyy` with trailing dot (e.g. `05.03.2026.`).
 /// Used for birth dates in Croatian locale.
 String formatDateDot(DateTime d) => '${formatDate(d)}.';
+
+/// Converts a [TimeOfDay] to total minutes since midnight.
+int toMinutes(TimeOfDay t) => t.hour * 60 + t.minute;
+
+/// Returns `true` if time range [s1,e1) overlaps with [s2,e2) (in minutes).
+bool timeOverlaps(int s1, int e1, int s2, int e2) => s1 < e2 && s2 < e1;
+
+/// Returns `true` if [a] and [b] fall on the same calendar day.
+bool sameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;

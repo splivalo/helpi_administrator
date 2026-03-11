@@ -1336,129 +1336,14 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
       MockData.reviews.where((r) => r.seniorName == _senior.fullName).toList();
 
   Widget _buildReviewsSection(List<ReviewModel> reviews) {
-    if (reviews.isEmpty) {
-      return SectionCard(
-        title: AppStrings.seniorReviews,
-        icon: Icons.star,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Center(
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.star_border,
-                    size: 36,
-                    color: HelpiTheme.border,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    AppStrings.seniorNoReviews,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    final avgRating =
-        reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
-
-    return SectionCard(
+    final avgRating = reviews.isEmpty
+        ? 0.0
+        : reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
+    return ReviewsSection(
       title: AppStrings.seniorReviews,
-      icon: Icons.star,
-      children: [
-        // ── Rating summary ──
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: HelpiTheme.starYellow.withValues(alpha: 0.15),
-                border: Border.all(
-                  color: HelpiTheme.starYellow.withValues(alpha: 0.3),
-                ),
-                borderRadius: BorderRadius.circular(
-                  HelpiTheme.statusBadgeRadius,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.star,
-                    size: 18,
-                    color: HelpiTheme.starYellow,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    avgRating.toStringAsFixed(1),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            Text(
-              '${AppStrings.studentTotalRatings}: ${reviews.length}',
-              style: const TextStyle(
-                color: HelpiTheme.textSecondary,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-        const Divider(height: 20),
-        ...reviews.map(
-          (r) => Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: HelpiTheme.scaffold,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ...List.generate(
-                      5,
-                      (i) => Icon(
-                        i < r.rating ? Icons.star : Icons.star_border,
-                        size: 16,
-                        color: HelpiTheme.starYellow,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      r.studentName,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                if (r.comment != null && r.comment!.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    r.comment!,
-                    style: const TextStyle(fontSize: 13, height: 1.4),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
+      avgRating: avgRating,
+      reviews: reviews,
+      reviewerName: (r) => r.studentName,
     );
   }
 

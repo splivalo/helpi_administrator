@@ -7,6 +7,7 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/faculty.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/utils/session_preview_helper.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 
@@ -1214,128 +1215,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   //  REVIEWS SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildReviewsSection(List<ReviewModel> reviews) {
-    if (reviews.isEmpty) {
-      return SectionCard(
-        title: AppStrings.studentReviews,
-        icon: Icons.star,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Center(
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.star_border,
-                    size: 36,
-                    color: HelpiTheme.border,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    AppStrings.seniorNoReviews,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return SectionCard(
+    return ReviewsSection(
       title: AppStrings.studentReviews,
-      icon: Icons.star,
-      children: [
-        // ── Rating summary ──
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: HelpiTheme.starYellow.withValues(alpha: 0.15),
-                border: Border.all(
-                  color: HelpiTheme.starYellow.withValues(alpha: 0.3),
-                ),
-                borderRadius: BorderRadius.circular(
-                  HelpiTheme.statusBadgeRadius,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.star,
-                    size: 18,
-                    color: HelpiTheme.starYellow,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${_student.avgRating}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 16),
-            Text(
-              '${AppStrings.studentTotalRatings}: ${reviews.length}',
-              style: const TextStyle(
-                color: HelpiTheme.textSecondary,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-        if (reviews.isNotEmpty) ...[
-          const Divider(height: 20),
-          ...reviews.map(
-            (r) => Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: HelpiTheme.scaffold,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      ...List.generate(
-                        5,
-                        (i) => Icon(
-                          i < r.rating ? Icons.star : Icons.star_border,
-                          size: 16,
-                          color: HelpiTheme.starYellow,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        r.seniorName,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: HelpiTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (r.comment != null && r.comment!.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      r.comment!,
-                      style: const TextStyle(fontSize: 13, height: 1.4),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ],
+      avgRating: _student.avgRating,
+      reviews: reviews,
+      reviewerName: (r) => r.seniorName,
     );
   }
 
@@ -1602,14 +1486,10 @@ class _AssignFlowSheetState extends State<_AssignFlowSheet> {
 
 /// Thin wrapper that supplies student-detail-specific logic to the
 /// shared [SessionPreviewContent] widget.
-class _StudentSessionPreviewHelper {
-  _StudentSessionPreviewHelper({required this.student, required this.order});
+class _StudentSessionPreviewHelper extends SessionPreviewHelperBase {
+  _StudentSessionPreviewHelper({required super.student, required super.order});
 
-  final StudentModel student;
-  final OrderModel order;
-
-  // ── Generate sessions ───────────────────────────────────────
-
+  @override
   List<SessionInstancePreview> generateSessions() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -1624,11 +1504,11 @@ class _StudentSessionPreviewHelper {
         .toList();
 
     if (order.frequency == FrequencyType.oneTime) {
-      final conflict = _findConflict(
+      final conflict = findConflict(
         date: order.scheduledDate,
         weekday: order.scheduledDate.weekday,
-        startMin: _toMin(order.scheduledStart),
-        endMin: _toMin(order.scheduledStart) + order.durationHours * 60,
+        startMin: toMinutes(order.scheduledStart),
+        endMin: toMinutes(order.scheduledStart) + order.durationHours * 60,
         studentOrders: studentOrders,
       );
       return [
@@ -1654,9 +1534,9 @@ class _StudentSessionPreviewHelper {
       for (int week = 0; week < 8; week++) {
         final sessionDate = nextDate.add(Duration(days: week * 7));
         if (order.endDate != null && sessionDate.isAfter(order.endDate!)) break;
-        final startMin = _toMin(entry.startTime);
+        final startMin = toMinutes(entry.startTime);
         final endMin = startMin + entry.durationHours * 60;
-        final conflict = _findConflict(
+        final conflict = findConflict(
           date: sessionDate,
           weekday: entry.dayOfWeek,
           startMin: startMin,
@@ -1681,131 +1561,12 @@ class _StudentSessionPreviewHelper {
     return result;
   }
 
-  OrderModel? _findConflict({
-    required DateTime date,
-    required int weekday,
-    required int startMin,
-    required int endMin,
-    required List<OrderModel> studentOrders,
-  }) {
-    for (final existing in studentOrders) {
-      if (existing.dayEntries.isNotEmpty) {
-        for (final entry in existing.dayEntries) {
-          if (entry.dayOfWeek == weekday) {
-            final exStart = _toMin(entry.startTime);
-            final exEnd = exStart + entry.durationHours * 60;
-            if (_overlap(startMin, endMin, exStart, exEnd)) return existing;
-          }
-        }
-      } else if (_sameDay(existing.scheduledDate, date)) {
-        final exStart = _toMin(existing.scheduledStart);
-        final exEnd = exStart + existing.durationHours * 60;
-        if (_overlap(startMin, endMin, exStart, exEnd)) return existing;
-      }
-    }
-    return null;
-  }
-
-  // ── Find substitutes ───────────────────────────────────────
-
-  List<StudentModel> findSubstitutes(SessionInstancePreview session) {
-    return MockData.students.where((s) {
-      if (s.id == student.id) return false;
-      final avail = s.availability.where(
-        (a) => a.dayOfWeek == session.weekday && a.isEnabled,
-      );
-      if (avail.isEmpty) return false;
-      final a = avail.first;
-      final sStart = _toMin(session.startTime);
-      final sEnd = sStart + session.durationHours * 60;
-      if (_toMin(a.from) > sStart || _toMin(a.to) < sEnd) return false;
-      final subOrders = MockData.orders.where(
-        (o) => o.student?.id == s.id && o.status != OrderStatus.cancelled,
-      );
-      for (final o in subOrders) {
-        if (o.dayEntries.isNotEmpty) {
-          for (final entry in o.dayEntries) {
-            if (entry.dayOfWeek == session.weekday) {
-              final exS = _toMin(entry.startTime);
-              if (_overlap(sStart, sEnd, exS, exS + entry.durationHours * 60)) {
-                return false;
-              }
-            }
-          }
-        } else if (_sameDay(o.scheduledDate, session.date)) {
-          final exS = _toMin(o.scheduledStart);
-          if (_overlap(sStart, sEnd, exS, exS + o.durationHours * 60)) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }).toList();
-  }
-
-  // ── Find alternative time slots ─────────────────────────────
-
-  List<TimeOfDay> findAltSlots(SessionInstancePreview session) {
-    final avail = student.availability.where(
-      (a) => a.dayOfWeek == session.weekday && a.isEnabled,
-    );
-    if (avail.isEmpty) return [];
-    final a = avail.first;
-    final availFrom = _toMin(a.from);
-    final availTo = _toMin(a.to);
-    final dur = session.durationHours * 60;
-
-    final busy = <({int start, int end})>[];
-    for (final o in MockData.orders.where(
-      (o) => o.student?.id == student.id && o.status != OrderStatus.cancelled,
-    )) {
-      if (o.dayEntries.isNotEmpty) {
-        for (final e in o.dayEntries) {
-          if (e.dayOfWeek == session.weekday) {
-            final s = _toMin(e.startTime);
-            busy.add((start: s, end: s + e.durationHours * 60));
-          }
-        }
-      } else if (_sameDay(o.scheduledDate, session.date)) {
-        final s = _toMin(o.scheduledStart);
-        busy.add((start: s, end: s + o.durationHours * 60));
-      }
-    }
-    busy.sort((a, b) => a.start.compareTo(b.start));
-
-    final List<TimeOfDay> slots = [];
-    int cursor = availFrom;
-    for (final b in busy) {
-      if (cursor + dur <= b.start) {
-        slots.add(TimeOfDay(hour: cursor ~/ 60, minute: cursor % 60));
-      }
-      if (b.end > cursor) cursor = b.end;
-    }
-    if (cursor + dur <= availTo) {
-      slots.add(TimeOfDay(hour: cursor ~/ 60, minute: cursor % 60));
-    }
-    slots.removeWhere(
-      (t) =>
-          t.hour == session.startTime.hour &&
-          t.minute == session.startTime.minute,
-    );
-    return slots;
-  }
-
-  // ── Conflict message ────────────────────────────────────────
-
+  @override
   String buildConflictMessage(SessionInstancePreview s) {
     return '${AppStrings.conflictWith} '
         '#${s.conflictingOrder?.orderNumber ?? "?"} '
         '${s.conflictingOrder?.senior.fullName ?? ""}';
   }
-
-  // ── Helpers ─────────────────────────────────────────────────
-
-  static int _toMin(TimeOfDay t) => t.hour * 60 + t.minute;
-  static bool _overlap(int s1, int e1, int s2, int e2) => s1 < e2 && s2 < e1;
-  static bool _sameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
 // ═══════════════════════════════════════════════════════════════
