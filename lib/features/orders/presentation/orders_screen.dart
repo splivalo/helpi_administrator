@@ -94,9 +94,9 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
     // Sorting
     switch (_sort) {
       case OrderSort.az:
-        orders.sort((a, b) => a.senior.fullName.compareTo(b.senior.fullName));
+        orders.sort((a, b) => a.orderNumber.compareTo(b.orderNumber));
       case OrderSort.za:
-        orders.sort((a, b) => b.senior.fullName.compareTo(a.senior.fullName));
+        orders.sort((a, b) => b.orderNumber.compareTo(a.orderNumber));
       case OrderSort.newest:
         orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       case OrderSort.oldest:

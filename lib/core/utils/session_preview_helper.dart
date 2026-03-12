@@ -52,15 +52,22 @@ abstract class SessionPreviewHelperBase {
               endMin,
               exStart - _buffer,
               exEnd + _buffer,
-            ))
+            )) {
               return existing;
+            }
           }
         }
       } else if (sameDay(existing.scheduledDate, date)) {
         final exStart = toMinutes(existing.scheduledStart);
         final exEnd = exStart + existing.durationHours * 60;
-        if (timeOverlaps(startMin, endMin, exStart - _buffer, exEnd + _buffer))
+        if (timeOverlaps(
+          startMin,
+          endMin,
+          exStart - _buffer,
+          exEnd + _buffer,
+        )) {
           return existing;
+        }
       }
     }
     return null;
