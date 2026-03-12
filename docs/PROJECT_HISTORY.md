@@ -181,6 +181,17 @@
 
 ---
 
+## 2026-03-12 — Session Preview: 15-min travel buffer & UI fixes
+
+- **15-minutni travel buffer** — `findAltSlots` (u `session_preview_helper.dart` i `session_preview_sheet.dart`) sada dodaje 15 min buffer nakon svake zauzete sesije. Student koji završava u 12:00 ne može početi sljedeću prije 12:15. Implementirano proširenjem busy intervala za `+ buffer` (15 min) na oba mjesta.
+- **Shared `show15MinTimePicker`** — Ekstrahiran zajednički time picker dialog u `shared_widgets.dart` s dva dropdowna (sat 0-23, minute 00/15/30/45). Koristi se u filterima studenata (Dostupan od/do). Session preview ekrani zadržavaju svoje slot-based pickere (inline chipovi / bottom sheet s ListTile).
+- **`HelpiTheme.inputFieldHeight`** — Dodana centralna konstanta (48px) za konzistentnu visinu svih input polja u filter panelu.
+- **Filter panel fixes** — Mobile background `HelpiTheme.scaffold` → `HelpiTheme.surface` (bijela); OutlinedButton → GestureDetector+Container za time picker gumbe (uklonjen bold tekst); availability filter logika promijenjena iz "covers" u "overlaps" semantiku.
+- **Mock data update** — Maja Knežević: dostupnost četvrtkom proširena na 7:00–19:00 za testiranje višestrukih alternativnih slotova.
+- **Rezultat**: 0 errors → 0 errors (flutter analyze)
+
+---
+
 ## Arhitekturalne odluke
 
 | Odluka                                         | Razlog                                                  | Datum      |

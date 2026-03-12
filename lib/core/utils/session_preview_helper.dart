@@ -111,6 +111,7 @@ abstract class SessionPreviewHelperBase {
     final dur = session.durationHours * 60;
 
     final busy = <({int start, int end})>[];
+    const buffer = 15; // minutes travel buffer after each session
     for (final o in MockData.orders.where(
       (o) => o.student?.id == student.id && o.status != OrderStatus.cancelled,
     )) {
@@ -118,12 +119,12 @@ abstract class SessionPreviewHelperBase {
         for (final e in o.dayEntries) {
           if (e.dayOfWeek == session.weekday) {
             final s = toMinutes(e.startTime);
-            busy.add((start: s, end: s + e.durationHours * 60));
+            busy.add((start: s, end: s + e.durationHours * 60 + buffer));
           }
         }
       } else if (sameDay(o.scheduledDate, session.date)) {
         final s = toMinutes(o.scheduledStart);
-        busy.add((start: s, end: s + o.durationHours * 60));
+        busy.add((start: s, end: s + o.durationHours * 60 + buffer));
       }
     }
     busy.sort((a, b) => a.start.compareTo(b.start));

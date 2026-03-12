@@ -1,6 +1,6 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-03-08
+> Zadnja izmjena: 2026-03-12
 
 ## Ukupno stanje
 
@@ -149,6 +149,14 @@
 - [x] `core/widgets/widgets.dart` — barrel export
 - [x] `core/services/preferences_service.dart` — SharedPreferences wrapper
 - [x] `features/seniors/presentation/senior_form_helpers.dart` — SeniorFormHelpers mixin
+
+### Session Preview & Scheduling
+
+- [x] 15-minutni travel buffer — findAltSlots dodaje 15 min nakon svake zauzete sesije tako da student ima vremena stići od jednog seniora do drugog
+- [x] Shared `show15MinTimePicker` dialog — dropdown picker (Sat 0-23, Min 00/15/30/45) u shared_widgets.dart, koristi se u filterima studenata (Dostupan od/do)
+- [x] `HelpiTheme.inputFieldHeight` (48px) — centralna konstanta za visinu input polja
+- [x] Filter panel mobile background fix — HelpiTheme.surface umjesto scaffold
+- [x] Availability filter overlap semantika — "pokriva" → "preklapa se"
 
 ---
 

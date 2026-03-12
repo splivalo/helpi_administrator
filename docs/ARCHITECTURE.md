@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-08
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-12
 
 ---
 
@@ -47,7 +47,7 @@ lib/
 │   └── widgets/
 │       ├── widgets.dart               # Barrel export (6 linija)
 │       ├── status_badges.dart         # StatusBadge (size enum), ServiceChip (177 linija)
-│       ├── shared_widgets.dart        # SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (size enum) (459 linija)
+│       ├── shared_widgets.dart        # SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (size enum), show15MinTimePicker (459 linija)
 │       ├── session_preview_sheet.dart # SessionPreviewSheet — prikaz sesija, dodjela studenta iz narudžbe (851 linija)
 │       ├── contact_actions.dart       # PhoneCallButton, EmailCopyButton (45 linija)
 │       └── notification_bell.dart     # NotificationBell + NotificationsDrawer (283 linija)
@@ -283,3 +283,8 @@ Definirani u `lib/core/models/admin_models.dart` (1717 linija):
 - Globalni `datePickerTheme` — teal boje, manji header font, zaobljeni rubovi
 - `confirmText: AppStrings.ok, cancelText: AppStrings.cancel` na svim pozivima
 - Nema per-call `builder` overridea — sve iz teme
+
+### Session Scheduling
+
+- **Travel buffer**: 15 min nakon svake zauzete sesije. Implementirano u `findAltSlots` (`session_preview_helper.dart` + `session_preview_sheet.dart`) — busy interval se proširuje za `+ 15 min`. Osigurava da student ima vremena stići od jednog seniora do drugog.
+- **Backend napomena**: kad backend preuzme scheduling logiku, mora implementirati isti 15-min buffer. Konstanta `buffer = 15` definirana lokalno u obje metode.

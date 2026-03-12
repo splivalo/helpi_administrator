@@ -242,6 +242,7 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
 
     // Collect all busy intervals on this weekday
     final busyIntervals = <({int start, int end})>[];
+    const buffer = 15; // minutes travel buffer after each session
     final studentOrders = MockData.orders.where(
       (o) =>
           o.student?.id == widget.student.id &&
@@ -252,13 +253,16 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
         for (final entry in o.dayEntries) {
           if (entry.dayOfWeek == session.weekday) {
             final s = _toMinutes(entry.startTime);
-            busyIntervals.add((start: s, end: s + entry.durationHours * 60));
+            busyIntervals.add((
+              start: s,
+              end: s + entry.durationHours * 60 + buffer,
+            ));
           }
         }
       } else if (session.date.weekday == o.scheduledDate.weekday &&
           _sameDate(o.scheduledDate, session.date)) {
         final s = _toMinutes(o.scheduledStart);
-        busyIntervals.add((start: s, end: s + o.durationHours * 60));
+        busyIntervals.add((start: s, end: s + o.durationHours * 60 + buffer));
       }
     }
     busyIntervals.sort((a, b) => a.start.compareTo(b.start));
