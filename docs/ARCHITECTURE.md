@@ -284,7 +284,34 @@ Definirani u `lib/core/models/admin_models.dart` (1717 linija):
 - `confirmText: AppStrings.ok, cancelText: AppStrings.cancel` na svim pozivima
 - Nema per-call `builder` overridea — sve iz teme
 
-### Session Scheduling
+### Session Scheduling — 15-min Travel Buffer
 
-- **Travel buffer**: 15 min nakon svake zauzete sesije. Implementirano u `findAltSlots` (`session_preview_helper.dart` + `session_preview_sheet.dart`) — busy interval se proširuje za `+ 15 min`. Osigurava da student ima vremena stići od jednog seniora do drugog.
-- **Backend napomena**: kad backend preuzme scheduling logiku, mora implementirati isti 15-min buffer. Konstanta `buffer = 15` definirana lokalno u obje metode.
+**Pravilo:** Između dva Helpi ordera istog studenta mora biti **minimalno 15 minuta** razmaka (putovanje između lokacija).
+
+**Gdje se primjenjuje (frontend mock faza):**
+
+| Funkcija | Fajl | Što radi |
+|---|---|---|
+| `findConflict` | `session_preview_helper.dart` | Detektira konflikt — proširuje postojeći order za ±15 min |
+| `findSubstitutes` | `session_preview_helper.dart` | Isključuje zamjenu ako joj je order unutar ±15 min |
+| `findAltSlots` | `session_preview_helper.dart` | Predlaže slobodne slotove — busy zone proširene za ±15 min |
+| `_findConflict` | `session_preview_sheet.dart` | Isto kao gore (duplicirana logika za mobile sheet) |
+| `_findSubstitutes` | `session_preview_sheet.dart` | Isto kao gore |
+| `_findAlternativeSlots` | `session_preview_sheet.dart` | Isto kao gore |
+
+**Ključna pravila:**
+- Buffer = `_buffer = 15` (konstanta na razini klase)
+- Primjenjuje se u **oba smjera** — 15 min PRIJE i 15 min NAKON postojećeg ordera
+- **NE primjenjuje se** na studentovu availability (to je čisti prozor, student je odgovoran doći na vrijeme)
+- Ako je order prvi tog dana — nema buffera prije njega
+- Ako je order zadnji tog dana — nema buffera poslije njega
+
+**Backend requirement (za buduću integraciju):**
+- Backend MORA implementirati istu 15-min buffer logiku u svim scheduling endpointima:
+  - Dodjela studenta narudžbi
+  - Kreiranje narudžbe s dodijeljenim studentom
+  - Promjena termina (reschedule)
+  - API za slobodne termine studenta
+  - API za zamjenske studente
+- Buffer vrijednost treba biti **konfigurabilan** (env/DB settings), ne hardkodiran
+- Frontend zadržava svoju provjeru za brzi UX feedback, ali **backend je izvor istine** i mora odbiti nevažeći zahtjev
