@@ -855,8 +855,8 @@ class MockData {
         DayAvailability(
           dayOfWeek: 4,
           isEnabled: true,
-          from: TimeOfDay(hour: 9, minute: 0),
-          to: TimeOfDay(hour: 15, minute: 0),
+          from: TimeOfDay(hour: 7, minute: 0),
+          to: TimeOfDay(hour: 19, minute: 0),
         ),
         DayAvailability(dayOfWeek: 5, isEnabled: false),
         DayAvailability(dayOfWeek: 6, isEnabled: false),
