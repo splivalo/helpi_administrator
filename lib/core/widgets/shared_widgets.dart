@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:helpi_admin/app/theme.dart';
+import 'package:helpi_admin/core/l10n/app_strings.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  SECTION CARD — white card with optional icon + title + children
@@ -455,6 +456,156 @@ class ResultCountRow extends StatelessWidget {
       ),
     );
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  15-MINUTE TIME PICKER — shared dialog with hour + minute
+// ═══════════════════════════════════════════════════════════════
+
+/// Shows a dialog to pick a time in 15-minute intervals (00, 15, 30, 45).
+Future<TimeOfDay?> show15MinTimePicker(
+  BuildContext context, {
+  TimeOfDay? initial,
+}) {
+  int hour = (initial ?? const TimeOfDay(hour: 8, minute: 0)).hour;
+  int minuteIndex =
+      ((initial ?? const TimeOfDay(hour: 8, minute: 0)).minute ~/ 15).clamp(
+        0,
+        3,
+      );
+  const minutes = [0, 15, 30, 45];
+
+  return showDialog<TimeOfDay>(
+    context: context,
+    builder: (ctx) {
+      return StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            title: Text(AppStrings.selectTime),
+            content: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      AppStrings.timePickerHour,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: 80,
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.cardRadius,
+                            ),
+                          ),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<int>(
+                            value: hour,
+                            isDense: true,
+                            items: List.generate(
+                              24,
+                              (i) => DropdownMenuItem(
+                                value: i,
+                                child: Text(i.toString().padLeft(2, '0')),
+                              ),
+                            ),
+                            onChanged: (v) {
+                              if (v != null) setDialogState(() => hour = v);
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    ':',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      AppStrings.timePickerMinute,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      width: 80,
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.cardRadius,
+                            ),
+                          ),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<int>(
+                            value: minuteIndex,
+                            isDense: true,
+                            items: List.generate(
+                              4,
+                              (i) => DropdownMenuItem(
+                                value: i,
+                                child: Text(
+                                  minutes[i].toString().padLeft(2, '0'),
+                                ),
+                              ),
+                            ),
+                            onChanged: (v) {
+                              if (v != null) {
+                                setDialogState(() => minuteIndex = v);
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(AppStrings.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(
+                  ctx,
+                  TimeOfDay(hour: hour, minute: minutes[minuteIndex]),
+                ),
+                child: Text(AppStrings.ok),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════

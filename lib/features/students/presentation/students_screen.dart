@@ -1047,7 +1047,7 @@ class _FilterPanelState extends State<_FilterPanel> {
                 children: [
                   Expanded(
                     child: SizedBox(
-                      height: 48,
+                      height: HelpiTheme.inputFieldHeight,
                       child: TextField(
                         controller: _minJobsCtrl,
                         keyboardType: TextInputType.number,
@@ -1099,7 +1099,7 @@ class _FilterPanelState extends State<_FilterPanel> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: SizedBox(
-                      height: 48,
+                      height: HelpiTheme.inputFieldHeight,
                       child: TextField(
                         controller: _maxJobsCtrl,
                         keyboardType: TextInputType.number,
@@ -1252,7 +1252,7 @@ class _FilterPanelState extends State<_FilterPanel> {
               _sectionTitle(AppStrings.filterByFaculty),
               const SizedBox(height: 8),
               SizedBox(
-                height: 48,
+                height: HelpiTheme.inputFieldHeight,
                 child: DropdownButtonFormField<String?>(
                   initialValue: _facultyFilter,
                   isExpanded: true,
@@ -1313,7 +1313,7 @@ class _FilterPanelState extends State<_FilterPanel> {
               _sectionTitle(AppStrings.filterBySenior),
               const SizedBox(height: 8),
               SizedBox(
-                height: 48,
+                height: HelpiTheme.inputFieldHeight,
                 child: DropdownButtonFormField<String?>(
                   initialValue: _seniorFilter,
                   isExpanded: true,
@@ -1514,151 +1514,6 @@ class _FilterPanelState extends State<_FilterPanel> {
     );
   }
 
-  Future<TimeOfDay?> _show15MinTimePicker(TimeOfDay initial) async {
-    int hour = initial.hour;
-    int minuteIndex = (initial.minute ~/ 15).clamp(0, 3);
-    const minutes = [0, 15, 30, 45];
-
-    return showDialog<TimeOfDay>(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setDialogState) {
-            return AlertDialog(
-              title: Text(AppStrings.selectTime),
-              content: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Hour dropdown
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        AppStrings.timePickerHour,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: HelpiTheme.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        width: 80,
-                        child: InputDecorator(
-                          decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                HelpiTheme.cardRadius,
-                              ),
-                            ),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<int>(
-                              value: hour,
-                              isDense: true,
-                              items: List.generate(
-                                24,
-                                (i) => DropdownMenuItem(
-                                  value: i,
-                                  child: Text(i.toString().padLeft(2, '0')),
-                                ),
-                              ),
-                              onChanged: (v) {
-                                if (v != null) {
-                                  setDialogState(() => hour = v);
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      ':',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  // Minute dropdown
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        AppStrings.timePickerMinute,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: HelpiTheme.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        width: 80,
-                        child: InputDecorator(
-                          decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                                HelpiTheme.cardRadius,
-                              ),
-                            ),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<int>(
-                              value: minuteIndex,
-                              isDense: true,
-                              items: List.generate(
-                                4,
-                                (i) => DropdownMenuItem(
-                                  value: i,
-                                  child: Text(
-                                    minutes[i].toString().padLeft(2, '0'),
-                                  ),
-                                ),
-                              ),
-                              onChanged: (v) {
-                                if (v != null) {
-                                  setDialogState(() => minuteIndex = v);
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(AppStrings.cancel),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(
-                    ctx,
-                    TimeOfDay(hour: hour, minute: minutes[minuteIndex]),
-                  ),
-                  child: Text(AppStrings.ok),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
   // ── Time picker button ──
   Widget _timePickerBtn({
     required String label,
@@ -1668,14 +1523,12 @@ class _FilterPanelState extends State<_FilterPanel> {
   }) {
     return GestureDetector(
       onTap: () async {
-        final picked = await _show15MinTimePicker(
-          value ?? const TimeOfDay(hour: 8, minute: 0),
-        );
+        final picked = await show15MinTimePicker(context, initial: value);
         if (!mounted) return;
         if (picked != null) onPick(picked);
       },
       child: Container(
-        height: 48,
+        height: HelpiTheme.inputFieldHeight,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: Colors.white,

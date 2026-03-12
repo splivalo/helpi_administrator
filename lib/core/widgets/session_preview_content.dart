@@ -13,7 +13,6 @@ import 'package:helpi_admin/core/widgets/shared_widgets.dart';
 /// - [generateSessions] — different session-generation logic per context
 /// - [findSubstitutes] — different eligibility criteria per context
 /// - [buildConflictMessage] — different message (time mismatch vs order conflict)
-/// - [findAltSlots] — finds alternative time slots for rescheduling
 class SessionPreviewContent extends StatefulWidget {
   const SessionPreviewContent({
     super.key,
@@ -23,7 +22,6 @@ class SessionPreviewContent extends StatefulWidget {
     required this.onAssigned,
     required this.generateSessions,
     required this.findSubstitutes,
-    required this.findAltSlots,
     required this.buildConflictMessage,
     this.useDialog = false,
   });
@@ -35,7 +33,6 @@ class SessionPreviewContent extends StatefulWidget {
   final List<SessionInstancePreview> Function() generateSessions;
   final List<StudentModel> Function(SessionInstancePreview session)
   findSubstitutes;
-  final List<TimeOfDay> Function(SessionInstancePreview session) findAltSlots;
   final String Function(SessionInstancePreview session) buildConflictMessage;
   final bool useDialog;
 
@@ -79,16 +76,18 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
   void _skipSession(int i) => setState(() => _sessions[i].isSkipped = true);
   void _undoSkip(int i) => setState(() => _sessions[i].isSkipped = false);
 
-  void _toggleTimePicker(int index) {
-    setState(() {
-      if (_expandedIndex == index && _expandedType == 'time') {
-        _expandedIndex = null;
-        _expandedType = null;
-      } else {
-        _expandedIndex = index;
-        _expandedType = 'time';
-      }
-    });
+  Future<void> _pickNewTime(int index) async {
+    final session = _sessions[index];
+    final picked = await show15MinTimePicker(
+      context,
+      initial: session.rescheduledStart ?? session.startTime,
+    );
+    if (!context.mounted) return;
+    if (picked != null) {
+      setState(() {
+        _sessions[index].rescheduledStart = picked;
+      });
+    }
   }
 
   void _toggleSubstitutePicker(int index) {
@@ -421,7 +420,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                     Icons.schedule,
                     AppStrings.changeTime,
                     HelpiTheme.accent,
-                    () => _toggleTimePicker(index),
+                    () => _pickNewTime(index),
                   ),
                   const SizedBox(width: 8),
                   _actionBtn(
@@ -432,9 +431,6 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                   ),
                 ],
               ),
-              // ── Inline time picker ──
-              if (_expandedIndex == index && _expandedType == 'time')
-                _buildInlineTimePicker(index),
               // ── Inline substitute picker ──
               if (_expandedIndex == index && _expandedType == 'substitute')
                 _buildInlineSubstitutePicker(index),
@@ -516,90 +512,6 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
   }
 
   // ── Inline pickers ──────────────────────────────────────────
-
-  Widget _buildInlineTimePicker(int index) {
-    final session = _sessions[index];
-    final slots = widget.findAltSlots(session);
-    if (slots.isEmpty) {
-      return _buildEmptyInlineMessage(
-        Icons.schedule,
-        AppStrings.noAlternativeSlots,
-      );
-    }
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppStrings.selectNewTime,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: HelpiTheme.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: slots.map((slot) {
-              final endMin = toMinutes(slot) + session.durationHours * 60;
-              final end = TimeOfDay(hour: endMin ~/ 60, minute: endMin % 60);
-              return Material(
-                color: HelpiTheme.accent.withAlpha(20),
-                borderRadius: BorderRadius.circular(6),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(6),
-                  hoverColor: HelpiTheme.accent.withAlpha(25),
-                  splashColor: HelpiTheme.accent.withAlpha(35),
-                  mouseCursor: SystemMouseCursors.click,
-                  onTap: () {
-                    setState(() {
-                      _sessions[index].rescheduledStart = slot;
-                      _expandedIndex = null;
-                      _expandedType = null;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: HelpiTheme.accent.withAlpha(60),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.access_time,
-                          size: 13,
-                          color: HelpiTheme.accent,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${formatTimeOfDay(slot)} – ${formatTimeOfDay(end)}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: HelpiTheme.accent,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildInlineSubstitutePicker(int index) {
     final session = _sessions[index];

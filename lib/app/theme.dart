@@ -41,6 +41,7 @@ class HelpiTheme {
   static const double statusBadgeRadius = 100.0;
   static const double bottomSheetRadius = 12.0;
   static const double pillRadius = 12.0;
+  static const double inputFieldHeight = 48.0;
 
   // ─── Sidebar (desktop) ──────────────────────────────────────────
   static const double sidebarWidth = 260.0;

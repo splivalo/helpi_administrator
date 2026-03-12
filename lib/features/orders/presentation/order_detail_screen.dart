@@ -1439,7 +1439,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               label: AppStrings.sessionNewTime,
               value: timeLabel,
               onTap: () async {
-                final picked = await _showTimeGrid(ctx, selectedTime);
+                final picked = await show15MinTimePicker(
+                  ctx,
+                  initial: selectedTime,
+                );
+                if (!ctx.mounted) return;
                 if (picked != null) {
                   setSheetState(() => selectedTime = picked);
                 }
@@ -1570,95 +1574,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   /// Custom time picker grid with 15-minute intervals (7:00 – 21:00).
-  Future<TimeOfDay?> _showTimeGrid(
-    BuildContext ctx,
-    TimeOfDay currentTime,
-  ) async {
-    final slots = <TimeOfDay>[];
-    for (int h = 7; h <= 21; h++) {
-      for (int m = 0; m < 60; m += 15) {
-        if (h == 21 && m > 0) break;
-        slots.add(TimeOfDay(hour: h, minute: m));
-      }
-    }
-
-    return showDialog<TimeOfDay>(
-      context: ctx,
-      builder: (dialogCtx) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 500),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AppStrings.selectTime,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Flexible(
-                    child: GridView.builder(
-                      shrinkWrap: true,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                            childAspectRatio: 2.2,
-                          ),
-                      itemCount: slots.length,
-                      itemBuilder: (_, i) {
-                        final slot = slots[i];
-                        final isSelected =
-                            slot.hour == currentTime.hour &&
-                            slot.minute == currentTime.minute;
-                        return Material(
-                          color: isSelected
-                              ? HelpiTheme.primary
-                              : HelpiTheme.surface,
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.pillRadius,
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(
-                              HelpiTheme.pillRadius,
-                            ),
-                            onTap: () => Navigator.pop(dialogCtx, slot),
-                            child: Center(
-                              child: Text(
-                                formatTimeOfDay(slot),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : HelpiTheme.textPrimary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   // ═══════════════════════════════════════════════════════════════
   //  AVAILABILITY HELPERS
   // ═══════════════════════════════════════════════════════════════
@@ -2315,7 +2230,7 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
                 useDialog: widget.useDialog,
                 generateSessions: helper.generateSessions,
                 findSubstitutes: helper.findSubstitutes,
-                findAltSlots: helper.findAltSlots,
+
                 buildConflictMessage: helper.buildConflictMessage,
               );
             },
