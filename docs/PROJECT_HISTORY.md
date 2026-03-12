@@ -183,7 +183,12 @@
 
 ## 2026-03-12 — Session Preview: 15-min travel buffer & UI fixes
 
-- **15-minutni travel buffer** — `findAltSlots` (u `session_preview_helper.dart` i `session_preview_sheet.dart`) sada dodaje 15 min buffer nakon svake zauzete sesije. Student koji završava u 12:00 ne može početi sljedeću prije 12:15. Implementirano proširenjem busy intervala za `+ buffer` (15 min) na oba mjesta.
+- **15-minutni travel buffer (kompletno)** — Buffer od 15 min primijenjen u SVE 3 scheduling funkcije u oba fajla (`session_preview_helper.dart` + `session_preview_sheet.dart`):
+  - `findConflict` / `_findConflict` — detektira konflikt kad je gap < 15 min prije ILI poslije postojećeg ordera
+  - `findSubstitutes` / `_findSubstitutes` — zamjenski student mora imati 15 min gap oko svojih postojećih ordera
+  - `findAltSlots` / `_findAlternativeSlots` — alternativni slotovi poštuju 15 min buffer u OBA smjera (prije i poslije busy intervala)
+  - Buffer se NE primjenjuje na availability (to je čisti prozor studenta), samo između dva Helpi ordera
+  - Konstanta `_buffer = 15` centralizirana na razini klase
 - **Shared `show15MinTimePicker`** — Ekstrahiran zajednički time picker dialog u `shared_widgets.dart` s dva dropdowna (sat 0-23, minute 00/15/30/45). Koristi se u filterima studenata (Dostupan od/do). Session preview ekrani zadržavaju svoje slot-based pickere (inline chipovi / bottom sheet s ListTile).
 - **`HelpiTheme.inputFieldHeight`** — Dodana centralna konstanta (48px) za konzistentnu visinu svih input polja u filter panelu.
 - **Filter panel fixes** — Mobile background `HelpiTheme.scaffold` → `HelpiTheme.surface` (bijela); OutlinedButton → GestureDetector+Container za time picker gumbe (uklonjen bold tekst); availability filter logika promijenjena iz "covers" u "overlaps" semantiku.

@@ -29,6 +29,9 @@ abstract class SessionPreviewHelperBase {
   /// `s.availability.isEmpty` (treat "no data" as potentially available).
   bool onNoAvailability(StudentModel s) => false;
 
+  /// Minutes of travel buffer between two consecutive Helpi sessions.
+  static const _buffer = 15;
+
   // ── Shared: find scheduling conflict ────────────────────────
 
   OrderModel? findConflict({
@@ -44,13 +47,13 @@ abstract class SessionPreviewHelperBase {
           if (entry.dayOfWeek == weekday) {
             final exStart = toMinutes(entry.startTime);
             final exEnd = exStart + entry.durationHours * 60;
-            if (timeOverlaps(startMin, endMin, exStart, exEnd)) return existing;
+            if (timeOverlaps(startMin, endMin, exStart - _buffer, exEnd + _buffer)) return existing;
           }
         }
       } else if (sameDay(existing.scheduledDate, date)) {
         final exStart = toMinutes(existing.scheduledStart);
         final exEnd = exStart + existing.durationHours * 60;
-        if (timeOverlaps(startMin, endMin, exStart, exEnd)) return existing;
+        if (timeOverlaps(startMin, endMin, exStart - _buffer, exEnd + _buffer)) return existing;
       }
     }
     return null;
@@ -80,8 +83,8 @@ abstract class SessionPreviewHelperBase {
               if (timeOverlaps(
                 sStart,
                 sEnd,
-                exS,
-                exS + entry.durationHours * 60,
+                exS - _buffer,
+                exS + entry.durationHours * 60 + _buffer,
               )) {
                 return false;
               }
@@ -89,7 +92,7 @@ abstract class SessionPreviewHelperBase {
           }
         } else if (sameDay(o.scheduledDate, session.date)) {
           final exS = toMinutes(o.scheduledStart);
-          if (timeOverlaps(sStart, sEnd, exS, exS + o.durationHours * 60)) {
+          if (timeOverlaps(sStart, sEnd, exS - _buffer, exS + o.durationHours * 60 + _buffer)) {
             return false;
           }
         }
@@ -111,7 +114,6 @@ abstract class SessionPreviewHelperBase {
     final dur = session.durationHours * 60;
 
     final busy = <({int start, int end})>[];
-    const buffer = 15; // minutes travel buffer after each session
     for (final o in MockData.orders.where(
       (o) => o.student?.id == student.id && o.status != OrderStatus.cancelled,
     )) {
@@ -119,12 +121,12 @@ abstract class SessionPreviewHelperBase {
         for (final e in o.dayEntries) {
           if (e.dayOfWeek == session.weekday) {
             final s = toMinutes(e.startTime);
-            busy.add((start: s, end: s + e.durationHours * 60 + buffer));
+            busy.add((start: s - _buffer, end: s + e.durationHours * 60 + _buffer));
           }
         }
       } else if (sameDay(o.scheduledDate, session.date)) {
         final s = toMinutes(o.scheduledStart);
-        busy.add((start: s, end: s + o.durationHours * 60 + buffer));
+        busy.add((start: s - _buffer, end: s + o.durationHours * 60 + _buffer));
       }
     }
     busy.sort((a, b) => a.start.compareTo(b.start));
