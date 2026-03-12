@@ -227,6 +227,67 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
     }).toList();
   }
 
+  // ── Find alternative free slots ─────────────────────────────
+
+  List<TimeOfDay> _findAlternativeSlots(SessionInstancePreview session) {
+    final avail = widget.student.availability.where(
+      (a) => a.dayOfWeek == session.weekday && a.isEnabled,
+    );
+    if (avail.isEmpty) return [];
+
+    final a = avail.first;
+    final availFrom = _toMinutes(a.from);
+    final availTo = _toMinutes(a.to);
+    final duration = session.durationHours * 60;
+
+    // Collect all busy intervals on this weekday
+    final busyIntervals = <({int start, int end})>[];
+    final studentOrders = MockData.orders.where(
+      (o) =>
+          o.student?.id == widget.student.id &&
+          o.status != OrderStatus.cancelled,
+    );
+    for (final o in studentOrders) {
+      if (o.dayEntries.isNotEmpty) {
+        for (final entry in o.dayEntries) {
+          if (entry.dayOfWeek == session.weekday) {
+            final s = _toMinutes(entry.startTime);
+            busyIntervals.add((start: s, end: s + entry.durationHours * 60));
+          }
+        }
+      } else if (session.date.weekday == o.scheduledDate.weekday &&
+          _sameDate(o.scheduledDate, session.date)) {
+        final s = _toMinutes(o.scheduledStart);
+        busyIntervals.add((start: s, end: s + o.durationHours * 60));
+      }
+    }
+    busyIntervals.sort((a, b) => a.start.compareTo(b.start));
+
+    // Find free slots that fit the duration
+    final List<TimeOfDay> slots = [];
+    int cursor = availFrom;
+    for (final busy in busyIntervals) {
+      if (cursor + duration <= busy.start) {
+        // There's a free slot before this busy interval
+        slots.add(TimeOfDay(hour: cursor ~/ 60, minute: cursor % 60));
+      }
+      if (busy.end > cursor) cursor = busy.end;
+    }
+    // Check remaining time after last busy interval
+    if (cursor + duration <= availTo) {
+      slots.add(TimeOfDay(hour: cursor ~/ 60, minute: cursor % 60));
+    }
+
+    // Remove the original conflicting time
+    slots.removeWhere(
+      (t) =>
+          t.hour == session.startTime.hour &&
+          t.minute == session.startTime.minute,
+    );
+
+    return slots;
+  }
+
   // ── Time helpers ────────────────────────────────────────────
 
   static int _toMinutes(TimeOfDay t) => t.hour * 60 + t.minute;
@@ -267,16 +328,64 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
     setState(() => _sessions[index].substituteStudent = sub);
   }
 
-  Future<void> _showTimePickerSheet(int index) async {
+  void _showTimePickerSheet(int index) {
     final session = _sessions[index];
-    final picked = await show15MinTimePicker(
-      context,
-      initial: session.rescheduledStart ?? session.startTime,
-    );
-    if (!context.mounted) return;
-    if (picked != null) {
-      _reschedule(index, picked);
+    final slots = _findAlternativeSlots(session);
+
+    if (slots.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.noSubstitutesAvailable),
+          backgroundColor: HelpiTheme.error,
+        ),
+      );
+      return;
     }
+
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  AppStrings.selectNewTime,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const Divider(height: 1),
+              ...slots.map((slot) {
+                final endMin = _toMinutes(slot) + session.durationHours * 60;
+                final endTime = TimeOfDay(
+                  hour: endMin ~/ 60,
+                  minute: endMin % 60,
+                );
+                return ListTile(
+                  leading: const Icon(
+                    Icons.access_time,
+                    color: HelpiTheme.accent,
+                  ),
+                  title: Text(
+                    '${formatTimeOfDay(slot)} – ${formatTimeOfDay(endTime)}',
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _reschedule(index, slot);
+                  },
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _showSubstituteSheet(int index) {

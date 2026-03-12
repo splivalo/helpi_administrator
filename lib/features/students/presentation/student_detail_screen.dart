@@ -1366,7 +1366,7 @@ class _AssignFlowSheetState extends State<_AssignFlowSheet> {
                 onAssigned: (_) => widget.onAssigned(_selectedOrder!),
                 generateSessions: helper.generateSessions,
                 findSubstitutes: helper.findSubstitutes,
-
+                findAltSlots: helper.findAltSlots,
                 buildConflictMessage: helper.buildConflictMessage,
                 useDialog: widget.useDialog,
               );
