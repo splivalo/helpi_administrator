@@ -152,19 +152,18 @@ class _StudentsScreenState extends State<StudentsScreen>
         .toSet();
   }
 
-  // ── Check if availability slot covers time range ──
+  // ── Check if availability slot overlaps with time range ──
   bool _matchesTimeRange(DayAvailability a) {
-    if (_availableFrom != null) {
-      final fromMin = _availableFrom!.hour * 60 + _availableFrom!.minute;
-      final slotFromMin = a.from.hour * 60 + a.from.minute;
-      if (slotFromMin > fromMin) return false;
-    }
-    if (_availableTo != null) {
-      final toMin = _availableTo!.hour * 60 + _availableTo!.minute;
-      final slotToMin = a.to.hour * 60 + a.to.minute;
-      if (slotToMin < toMin) return false;
-    }
-    return true;
+    final slotFromMin = a.from.hour * 60 + a.from.minute;
+    final slotToMin = a.to.hour * 60 + a.to.minute;
+    final fromMin = _availableFrom != null
+        ? _availableFrom!.hour * 60 + _availableFrom!.minute
+        : 0;
+    final toMin = _availableTo != null
+        ? _availableTo!.hour * 60 + _availableTo!.minute
+        : 24 * 60;
+    // Overlap: slot starts before filter ends AND slot ends after filter starts
+    return slotFromMin < toMin && slotToMin > fromMin;
   }
 
   // ── Apply all filters ──
@@ -1047,100 +1046,106 @@ class _FilterPanelState extends State<_FilterPanel> {
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _minJobsCtrl,
-                      keyboardType: TextInputType.number,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: 'Min',
-                        hintStyle: const TextStyle(
-                          fontSize: 13,
-                          color: HelpiTheme.textSecondary,
+                    child: SizedBox(
+                      height: 48,
+                      child: TextField(
+                        controller: _minJobsCtrl,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: 'Min',
+                          hintStyle: const TextStyle(
+                            fontSize: 13,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.cardRadius,
+                            ),
+                            borderSide: const BorderSide(
+                              color: HelpiTheme.border,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.cardRadius,
+                            ),
+                            borderSide: const BorderSide(
+                              color: HelpiTheme.border,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.cardRadius,
+                            ),
+                            borderSide: const BorderSide(
+                              color: HelpiTheme.accent,
+                              width: 2,
+                            ),
+                          ),
                         ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.cardRadius,
-                          ),
-                          borderSide: const BorderSide(
-                            color: HelpiTheme.border,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.cardRadius,
-                          ),
-                          borderSide: const BorderSide(
-                            color: HelpiTheme.border,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.cardRadius,
-                          ),
-                          borderSide: const BorderSide(
-                            color: HelpiTheme.accent,
-                            width: 2,
-                          ),
-                        ),
+                        onChanged: (v) {
+                          _minJobs = int.tryParse(v);
+                        },
                       ),
-                      onChanged: (v) {
-                        _minJobs = int.tryParse(v);
-                      },
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: TextField(
-                      controller: _maxJobsCtrl,
-                      keyboardType: TextInputType.number,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: 'Max',
-                        hintStyle: const TextStyle(
-                          fontSize: 13,
-                          color: HelpiTheme.textSecondary,
+                    child: SizedBox(
+                      height: 48,
+                      child: TextField(
+                        controller: _maxJobsCtrl,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: 'Max',
+                          hintStyle: const TextStyle(
+                            fontSize: 13,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.cardRadius,
+                            ),
+                            borderSide: const BorderSide(
+                              color: HelpiTheme.border,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.cardRadius,
+                            ),
+                            borderSide: const BorderSide(
+                              color: HelpiTheme.border,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(
+                              HelpiTheme.cardRadius,
+                            ),
+                            borderSide: const BorderSide(
+                              color: HelpiTheme.accent,
+                              width: 2,
+                            ),
+                          ),
                         ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.cardRadius,
-                          ),
-                          borderSide: const BorderSide(
-                            color: HelpiTheme.border,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.cardRadius,
-                          ),
-                          borderSide: const BorderSide(
-                            color: HelpiTheme.border,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.cardRadius,
-                          ),
-                          borderSide: const BorderSide(
-                            color: HelpiTheme.accent,
-                            width: 2,
-                          ),
-                        ),
+                        onChanged: (v) {
+                          _maxJobs = int.tryParse(v);
+                        },
                       ),
-                      onChanged: (v) {
-                        _maxJobs = int.tryParse(v);
-                      },
                     ),
                   ),
                 ],
@@ -1246,49 +1251,59 @@ class _FilterPanelState extends State<_FilterPanel> {
               // ──────────────────────────────────
               _sectionTitle(AppStrings.filterByFaculty),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String?>(
-                initialValue: _facultyFilter,
-                isExpanded: true,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: HelpiTheme.textPrimary,
-                ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
+              SizedBox(
+                height: 48,
+                child: DropdownButtonFormField<String?>(
+                  initialValue: _facultyFilter,
+                  isExpanded: true,
+                  isDense: true,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: HelpiTheme.textPrimary,
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-                    borderSide: const BorderSide(color: HelpiTheme.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-                    borderSide: const BorderSide(color: HelpiTheme.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-                    borderSide: const BorderSide(
-                      color: HelpiTheme.accent,
-                      width: 2,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.cardRadius,
+                      ),
+                      borderSide: const BorderSide(color: HelpiTheme.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.cardRadius,
+                      ),
+                      borderSide: const BorderSide(color: HelpiTheme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.cardRadius,
+                      ),
+                      borderSide: const BorderSide(
+                        color: HelpiTheme.accent,
+                        width: 2,
+                      ),
                     ),
                   ),
-                ),
-                items: [
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(AppStrings.anyFaculty),
-                  ),
-                  ...Faculty.all.map(
-                    (f) => DropdownMenuItem<String?>(
-                      value: f.acronym,
-                      child: Text(f.fullName),
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text(AppStrings.anyFaculty),
                     ),
-                  ),
-                ],
-                onChanged: (v) => setState(() => _facultyFilter = v),
+                    ...Faculty.all.map(
+                      (f) => DropdownMenuItem<String?>(
+                        value: f.acronym,
+                        child: Text(f.fullName),
+                      ),
+                    ),
+                  ],
+                  onChanged: (v) => setState(() => _facultyFilter = v),
+                ),
               ),
               const SizedBox(height: 20),
 
@@ -1297,49 +1312,59 @@ class _FilterPanelState extends State<_FilterPanel> {
               // ──────────────────────────────────
               _sectionTitle(AppStrings.filterBySenior),
               const SizedBox(height: 8),
-              DropdownButtonFormField<String?>(
-                initialValue: _seniorFilter,
-                isExpanded: true,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: HelpiTheme.textPrimary,
-                ),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
+              SizedBox(
+                height: 48,
+                child: DropdownButtonFormField<String?>(
+                  initialValue: _seniorFilter,
+                  isExpanded: true,
+                  isDense: true,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: HelpiTheme.textPrimary,
                   ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-                    borderSide: const BorderSide(color: HelpiTheme.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-                    borderSide: const BorderSide(color: HelpiTheme.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-                    borderSide: const BorderSide(
-                      color: HelpiTheme.accent,
-                      width: 2,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.cardRadius,
+                      ),
+                      borderSide: const BorderSide(color: HelpiTheme.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.cardRadius,
+                      ),
+                      borderSide: const BorderSide(color: HelpiTheme.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.cardRadius,
+                      ),
+                      borderSide: const BorderSide(
+                        color: HelpiTheme.accent,
+                        width: 2,
+                      ),
                     ),
                   ),
-                ),
-                items: [
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(AppStrings.anySenior),
-                  ),
-                  ...MockData.seniors.map(
-                    (s) => DropdownMenuItem<String?>(
-                      value: s.id,
-                      child: Text(s.fullName),
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text(AppStrings.anySenior),
                     ),
-                  ),
-                ],
-                onChanged: (v) => setState(() => _seniorFilter = v),
+                    ...MockData.seniors.map(
+                      (s) => DropdownMenuItem<String?>(
+                        value: s.id,
+                        child: Text(s.fullName),
+                      ),
+                    ),
+                  ],
+                  onChanged: (v) => setState(() => _seniorFilter = v),
+                ),
               ),
               const SizedBox(height: 32),
             ],
@@ -1489,6 +1514,151 @@ class _FilterPanelState extends State<_FilterPanel> {
     );
   }
 
+  Future<TimeOfDay?> _show15MinTimePicker(TimeOfDay initial) async {
+    int hour = initial.hour;
+    int minuteIndex = (initial.minute ~/ 15).clamp(0, 3);
+    const minutes = [0, 15, 30, 45];
+
+    return showDialog<TimeOfDay>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              title: Text(AppStrings.selectTime),
+              content: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Hour dropdown
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        AppStrings.timePickerHour,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: 80,
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                HelpiTheme.cardRadius,
+                              ),
+                            ),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<int>(
+                              value: hour,
+                              isDense: true,
+                              items: List.generate(
+                                24,
+                                (i) => DropdownMenuItem(
+                                  value: i,
+                                  child: Text(i.toString().padLeft(2, '0')),
+                                ),
+                              ),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  setDialogState(() => hour = v);
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      ':',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  // Minute dropdown
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        AppStrings.timePickerMinute,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      SizedBox(
+                        width: 80,
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                HelpiTheme.cardRadius,
+                              ),
+                            ),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<int>(
+                              value: minuteIndex,
+                              isDense: true,
+                              items: List.generate(
+                                4,
+                                (i) => DropdownMenuItem(
+                                  value: i,
+                                  child: Text(
+                                    minutes[i].toString().padLeft(2, '0'),
+                                  ),
+                                ),
+                              ),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  setDialogState(() => minuteIndex = v);
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(AppStrings.cancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(
+                    ctx,
+                    TimeOfDay(hour: hour, minute: minutes[minuteIndex]),
+                  ),
+                  child: Text(AppStrings.ok),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   // ── Time picker button ──
   Widget _timePickerBtn({
     required String label,
@@ -1498,15 +1668,15 @@ class _FilterPanelState extends State<_FilterPanel> {
   }) {
     return GestureDetector(
       onTap: () async {
-        final picked = await showTimePicker(
-          context: context,
-          initialTime: value ?? const TimeOfDay(hour: 8, minute: 0),
+        final picked = await _show15MinTimePicker(
+          value ?? const TimeOfDay(hour: 8, minute: 0),
         );
         if (!mounted) return;
         if (picked != null) onPick(picked);
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),

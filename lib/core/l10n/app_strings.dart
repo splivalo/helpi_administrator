@@ -410,6 +410,8 @@ class AppStrings {
       'sessionKeepCurrentStudent': 'Zadrži trenutnog',
       'noStudentsForSlot': 'Nema dostupnih studenata za odabrani termin',
       'selectTime': 'Odaberi vrijeme',
+      'timePickerHour': 'Sat',
+      'timePickerMinute': 'Min',
       'availableAllDays': 'Dostupan sve dane',
       'availablePartial': 'Dostupan {matched}/{total} dana',
       'availableDifferentTimes': 'Dostupan, drugi termini',
@@ -908,6 +910,8 @@ class AppStrings {
       'reviewShort': 'Review',
       'timeMismatch': 'Time mismatch',
       'selectTime': 'Select time',
+      'timePickerHour': 'Hour',
+      'timePickerMinute': 'Min',
       'sessionReactivate': 'Restore session',
       'sessionReactivateConfirm':
           'Do you want to restore this session as upcoming?',
@@ -1509,6 +1513,8 @@ class AppStrings {
       _t('sessionKeepCurrentStudent');
   static String get noStudentsForSlot => _t('noStudentsForSlot');
   static String get selectTime => _t('selectTime');
+  static String get timePickerHour => _t('timePickerHour');
+  static String get timePickerMinute => _t('timePickerMinute');
   static String get sessionReactivate => _t('sessionReactivate');
   static String get sessionReactivateConfirm => _t('sessionReactivateConfirm');
   static String get studentUnavailableForSession =>
