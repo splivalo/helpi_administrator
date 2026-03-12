@@ -171,7 +171,12 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
           if (entry.dayOfWeek == weekday) {
             final exStart = _toMinutes(entry.startTime);
             final exEnd = exStart + entry.durationHours * 60;
-            if (_timesOverlap(startMin, endMin, exStart - _buffer, exEnd + _buffer)) {
+            if (_timesOverlap(
+              startMin,
+              endMin,
+              exStart - _buffer,
+              exEnd + _buffer,
+            )) {
               return existing;
             }
           }
@@ -181,7 +186,12 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
         if (_sameDate(existing.scheduledDate, date)) {
           final exStart = _toMinutes(existing.scheduledStart);
           final exEnd = exStart + existing.durationHours * 60;
-          if (_timesOverlap(startMin, endMin, exStart - _buffer, exEnd + _buffer)) {
+          if (_timesOverlap(
+            startMin,
+            endMin,
+            exStart - _buffer,
+            exEnd + _buffer,
+          )) {
             return existing;
           }
         }
@@ -217,13 +227,20 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
             if (entry.dayOfWeek == session.weekday) {
               final exStart = _toMinutes(entry.startTime);
               final exEnd = exStart + entry.durationHours * 60;
-              if (_timesOverlap(sStart, sEnd, exStart - _buffer, exEnd + _buffer)) return false;
+              if (_timesOverlap(
+                sStart,
+                sEnd,
+                exStart - _buffer,
+                exEnd + _buffer,
+              ))
+                return false;
             }
           }
         } else if (_sameDate(o.scheduledDate, session.date)) {
           final exStart = _toMinutes(o.scheduledStart);
           final exEnd = exStart + o.durationHours * 60;
-          if (_timesOverlap(sStart, sEnd, exStart - _buffer, exEnd + _buffer)) return false;
+          if (_timesOverlap(sStart, sEnd, exStart - _buffer, exEnd + _buffer))
+            return false;
         }
       }
       return true;
@@ -264,7 +281,10 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
       } else if (session.date.weekday == o.scheduledDate.weekday &&
           _sameDate(o.scheduledDate, session.date)) {
         final s = _toMinutes(o.scheduledStart);
-        busyIntervals.add((start: s - _buffer, end: s + o.durationHours * 60 + _buffer));
+        busyIntervals.add((
+          start: s - _buffer,
+          end: s + o.durationHours * 60 + _buffer,
+        ));
       }
     }
     busyIntervals.sort((a, b) => a.start.compareTo(b.start));
