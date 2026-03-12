@@ -877,7 +877,7 @@ class _FilterPanelState extends State<_FilterPanel> {
       builder: (ctx, scrollController) {
         return Container(
           decoration: const BoxDecoration(
-            color: HelpiTheme.scaffold,
+            color: HelpiTheme.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: _buildFilterContent(scrollController),
@@ -1215,26 +1215,29 @@ class _FilterPanelState extends State<_FilterPanel> {
                 ),
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: _timePickerBtn(
-                      label: AppStrings.filterByTimeFrom,
-                      value: _availableFrom,
-                      onPick: (t) => setState(() => _availableFrom = t),
-                      onClear: () => setState(() => _availableFrom = null),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _timePickerBtn(
+                        label: AppStrings.filterByTimeFrom,
+                        value: _availableFrom,
+                        onPick: (t) => setState(() => _availableFrom = t),
+                        onClear: () => setState(() => _availableFrom = null),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _timePickerBtn(
-                      label: AppStrings.filterByTimeTo,
-                      value: _availableTo,
-                      onPick: (t) => setState(() => _availableTo = t),
-                      onClear: () => setState(() => _availableTo = null),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _timePickerBtn(
+                        label: AppStrings.filterByTimeTo,
+                        value: _availableTo,
+                        onPick: (t) => setState(() => _availableTo = t),
+                        onClear: () => setState(() => _availableTo = null),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
 
@@ -1493,8 +1496,8 @@ class _FilterPanelState extends State<_FilterPanel> {
     required ValueChanged<TimeOfDay> onPick,
     required VoidCallback onClear,
   }) {
-    return OutlinedButton(
-      onPressed: () async {
+    return GestureDetector(
+      onTap: () async {
         final picked = await showTimePicker(
           context: context,
           initialTime: value ?? const TimeOfDay(hour: 8, minute: 0),
@@ -1502,38 +1505,40 @@ class _FilterPanelState extends State<_FilterPanel> {
         if (!mounted) return;
         if (picked != null) onPick(picked);
       },
-      style: OutlinedButton.styleFrom(
+      child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        shape: RoundedRectangleBorder(
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          border: Border.all(color: HelpiTheme.border),
         ),
-        side: const BorderSide(color: HelpiTheme.border),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.access_time, size: 16, color: HelpiTheme.accent),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              value != null ? formatTimeOfDay(value) : label,
-              style: TextStyle(
-                fontSize: 13,
-                color: value != null
-                    ? HelpiTheme.textPrimary
-                    : HelpiTheme.textSecondary,
+        child: Row(
+          children: [
+            const Icon(Icons.access_time, size: 16, color: HelpiTheme.accent),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                value != null ? formatTimeOfDay(value) : label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  color: value != null
+                      ? HelpiTheme.textPrimary
+                      : HelpiTheme.textSecondary,
+                ),
               ),
             ),
-          ),
-          if (value != null)
-            GestureDetector(
-              onTap: onClear,
-              child: const Icon(
-                Icons.close,
-                size: 16,
-                color: HelpiTheme.textSecondary,
+            if (value != null)
+              GestureDetector(
+                onTap: onClear,
+                child: const Icon(
+                  Icons.close,
+                  size: 16,
+                  color: HelpiTheme.textSecondary,
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
