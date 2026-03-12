@@ -290,16 +290,17 @@ Definirani u `lib/core/models/admin_models.dart` (1717 linija):
 
 **Gdje se primjenjuje (frontend mock faza):**
 
-| Funkcija | Fajl | Što radi |
-|---|---|---|
-| `findConflict` | `session_preview_helper.dart` | Detektira konflikt — proširuje postojeći order za ±15 min |
-| `findSubstitutes` | `session_preview_helper.dart` | Isključuje zamjenu ako joj je order unutar ±15 min |
-| `findAltSlots` | `session_preview_helper.dart` | Predlaže slobodne slotove — busy zone proširene za ±15 min |
-| `_findConflict` | `session_preview_sheet.dart` | Isto kao gore (duplicirana logika za mobile sheet) |
-| `_findSubstitutes` | `session_preview_sheet.dart` | Isto kao gore |
-| `_findAlternativeSlots` | `session_preview_sheet.dart` | Isto kao gore |
+| Funkcija                | Fajl                          | Što radi                                                   |
+| ----------------------- | ----------------------------- | ---------------------------------------------------------- |
+| `findConflict`          | `session_preview_helper.dart` | Detektira konflikt — proširuje postojeći order za ±15 min  |
+| `findSubstitutes`       | `session_preview_helper.dart` | Isključuje zamjenu ako joj je order unutar ±15 min         |
+| `findAltSlots`          | `session_preview_helper.dart` | Predlaže slobodne slotove — busy zone proširene za ±15 min |
+| `_findConflict`         | `session_preview_sheet.dart`  | Isto kao gore (duplicirana logika za mobile sheet)         |
+| `_findSubstitutes`      | `session_preview_sheet.dart`  | Isto kao gore                                              |
+| `_findAlternativeSlots` | `session_preview_sheet.dart`  | Isto kao gore                                              |
 
 **Ključna pravila:**
+
 - Buffer = `_buffer = 15` (konstanta na razini klase)
 - Primjenjuje se u **oba smjera** — 15 min PRIJE i 15 min NAKON postojećeg ordera
 - **NE primjenjuje se** na studentovu availability (to je čisti prozor, student je odgovoran doći na vrijeme)
@@ -307,6 +308,7 @@ Definirani u `lib/core/models/admin_models.dart` (1717 linija):
 - Ako je order zadnji tog dana — nema buffera poslije njega
 
 **Backend requirement (za buduću integraciju):**
+
 - Backend MORA implementirati istu 15-min buffer logiku u svim scheduling endpointima:
   - Dodjela studenta narudžbi
   - Kreiranje narudžbe s dodijeljenim studentom
