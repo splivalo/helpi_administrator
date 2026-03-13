@@ -473,6 +473,22 @@ class AppStrings {
       'loginSubtitle': 'Prijavite se za upravljanje platformom',
       'logout': 'Odjava',
       'forgotPassword': 'Zaboravljena lozinka?',
+      'loggingIn': 'Prijava u tijeku...',
+      'loginError': 'Greška pri prijavi',
+      'invalidCredentials': 'Neispravni podaci za prijavu',
+      'forgotPasswordTitle': 'Zaboravljena lozinka',
+      'forgotPasswordSubtitle': 'Unesite email adresu za slanje koda',
+      'sendResetCode': 'Pošalji kod',
+      'resetCode': 'Kod za resetiranje',
+      'newPassword': 'Nova lozinka',
+      'confirmNewPassword': 'Potvrdite novu lozinku',
+      'resetPasswordButton': 'Resetiraj lozinku',
+      'resetPasswordSuccess': 'Lozinka uspješno promijenjena',
+      'codeSent': 'Kod je poslan na vaš email',
+      'enterEmail': 'Unesite email adresu',
+      'sending': 'Slanje...',
+      'resetting': 'Resetiranje...',
+      'backToLogin': 'Povratak na prijavu',
 
       // ── Profil / Postavke ─────────────────────
       'settings': 'Postavke',
@@ -965,6 +981,22 @@ class AppStrings {
       'loginSubtitle': 'Sign in to manage the platform',
       'logout': 'Log out',
       'forgotPassword': 'Forgot password?',
+      'loggingIn': 'Signing in...',
+      'loginError': 'Login error',
+      'invalidCredentials': 'Invalid credentials',
+      'forgotPasswordTitle': 'Forgot password',
+      'forgotPasswordSubtitle': 'Enter your email to receive a reset code',
+      'sendResetCode': 'Send code',
+      'resetCode': 'Reset code',
+      'newPassword': 'New password',
+      'confirmNewPassword': 'Confirm new password',
+      'resetPasswordButton': 'Reset password',
+      'resetPasswordSuccess': 'Password changed successfully',
+      'codeSent': 'Code sent to your email',
+      'enterEmail': 'Enter email address',
+      'sending': 'Sending...',
+      'resetting': 'Resetting...',
+      'backToLogin': 'Back to login',
 
       // ── Profil / Postavke ─────────────────────
       'settings': 'Settings',
@@ -1442,6 +1474,22 @@ class AppStrings {
   static String get loginSubtitle => _t('loginSubtitle');
   static String get logout => _t('logout');
   static String get forgotPassword => _t('forgotPassword');
+  static String get loggingIn => _t('loggingIn');
+  static String get loginError => _t('loginError');
+  static String get invalidCredentials => _t('invalidCredentials');
+  static String get forgotPasswordTitle => _t('forgotPasswordTitle');
+  static String get forgotPasswordSubtitle => _t('forgotPasswordSubtitle');
+  static String get sendResetCode => _t('sendResetCode');
+  static String get resetCode => _t('resetCode');
+  static String get newPassword => _t('newPassword');
+  static String get confirmNewPassword => _t('confirmNewPassword');
+  static String get resetPasswordButton => _t('resetPasswordButton');
+  static String get resetPasswordSuccess => _t('resetPasswordSuccess');
+  static String get codeSent => _t('codeSent');
+  static String get enterEmail => _t('enterEmail');
+  static String get sending => _t('sending');
+  static String get resetting => _t('resetting');
+  static String get backToLogin => _t('backToLogin');
 
   // ── Profil / Postavke ──
   static String get settings => _t('settings');

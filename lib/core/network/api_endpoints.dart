@@ -1,0 +1,69 @@
+class ApiEndpoints {
+  ApiEndpoints._();
+
+  // Base
+  static const String baseUrl = 'http://localhost:5142';
+
+  // Auth
+  static const String login = '/api/auth/login';
+  static const String registerAdmin = '/api/auth/register/admin';
+  static const String changePassword = '/api/auth/change-password';
+  static const String forgotPassword = '/api/auth/forgot-password';
+  static const String resetPassword = '/api/auth/reset-password-code';
+
+  // Dashboard
+  static const String dashboardAdmin = '/api/dashboard/admin';
+
+  // Orders
+  static const String orders = '/api/orders';
+  static String orderById(int id) => '/api/orders/$id';
+  static String cancelOrder(int id) => '/api/orders/$id/cancel';
+
+  // Sessions (JobInstances)
+  static const String sessions = '/api/sessions';
+  static String sessionById(int id) => '/api/sessions/$id';
+
+  // Students
+  static const String students = '/api/students';
+  static String studentById(int id) => '/api/students/$id';
+
+  // Seniors
+  static const String seniors = '/api/seniors';
+  static String seniorById(int id) => '/api/seniors/$id';
+
+  // Customers
+  static const String customers = '/api/customers';
+  static String customerById(int id) => '/api/customers/$id';
+
+  // Schedule Assignments
+  static const String scheduleAssignments = '/api/schedule-assignments';
+  static const String adminAssign = '/api/schedule-assignments/admin-assign';
+
+  // Reviews
+  static const String reviews = '/api/reviews';
+  static String reviewsBySenior(int seniorId) =>
+      '/api/reviews/senior/$seniorId';
+  static String reviewsByStudent(int studentId) =>
+      '/api/reviews/student/$studentId';
+
+  // Promo Codes
+  static const String promoCodes = '/api/promo-codes';
+  static String promoCodeById(int id) => '/api/promo-codes/$id';
+  static const String promoCodeValidate = '/api/promo-codes/validate';
+  static const String promoCodeApply = '/api/promo-codes/apply';
+
+  // Pricing
+  static const String pricingConfigurations = '/api/pricing-configurations';
+
+  // Notifications
+  static const String notifications = '/api/notifications';
+
+  // Cities
+  static const String cities = '/api/cities';
+
+  // Faculties
+  static const String faculties = '/api/faculties';
+
+  // Invoices
+  static const String invoices = '/api/invoices';
+}

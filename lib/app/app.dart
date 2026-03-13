@@ -5,6 +5,7 @@ import 'package:helpi_admin/app/responsive_shell.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
+import 'package:helpi_admin/core/services/auth_service.dart';
 import 'package:helpi_admin/features/auth/presentation/login_screen.dart';
 
 /// Root widget za Helpi Admin app.
@@ -17,13 +18,32 @@ class HelpiAdminApp extends StatefulWidget {
 
 class _HelpiAdminAppState extends State<HelpiAdminApp> {
   final _localeNotifier = LocaleNotifier();
+  final _authService = AuthService();
   bool _isLoggedIn = false;
+  bool _isCheckingAuth = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkExistingSession();
+  }
+
+  Future<void> _checkExistingSession() async {
+    final loggedIn = await _authService.isLoggedIn();
+    if (!mounted) return;
+    setState(() {
+      _isLoggedIn = loggedIn;
+      _isCheckingAuth = false;
+    });
+  }
 
   void _handleLogin() {
     setState(() => _isLoggedIn = true);
   }
 
-  void _handleLogout() {
+  Future<void> _handleLogout() async {
+    await _authService.logout();
+    if (!mounted) return;
     setState(() => _isLoggedIn = false);
   }
 
@@ -52,7 +72,9 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: _isLoggedIn
+          home: _isCheckingAuth
+              ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+              : _isLoggedIn
               ? ResponsiveShell(
                   localeNotifier: _localeNotifier,
                   onLogout: _handleLogout,
