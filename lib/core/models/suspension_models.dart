@@ -52,10 +52,10 @@ class UserSuspensionStatus {
           ? DateTime.parse(json['suspendedAt'] as String)
           : null,
       suspendedByAdminId: json['suspendedByAdminId'] as int?,
-      suspensionHistory: (json['suspensionHistory'] as List<dynamic>?)
+      suspensionHistory:
+          (json['suspensionHistory'] as List<dynamic>?)
               ?.map(
-                (e) =>
-                    SuspensionLogModel.fromJson(e as Map<String, dynamic>),
+                (e) => SuspensionLogModel.fromJson(e as Map<String, dynamic>),
               )
               .toList() ??
           [],

@@ -537,9 +537,11 @@ class AppStrings {
       'suspensionReasonHint': 'Unesite razlog suspenzije...',
       'suspensionHistory': 'Povijest suspenzija',
       'suspendConfirmTitle': 'Potvrda suspenzije',
-      'suspendConfirmMsg': 'Jeste li sigurni da želite suspendirati korisnika {name}?',
+      'suspendConfirmMsg':
+          'Jeste li sigurni da želite suspendirati korisnika {name}?',
       'activateConfirmTitle': 'Potvrda aktivacije',
-      'activateConfirmMsg': 'Jeste li sigurni da želite aktivirati korisnika {name}?',
+      'activateConfirmMsg':
+          'Jeste li sigurni da želite aktivirati korisnika {name}?',
       'suspensionSuccess': 'Korisnik uspješno suspendiran',
       'activationSuccess': 'Korisnik uspješno aktiviran',
       'suspensionReasonRequired': 'Razlog suspenzije je obavezan',
@@ -1651,8 +1653,7 @@ class AppStrings {
       _t('activateConfirmMsg', params: {'name': name});
   static String get suspensionSuccess => _t('suspensionSuccess');
   static String get activationSuccess => _t('activationSuccess');
-  static String get suspensionReasonRequired =>
-      _t('suspensionReasonRequired');
+  static String get suspensionReasonRequired => _t('suspensionReasonRequired');
   static String get actionSuspended => _t('actionSuspended');
   static String get actionActivated => _t('actionActivated');
   static String get suspendedAt => _t('suspendedAt');

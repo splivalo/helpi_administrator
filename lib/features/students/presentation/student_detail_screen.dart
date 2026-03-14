@@ -58,12 +58,18 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   Future<void> _loadSuspensionStatus() async {
     final userId = int.tryParse(_student.id);
     if (userId == null) {
-      setState(() => _suspensionStatus = const UserSuspensionStatus(isSuspended: false));
+      setState(
+        () =>
+            _suspensionStatus = const UserSuspensionStatus(isSuspended: false),
+      );
       return;
     }
     final status = await loadSuspensionStatus(_api, userId);
     if (!mounted) return;
-    setState(() => _suspensionStatus = status ?? const UserSuspensionStatus(isSuspended: false));
+    setState(
+      () => _suspensionStatus =
+          status ?? const UserSuspensionStatus(isSuspended: false),
+    );
   }
 
   /// Default: contract period if available, otherwise current month.
@@ -576,17 +582,35 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     if (!mounted || reason == null) return;
 
     final userId = int.tryParse(_student.id);
-    if (userId == null) return;
-
-    final success = await suspendUserApi(_api, userId, reason);
-    if (!mounted) return;
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.suspensionSuccess)),
-      );
-      _loadSuspensionStatus();
+    if (userId != null) {
+      final success = await suspendUserApi(_api, userId, reason);
+      if (!mounted) return;
+      if (!success) return;
     }
+
+    // Update UI (works for both real API and mock data).
+    setState(() {
+      _suspensionStatus = UserSuspensionStatus(
+        isSuspended: true,
+        suspensionReason: reason,
+        suspendedAt: DateTime.now(),
+        suspensionHistory: [
+          SuspensionLogModel(
+            id: 0,
+            userId: userId ?? 0,
+            action: SuspensionAction.suspended,
+            reason: reason,
+            adminId: 0,
+            createdAt: DateTime.now(),
+          ),
+          ...(_suspensionStatus?.suspensionHistory ?? []),
+        ],
+      );
+    });
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(AppStrings.suspensionSuccess)));
   }
 
   Future<void> _confirmActivate() async {
@@ -613,17 +637,31 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     if (!mounted || confirmed != true) return;
 
     final userId = int.tryParse(_student.id);
-    if (userId == null) return;
-
-    final success = await activateUserApi(_api, userId);
-    if (!mounted) return;
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppStrings.activationSuccess)),
-      );
-      _loadSuspensionStatus();
+    if (userId != null) {
+      final success = await activateUserApi(_api, userId);
+      if (!mounted) return;
+      if (!success) return;
     }
+
+    setState(() {
+      _suspensionStatus = UserSuspensionStatus(
+        isSuspended: false,
+        suspensionHistory: [
+          SuspensionLogModel(
+            id: 0,
+            userId: userId ?? 0,
+            action: SuspensionAction.activated,
+            adminId: 0,
+            createdAt: DateTime.now(),
+          ),
+          ...(_suspensionStatus?.suspensionHistory ?? []),
+        ],
+      );
+    });
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(AppStrings.activationSuccess)));
   }
 
   // ── Archive / Unarchive logic ──

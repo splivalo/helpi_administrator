@@ -56,8 +56,9 @@ class SuspensionHistoryCard extends StatelessWidget {
     final isSuspension = log.action == SuspensionAction.suspended;
     final color = isSuspension ? HelpiTheme.error : HelpiTheme.accent;
     final icon = isSuspension ? Icons.block : Icons.check_circle;
-    final label =
-        isSuspension ? AppStrings.actionSuspended : AppStrings.actionActivated;
+    final label = isSuspension
+        ? AppStrings.actionSuspended
+        : AppStrings.actionActivated;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -92,10 +93,7 @@ class SuspensionHistoryCard extends StatelessWidget {
                 ),
                 if (log.reason != null && log.reason!.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(
-                    log.reason!,
-                    style: const TextStyle(fontSize: 13),
-                  ),
+                  Text(log.reason!, style: const TextStyle(fontSize: 13)),
                 ],
               ],
             ),
@@ -178,15 +176,13 @@ Future<String?> showSuspendDialog(BuildContext context, String userName) async {
           child: Text(AppStrings.cancel),
         ),
         TextButton(
+          style: TextButton.styleFrom(foregroundColor: HelpiTheme.error),
           onPressed: () {
             if (formKey.currentState!.validate()) {
               Navigator.pop(ctx, controller.text.trim());
             }
           },
-          child: Text(
-            AppStrings.suspend,
-            style: const TextStyle(color: HelpiTheme.error),
-          ),
+          child: Text(AppStrings.suspend),
         ),
       ],
     ),
@@ -200,9 +196,7 @@ Future<UserSuspensionStatus?> loadSuspensionStatus(
 ) async {
   try {
     final response = await api.get(ApiEndpoints.suspensionStatus(userId));
-    return UserSuspensionStatus.fromJson(
-      response.data as Map<String, dynamic>,
-    );
+    return UserSuspensionStatus.fromJson(response.data as Map<String, dynamic>);
   } catch (_) {
     return null;
   }
@@ -211,10 +205,7 @@ Future<UserSuspensionStatus?> loadSuspensionStatus(
 /// Helper to suspend a user via API.
 Future<bool> suspendUserApi(ApiClient api, int userId, String reason) async {
   try {
-    await api.post(
-      ApiEndpoints.suspendUser(userId),
-      data: {'reason': reason},
-    );
+    await api.post(ApiEndpoints.suspendUser(userId), data: {'reason': reason});
     return true;
   } catch (_) {
     return false;
