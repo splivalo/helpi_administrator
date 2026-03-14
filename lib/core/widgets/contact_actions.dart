@@ -44,7 +44,7 @@ class EmailCopyButton extends StatelessWidget {
           ),
         );
       },
-      icon: const Icon(Icons.copy, size: 16, color: HelpiTheme.textSecondary),
+      icon: const Icon(Icons.copy, size: 16, color: HelpiTheme.accent),
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
       splashRadius: 14,
