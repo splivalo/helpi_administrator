@@ -72,15 +72,9 @@ class AuthService {
           message: AppStrings.invalidCredentials,
         );
       }
-      return AuthResult(
-        success: false,
-        message: AppStrings.loginError,
-      );
+      return AuthResult(success: false, message: AppStrings.loginError);
     } catch (_) {
-      return AuthResult(
-        success: false,
-        message: AppStrings.loginError,
-      );
+      return AuthResult(success: false, message: AppStrings.loginError);
     }
   }
 
