@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/models/suspension_models.dart';
+import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/widgets/suspension_widgets.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/create_order_screen.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
@@ -609,7 +612,10 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
   late SeniorModel _senior;
   final _prefs = PreferencesService.instance;
   static const _screenKey = 'seniorDetail';
-  static const _sectionCount = 6;
+  static const _sectionCount = 7;
+
+  final _api = ApiClient();
+  UserSuspensionStatus? _suspensionStatus;
 
   late List<int> _sectionOrder;
 
@@ -623,6 +629,18 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     } else {
       _sectionOrder = List.generate(_sectionCount, (i) => i);
     }
+    _loadSuspensionStatus();
+  }
+
+  Future<void> _loadSuspensionStatus() async {
+    final userId = int.tryParse(_senior.id);
+    if (userId == null) {
+      setState(() => _suspensionStatus = const UserSuspensionStatus(isSuspended: false));
+      return;
+    }
+    final status = await loadSuspensionStatus(_api, userId);
+    if (!mounted) return;
+    setState(() => _suspensionStatus = status ?? const UserSuspensionStatus(isSuspended: false));
   }
 
   SeniorModel _rebuildSenior({bool? isActive, bool? isArchived}) {
@@ -885,6 +903,9 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   ),
                 ),
               ),
+            if (_suspensionStatus?.isSuspended == true) ...[              const SizedBox(width: 6),
+              const SuspendedBadge(),
+            ],
             if (_senior.isArchived) ...[
               const SizedBox(width: 6),
               Container(
@@ -961,6 +982,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     AppStrings.seniorCreditCards,
     AppStrings.seniorOrders,
     AppStrings.seniorReviews,
+    AppStrings.suspensionHistory,
     AppStrings.adminActions,
   ];
 
@@ -970,6 +992,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     Icons.credit_card,
     Icons.receipt_long,
     Icons.star,
+    Icons.history,
     Icons.admin_panel_settings,
   ];
 
@@ -980,6 +1003,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
       _buildCreditCardsSection(),
       _buildOrdersSection(),
       _buildReviewsSection(_seniorReviews),
+      _buildSuspensionHistorySection(),
       _buildAdminActionsSection(),
     ];
   }
@@ -1310,6 +1334,84 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
         ),
       ],
     );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  //  SUSPENSION HISTORY SECTION
+  // ─────────────────────────────────────────────────────────
+  Widget _buildSuspensionHistorySection() {
+    if (_suspensionStatus == null) {
+      return SectionCard(
+        title: AppStrings.suspensionHistory,
+        icon: Icons.history,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+        ],
+      );
+    }
+    return SuspensionHistoryCard(
+      status: _suspensionStatus!,
+      onSuspend: _confirmSuspend,
+      onActivate: _confirmActivate,
+    );
+  }
+
+  Future<void> _confirmSuspend() async {
+    final reason = await showSuspendDialog(context, _senior.fullName);
+    if (!mounted || reason == null) return;
+
+    final userId = int.tryParse(_senior.id);
+    if (userId == null) return;
+
+    final success = await suspendUserApi(_api, userId, reason);
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.suspensionSuccess)),
+      );
+      _loadSuspensionStatus();
+    }
+  }
+
+  Future<void> _confirmActivate() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStrings.activateConfirmTitle),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.activateConfirmMsg(_senior.fullName)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(AppStrings.activate),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+
+    final userId = int.tryParse(_senior.id);
+    if (userId == null) return;
+
+    final success = await activateUserApi(_api, userId);
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.activationSuccess)),
+      );
+      _loadSuspensionStatus();
+    }
   }
 
   Widget _buildAdminActionsSection() {

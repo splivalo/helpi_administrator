@@ -57,10 +57,13 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   Future<void> _loadSuspensionStatus() async {
     final userId = int.tryParse(_student.id);
-    if (userId == null) return;
+    if (userId == null) {
+      setState(() => _suspensionStatus = const UserSuspensionStatus(isSuspended: false));
+      return;
+    }
     final status = await loadSuspensionStatus(_api, userId);
     if (!mounted) return;
-    setState(() => _suspensionStatus = status);
+    setState(() => _suspensionStatus = status ?? const UserSuspensionStatus(isSuspended: false));
   }
 
   /// Default: contract period if available, otherwise current month.
@@ -536,14 +539,17 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         ],
       );
     }
-    return SuspensionHistoryCard(status: _suspensionStatus!);
+    return SuspensionHistoryCard(
+      status: _suspensionStatus!,
+      onSuspend: _confirmSuspend,
+      onActivate: _confirmActivate,
+    );
   }
 
   // ─────────────────────────────────────────────────────────
   //  ADMIN ACTIONS SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildAdminActionsSection() {
-    final isSuspended = _suspensionStatus?.isSuspended == true;
     return SectionCard(
       title: AppStrings.adminActions,
       icon: Icons.admin_panel_settings,
@@ -558,13 +564,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               : HelpiTheme.textSecondary,
           onTap: () =>
               _student.isArchived ? _confirmUnarchive() : _confirmArchive(),
-        ),
-        const SizedBox(height: 8),
-        ActionChipButton(
-          icon: isSuspended ? Icons.check_circle : Icons.block,
-          label: isSuspended ? AppStrings.activate : AppStrings.suspend,
-          color: isSuspended ? HelpiTheme.accent : HelpiTheme.error,
-          onTap: () => isSuspended ? _confirmActivate() : _confirmSuspend(),
         ),
       ],
     );

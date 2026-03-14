@@ -7,17 +7,34 @@ import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/utils/formatters.dart' as fmt;
 import 'package:helpi_admin/core/widgets/widgets.dart';
 
-/// Card showing the suspension history timeline.
+/// Card showing the suspension history timeline with suspend/activate action.
 class SuspensionHistoryCard extends StatelessWidget {
-  const SuspensionHistoryCard({super.key, required this.status});
+  const SuspensionHistoryCard({
+    super.key,
+    required this.status,
+    this.onSuspend,
+    this.onActivate,
+  });
   final UserSuspensionStatus status;
+  final VoidCallback? onSuspend;
+  final VoidCallback? onActivate;
 
   @override
   Widget build(BuildContext context) {
+    final isSuspended = status.isSuspended;
     return SectionCard(
       title: AppStrings.suspensionHistory,
       icon: Icons.history,
       children: [
+        if (onSuspend != null || onActivate != null) ...[
+          ActionChipButton(
+            icon: isSuspended ? Icons.check_circle : Icons.block,
+            label: isSuspended ? AppStrings.activate : AppStrings.suspend,
+            color: isSuspended ? HelpiTheme.accent : HelpiTheme.error,
+            onTap: () => isSuspended ? onActivate?.call() : onSuspend?.call(),
+          ),
+          const SizedBox(height: 12),
+        ],
         if (status.suspensionHistory.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
@@ -137,9 +154,11 @@ Future<String?> showSuspendDialog(BuildContext context, String userName) async {
                 controller: controller,
                 maxLength: 500,
                 maxLines: 3,
+                textAlignVertical: TextAlignVertical.top,
                 decoration: InputDecoration(
                   labelText: AppStrings.suspensionReason,
                   hintText: AppStrings.suspensionReasonHint,
+                  alignLabelWithHint: true,
                   border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
