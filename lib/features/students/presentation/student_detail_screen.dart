@@ -8,6 +8,7 @@ import 'package:helpi_admin/core/models/faculty.dart';
 import 'package:helpi_admin/core/models/suspension_models.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
+import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/utils/session_preview_helper.dart';
 import 'package:helpi_admin/core/widgets/suspension_widgets.dart';
@@ -103,11 +104,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               child: Text(_student.fullName, overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(width: 8),
-            StatusBadge.contract(_student.contractStatus),
-            if (_suspensionStatus?.isSuspended == true) ...[
-              const SizedBox(width: 6),
-              const SuspendedBadge(),
-            ],
+            if (_suspensionStatus?.isSuspended == true)
+              const SuspendedBadge()
+            else
+              StatusBadge.contract(_student.contractStatus),
             if (_student.isArchived) ...[
               const SizedBox(width: 6),
               Container(
@@ -611,6 +611,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(AppStrings.suspensionSuccess)));
+    SuspensionStateManager.instance.suspend(_student.id);
   }
 
   Future<void> _confirmActivate() async {
@@ -662,6 +663,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(AppStrings.activationSuccess)));
+    SuspensionStateManager.instance.activate(_student.id);
   }
 
   // ── Archive / Unarchive logic ──

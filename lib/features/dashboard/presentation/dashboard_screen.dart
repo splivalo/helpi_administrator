@@ -4,6 +4,7 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
+import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
@@ -26,6 +27,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
     DateTime.now().year,
     DateTime.now().month,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    SuspensionStateManager.instance.addListener(_onSuspensionChanged);
+  }
+
+  @override
+  void dispose() {
+    SuspensionStateManager.instance.removeListener(_onSuspensionChanged);
+    super.dispose();
+  }
+
+  void _onSuspensionChanged() {
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +74,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         <String, ({StudentModel student, int sessions, int hours})>{};
     for (final order in MockData.orders) {
       if (order.student == null) continue;
+      if (SuspensionStateManager.instance.isSuspended(order.student!.id)) {
+        continue;
+      }
       for (final session in order.sessions) {
         if (session.status == SessionStatus.cancelled) continue;
         if (!session.date.isBefore(monthStart) &&

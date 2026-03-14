@@ -144,6 +144,9 @@ class SeniorModel {
   bool get hasOrderer => ordererFirstName != null;
   String get ordererFullName =>
       hasOrderer ? '$ordererFirstName $ordererLastName' : '';
+  String get contactName => hasOrderer ? ordererFullName : fullName;
+  String get contactPhone => hasOrderer ? (ordererPhone ?? phone) : phone;
+  String get contactEmail => hasOrderer ? (ordererEmail ?? email) : email;
 }
 
 class StudentModel {
@@ -387,6 +390,7 @@ class ReviewModel {
 
 class ChatRoom {
   final String id;
+  final String participantId;
   final String participantName;
   final String participantRole; // 'senior' or 'student'
   final String lastMessage;
@@ -397,6 +401,7 @@ class ChatRoom {
 
   const ChatRoom({
     required this.id,
+    required this.participantId,
     required this.participantName,
     required this.participantRole,
     required this.lastMessage,
@@ -477,7 +482,7 @@ class MockData {
       ordererLastName: 'Horvat',
       ordererEmail: 'ana.horvat@email.com',
       ordererPhone: '+385 98 765 4321',
-      ordererAddress: 'Vukovarska 12, Zagreb',
+      ordererAddress: 'Savska 77, Zagreb',
       ordererGender: Gender.female,
       ordererDateOfBirth: DateTime(1985, 3, 15),
       creditCards: [
@@ -1612,6 +1617,7 @@ class MockData {
   static final List<ChatRoom> chatRooms = [
     ChatRoom(
       id: 'cr1',
+      participantId: 's1',
       participantName: 'Ivka Mandić',
       participantRole: 'senior',
       lastMessage: 'Hvala na pomoći!',
@@ -1647,6 +1653,7 @@ class MockData {
     ),
     ChatRoom(
       id: 'cr2',
+      participantId: 'st1',
       participantName: 'Luka Perić',
       participantRole: 'student',
       lastMessage: 'Sutra sam dostupan od 9.',
@@ -1673,7 +1680,8 @@ class MockData {
     ),
     ChatRoom(
       id: 'cr3',
-      participantName: 'Marija Horvat',
+      participantId: 's2',
+      participantName: 'Ana Horvat',
       participantRole: 'senior',
       lastMessage: 'Trebam pomoć s narudžbom.',
       lastMessageAt: DateTime(2026, 2, 28, 10, 0),
@@ -1683,7 +1691,7 @@ class MockData {
         ChatMessage(
           id: 'm6',
           senderId: 's2',
-          senderName: 'Marija Horvat',
+          senderName: 'Ana Horvat',
           senderRole: 'senior',
           content: 'Trebam pomoć s narudžbom.',
           sentAt: DateTime(2026, 2, 28, 10, 0),
@@ -1692,6 +1700,7 @@ class MockData {
     ),
     ChatRoom(
       id: 'cr4',
+      participantId: 'st2',
       participantName: 'Ana Matić',
       participantRole: 'student',
       lastMessage: 'Možete li me prebaciti na drugi termin?',

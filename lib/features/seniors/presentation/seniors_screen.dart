@@ -6,6 +6,7 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/suspension_models.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
+import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/suspension_widgets.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
@@ -17,7 +18,14 @@ import 'package:helpi_admin/features/seniors/presentation/edit_senior_screen.dar
 /// Seniors Screen — popis seniora s pretragom i detaljima.
 enum SeniorSort { az, za, newest, oldest }
 
-enum _SeniorStatusFilter { all, processing, active, inactive, archived }
+enum _SeniorStatusFilter {
+  all,
+  processing,
+  active,
+  inactive,
+  suspended,
+  archived,
+}
 
 class SeniorsScreen extends StatefulWidget {
   const SeniorsScreen({super.key});
@@ -69,9 +77,14 @@ class _SeniorsScreenState extends State<SeniorsScreen>
 
   @override
   void dispose() {
+    SuspensionStateManager.instance.removeListener(_onSuspensionChanged);
     _tabCtrl.dispose();
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  void _onSuspensionChanged() {
+    if (mounted) setState(() {});
   }
 
   List<SeniorModel> _filteredSeniors(_SeniorStatusFilter filter) {
@@ -102,6 +115,10 @@ class _SeniorsScreenState extends State<SeniorsScreen>
             .toList();
       case _SeniorStatusFilter.inactive:
         seniors = seniors.where((s) => !s.isActive && !s.isArchived).toList();
+      case _SeniorStatusFilter.suspended:
+        seniors = seniors
+            .where((s) => SuspensionStateManager.instance.isSuspended(s.id))
+            .toList();
       case _SeniorStatusFilter.archived:
         seniors = seniors.where((s) => s.isArchived).toList();
     }
@@ -110,6 +127,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
       final q = _searchQuery.toLowerCase();
       seniors = seniors.where((s) {
         return s.fullName.toLowerCase().contains(q) ||
+            s.contactName.toLowerCase().contains(q) ||
             s.email.toLowerCase().contains(q) ||
             s.phone.contains(q) ||
             s.address.toLowerCase().contains(q);
@@ -212,8 +230,9 @@ class _SeniorsScreenState extends State<SeniorsScreen>
               final label = switch (f) {
                 _SeniorStatusFilter.all => AppStrings.filterAll,
                 _SeniorStatusFilter.processing => AppStrings.filterProcessing,
-                _SeniorStatusFilter.active => AppStrings.filterActive,
-                _SeniorStatusFilter.inactive => AppStrings.filterInactive,
+                _SeniorStatusFilter.active => AppStrings.seniorFilterActive,
+                _SeniorStatusFilter.inactive => AppStrings.seniorFilterInactive,
+                _SeniorStatusFilter.suspended => AppStrings.suspended,
                 _SeniorStatusFilter.archived => AppStrings.filterArchived,
               };
               return Tab(text: label);
@@ -318,7 +337,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
       context,
       MaterialPageRoute(
         builder: (_) =>
-            _SeniorDetailScreen(senior: senior, orders: seniorOrders),
+            SeniorDetailScreen(senior: senior, orders: seniorOrders),
       ),
     );
   }
@@ -400,10 +419,6 @@ class _SeniorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final orderCount = MockData.orders
-        .where((o) => o.senior.id == senior.id)
-        .length;
-
     // Determine status chip
     // Senior is "Active" only when they have at least one order
     // with an assigned student. Otherwise they are "Processing".
@@ -414,7 +429,9 @@ class _SeniorCard extends StatelessWidget {
       Color chipTextColor,
       Color chipBgColor,
       String chipLabel,
-    ) = senior.isArchived
+    ) = SuspensionStateManager.instance.isSuspended(senior.id)
+        ? (HelpiTheme.error, HelpiTheme.statusCancelledBg, AppStrings.suspended)
+        : senior.isArchived
         ? (
             HelpiTheme.textSecondary,
             HelpiTheme.chipBg,
@@ -424,13 +441,13 @@ class _SeniorCard extends StatelessWidget {
         ? (
             HelpiTheme.statusCancelledText,
             HelpiTheme.statusCancelledBg,
-            AppStrings.filterInactive,
+            AppStrings.seniorFilterInactive,
           )
         : hasStudentAssigned
         ? (
             HelpiTheme.statusActiveText,
             HelpiTheme.statusActiveBg,
-            AppStrings.filterActive,
+            AppStrings.seniorFilterActive,
           )
         : (
             HelpiTheme.statusProcessingText,
@@ -532,7 +549,7 @@ class _SeniorCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              senior.phone,
+                              senior.contactPhone,
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: HelpiTheme.textSecondary,
@@ -540,12 +557,38 @@ class _SeniorCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 4),
-                          PhoneCallButton(phone: senior.phone),
+                          PhoneCallButton(phone: senior.contactPhone),
                         ],
                       ),
                       const SizedBox(height: 4),
 
-                      // ── Address ──
+                      // ── Email ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.email_outlined,
+                            size: 14,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              senior.contactEmail,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: HelpiTheme.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          EmailCopyButton(email: senior.contactEmail),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      // ── Address (always senior's — service location) ──
                       Row(
                         children: [
                           const Icon(
@@ -566,17 +609,6 @@ class _SeniorCard extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 6),
-
-                      // ── Order count ──
-                      Text(
-                        AppStrings.seniorOrderCount(orderCount),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: HelpiTheme.accent,
-                        ),
                       ),
                     ],
                   ),
@@ -599,16 +631,16 @@ class _SeniorCard extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════
 //  SENIOR DETAIL (inline same file)
 // ═══════════════════════════════════════════════════════════════
-class _SeniorDetailScreen extends StatefulWidget {
-  const _SeniorDetailScreen({required this.senior, required this.orders});
+class SeniorDetailScreen extends StatefulWidget {
+  const SeniorDetailScreen({super.key, required this.senior, required this.orders});
   final SeniorModel senior;
   final List<OrderModel> orders;
 
   @override
-  State<_SeniorDetailScreen> createState() => _SeniorDetailScreenState();
+  State<SeniorDetailScreen> createState() => SeniorDetailScreenState();
 }
 
-class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
+class SeniorDetailScreenState extends State<SeniorDetailScreen> {
   late SeniorModel _senior;
   final _prefs = PreferencesService.instance;
   static const _screenKey = 'seniorDetail';
@@ -859,7 +891,9 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
               child: Text(_senior.fullName, overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(width: 8),
-            if (_senior.isActive && !_senior.isArchived)
+            if (_suspensionStatus?.isSuspended == true)
+              const SuspendedBadge()
+            else if (_senior.isActive && !_senior.isArchived)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -875,15 +909,15 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   ),
                 ),
                 child: Text(
-                  AppStrings.filterActive,
+                  AppStrings.seniorFilterActive,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: HelpiTheme.statusActiveText,
                   ),
                 ),
-              ),
-            if (!_senior.isActive && !_senior.isArchived)
+              )
+            else if (!_senior.isActive && !_senior.isArchived)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -901,7 +935,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   ),
                 ),
                 child: Text(
-                  AppStrings.filterInactive,
+                  AppStrings.seniorFilterInactive,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -909,10 +943,6 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
                   ),
                 ),
               ),
-            if (_suspensionStatus?.isSuspended == true) ...[
-              const SizedBox(width: 6),
-              const SuspendedBadge(),
-            ],
             if (_senior.isArchived) ...[
               const SizedBox(width: 6),
               Container(
@@ -1399,6 +1429,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(AppStrings.suspensionSuccess)));
+    SuspensionStateManager.instance.suspend(_senior.id);
   }
 
   Future<void> _confirmActivate() async {
@@ -1450,6 +1481,7 @@ class _SeniorDetailScreenState extends State<_SeniorDetailScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(AppStrings.activationSuccess)));
+    SuspensionStateManager.instance.activate(_senior.id);
   }
 
   Widget _buildAdminActionsSection() {

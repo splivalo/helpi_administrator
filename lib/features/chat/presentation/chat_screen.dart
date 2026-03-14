@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 
 /// Chat Moderation Screen — admin chat s korisnicima.
 class ChatModScreen extends StatefulWidget {
@@ -114,7 +115,7 @@ class _ChatRoomList extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: rooms.length,
       separatorBuilder: (context, index) =>
-          const Divider(height: 1, indent: 72, color: HelpiTheme.border),
+          const Divider(height: 1, indent: 16, endIndent: 16, color: HelpiTheme.border),
       itemBuilder: (ctx, i) {
         final room = rooms[i];
         final isSelected = room.id == selectedRoomId;
@@ -128,132 +129,115 @@ class _ChatRoomList extends StatelessWidget {
                 : null,
             child: Row(
               children: [
-                // ── Avatar ──
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: room.isSenior
-                        ? HelpiTheme.pastelCoral
-                        : HelpiTheme.pastelTeal,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      room.participantName
-                          .split(' ')
-                          .map((p) => p[0])
-                          .take(2)
-                          .join(),
-                      style: TextStyle(
-                        color: room.isSenior
-                            ? HelpiTheme.primary
-                            : HelpiTheme.accent,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                      ),
+                // ── Avatar with icon — tap navigates to senior profile ──
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: room.isSenior
+                      ? () {
+                          final senior = MockData.seniors.where(
+                            (s) => s.id == room.participantId,
+                          ).firstOrNull;
+                          if (senior == null) return;
+                          final orders = MockData.orders
+                              .where((o) => o.senior.id == senior.id)
+                              .toList();
+                          Navigator.push(
+                            ctx,
+                            MaterialPageRoute(
+                              builder: (_) => SeniorDetailScreen(
+                                senior: senior,
+                                orders: orders,
+                              ),
+                            ),
+                          );
+                        }
+                      : null,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: const BoxDecoration(
+                      color: HelpiTheme.pastelTeal,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      room.isSenior ? Icons.elderly : Icons.school,
+                      size: 18,
+                      color: HelpiTheme.accent,
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
 
                 // ── Name + last message ──
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              room.participantName,
-                              style: TextStyle(
-                                fontWeight: room.unreadCount > 0
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            _formatTime(room.lastMessageAt),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: HelpiTheme.textSecondary,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        room.participantName,
+                        style: TextStyle(
+                          fontWeight: room.unreadCount > 0
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: room.isSenior
-                                  ? HelpiTheme.pastelCoral
-                                  : HelpiTheme.pastelTeal,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              room.isSenior
-                                  ? AppStrings.chatSeniorTag
-                                  : AppStrings.chatStudentTag,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: room.isSenior
-                                    ? HelpiTheme.primary
-                                    : HelpiTheme.accent,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              room.lastMessage,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: HelpiTheme.textSecondary,
-                                fontWeight: room.unreadCount > 0
-                                    ? FontWeight.w600
-                                    : FontWeight.normal,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        room.lastMessage,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
+                          fontWeight: room.unreadCount > 0
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
 
-                // ── Unread badge ──
-                if (room.unreadCount > 0) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: const BoxDecoration(
-                      color: HelpiTheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${room.unreadCount}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
+                const SizedBox(width: 8),
+
+                // ── Date + Unread badge ──
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _formatTime(room.lastMessageAt),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: HelpiTheme.textSecondary,
                       ),
                     ),
-                  ),
-                ],
+                    if (room.unreadCount > 0) ...[
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: const BoxDecoration(
+                          color: HelpiTheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${room.unreadCount}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           ),

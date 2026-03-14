@@ -40,7 +40,7 @@ class PreferencesService {
 
   bool getGridView(String screen) {
     final key = '$_keyGridView$screen';
-    return (_prefs?.getBool(key) ?? _fallback[key] as bool?) ?? false;
+    return (_prefs?.getBool(key) ?? _fallback[key] as bool?) ?? true;
   }
 
   Future<void> setGridView(String screen, {required bool isGrid}) async {

@@ -5,7 +5,9 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/faculty.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
+import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/widgets/suspension_widgets.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
@@ -24,6 +26,7 @@ enum _StudentFilter {
   expired,
   noContract,
   deactivated,
+  suspended,
   archived,
 }
 
@@ -92,6 +95,7 @@ class _StudentsScreenState extends State<StudentsScreen>
 
   @override
   void dispose() {
+    SuspensionStateManager.instance.removeListener(_onSuspensionChanged);
     _tabCtrl.dispose();
     _searchCtrl.dispose();
     super.dispose();
@@ -167,6 +171,10 @@ class _StudentsScreenState extends State<StudentsScreen>
   }
 
   // ── Apply all filters ──
+  void _onSuspensionChanged() {
+    if (mounted) setState(() {});
+  }
+
   List<StudentModel> _filteredStudents(_StudentFilter filter) {
     var students = MockData.students.toList();
 
@@ -207,6 +215,10 @@ class _StudentsScreenState extends State<StudentsScreen>
                   s.contractStatus == ContractStatus.deactivated &&
                   !s.isArchived,
             )
+            .toList();
+      case _StudentFilter.suspended:
+        students = students
+            .where((s) => SuspensionStateManager.instance.isSuspended(s.id))
             .toList();
       case _StudentFilter.archived:
         students = students.where((s) => s.isArchived).toList();
@@ -407,6 +419,7 @@ class _StudentsScreenState extends State<StudentsScreen>
                 _StudentFilter.expired => AppStrings.contractExpired,
                 _StudentFilter.noContract => AppStrings.contractNone,
                 _StudentFilter.deactivated => AppStrings.contractDeactivated,
+                _StudentFilter.suspended => AppStrings.suspended,
                 _StudentFilter.archived => AppStrings.filterArchived,
               };
               return Tab(text: label);
@@ -1625,7 +1638,10 @@ class _StudentCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                StatusBadge.contract(student.contractStatus),
+                if (SuspensionStateManager.instance.isSuspended(student.id))
+                  const SuspendedBadge()
+                else
+                  StatusBadge.contract(student.contractStatus),
                 if (student.isArchived) ...[
                   const SizedBox(width: 6),
                   Container(

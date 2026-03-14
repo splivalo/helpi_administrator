@@ -360,6 +360,7 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
         width: 380,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               AppStrings.forgotPasswordSubtitle,
@@ -419,31 +420,43 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
                 ),
               ),
             ],
+
+            const SizedBox(height: 8),
+
+            // ── Back to login link ──
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(AppStrings.backToLogin),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // ── Submit button ──
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading
+                    ? null
+                    : (_codeSent ? _resetPassword : _sendCode),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        _codeSent
+                            ? AppStrings.resetPasswordButton
+                            : AppStrings.sendResetCode,
+                      ),
+              ),
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(AppStrings.backToLogin),
-        ),
-        ElevatedButton(
-          onPressed: _isLoading
-              ? null
-              : (_codeSent ? _resetPassword : _sendCode),
-          child: _isLoading
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(
-                  _codeSent
-                      ? AppStrings.resetPasswordButton
-                      : AppStrings.sendResetCode,
-                ),
-        ),
-      ],
     );
   }
 }

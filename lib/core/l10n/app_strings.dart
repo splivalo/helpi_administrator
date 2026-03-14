@@ -268,7 +268,9 @@ class AppStrings {
       'filterProcessing': 'U obradi',
       'filterActive': 'Aktivni',
       'filterInactive': 'Neaktivni',
-      'filterArchived': 'Arhivirani',
+      'seniorFilterActive': 'Aktivan',
+      'seniorFilterInactive': 'Neaktivan',
+      'filterArchived': 'Arhiviran',
       'statusArchived': 'Arhiviran',
       'adminActions': 'Admin akcije',
       'assignToOrder': 'Dodijeli narudžbu',
@@ -800,6 +802,8 @@ class AppStrings {
       'filterProcessing': 'Processing',
       'filterActive': 'Active',
       'filterInactive': 'Inactive',
+      'seniorFilterActive': 'Active',
+      'seniorFilterInactive': 'Inactive',
       'filterArchived': 'Archived',
       'statusArchived': 'Archived',
       'adminActions': 'Admin actions',
@@ -1303,6 +1307,8 @@ class AppStrings {
   static String get filterActive => _t('filterActive');
   static String get filterInactive => _t('filterInactive');
   static String get filterArchived => _t('filterArchived');
+  static String get seniorFilterActive => _t('seniorFilterActive');
+  static String get seniorFilterInactive => _t('seniorFilterInactive');
   static String get statusArchived => _t('statusArchived');
   static String get adminActions => _t('adminActions');
   static String get assignToOrder => _t('assignToOrder');
@@ -1382,12 +1388,29 @@ class AppStrings {
   static String get anyGender => _t('anyGender');
   static String get anyContract => _t('anyContract');
   static String get anySenior => _t('anySenior');
-  static String filterResultCount(int count) =>
-      _t('filterResultCount', params: {'count': '$count'});
-  static String seniorResultCount(int count) =>
-      _t('seniorResultCount', params: {'count': '$count'});
-  static String orderResultCount(int count) =>
-      _t('orderResultCount', params: {'count': '$count'});
+  static String filterResultCount(int count) {
+    if (_currentLocale == 'hr') {
+      if (count == 1) return '1 student';
+      if (count >= 2 && count <= 4) return '$count studenta';
+      return '$count studenata';
+    }
+    return _t('filterResultCount', params: {'count': '$count'});
+  }
+  static String seniorResultCount(int count) {
+    if (_currentLocale == 'hr') {
+      if (count == 1) return '1 senior';
+      return '$count seniora';
+    }
+    return _t('seniorResultCount', params: {'count': '$count'});
+  }
+  static String orderResultCount(int count) {
+    if (_currentLocale == 'hr') {
+      if (count == 1) return '1 narudžba';
+      if (count >= 2 && count <= 4) return '$count narudžbe';
+      return '$count narudžbi';
+    }
+    return _t('orderResultCount', params: {'count': '$count'});
+  }
   static String get thisMonthShort => _t('thisMonthShort');
 
   // ── Detalji seniora ──

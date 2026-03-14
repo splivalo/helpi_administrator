@@ -111,7 +111,7 @@ class SuspendedBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
       decoration: BoxDecoration(
         color: HelpiTheme.statusCancelledBg,
         border: Border.all(color: HelpiTheme.error.withValues(alpha: 0.4)),
@@ -120,7 +120,7 @@ class SuspendedBadge extends StatelessWidget {
       child: Text(
         AppStrings.suspended,
         style: const TextStyle(
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: FontWeight.w600,
           color: HelpiTheme.error,
         ),
