@@ -526,6 +526,27 @@ class AppStrings {
       'priceFormat': '{price} €',
       'pricePerHour': '{price} €/sat',
       'activeStudentsMonth': 'Aktivni studenti — {monthYear}',
+
+      // ── Suspenzija ──
+      'suspend': 'Suspendiraj',
+      'activate': 'Aktiviraj',
+      'suspended': 'Suspendiran',
+      'suspendUser': 'Suspendiraj korisnika',
+      'activateUser': 'Aktiviraj korisnika',
+      'suspensionReason': 'Razlog suspenzije',
+      'suspensionReasonHint': 'Unesite razlog suspenzije...',
+      'suspensionHistory': 'Povijest suspenzija',
+      'suspendConfirmTitle': 'Potvrda suspenzije',
+      'suspendConfirmMsg': 'Jeste li sigurni da želite suspendirati korisnika {name}?',
+      'activateConfirmTitle': 'Potvrda aktivacije',
+      'activateConfirmMsg': 'Jeste li sigurni da želite aktivirati korisnika {name}?',
+      'suspensionSuccess': 'Korisnik uspješno suspendiran',
+      'activationSuccess': 'Korisnik uspješno aktiviran',
+      'suspensionReasonRequired': 'Razlog suspenzije je obavezan',
+      'actionSuspended': 'Suspendiran',
+      'actionActivated': 'Aktiviran',
+      'suspendedAt': 'Suspendiran dana',
+      'noSuspensionHistory': 'Nema povijesti suspenzija',
     },
 
     'en': {
@@ -1034,6 +1055,27 @@ class AppStrings {
       'priceFormat': '€{price}',
       'pricePerHour': '€{price}/hour',
       'activeStudentsMonth': 'Active students — {monthYear}',
+
+      // ── Suspension ──
+      'suspend': 'Suspend',
+      'activate': 'Activate',
+      'suspended': 'Suspended',
+      'suspendUser': 'Suspend user',
+      'activateUser': 'Activate user',
+      'suspensionReason': 'Suspension reason',
+      'suspensionReasonHint': 'Enter suspension reason...',
+      'suspensionHistory': 'Suspension history',
+      'suspendConfirmTitle': 'Confirm suspension',
+      'suspendConfirmMsg': 'Are you sure you want to suspend user {name}?',
+      'activateConfirmTitle': 'Confirm activation',
+      'activateConfirmMsg': 'Are you sure you want to activate user {name}?',
+      'suspensionSuccess': 'User suspended successfully',
+      'activationSuccess': 'User activated successfully',
+      'suspensionReasonRequired': 'Suspension reason is required',
+      'actionSuspended': 'Suspended',
+      'actionActivated': 'Activated',
+      'suspendedAt': 'Suspended on',
+      'noSuspensionHistory': 'No suspension history',
     },
   };
 
@@ -1591,4 +1633,28 @@ class AppStrings {
   static String get reviewSessions => _t('reviewSessions');
   static String get reviewShort => _t('reviewShort');
   static String get timeMismatch => _t('timeMismatch');
+
+  // ── Suspenzija ──
+  static String get suspend => _t('suspend');
+  static String get activate => _t('activate');
+  static String get suspended => _t('suspended');
+  static String get suspendUser => _t('suspendUser');
+  static String get activateUser => _t('activateUser');
+  static String get suspensionReason => _t('suspensionReason');
+  static String get suspensionReasonHint => _t('suspensionReasonHint');
+  static String get suspensionHistory => _t('suspensionHistory');
+  static String get suspendConfirmTitle => _t('suspendConfirmTitle');
+  static String suspendConfirmMsg(String name) =>
+      _t('suspendConfirmMsg', params: {'name': name});
+  static String get activateConfirmTitle => _t('activateConfirmTitle');
+  static String activateConfirmMsg(String name) =>
+      _t('activateConfirmMsg', params: {'name': name});
+  static String get suspensionSuccess => _t('suspensionSuccess');
+  static String get activationSuccess => _t('activationSuccess');
+  static String get suspensionReasonRequired =>
+      _t('suspensionReasonRequired');
+  static String get actionSuspended => _t('actionSuspended');
+  static String get actionActivated => _t('actionActivated');
+  static String get suspendedAt => _t('suspendedAt');
+  static String get noSuspensionHistory => _t('noSuspensionHistory');
 }

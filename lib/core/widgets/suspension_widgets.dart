@@ -1,0 +1,213 @@
+import 'package:flutter/material.dart';
+import 'package:helpi_admin/app/theme.dart';
+import 'package:helpi_admin/core/l10n/app_strings.dart';
+import 'package:helpi_admin/core/models/suspension_models.dart';
+import 'package:helpi_admin/core/network/api_client.dart';
+import 'package:helpi_admin/core/network/api_endpoints.dart';
+import 'package:helpi_admin/core/utils/formatters.dart' as fmt;
+import 'package:helpi_admin/core/widgets/widgets.dart';
+
+/// Card showing the suspension history timeline.
+class SuspensionHistoryCard extends StatelessWidget {
+  const SuspensionHistoryCard({super.key, required this.status});
+  final UserSuspensionStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      title: AppStrings.suspensionHistory,
+      icon: Icons.history,
+      children: [
+        if (status.suspensionHistory.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(
+              AppStrings.noSuspensionHistory,
+              style: const TextStyle(
+                color: HelpiTheme.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+          )
+        else
+          ...status.suspensionHistory.map(_buildLogEntry),
+      ],
+    );
+  }
+
+  Widget _buildLogEntry(SuspensionLogModel log) {
+    final isSuspension = log.action == SuspensionAction.suspended;
+    final color = isSuspension ? HelpiTheme.error : HelpiTheme.accent;
+    final icon = isSuspension ? Icons.block : Icons.check_circle;
+    final label =
+        isSuspension ? AppStrings.actionSuspended : AppStrings.actionActivated;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: color,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${fmt.formatDate(log.createdAt)} ${fmt.formatTime(log.createdAt)}',
+                      style: const TextStyle(
+                        color: HelpiTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+                if (log.reason != null && log.reason!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    log.reason!,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Badge shown in AppBar when user is suspended.
+class SuspendedBadge extends StatelessWidget {
+  const SuspendedBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: HelpiTheme.statusCancelledBg,
+        border: Border.all(color: HelpiTheme.error.withValues(alpha: 0.4)),
+        borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
+      ),
+      child: Text(
+        AppStrings.suspended,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: HelpiTheme.error,
+        ),
+      ),
+    );
+  }
+}
+
+/// Shows suspend reason input dialog. Returns the reason or null if cancelled.
+Future<String?> showSuspendDialog(BuildContext context, String userName) async {
+  final controller = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
+  return showDialog<String>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(AppStrings.suspendConfirmTitle),
+      content: SizedBox(
+        width: 400,
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(AppStrings.suspendConfirmMsg(userName)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: controller,
+                maxLength: 500,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: AppStrings.suspensionReason,
+                  hintText: AppStrings.suspensionReasonHint,
+                  border: const OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return AppStrings.suspensionReasonRequired;
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(AppStrings.cancel),
+        ),
+        TextButton(
+          onPressed: () {
+            if (formKey.currentState!.validate()) {
+              Navigator.pop(ctx, controller.text.trim());
+            }
+          },
+          child: Text(
+            AppStrings.suspend,
+            style: const TextStyle(color: HelpiTheme.error),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// Helper to load suspension status from API.
+Future<UserSuspensionStatus?> loadSuspensionStatus(
+  ApiClient api,
+  int userId,
+) async {
+  try {
+    final response = await api.get(ApiEndpoints.suspensionStatus(userId));
+    return UserSuspensionStatus.fromJson(
+      response.data as Map<String, dynamic>,
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Helper to suspend a user via API.
+Future<bool> suspendUserApi(ApiClient api, int userId, String reason) async {
+  try {
+    await api.post(
+      ApiEndpoints.suspendUser(userId),
+      data: {'reason': reason},
+    );
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/// Helper to activate a user via API.
+Future<bool> activateUserApi(ApiClient api, int userId) async {
+  try {
+    await api.post(ApiEndpoints.activateUser(userId));
+    return true;
+  } catch (_) {
+    return false;
+  }
+}

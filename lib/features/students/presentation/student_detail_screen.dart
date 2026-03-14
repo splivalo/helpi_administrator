@@ -5,9 +5,12 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/faculty.dart';
+import 'package:helpi_admin/core/models/suspension_models.dart';
+import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/utils/session_preview_helper.dart';
+import 'package:helpi_admin/core/widgets/suspension_widgets.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 
@@ -24,7 +27,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   late StudentModel _student;
   final _prefs = PreferencesService.instance;
   static const _screenKey = 'studentDetail';
-  static const _sectionCount = 7;
+  static const _sectionCount = 8;
+
+  /// Suspension status loaded from API.
+  final _api = ApiClient();
+  UserSuspensionStatus? _suspensionStatus;
 
   /// Date range for work summary payout calculation.
   late DateTime _summaryStart;
@@ -45,6 +52,15 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     } else {
       _sectionOrder = List.generate(_sectionCount, (i) => i);
     }
+    _loadSuspensionStatus();
+  }
+
+  Future<void> _loadSuspensionStatus() async {
+    final userId = int.tryParse(_student.id);
+    if (userId == null) return;
+    final status = await loadSuspensionStatus(_api, userId);
+    if (!mounted) return;
+    setState(() => _suspensionStatus = status);
   }
 
   /// Default: contract period if available, otherwise current month.
@@ -79,6 +95,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             ),
             const SizedBox(width: 8),
             StatusBadge.contract(_student.contractStatus),
+            if (_suspensionStatus?.isSuspended == true) ...[
+              const SizedBox(width: 6),
+              const SuspendedBadge(),
+            ],
             if (_student.isArchived) ...[
               const SizedBox(width: 6),
               Container(
@@ -150,6 +170,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     AppStrings.studentAvailability,
     AppStrings.studentAssignedOrders,
     AppStrings.studentReviews,
+    AppStrings.suspensionHistory,
     AppStrings.adminActions,
   ];
 
@@ -160,6 +181,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     Icons.schedule,
     Icons.receipt_long,
     Icons.star,
+    Icons.history,
     Icons.admin_panel_settings,
   ];
 
@@ -174,6 +196,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       _buildAvailabilitySection(),
       _buildOrdersSection(orders),
       _buildReviewsSection(reviews),
+      _buildSuspensionHistorySection(),
       _buildAdminActionsSection(),
     ];
   }
@@ -498,9 +521,29 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   }
 
   // ─────────────────────────────────────────────────────────
+  //  SUSPENSION HISTORY SECTION
+  // ─────────────────────────────────────────────────────────
+  Widget _buildSuspensionHistorySection() {
+    if (_suspensionStatus == null) {
+      return SectionCard(
+        title: AppStrings.suspensionHistory,
+        icon: Icons.history,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+        ],
+      );
+    }
+    return SuspensionHistoryCard(status: _suspensionStatus!);
+  }
+
+  // ─────────────────────────────────────────────────────────
   //  ADMIN ACTIONS SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildAdminActionsSection() {
+    final isSuspended = _suspensionStatus?.isSuspended == true;
     return SectionCard(
       title: AppStrings.adminActions,
       icon: Icons.admin_panel_settings,
@@ -516,8 +559,72 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           onTap: () =>
               _student.isArchived ? _confirmUnarchive() : _confirmArchive(),
         ),
+        const SizedBox(height: 8),
+        ActionChipButton(
+          icon: isSuspended ? Icons.check_circle : Icons.block,
+          label: isSuspended ? AppStrings.activate : AppStrings.suspend,
+          color: isSuspended ? HelpiTheme.accent : HelpiTheme.error,
+          onTap: () => isSuspended ? _confirmActivate() : _confirmSuspend(),
+        ),
       ],
     );
+  }
+
+  // ── Suspend / Activate logic ──
+
+  Future<void> _confirmSuspend() async {
+    final reason = await showSuspendDialog(context, _student.fullName);
+    if (!mounted || reason == null) return;
+
+    final userId = int.tryParse(_student.id);
+    if (userId == null) return;
+
+    final success = await suspendUserApi(_api, userId, reason);
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.suspensionSuccess)),
+      );
+      _loadSuspensionStatus();
+    }
+  }
+
+  Future<void> _confirmActivate() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStrings.activateConfirmTitle),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.activateConfirmMsg(_student.fullName)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(AppStrings.activate),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+
+    final userId = int.tryParse(_student.id);
+    if (userId == null) return;
+
+    final success = await activateUserApi(_api, userId);
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppStrings.activationSuccess)),
+      );
+      _loadSuspensionStatus();
+    }
   }
 
   // ── Archive / Unarchive logic ──

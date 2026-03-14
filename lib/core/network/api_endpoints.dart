@@ -66,4 +66,12 @@ class ApiEndpoints {
 
   // Invoices
   static const String invoices = '/api/invoices';
+
+  // Suspensions
+  static String suspensionStatus(int userId) =>
+      '/api/suspensions/users/$userId';
+  static String suspendUser(int userId) =>
+      '/api/suspensions/users/$userId/suspend';
+  static String activateUser(int userId) =>
+      '/api/suspensions/users/$userId/activate';
 }
