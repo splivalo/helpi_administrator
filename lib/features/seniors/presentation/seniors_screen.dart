@@ -632,7 +632,11 @@ class _SeniorCard extends StatelessWidget {
 //  SENIOR DETAIL (inline same file)
 // ═══════════════════════════════════════════════════════════════
 class SeniorDetailScreen extends StatefulWidget {
-  const SeniorDetailScreen({super.key, required this.senior, required this.orders});
+  const SeniorDetailScreen({
+    super.key,
+    required this.senior,
+    required this.orders,
+  });
   final SeniorModel senior;
   final List<OrderModel> orders;
 

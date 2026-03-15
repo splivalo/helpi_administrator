@@ -1396,6 +1396,7 @@ class AppStrings {
     }
     return _t('filterResultCount', params: {'count': '$count'});
   }
+
   static String seniorResultCount(int count) {
     if (_currentLocale == 'hr') {
       if (count == 1) return '1 senior';
@@ -1403,6 +1404,7 @@ class AppStrings {
     }
     return _t('seniorResultCount', params: {'count': '$count'});
   }
+
   static String orderResultCount(int count) {
     if (_currentLocale == 'hr') {
       if (count == 1) return '1 narudžba';
@@ -1411,6 +1413,7 @@ class AppStrings {
     }
     return _t('orderResultCount', params: {'count': '$count'});
   }
+
   static String get thisMonthShort => _t('thisMonthShort');
 
   // ── Detalji seniora ──

@@ -114,8 +114,12 @@ class _ChatRoomList extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: rooms.length,
-      separatorBuilder: (context, index) =>
-          const Divider(height: 1, indent: 16, endIndent: 16, color: HelpiTheme.border),
+      separatorBuilder: (context, index) => const Divider(
+        height: 1,
+        indent: 16,
+        endIndent: 16,
+        color: HelpiTheme.border,
+      ),
       itemBuilder: (ctx, i) {
         final room = rooms[i];
         final isSelected = room.id == selectedRoomId;
@@ -134,9 +138,9 @@ class _ChatRoomList extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   onTap: room.isSenior
                       ? () {
-                          final senior = MockData.seniors.where(
-                            (s) => s.id == room.participantId,
-                          ).firstOrNull;
+                          final senior = MockData.seniors
+                              .where((s) => s.id == room.participantId)
+                              .firstOrNull;
                           if (senior == null) return;
                           final orders = MockData.orders
                               .where((o) => o.senior.id == senior.id)
