@@ -127,7 +127,7 @@
 - [x] **Review comment scroll** — Zamjena truncation (maxLines:5) s ConstrainedBox(maxHeight:100) + SingleChildScrollView
 - [x] **Admin Notes (NotesSection)** — Widget za admin bilješke (add/edit/delete) integriran u StudentDetail (9 sekcija) i SeniorDetail (8 sekcija)
 - [x] **Suspension warning dialog** — Upozorenje s brojem aktivnih narudžbi prije suspenzije (student + senior detail)
-- [x] **Auto-cancel orders on suspend** — Loop u _confirmSuspend() otkazuje aktivne/processing narudžbe pri suspenziji
+- [x] **Auto-cancel orders on suspend** — Loop u \_confirmSuspend() otkazuje aktivne/processing narudžbe pri suspenziji
 - [x] **SuspensionStateManager listener fix** — Dodano addListener u initState() na StudentsScreen i SeniorsScreen (lista) — badge "Suspendiran" se sad ažurira
 - [x] **Tab hover boja fix** — tabBarTheme u theme.dart s neutralnim sivim overlayColor umjesto teal splasha
 - [x] **Uklonjen ContractStatus.deactivated** — Enum, tab, filter, badge, AppStrings (4 ključa)
