@@ -377,6 +377,18 @@ class AdminApiService {
   //  NOTIFICATIONS
   // ─────────────────────────────────────────────
 
+  Future<ApiResult<List<ReviewModel>>> getReviews() async {
+    try {
+      final response = await _api.get(ApiEndpoints.reviews);
+      final list = (response.data as List<dynamic>)
+          .map((e) => _mapReview(e as Map<String, dynamic>))
+          .toList();
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   Future<ApiResult<List<NotificationModel>>> getNotifications() async {
     try {
       final response = await _api.get(ApiEndpoints.notifications);

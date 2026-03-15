@@ -6,6 +6,7 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
 import 'package:helpi_admin/core/services/auth_service.dart';
+import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/features/auth/presentation/login_screen.dart';
 
 /// Root widget za Helpi Admin app.
@@ -21,6 +22,7 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
   final _authService = AuthService();
   bool _isLoggedIn = false;
   bool _isCheckingAuth = true;
+  bool _isLoadingData = false;
 
   @override
   void initState() {
@@ -31,18 +33,32 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
   Future<void> _checkExistingSession() async {
     final loggedIn = await _authService.isLoggedIn();
     if (!mounted) return;
+    if (loggedIn) {
+      setState(() => _isLoadingData = true);
+      await DataLoader.loadAll();
+      if (!mounted) return;
+    }
     setState(() {
       _isLoggedIn = loggedIn;
       _isCheckingAuth = false;
+      _isLoadingData = false;
     });
   }
 
   void _handleLogin() {
-    setState(() => _isLoggedIn = true);
+    setState(() => _isLoadingData = true);
+    DataLoader.loadAll().then((_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoggedIn = true;
+        _isLoadingData = false;
+      });
+    });
   }
 
   Future<void> _handleLogout() async {
     await _authService.logout();
+    DataLoader.reset();
     if (!mounted) return;
     setState(() => _isLoggedIn = false);
   }
@@ -72,7 +88,7 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: _isCheckingAuth
+          home: _isCheckingAuth || _isLoadingData
               ? const Scaffold(body: Center(child: CircularProgressIndicator()))
               : _isLoggedIn
               ? ResponsiveShell(
