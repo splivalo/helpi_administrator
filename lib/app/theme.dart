@@ -153,6 +153,17 @@ class HelpiTheme {
         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
     ),
+    tabBarTheme: TabBarThemeData(
+      overlayColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.hovered)) {
+          return textSecondary.withValues(alpha: 0.08);
+        }
+        if (states.contains(WidgetState.pressed)) {
+          return textSecondary.withValues(alpha: 0.12);
+        }
+        return Colors.transparent;
+      }),
+    ),
     cardTheme: CardThemeData(
       color: surface,
       elevation: 0,

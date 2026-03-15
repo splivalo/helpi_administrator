@@ -1,6 +1,6 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-03-12
+> Zadnja izmjena: 2026-03-15
 
 ## Ukupno stanje
 
@@ -8,7 +8,7 @@
 | --------------------- | ----------------------------------------------------------------------------- | ---------- |
 | Auth (Login)          | ✅ UI gotov, mock login                                                       | 90%        |
 | Dashboard             | ✅ KPI, narudžbe u obradi, aktivni studenti, ugovori, grid/list               | 100%       |
-| Studenti – Lista      | ✅ 7 tabova, pretraga, napredni filteri, sort, grid/list                      | 100%       |
+| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                      | 100%       |
 | Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta    | 100%       |
 | Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                         | 100%       |
 | Seniori – Detalj      | ✅ Profil, narudžbe, "Dodaj narudžbu", status logika                          | 100%       |
@@ -59,7 +59,7 @@
 
 ### Studenti
 
-- [x] StudentsScreen — 7 tabova (Svi/Aktivni/Ističe/Istekao/Bez ugovora/Deaktivirani/Arhivirani)
+- [x] StudentsScreen — 6 tabova (Svi/Aktivni/Istekao/Bez ugovora/Suspendirani/Arhivirani)
 - [x] Pretraga, sortiranje (A-Ž, Ž-A, ocjena, poslovi)
 - [x] Napredni filter panel: senior dropdown (DropdownButtonFormField), dani u tjednu (full-width chips), min/max poslova, datumski raspon, vremenski raspon
 - [x] Grid/list toggle
@@ -121,6 +121,18 @@
 - [x] **DatePicker globalna tema** — datePickerTheme u ThemeData: teal boje, manji header font (20px), cardRadius zaobljenje
 - [x] **DatePicker gumbi** — confirmText/cancelText iz AppStrings ("U redu" umjesto "U REDU")
 - [x] **Locale switching** — ValueKey rebuild svih ekrana u IndexedStack pri promjeni jezika
+
+### Suspenzija, Admin Notes & Tab Cleanup (2026-03-15)
+
+- [x] **Review comment scroll** — Zamjena truncation (maxLines:5) s ConstrainedBox(maxHeight:100) + SingleChildScrollView
+- [x] **Admin Notes (NotesSection)** — Widget za admin bilješke (add/edit/delete) integriran u StudentDetail (9 sekcija) i SeniorDetail (8 sekcija)
+- [x] **Suspension warning dialog** — Upozorenje s brojem aktivnih narudžbi prije suspenzije (student + senior detail)
+- [x] **Auto-cancel orders on suspend** — Loop u _confirmSuspend() otkazuje aktivne/processing narudžbe pri suspenziji
+- [x] **SuspensionStateManager listener fix** — Dodano addListener u initState() na StudentsScreen i SeniorsScreen (lista) — badge "Suspendiran" se sad ažurira
+- [x] **Tab hover boja fix** — tabBarTheme u theme.dart s neutralnim sivim overlayColor umjesto teal splasha
+- [x] **Uklonjen ContractStatus.deactivated** — Enum, tab, filter, badge, AppStrings (4 ključa)
+- [x] **Uklonjen ContractStatus.expiring** — Enum, tab, filter, badge, AppStrings; Dashboard "ističe" logika prebačena na date-based (active + expiryDate < 30 dana)
+- [x] **Suspend button style** — TextButton.styleFrom(foregroundColor: error) za pravilan hover
 
 ### Promo kod (Stripe priprema)
 

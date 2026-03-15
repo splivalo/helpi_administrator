@@ -28,11 +28,14 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   late StudentModel _student;
   final _prefs = PreferencesService.instance;
   static const _screenKey = 'studentDetail';
-  static const _sectionCount = 8;
+  static const _sectionCount = 9;
 
   /// Suspension status loaded from API.
   final _api = ApiClient();
   UserSuspensionStatus? _suspensionStatus;
+
+  /// Admin notes for this student (local state, later from API).
+  final List<AdminNote> _adminNotes = [];
 
   /// Date range for work summary payout calculation.
   late DateTime _summaryStart;
@@ -179,6 +182,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     AppStrings.studentAvailability,
     AppStrings.studentAssignedOrders,
     AppStrings.studentReviews,
+    AppStrings.adminNotes,
     AppStrings.suspensionHistory,
     AppStrings.adminActions,
   ];
@@ -190,6 +194,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     Icons.schedule,
     Icons.receipt_long,
     Icons.star,
+    Icons.sticky_note_2,
     Icons.history,
     Icons.admin_panel_settings,
   ];
@@ -205,6 +210,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       _buildAvailabilitySection(),
       _buildOrdersSection(orders),
       _buildReviewsSection(reviews),
+      _buildNotesSection(),
       _buildSuspensionHistorySection(),
       _buildAdminActionsSection(),
     ];
@@ -553,6 +559,13 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   }
 
   // ─────────────────────────────────────────────────────────
+  //  ADMIN NOTES SECTION
+  // ─────────────────────────────────────────────────────────
+  Widget _buildNotesSection() {
+    return NotesSection(notes: _adminNotes);
+  }
+
+  // ─────────────────────────────────────────────────────────
   //  ADMIN ACTIONS SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildAdminActionsSection() {
@@ -578,6 +591,41 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   // ── Suspend / Activate logic ──
 
   Future<void> _confirmSuspend() async {
+    // Warn if user has active orders (will be auto-cancelled)
+    final hasActiveOrders = MockData.orders.any(
+      (o) =>
+          o.student?.id == _student.id &&
+          (o.status == OrderStatus.active ||
+              o.status == OrderStatus.processing),
+    );
+
+    if (hasActiveOrders) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(AppStrings.suspendWarningTitle),
+          content: SizedBox(
+            width: 400,
+            child: Text(AppStrings.suspendWarningMsg),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(AppStrings.cancel),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(ctx).colorScheme.error,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(AppStrings.suspend),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || proceed != true) return;
+    }
+
     final reason = await showSuspendDialog(context, _student.fullName);
     if (!mounted || reason == null) return;
 
@@ -586,6 +634,34 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       final success = await suspendUserApi(_api, userId, reason);
       if (!mounted) return;
       if (!success) return;
+    }
+
+    // Cancel all active/processing orders for this student.
+    for (var i = 0; i < MockData.orders.length; i++) {
+      final o = MockData.orders[i];
+      if (o.student?.id == _student.id &&
+          (o.status == OrderStatus.active ||
+              o.status == OrderStatus.processing)) {
+        MockData.orders[i] = OrderModel(
+          id: o.id,
+          orderNumber: o.orderNumber,
+          senior: o.senior,
+          student: o.student,
+          status: OrderStatus.cancelled,
+          frequency: o.frequency,
+          services: o.services,
+          createdAt: o.createdAt,
+          scheduledDate: o.scheduledDate,
+          scheduledStart: o.scheduledStart,
+          durationHours: o.durationHours,
+          notes: o.notes,
+          address: o.address,
+          endDate: o.endDate,
+          dayEntries: o.dayEntries,
+          sessions: o.sessions,
+          promoCode: o.promoCode,
+        );
+      }
     }
 
     // Update UI (works for both real API and mock data).

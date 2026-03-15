@@ -50,6 +50,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
   @override
   void initState() {
     super.initState();
+    SuspensionStateManager.instance.addListener(_onSuspensionChanged);
 
     // Restore saved preferences
     _isGridView = _prefs.getGridView(_screenKey);
@@ -648,10 +649,13 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
   late SeniorModel _senior;
   final _prefs = PreferencesService.instance;
   static const _screenKey = 'seniorDetail';
-  static const _sectionCount = 7;
+  static const _sectionCount = 8;
 
   final _api = ApiClient();
   UserSuspensionStatus? _suspensionStatus;
+
+  /// Admin notes for this senior (local state, later from API).
+  final List<AdminNote> _adminNotes = [];
 
   late List<int> _sectionOrder;
 
@@ -1023,6 +1027,7 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
     AppStrings.seniorCreditCards,
     AppStrings.seniorOrders,
     AppStrings.seniorReviews,
+    AppStrings.adminNotes,
     AppStrings.suspensionHistory,
     AppStrings.adminActions,
   ];
@@ -1033,6 +1038,7 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
     Icons.credit_card,
     Icons.receipt_long,
     Icons.star,
+    Icons.sticky_note_2,
     Icons.history,
     Icons.admin_panel_settings,
   ];
@@ -1044,6 +1050,7 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
       _buildCreditCardsSection(),
       _buildOrdersSection(),
       _buildReviewsSection(_seniorReviews),
+      _buildNotesSection(),
       _buildSuspensionHistorySection(),
       _buildAdminActionsSection(),
     ];
@@ -1401,6 +1408,41 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
   }
 
   Future<void> _confirmSuspend() async {
+    // Warn if user has active orders (will be auto-cancelled)
+    final hasActiveOrders = MockData.orders.any(
+      (o) =>
+          o.senior.id == _senior.id &&
+          (o.status == OrderStatus.active ||
+              o.status == OrderStatus.processing),
+    );
+
+    if (hasActiveOrders) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(AppStrings.suspendWarningTitle),
+          content: SizedBox(
+            width: 400,
+            child: Text(AppStrings.suspendWarningMsg),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(AppStrings.cancel),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(ctx).colorScheme.error,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(AppStrings.suspend),
+            ),
+          ],
+        ),
+      );
+      if (!mounted || proceed != true) return;
+    }
+
     final reason = await showSuspendDialog(context, _senior.fullName);
     if (!mounted || reason == null) return;
 
@@ -1409,6 +1451,34 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
       final success = await suspendUserApi(_api, userId, reason);
       if (!mounted) return;
       if (!success) return;
+    }
+
+    // Cancel all active/processing orders for this senior.
+    for (var i = 0; i < MockData.orders.length; i++) {
+      final o = MockData.orders[i];
+      if (o.senior.id == _senior.id &&
+          (o.status == OrderStatus.active ||
+              o.status == OrderStatus.processing)) {
+        MockData.orders[i] = OrderModel(
+          id: o.id,
+          orderNumber: o.orderNumber,
+          senior: o.senior,
+          student: o.student,
+          status: OrderStatus.cancelled,
+          frequency: o.frequency,
+          services: o.services,
+          createdAt: o.createdAt,
+          scheduledDate: o.scheduledDate,
+          scheduledStart: o.scheduledStart,
+          durationHours: o.durationHours,
+          notes: o.notes,
+          address: o.address,
+          endDate: o.endDate,
+          dayEntries: o.dayEntries,
+          sessions: o.sessions,
+          promoCode: o.promoCode,
+        );
+      }
     }
 
     setState(() {
@@ -1486,6 +1556,10 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
       context,
     ).showSnackBar(SnackBar(content: Text(AppStrings.activationSuccess)));
     SuspensionStateManager.instance.activate(_senior.id);
+  }
+
+  Widget _buildNotesSection() {
+    return NotesSection(notes: _adminNotes);
   }
 
   Widget _buildAdminActionsSection() {

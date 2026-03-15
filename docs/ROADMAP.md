@@ -1,9 +1,15 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-08
+> Zadnja izmjena: 2026-03-15
 
 ## TODO (čeka potvrdu)
 
+- [ ] **Suspenzija — auto-otkazivanje narudžbi (backend)** — Frontend admin app VEĆ otkazuje narudžbe lokalno (MockData) pri suspenziji. Backend `SuspendUserAsync` u `SuspensionService.cs` MORA napraviti isto: dohvatiti sve Order-e tog korisnika sa statusom Active/Processing, postaviti ih na Cancelled, otkazati sve scheduled sesije (JobInstance → Cancelled). Bez toga će pri backend integraciji narudžbe ostati aktivne unatoč suspenziji.
+- [ ] **Suspenzija — API middleware blokada (backend)** — Suspendirani korisnici mogu i dalje koristiti API. Potreban middleware ili auth check koji blokira sve API pozive suspendiranog korisnika (osim GET suspension statusa).
+- [ ] **Suspenzija — notifikacije (backend + app)** — Kad se korisnik suspendira: (1) push notifikacija korisniku, (2) notifikacija povezanim korisnicima (npr. senioru čiji je student suspendiran), (3) email obavijest.
+- [ ] **Suspenzija — "suspendirani" ekran u helpi_app** — Kad suspendirani korisnik otvori aplikaciju, treba vidjeti dedicirani ekran s razlogom suspenzije i kontakt informacijama, umjesto normalnog UI-ja.
+- [ ] **Suspenzija — provjera prije kreiranja narudžbe (backend)** — Backend ne provjerava je li korisnik suspendiran prilikom kreiranja nove narudžbe. Dodati provjeru u CreateOrder flow.
+- [ ] **Suspenzija — aktivacija cleanup (backend)** — Kad se korisnik aktivira nakon suspenzije, razmotriti treba li automatski ponovo aktivirati prethodno otkazane narudžbe ili kreirati nove.
 - [ ] **Backend integracija** — Zamjena MockData s REST API pozivima. Definiranje API endpointova, autentifikacija (JWT), error handling. Ovo je GLAVNI preostali zadatak.
 - [ ] **State management** — Uvesti Riverpod ili Bloc za state management umjesto lokalnog StatefulWidget stanja. Potrebno za backend integraciju.
 - [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
@@ -50,6 +56,13 @@
 - [x] **Flutter Web deploy** — Build s `--base-href /helpi/`, deploy na kungfu.digital/helpi/ (2026-03-05)
 - [x] **Promo kod (Stripe priprema)** — promoCode polje u OrderModel, AppStrings, prikaz u detaljima, admin akcija s dijalogom (2026-03-08)
 - [x] **Dialog unifikacija** — dialogTheme u theme.dart, SizedBox(width:400) na svih 14 AlertDialoga (2026-03-08)
+- [x] **Review comment scroll** — ConstrainedBox + SingleChildScrollView umjesto truncation (2026-03-15)
+- [x] **Admin Notes (NotesSection)** — add/edit/delete bilješke u StudentDetail i SeniorDetail (2026-03-15)
+- [x] **Suspension warning + auto-cancel** — Upozorenje o aktivnim narudžbama + automatsko otkazivanje pri suspenziji (2026-03-15)
+- [x] **SuspensionStateManager listener fix** — addListener u initState() na list ekranima (2026-03-15)
+- [x] **Tab hover boja** — tabBarTheme s neutralnim sivim overlayColor (2026-03-15)
+- [x] **ContractStatus cleanup** — Uklonjeni deactivated + expiring tabovi/enum/filteri/badge (2026-03-15)
+- [x] **Dashboard expiring → date-based** — active + expiryDate < 30 dana umjesto enum-based (2026-03-15)
 
 ---
 

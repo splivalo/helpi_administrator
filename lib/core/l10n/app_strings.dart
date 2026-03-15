@@ -162,14 +162,12 @@ class AppStrings {
       'contractExpired': 'Istekao',
       'contractExpiring': 'Ističe uskoro',
       'contractNone': 'Nema ugovora',
-      'contractDeactivated': 'Deaktiviran',
       'uploadContract': 'Učitaj ugovor',
       'contractValidUntil': 'Vrijedi do: {date}',
       'contractExpires': 'Ističe: {date}',
       'renewContract': 'Obnovi ugovor',
       'verifiedStudent': 'Verificiran',
       'unverifiedStudent': 'Neverificiran',
-      'studentDeactivated': 'Deaktiviran',
       'verifyStudent': 'Verificiraj',
       'searchStudents': 'Pretraži studente...',
       'noStudentsFound': 'Nema pronađenih studenata',
@@ -264,6 +262,9 @@ class AppStrings {
       'archiveBlockedTitle': 'Nije moguće arhivirati',
       'archiveBlockedMsg':
           'Nije moguće arhivirati jer ima aktivnih narudžbi. Prvo otkazite ili prebacite narudžbe.',
+      'suspendWarningTitle': 'Upozorenje: aktivne narudžbe',
+      'suspendWarningMsg':
+          'Korisnik ima aktivnih narudžbi koje će biti automatski otkazane. Jeste li sigurni da želite nastaviti sa suspenzijom?',
       'filterAll': 'Svi',
       'filterProcessing': 'U obradi',
       'filterActive': 'Aktivni',
@@ -273,6 +274,17 @@ class AppStrings {
       'filterArchived': 'Arhiviran',
       'statusArchived': 'Arhiviran',
       'adminActions': 'Admin akcije',
+      'adminNotes': 'Bilješke',
+      'adminNotesEmpty': 'Nema bilješki.',
+      'adminNoteAdd': 'Dodaj bilješku',
+      'adminNoteEdit': 'Uredi bilješku',
+      'adminNoteSave': 'Spremi',
+      'adminNoteCancel': 'Odustani',
+      'adminNoteDelete': 'Obriši bilješku',
+      'adminNoteDeleteConfirm':
+          'Jeste li sigurni da želite obrisati ovu bilješku?',
+      'adminNotePlaceholder': 'Unesite bilješku...',
+      'adminNoteEdited': 'uređeno',
       'assignToOrder': 'Dodijeli narudžbu',
       'assignShort': 'Dodijeli',
       'matchingOrders': 'Nalozi koje može pokriti',
@@ -696,14 +708,12 @@ class AppStrings {
       'contractExpired': 'Expired',
       'contractExpiring': 'Expiring soon',
       'contractNone': 'No contract',
-      'contractDeactivated': 'Deactivated',
       'uploadContract': 'Upload contract',
       'contractValidUntil': 'Valid until: {date}',
       'contractExpires': 'Expires: {date}',
       'renewContract': 'Renew contract',
       'verifiedStudent': 'Verified',
       'unverifiedStudent': 'Unverified',
-      'studentDeactivated': 'Deactivated',
       'verifyStudent': 'Verify',
       'searchStudents': 'Search students...',
       'noStudentsFound': 'No students found',
@@ -798,6 +808,9 @@ class AppStrings {
       'archiveBlockedTitle': 'Cannot archive',
       'archiveBlockedMsg':
           'Cannot archive because there are active orders. Cancel or reassign orders first.',
+      'suspendWarningTitle': 'Warning: active orders',
+      'suspendWarningMsg':
+          'This user has active orders that will be automatically cancelled. Are you sure you want to proceed with suspension?',
       'filterAll': 'All',
       'filterProcessing': 'Processing',
       'filterActive': 'Active',
@@ -807,6 +820,16 @@ class AppStrings {
       'filterArchived': 'Archived',
       'statusArchived': 'Archived',
       'adminActions': 'Admin actions',
+      'adminNotes': 'Notes',
+      'adminNotesEmpty': 'No notes.',
+      'adminNoteAdd': 'Add note',
+      'adminNoteEdit': 'Edit note',
+      'adminNoteSave': 'Save',
+      'adminNoteCancel': 'Cancel',
+      'adminNoteDelete': 'Delete note',
+      'adminNoteDeleteConfirm': 'Are you sure you want to delete this note?',
+      'adminNotePlaceholder': 'Enter note...',
+      'adminNoteEdited': 'edited',
       'assignToOrder': 'Assign order',
       'assignShort': 'Assign',
       'matchingOrders': 'Matching orders',
@@ -1240,7 +1263,6 @@ class AppStrings {
   static String get contractExpired => _t('contractExpired');
   static String get contractExpiring => _t('contractExpiring');
   static String get contractNone => _t('contractNone');
-  static String get contractDeactivated => _t('contractDeactivated');
   static String get uploadContract => _t('uploadContract');
   static String contractValidUntil(String date) =>
       _t('contractValidUntil', params: {'date': date});
@@ -1249,7 +1271,6 @@ class AppStrings {
   static String get renewContract => _t('renewContract');
   static String get verifiedStudent => _t('verifiedStudent');
   static String get unverifiedStudent => _t('unverifiedStudent');
-  static String get studentDeactivated => _t('studentDeactivated');
   static String get verifyStudent => _t('verifyStudent');
   static String get searchStudents => _t('searchStudents');
   static String get noStudentsFound => _t('noStudentsFound');
@@ -1302,6 +1323,8 @@ class AppStrings {
   static String get unarchiveConfirmMsg => _t('unarchiveConfirmMsg');
   static String get archiveBlockedTitle => _t('archiveBlockedTitle');
   static String get archiveBlockedMsg => _t('archiveBlockedMsg');
+  static String get suspendWarningTitle => _t('suspendWarningTitle');
+  static String get suspendWarningMsg => _t('suspendWarningMsg');
   static String get filterAll => _t('filterAll');
   static String get filterProcessing => _t('filterProcessing');
   static String get filterActive => _t('filterActive');
@@ -1311,6 +1334,16 @@ class AppStrings {
   static String get seniorFilterInactive => _t('seniorFilterInactive');
   static String get statusArchived => _t('statusArchived');
   static String get adminActions => _t('adminActions');
+  static String get adminNotes => _t('adminNotes');
+  static String get adminNotesEmpty => _t('adminNotesEmpty');
+  static String get adminNoteAdd => _t('adminNoteAdd');
+  static String get adminNoteEdit => _t('adminNoteEdit');
+  static String get adminNoteSave => _t('adminNoteSave');
+  static String get adminNoteCancel => _t('adminNoteCancel');
+  static String get adminNoteDelete => _t('adminNoteDelete');
+  static String get adminNoteDeleteConfirm => _t('adminNoteDeleteConfirm');
+  static String get adminNotePlaceholder => _t('adminNotePlaceholder');
+  static String get adminNoteEdited => _t('adminNoteEdited');
   static String get assignToOrder => _t('assignToOrder');
   static String get assignShort => _t('assignShort');
   static String get matchingOrders => _t('matchingOrders');

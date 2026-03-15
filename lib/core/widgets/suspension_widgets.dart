@@ -37,12 +37,24 @@ class SuspensionHistoryCard extends StatelessWidget {
         ],
         if (status.suspensionHistory.isEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text(
-              AppStrings.noSuspensionHistory,
-              style: const TextStyle(
-                color: HelpiTheme.textSecondary,
-                fontSize: 14,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.history_toggle_off,
+                    size: 36,
+                    color: HelpiTheme.border,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.noSuspensionHistory,
+                    style: const TextStyle(
+                      color: HelpiTheme.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
           )

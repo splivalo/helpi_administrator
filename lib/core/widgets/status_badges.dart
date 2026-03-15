@@ -68,20 +68,10 @@ String serviceLabel(ServiceType type) => switch (type) {
         HelpiTheme.statusCancelledBg,
         AppStrings.contractExpired,
       ),
-      ContractStatus.expiring => (
-        HelpiTheme.statusProcessingText,
-        HelpiTheme.statusProcessingBg,
-        AppStrings.contractExpiring,
-      ),
       ContractStatus.none => (
         HelpiTheme.textSecondary,
         HelpiTheme.chipBg,
         AppStrings.contractNone,
-      ),
-      ContractStatus.deactivated => (
-        HelpiTheme.statusCancelledText,
-        HelpiTheme.statusCancelledBg,
-        AppStrings.contractDeactivated,
       ),
     };
 

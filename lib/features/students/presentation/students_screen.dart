@@ -22,10 +22,8 @@ enum StudentSort { az, za, newest, oldest, ratingHigh, ratingLow }
 enum _StudentFilter {
   all,
   active,
-  expiring,
   expired,
   noContract,
-  deactivated,
   suspended,
   archived,
 }
@@ -68,6 +66,7 @@ class _StudentsScreenState extends State<StudentsScreen>
   @override
   void initState() {
     super.initState();
+    SuspensionStateManager.instance.addListener(_onSuspensionChanged);
 
     // Restore saved preferences
     _isGridView = _prefs.getGridView(_screenKey);
@@ -188,13 +187,6 @@ class _StudentsScreenState extends State<StudentsScreen>
               (s) => s.contractStatus == ContractStatus.active && !s.isArchived,
             )
             .toList();
-      case _StudentFilter.expiring:
-        students = students
-            .where(
-              (s) =>
-                  s.contractStatus == ContractStatus.expiring && !s.isArchived,
-            )
-            .toList();
       case _StudentFilter.expired:
         students = students
             .where(
@@ -206,14 +198,6 @@ class _StudentsScreenState extends State<StudentsScreen>
         students = students
             .where(
               (s) => s.contractStatus == ContractStatus.none && !s.isArchived,
-            )
-            .toList();
-      case _StudentFilter.deactivated:
-        students = students
-            .where(
-              (s) =>
-                  s.contractStatus == ContractStatus.deactivated &&
-                  !s.isArchived,
             )
             .toList();
       case _StudentFilter.suspended:
@@ -415,10 +399,8 @@ class _StudentsScreenState extends State<StudentsScreen>
               final label = switch (f) {
                 _StudentFilter.all => AppStrings.anyContract,
                 _StudentFilter.active => AppStrings.contractActive,
-                _StudentFilter.expiring => AppStrings.contractExpiring,
                 _StudentFilter.expired => AppStrings.contractExpired,
                 _StudentFilter.noContract => AppStrings.contractNone,
-                _StudentFilter.deactivated => AppStrings.contractDeactivated,
                 _StudentFilter.suspended => AppStrings.suspended,
                 _StudentFilter.archived => AppStrings.filterArchived,
               };

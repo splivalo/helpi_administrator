@@ -59,11 +59,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final activeCount = MockData.orders
         .where((o) => o.status == OrderStatus.active)
         .length;
+    final now = DateTime.now();
+    final soon = now.add(const Duration(days: 30));
     final expiringStudents = MockData.students
         .where(
           (s) =>
-              s.contractStatus == ContractStatus.expiring ||
-              s.contractStatus == ContractStatus.expired,
+              s.contractStatus == ContractStatus.expired ||
+              (s.contractStatus == ContractStatus.active &&
+                  s.contractExpiryDate != null &&
+                  s.contractExpiryDate!.isBefore(soon)),
         )
         .toList();
 

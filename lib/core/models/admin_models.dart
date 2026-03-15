@@ -29,7 +29,7 @@ enum ServiceType {
 
 enum FrequencyType { oneTime, recurring, recurringWithEnd }
 
-enum ContractStatus { active, expired, expiring, none, deactivated }
+enum ContractStatus { active, expired, none }
 
 enum SessionStatus { scheduled, completed, cancelled }
 
@@ -439,6 +439,26 @@ class ChatMessage {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  ADMIN NOTE
+// ═══════════════════════════════════════════════════════════════
+
+class AdminNote {
+  final String id;
+  String text;
+  final DateTime createdAt;
+  DateTime updatedAt;
+
+  AdminNote({
+    required this.id,
+    required this.text,
+    required this.createdAt,
+    DateTime? updatedAt,
+  }) : updatedAt = updatedAt ?? createdAt;
+
+  bool get wasEdited => updatedAt.isAfter(createdAt);
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  MOCK DATA
 // ═══════════════════════════════════════════════════════════════
 
@@ -629,7 +649,7 @@ class MockData {
       completedJobs: 16,
       cancelledJobs: 0,
       isVerified: true,
-      contractStatus: ContractStatus.expiring,
+      contractStatus: ContractStatus.active,
       contractStartDate: DateTime(2026, 2, 15),
       contractExpiryDate: DateTime(2026, 3, 5),
       createdAt: DateTime(2025, 12, 15),
@@ -1734,7 +1754,14 @@ class MockData {
       seniorName: 'Ivka Mandić',
       studentName: 'Luka Perić',
       rating: 5,
-      comment: 'Odličan dečko, vrlo pažljiv i pouzdan.',
+      comment:
+          'Odličan dečko, vrlo pažljiv i pouzdan. Uvijek dođe na vrijeme i ostane koliko treba. '
+          'Pomaže mi oko svega — od kupovine do šetnje. Nikad se ne žali i uvijek je veseo. '
+          'Preporučam ga svima koji trebaju pomoć jer je stvarno izvanredan. '
+          'Drago mi je da sam ga dobila kao studenta. Nadam se da će nastaviti raditi i sljedeći semestar. '
+          'Svaka čast organizaciji što ima ovako kvalitetne studente! '
+          'Jedina sitnica je da ponekad zaboravi donijeti vrećice za smeće ali to je minorno. '
+          'Sve u svemu, desetka!',
       createdAt: DateTime(2026, 2, 28),
     ),
     ReviewModel(

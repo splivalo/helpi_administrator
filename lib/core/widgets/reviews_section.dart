@@ -136,9 +136,14 @@ class ReviewsSection extends StatelessWidget {
                 ),
                 if (r.comment != null && r.comment!.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(
-                    r.comment!,
-                    style: const TextStyle(fontSize: 13, height: 1.4),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 100),
+                    child: SingleChildScrollView(
+                      child: Text(
+                        r.comment!,
+                        style: const TextStyle(fontSize: 13, height: 1.4),
+                      ),
+                    ),
                   ),
                 ],
               ],
