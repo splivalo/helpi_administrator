@@ -22,7 +22,6 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
   final _authService = AuthService();
   bool _isLoggedIn = false;
   bool _isCheckingAuth = true;
-  bool _isLoadingData = false;
 
   @override
   void initState() {
@@ -31,28 +30,29 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
   }
 
   Future<void> _checkExistingSession() async {
-    final loggedIn = await _authService.isLoggedIn();
-    if (!mounted) return;
-    if (loggedIn) {
-      setState(() => _isLoadingData = true);
-      await DataLoader.loadAll();
+    bool loggedIn = false;
+    try {
+      loggedIn = await _authService.isLoggedIn();
       if (!mounted) return;
+      if (loggedIn) {
+        await DataLoader.loadAll();
+        if (!mounted) return;
+      }
+    } catch (_) {
+      // Never block startup — fall through with whatever state we have
     }
+    if (!mounted) return;
     setState(() {
       _isLoggedIn = loggedIn;
       _isCheckingAuth = false;
-      _isLoadingData = false;
     });
   }
 
   void _handleLogin() {
-    setState(() => _isLoadingData = true);
-    DataLoader.loadAll().then((_) {
+    setState(() => _isLoggedIn = true);
+    DataLoader.loadAll().whenComplete(() {
       if (!mounted) return;
-      setState(() {
-        _isLoggedIn = true;
-        _isLoadingData = false;
-      });
+      // Data loaded in background, screens will use whatever is available
     });
   }
 
@@ -88,7 +88,7 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: _isCheckingAuth || _isLoadingData
+          home: _isCheckingAuth
               ? const Scaffold(body: Center(child: CircularProgressIndicator()))
               : _isLoggedIn
               ? ResponsiveShell(

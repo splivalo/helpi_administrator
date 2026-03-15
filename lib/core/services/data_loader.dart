@@ -41,10 +41,10 @@ class DataLoader {
 
     // Fire all requests in parallel
     final results = await Future.wait([
-      api.getStudents(),   // 0
-      api.getSeniors(),    // 1
-      api.getOrders(),     // 2
-      api.getReviews(),    // 3
+      api.getStudents(), // 0
+      api.getSeniors(), // 1
+      api.getOrders(), // 2
+      api.getReviews(), // 3
       api.getNotifications(), // 4
     ]);
 
