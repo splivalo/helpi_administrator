@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:helpi_admin/core/models/admin_models.dart';
@@ -14,18 +16,44 @@ class DataLoader {
   static bool _loaded = false;
   static bool get isLoaded => _loaded;
 
-  /// Fetch students, seniors, orders, sessions, reviews and notifications
-  /// from the API and replace [MockData] contents.
+  /// Fetch students, seniors, orders, reviews and notifications
+  /// from the API **in parallel** and replace [MockData] contents.
   ///
-  /// Returns `true` when **all** critical lists loaded successfully.
-  /// If any individual list fails the error is logged and the
-  /// corresponding [MockData] list is left unchanged.
+  /// The entire operation is capped at [_timeout] so the UI never
+  /// hangs when the backend is unreachable — mock data stays as fallback.
+  static const _timeout = Duration(seconds: 8);
+
   static Future<bool> loadAll() async {
+    try {
+      return await _doLoad().timeout(_timeout);
+    } on TimeoutException {
+      debugPrint('[DataLoader] loadAll TIMEOUT — using mock data');
+      return false;
+    } catch (e) {
+      debugPrint('[DataLoader] loadAll ERROR: $e — using mock data');
+      return false;
+    }
+  }
+
+  static Future<bool> _doLoad() async {
     final api = AdminApiService();
     var allOk = true;
 
-    // ── Students ──
-    final studentsResult = await api.getStudents();
+    // Fire all requests in parallel
+    final results = await Future.wait([
+      api.getStudents(),   // 0
+      api.getSeniors(),    // 1
+      api.getOrders(),     // 2
+      api.getReviews(),    // 3
+      api.getNotifications(), // 4
+    ]);
+
+    final studentsResult = results[0] as ApiResult<List<StudentModel>>;
+    final seniorsResult = results[1] as ApiResult<List<SeniorModel>>;
+    final ordersResult = results[2] as ApiResult<List<OrderModel>>;
+    final reviewsResult = results[3] as ApiResult<List<ReviewModel>>;
+    final notifResult = results[4] as ApiResult<List<NotificationModel>>;
+
     if (studentsResult.success && studentsResult.data != null) {
       MockData.students
         ..clear()
@@ -35,8 +63,6 @@ class DataLoader {
       allOk = false;
     }
 
-    // ── Seniors ──
-    final seniorsResult = await api.getSeniors();
     if (seniorsResult.success && seniorsResult.data != null) {
       MockData.seniors
         ..clear()
@@ -46,8 +72,6 @@ class DataLoader {
       allOk = false;
     }
 
-    // ── Orders ──
-    final ordersResult = await api.getOrders();
     if (ordersResult.success && ordersResult.data != null) {
       MockData.orders
         ..clear()
@@ -57,8 +81,6 @@ class DataLoader {
       allOk = false;
     }
 
-    // ── Reviews ──
-    final reviewsResult = await api.getReviews();
     if (reviewsResult.success && reviewsResult.data != null) {
       MockData.reviews
         ..clear()
@@ -68,8 +90,6 @@ class DataLoader {
       allOk = false;
     }
 
-    // ── Notifications ──
-    final notifResult = await api.getNotifications();
     if (notifResult.success && notifResult.data != null) {
       MockData.notifications
         ..clear()

@@ -13,8 +13,7 @@ class ApiResult<T> {
   const ApiResult._({required this.success, this.data, this.error});
 
   factory ApiResult.ok(T data) => ApiResult._(success: true, data: data);
-  factory ApiResult.fail(String msg) =>
-      ApiResult._(success: false, error: msg);
+  factory ApiResult.fail(String msg) => ApiResult._(success: false, error: msg);
 }
 
 /// Central service for all admin API calls.
@@ -22,8 +21,7 @@ class ApiResult<T> {
 class AdminApiService {
   final ApiClient _api;
 
-  AdminApiService({ApiClient? apiClient})
-      : _api = apiClient ?? ApiClient();
+  AdminApiService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
   // ─────────────────────────────────────────────
   //  STUDENTS
@@ -56,8 +54,7 @@ class AdminApiService {
   Future<ApiResult<StudentModel>> getStudent(int id) async {
     try {
       final response = await _api.get(ApiEndpoints.studentById(id));
-      return ApiResult.ok(
-          _mapStudent(response.data as Map<String, dynamic>));
+      return ApiResult.ok(_mapStudent(response.data as Map<String, dynamic>));
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
     }
@@ -67,9 +64,7 @@ class AdminApiService {
   //  SENIORS (backend: Customers → Seniors)
   // ─────────────────────────────────────────────
 
-  Future<ApiResult<List<SeniorModel>>> getSeniors({
-    String? searchText,
-  }) async {
+  Future<ApiResult<List<SeniorModel>>> getSeniors({String? searchText}) async {
     try {
       final params = <String, dynamic>{};
       if (searchText != null && searchText.isNotEmpty) {
@@ -91,8 +86,7 @@ class AdminApiService {
   Future<ApiResult<SeniorModel>> getSenior(int id) async {
     try {
       final response = await _api.get(ApiEndpoints.seniorById(id));
-      return ApiResult.ok(
-          _mapSenior(response.data as Map<String, dynamic>));
+      return ApiResult.ok(_mapSenior(response.data as Map<String, dynamic>));
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
     }
@@ -102,9 +96,7 @@ class AdminApiService {
   //  ORDERS
   // ─────────────────────────────────────────────
 
-  Future<ApiResult<List<OrderModel>>> getOrders({
-    String? status,
-  }) async {
+  Future<ApiResult<List<OrderModel>>> getOrders({String? status}) async {
     try {
       final params = <String, dynamic>{};
       if (status != null) params['status'] = status;
@@ -125,8 +117,7 @@ class AdminApiService {
   Future<ApiResult<OrderModel>> getOrder(int id) async {
     try {
       final response = await _api.get(ApiEndpoints.orderById(id));
-      return ApiResult.ok(
-          _mapOrder(response.data as Map<String, dynamic>));
+      return ApiResult.ok(_mapOrder(response.data as Map<String, dynamic>));
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
     }
@@ -134,8 +125,9 @@ class AdminApiService {
 
   Future<ApiResult<List<OrderModel>>> getOrdersBySenior(int seniorId) async {
     try {
-      final response =
-          await _api.get('${ApiEndpoints.orders}/senior/$seniorId');
+      final response = await _api.get(
+        '${ApiEndpoints.orders}/senior/$seniorId',
+      );
       final list = (response.data as List<dynamic>)
           .map((e) => _mapOrder(e as Map<String, dynamic>))
           .toList();
@@ -146,24 +138,23 @@ class AdminApiService {
   }
 
   Future<ApiResult<OrderModel>> createOrder(
-      Map<String, dynamic> orderData) async {
+    Map<String, dynamic> orderData,
+  ) async {
     try {
-      final response =
-          await _api.post(ApiEndpoints.orders, data: orderData);
-      return ApiResult.ok(
-          _mapOrder(response.data as Map<String, dynamic>));
+      final response = await _api.post(ApiEndpoints.orders, data: orderData);
+      return ApiResult.ok(_mapOrder(response.data as Map<String, dynamic>));
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
     }
   }
 
   Future<ApiResult<OrderModel>> updateOrder(
-      int id, Map<String, dynamic> data) async {
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     try {
-      final response =
-          await _api.put(ApiEndpoints.orderById(id), data: data);
-      return ApiResult.ok(
-          _mapOrder(response.data as Map<String, dynamic>));
+      final response = await _api.put(ApiEndpoints.orderById(id), data: data);
+      return ApiResult.ok(_mapOrder(response.data as Map<String, dynamic>));
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
     }
@@ -198,10 +189,12 @@ class AdminApiService {
   }
 
   Future<ApiResult<List<SessionModel>>> getSessionsByStudent(
-      int studentId) async {
+    int studentId,
+  ) async {
     try {
-      final response =
-          await _api.get('${ApiEndpoints.sessions}/student/$studentId');
+      final response = await _api.get(
+        '${ApiEndpoints.sessions}/student/$studentId',
+      );
       final list = (response.data as List<dynamic>)
           .map((e) => _mapSession(e as Map<String, dynamic>))
           .toList();
@@ -212,10 +205,12 @@ class AdminApiService {
   }
 
   Future<ApiResult<List<SessionModel>>> getSessionsBySenior(
-      int seniorId) async {
+    int seniorId,
+  ) async {
     try {
-      final response = await _api
-          .get('${ApiEndpoints.sessions}/completed/senior/$seniorId');
+      final response = await _api.get(
+        '${ApiEndpoints.sessions}/completed/senior/$seniorId',
+      );
       final list = (response.data as List<dynamic>)
           .map((e) => _mapSession(e as Map<String, dynamic>))
           .toList();
@@ -230,10 +225,10 @@ class AdminApiService {
   // ─────────────────────────────────────────────
 
   Future<ApiResult<List<ReviewModel>>> getReviewsByStudent(
-      int studentId) async {
+    int studentId,
+  ) async {
     try {
-      final response =
-          await _api.get(ApiEndpoints.reviewsByStudent(studentId));
+      final response = await _api.get(ApiEndpoints.reviewsByStudent(studentId));
       final list = (response.data as List<dynamic>)
           .map((e) => _mapReview(e as Map<String, dynamic>))
           .toList();
@@ -243,11 +238,9 @@ class AdminApiService {
     }
   }
 
-  Future<ApiResult<List<ReviewModel>>> getReviewsBySenior(
-      int seniorId) async {
+  Future<ApiResult<List<ReviewModel>>> getReviewsBySenior(int seniorId) async {
     try {
-      final response =
-          await _api.get(ApiEndpoints.reviewsBySenior(seniorId));
+      final response = await _api.get(ApiEndpoints.reviewsBySenior(seniorId));
       final list = (response.data as List<dynamic>)
           .map((e) => _mapReview(e as Map<String, dynamic>))
           .toList();
@@ -278,10 +271,10 @@ class AdminApiService {
   // ─────────────────────────────────────────────
 
   Future<ApiResult<Map<String, dynamic>>> getSuspensionStatus(
-      int userId) async {
+    int userId,
+  ) async {
     try {
-      final response =
-          await _api.get(ApiEndpoints.suspensionStatus(userId));
+      final response = await _api.get(ApiEndpoints.suspensionStatus(userId));
       return ApiResult.ok(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
@@ -314,14 +307,13 @@ class AdminApiService {
   // ─────────────────────────────────────────────
 
   Future<ApiResult<void>> adminAssign(
-      int orderScheduleId, int studentId) async {
+    int orderScheduleId,
+    int studentId,
+  ) async {
     try {
       await _api.post(
         ApiEndpoints.adminAssign,
-        data: {
-          'orderScheduleId': orderScheduleId,
-          'studentId': studentId,
-        },
+        data: {'orderScheduleId': orderScheduleId, 'studentId': studentId},
       );
       return const ApiResult._(success: true);
     } on DioException catch (e) {
@@ -360,8 +352,7 @@ class AdminApiService {
   //  PROMO CODES
   // ─────────────────────────────────────────────
 
-  Future<ApiResult<Map<String, dynamic>>> validatePromoCode(
-      String code) async {
+  Future<ApiResult<Map<String, dynamic>>> validatePromoCode(String code) async {
     try {
       final response = await _api.post(
         ApiEndpoints.promoCodeValidate,
@@ -410,8 +401,7 @@ class AdminApiService {
     final fullName = contact?['fullName'] as String? ?? '';
     final nameParts = fullName.split(' ');
     final firstName = nameParts.isNotEmpty ? nameParts.first : '';
-    final lastName =
-        nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
     final statusStr = json['status'] as String? ?? 'Active';
 
@@ -431,18 +421,23 @@ class AdminApiService {
       completedJobs: 0, // calculated from sessions if needed
       cancelledJobs: 0,
       isVerified: statusStr == 'Active',
-      isActive: statusStr != 'AccountDeactivated' &&
+      isActive:
+          statusStr != 'AccountDeactivated' &&
           statusStr != 'PendingPermanentDeletion' &&
           statusStr != 'Deleted',
       isArchived:
           statusStr == 'PendingPermanentDeletion' || statusStr == 'Deleted',
       createdAt: _parseDateTime(json['dateRegistered']),
-      contractStatus: _mapContractStatus(statusStr, json['daysToContractExpire']),
+      contractStatus: _mapContractStatus(
+        statusStr,
+        json['daysToContractExpire'],
+      ),
       contractStartDate: null, // from contract endpoint if needed
       contractExpiryDate: _parseNullableDate(
-          json['daysToContractExpire'] != null
-              ? null // calculated from days if needed
-              : null),
+        json['daysToContractExpire'] != null
+            ? null // calculated from days if needed
+            : null,
+      ),
       hourlyRate: 7.40,
       sundayHourlyRate: 11.10,
     );
@@ -453,8 +448,7 @@ class AdminApiService {
     final fullName = contact?['fullName'] as String? ?? '';
     final nameParts = fullName.split(' ');
     final firstName = nameParts.isNotEmpty ? nameParts.first : '';
-    final lastName =
-        nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
     return SeniorModel(
       id: '${json['id']}',
@@ -482,16 +476,19 @@ class AdminApiService {
 
     // Build day entries from schedules
     final dayEntries = schedules
-        .map((s) => DayEntry(
-              dayOfWeek: s['dayOfWeek'] as int? ?? 1,
-              startTime: _parseTimeOfDay(s['startTime']),
-              durationHours: _calcHours(s['startTime'], s['endTime']),
-            ))
+        .map(
+          (s) => DayEntry(
+            dayOfWeek: s['dayOfWeek'] as int? ?? 1,
+            startTime: _parseTimeOfDay(s['startTime']),
+            durationHours: _calcHours(s['startTime'], s['endTime']),
+          ),
+        )
         .toList();
 
     // Determine first schedule for scheduledStart
-    final firstSchedule =
-        schedules.isNotEmpty ? schedules.first : <String, dynamic>{};
+    final firstSchedule = schedules.isNotEmpty
+        ? schedules.first
+        : <String, dynamic>{};
 
     return OrderModel(
       id: '${json['id']}',
@@ -506,8 +503,10 @@ class AdminApiService {
       createdAt: DateTime.now(), // not in OrderDto
       scheduledDate: _parseDate(json['startDate']),
       scheduledStart: _parseTimeOfDay(firstSchedule['startTime']),
-      durationHours:
-          _calcHours(firstSchedule['startTime'], firstSchedule['endTime']),
+      durationHours: _calcHours(
+        firstSchedule['startTime'],
+        firstSchedule['endTime'],
+      ),
       notes: json['notes'] as String?,
       address: '', // from senior contact
       endDate: _parseNullableDate(json['endDate']),
@@ -545,8 +544,7 @@ class AdminApiService {
       date: _parseDate(json['scheduledDate']),
       weekday: _parseDate(json['scheduledDate']).weekday,
       startTime: _parseTimeOfDay(json['startTime']),
-      durationHours:
-          _calcHours(json['startTime'], json['endTime']),
+      durationHours: _calcHours(json['startTime'], json['endTime']),
       studentName: studentContact?['fullName'] as String?,
       status: _mapSessionStatus(json['status'] as String? ?? 'Upcoming'),
       isModified: json['isRescheduleVariant'] == true,
@@ -559,10 +557,8 @@ class AdminApiService {
       sessionId: json['jobInstanceId'] != null
           ? '${json['jobInstanceId']}'
           : null,
-      studentId:
-          json['studentId'] != null ? '${json['studentId']}' : null,
-      seniorId:
-          json['seniorId'] != null ? '${json['seniorId']}' : null,
+      studentId: json['studentId'] != null ? '${json['studentId']}' : null,
+      seniorId: json['seniorId'] != null ? '${json['seniorId']}' : null,
       seniorName: json['seniorFullName'] as String? ?? '',
       studentName: json['studentFullName'] as String? ?? '',
       rating: json['rating'] as int? ?? 0,
@@ -587,19 +583,19 @@ class AdminApiService {
   // ═════════════════════════════════════════════
 
   OrderStatus _mapOrderStatus(String s) => switch (s) {
-        'InActive' || 'Pending' => OrderStatus.processing,
-        'FullAssigned' => OrderStatus.active,
-        'Completed' => OrderStatus.completed,
-        'Cancelled' => OrderStatus.cancelled,
-        _ => OrderStatus.processing,
-      };
+    'InActive' || 'Pending' => OrderStatus.processing,
+    'FullAssigned' => OrderStatus.active,
+    'Completed' => OrderStatus.completed,
+    'Cancelled' => OrderStatus.cancelled,
+    _ => OrderStatus.processing,
+  };
 
   SessionStatus _mapSessionStatus(String s) => switch (s) {
-        'Upcoming' || 'InProgress' => SessionStatus.scheduled,
-        'Completed' => SessionStatus.completed,
-        'Cancelled' || 'Rescheduled' => SessionStatus.cancelled,
-        _ => SessionStatus.scheduled,
-      };
+    'Upcoming' || 'InProgress' => SessionStatus.scheduled,
+    'Completed' => SessionStatus.completed,
+    'Cancelled' || 'Rescheduled' => SessionStatus.cancelled,
+    _ => SessionStatus.scheduled,
+  };
 
   Gender _mapGender(dynamic g) {
     if (g is String) {
@@ -611,7 +607,10 @@ class AdminApiService {
     return Gender.female;
   }
 
-  ContractStatus _mapContractStatus(String studentStatus, dynamic daysToExpire) {
+  ContractStatus _mapContractStatus(
+    String studentStatus,
+    dynamic daysToExpire,
+  ) {
     if (studentStatus == 'Active' || studentStatus == 'ContractAboutToExpire') {
       return ContractStatus.active;
     }
@@ -663,7 +662,8 @@ class AdminApiService {
   int _calcHours(dynamic startStr, dynamic endStr) {
     final start = _parseTimeOfDay(startStr);
     final end = _parseTimeOfDay(endStr);
-    final diff = (end.hour * 60 + end.minute) - (start.hour * 60 + start.minute);
+    final diff =
+        (end.hour * 60 + end.minute) - (start.hour * 60 + start.minute);
     return diff > 0 ? (diff / 60).ceil() : 1;
   }
 
