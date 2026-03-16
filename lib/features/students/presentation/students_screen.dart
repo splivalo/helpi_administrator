@@ -4,6 +4,7 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/faculty.dart';
+import 'package:helpi_admin/core/services/excel_export_service.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
@@ -521,6 +522,37 @@ class _StudentsScreenState extends State<StudentsScreen>
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.download_outlined,
+                    size: 20,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                  onPressed: () async {
+                    final filterName = _tabFilters[_tabCtrl.index].name;
+                    final messenger = ScaffoldMessenger.of(context);
+                    final saved = await ExcelExportService.exportStudents(
+                      students,
+                      filterName,
+                    );
+                    if (!mounted) return;
+                    if (saved) {
+                      messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(AppStrings.exportSuccess),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  tooltip: AppStrings.exportToExcel,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 28,
+                    minHeight: 28,
+                  ),
+                ),
+                const SizedBox(width: 4),
                 PopupMenuButton<StudentSort>(
                   icon: const Icon(
                     Icons.sort,

@@ -50,7 +50,7 @@ class AppStrings {
       'viewAll': 'Prikaži sve',
       'noData': 'Nema podataka',
       'noProcessingOrders': 'Nema narudžbi u obradi',
-      'noActiveStudentsMonth': 'Nema aktivnih studenata u odabranom mjesecu',
+      'noActiveStudentsMonth': 'Nema aktivnih studenata',
       'noExpiringContracts': 'Nema isteklih ugovora',
 
       // ── Narudžbe ──────────────────────────────
@@ -577,6 +577,11 @@ class AppStrings {
       'actionActivated': 'Aktiviran',
       'suspendedAt': 'Suspendiran dana',
       'noSuspensionHistory': 'Nema povijesti suspenzija',
+
+      // ── Export ────────────────────────────────
+      'exportToExcel': 'Izvezi u Excel',
+      'exportSuccess': 'Podaci uspješno izvezeni',
+      'studentCreatedAt': 'Datum registracije',
     },
 
     'en': {
@@ -610,7 +615,7 @@ class AppStrings {
       'viewAll': 'View all',
       'noData': 'No data',
       'noProcessingOrders': 'No orders in processing',
-      'noActiveStudentsMonth': 'No active students in selected month',
+      'noActiveStudentsMonth': 'No active students',
       'noExpiringContracts': 'No expiring contracts',
 
       // ── Narudžbe ──────────────────────────────
@@ -1133,6 +1138,11 @@ class AppStrings {
       'actionActivated': 'Activated',
       'suspendedAt': 'Suspended on',
       'noSuspensionHistory': 'No suspension history',
+
+      // ── Export ────────────────────────────────
+      'exportToExcel': 'Export to Excel',
+      'exportSuccess': 'Data exported successfully',
+      'studentCreatedAt': 'Registration date',
     },
   };
 
@@ -1758,4 +1768,9 @@ class AppStrings {
   static String get actionActivated => _t('actionActivated');
   static String get suspendedAt => _t('suspendedAt');
   static String get noSuspensionHistory => _t('noSuspensionHistory');
+
+  // ── Export ──
+  static String get exportToExcel => _t('exportToExcel');
+  static String get exportSuccess => _t('exportSuccess');
+  static String get studentCreatedAt => _t('studentCreatedAt');
 }

@@ -5,6 +5,7 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/suspension_models.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
+import 'package:helpi_admin/core/services/excel_export_service.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
@@ -319,28 +320,62 @@ class _SeniorsScreenState extends State<SeniorsScreen>
           // ── Result count + sort ──
           Builder(
             builder: (context) {
-              final count = _filteredSeniors(
-                _tabFilters[_tabCtrl.index],
-              ).length;
+              final currentFilter = _tabFilters[_tabCtrl.index];
+              final seniors = _filteredSeniors(currentFilter);
               return ResultCountRow(
-                text: AppStrings.seniorResultCount(count),
-                trailing: PopupMenuButton<SeniorSort>(
-                  icon: const Icon(
-                    Icons.sort,
-                    size: 20,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                  padding: EdgeInsets.zero,
-                  tooltip: AppStrings.sortBy,
-                  onSelected: (v) {
-                    setState(() => _sort = v);
-                    _prefs.setSort(_screenKey, v.name);
-                  },
-                  itemBuilder: (_) => [
-                    _sortMenuItem(SeniorSort.az, AppStrings.sortAZ),
-                    _sortMenuItem(SeniorSort.za, AppStrings.sortZA),
-                    _sortMenuItem(SeniorSort.newest, AppStrings.sortNewest),
-                    _sortMenuItem(SeniorSort.oldest, AppStrings.sortOldest),
+                text: AppStrings.seniorResultCount(seniors.length),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.download_outlined,
+                        size: 20,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                      onPressed: () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final saved = await ExcelExportService.exportSeniors(
+                          seniors,
+                          currentFilter.name,
+                        );
+                        if (!mounted) return;
+                        if (saved) {
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(AppStrings.exportSuccess),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      tooltip: AppStrings.exportToExcel,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 28,
+                        minHeight: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    PopupMenuButton<SeniorSort>(
+                      icon: const Icon(
+                        Icons.sort,
+                        size: 20,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                      padding: EdgeInsets.zero,
+                      tooltip: AppStrings.sortBy,
+                      onSelected: (v) {
+                        setState(() => _sort = v);
+                        _prefs.setSort(_screenKey, v.name);
+                      },
+                      itemBuilder: (_) => [
+                        _sortMenuItem(SeniorSort.az, AppStrings.sortAZ),
+                        _sortMenuItem(SeniorSort.za, AppStrings.sortZA),
+                        _sortMenuItem(SeniorSort.newest, AppStrings.sortNewest),
+                        _sortMenuItem(SeniorSort.oldest, AppStrings.sortOldest),
+                      ],
+                    ),
                   ],
                 ),
               );
