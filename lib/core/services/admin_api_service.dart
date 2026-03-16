@@ -524,7 +524,7 @@ class AdminApiService {
         'relationship': relationship,
         'preferredNotificationMethod': 0,
         'contactInfo': contactInfo,
-        if (seniorContactInfo != null) 'seniorContactInfo': seniorContactInfo,
+        'seniorContactInfo': ?seniorContactInfo,
       };
       await _api.post(ApiEndpoints.registerCustomer, data: data);
       return const ApiResult._(success: true);

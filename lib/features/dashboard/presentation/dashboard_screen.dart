@@ -53,9 +53,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Grid columns: >=1200 → 3, >=900 → 2, else 1
     final gridColumns = screenWidth >= 1200 ? 3 : (screenWidth >= 900 ? 2 : 1);
 
-    final processingCount = MockData.orders
+    final processingOrders = MockData.orders
         .where((o) => o.status == OrderStatus.processing)
-        .length;
+        .toList();
+    final processingCount = processingOrders.length;
     final activeCount = MockData.orders
         .where((o) => o.status == OrderStatus.active)
         .length;
@@ -220,22 +221,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // ── Narudžbe u obradi ──
             _SectionHeader(title: AppStrings.processingOrders),
             const SizedBox(height: 8),
-            _buildCardSection(
-              gridColumns: gridColumns,
-              children: MockData.orders
-                  .where((o) => o.status == OrderStatus.processing)
-                  .map(
-                    (order) => _RecentOrderCard(
-                      order: order,
-                      theme: theme,
-                      onReturn: () {
-                        if (!mounted) return;
-                        setState(() {});
-                      },
-                    ),
-                  )
-                  .toList(),
-            ),
+            if (processingOrders.isNotEmpty)
+              _buildCardSection(
+                gridColumns: gridColumns,
+                children: processingOrders
+                    .map(
+                      (order) => _RecentOrderCard(
+                        order: order,
+                        theme: theme,
+                        onReturn: () {
+                          if (!mounted) return;
+                          setState(() {});
+                        },
+                      ),
+                    )
+                    .toList(),
+              )
+            else
+              _buildEmptyState(AppStrings.noProcessingOrders),
 
             const SizedBox(height: 24),
 
@@ -267,23 +270,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     .toList(),
               )
             else
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(
-                  AppStrings.noData,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                ),
-              ),
+              _buildEmptyState(AppStrings.noActiveStudentsMonth),
 
             const SizedBox(height: 24),
 
             // ── Istekli ugovori ──
-            if (expiringStudents.isNotEmpty) ...[
-              _SectionHeader(title: AppStrings.expiringContracts),
-              const SizedBox(height: 8),
+            _SectionHeader(title: AppStrings.expiringContracts),
+            const SizedBox(height: 8),
+            if (expiringStudents.isNotEmpty)
               _buildCardSection(
                 gridColumns: gridColumns,
                 children: expiringStudents
@@ -298,8 +292,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     )
                     .toList(),
-              ),
-            ],
+              )
+            else
+              _buildEmptyState(AppStrings.noExpiringContracts),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Empty-state placeholder with icon + text.
+  Widget _buildEmptyState(String message) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Center(
+        child: Column(
+          children: [
+            const Icon(
+              Icons.inbox_outlined,
+              size: 36,
+              color: HelpiTheme.border,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: const TextStyle(color: HelpiTheme.textSecondary),
+            ),
           ],
         ),
       ),
@@ -494,6 +512,7 @@ class _MonthDropdown extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
+              fontSize: 14,
               fontWeight: m.year == selected.year && m.month == selected.month
                   ? FontWeight.w700
                   : FontWeight.w400,

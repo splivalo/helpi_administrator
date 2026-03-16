@@ -49,6 +49,9 @@ class AppStrings {
       'hoursCount': 'sati',
       'viewAll': 'Prikaži sve',
       'noData': 'Nema podataka',
+      'noProcessingOrders': 'Nema narudžbi u obradi',
+      'noActiveStudentsMonth': 'Nema aktivnih studenata u odabranom mjesecu',
+      'noExpiringContracts': 'Nema isteklih ugovora',
 
       // ── Narudžbe ──────────────────────────────
       'ordersTitle': 'Narudžbe',
@@ -606,6 +609,9 @@ class AppStrings {
       'hoursCount': 'hours',
       'viewAll': 'View all',
       'noData': 'No data',
+      'noProcessingOrders': 'No orders in processing',
+      'noActiveStudentsMonth': 'No active students in selected month',
+      'noExpiringContracts': 'No expiring contracts',
 
       // ── Narudžbe ──────────────────────────────
       'ordersTitle': 'Orders',
@@ -1174,6 +1180,9 @@ class AppStrings {
   static String get hoursCount => _t('hoursCount');
   static String get viewAll => _t('viewAll');
   static String get noData => _t('noData');
+  static String get noProcessingOrders => _t('noProcessingOrders');
+  static String get noActiveStudentsMonth => _t('noActiveStudentsMonth');
+  static String get noExpiringContracts => _t('noExpiringContracts');
 
   // ── Narudžbe ──
   static String get ordersTitle => _t('ordersTitle');
