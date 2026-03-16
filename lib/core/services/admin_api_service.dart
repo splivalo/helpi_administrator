@@ -380,9 +380,11 @@ class AdminApiService {
     }
   }
 
-  Future<ApiResult<List<NotificationModel>>> getNotifications() async {
+  Future<ApiResult<List<NotificationModel>>> getNotifications(int userId) async {
     try {
-      final response = await _api.get(ApiEndpoints.notifications);
+      final response = await _api.get(
+        ApiEndpoints.notificationsByUser(userId),
+      );
       final list = (response.data as List<dynamic>)
           .map((e) => _mapNotification(e as Map<String, dynamic>))
           .toList();

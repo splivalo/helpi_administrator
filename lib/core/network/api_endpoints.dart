@@ -56,7 +56,16 @@ class ApiEndpoints {
   static const String pricingConfigurations = '/api/pricing-configurations';
 
   // Notifications
-  static const String notifications = '/api/notifications';
+  static String notificationsByUser(int userId) =>
+      '/api/HNotifications/user/$userId';
+  static String notificationsUnreadByUser(int userId) =>
+      '/api/HNotifications/user/$userId/unread';
+  static String notificationsUnreadCount(int userId) =>
+      '/api/HNotifications/user/$userId/unread-count';
+  static String notificationMarkRead(int id) =>
+      '/api/HNotifications/$id/mark-read';
+  static String notificationMarkAllRead(int userId) =>
+      '/api/HNotifications/user/$userId/mark-all-read';
 
   // Cities
   static const String cities = '/api/cities';

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 
 /// Loads data from the backend API into [MockData] static lists.
@@ -37,6 +38,7 @@ class DataLoader {
 
   static Future<bool> _doLoad() async {
     final api = AdminApiService();
+    final userId = await TokenStorage().getUserId() ?? 0;
     var allOk = true;
 
     // Fire all requests in parallel
@@ -45,7 +47,7 @@ class DataLoader {
       api.getSeniors(), // 1
       api.getOrders(), // 2
       api.getReviews(), // 3
-      api.getNotifications(), // 4
+      api.getNotifications(userId), // 4
     ]);
 
     final studentsResult = results[0] as ApiResult<List<StudentModel>>;
