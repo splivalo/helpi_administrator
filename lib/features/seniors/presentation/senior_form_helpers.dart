@@ -29,10 +29,12 @@ mixin SeniorFormHelpers<T extends StatefulWidget> on State<T> {
     required String label,
     TextInputType keyboardType = TextInputType.text,
     bool required = false,
+    bool obscureText = false,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      obscureText: obscureText,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(

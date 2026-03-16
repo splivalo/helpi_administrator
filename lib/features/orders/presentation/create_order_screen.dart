@@ -5,6 +5,8 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
+import 'package:helpi_admin/core/services/data_loader.dart';
 
 /// Single-screen form for creating or editing an order (admin side).
 ///
@@ -1134,7 +1136,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   // ═══════════════════════════════════════════════════════════════
   //  SAVE
   // ═══════════════════════════════════════════════════════════════
-  void _onSave() {
+  Future<void> _onSave() async {
     if (_selectedSenior == null) {
       _showError(AppStrings.seniorRequired);
       return;
@@ -1205,124 +1207,165 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     }
 
     if (_isEditMode) {
-      _saveEdit(freq, scheduledDate, scheduledTime, duration, dayEntries);
+      await _saveEdit(freq, scheduledDate, scheduledTime, duration, dayEntries);
     } else {
-      _saveNew(freq, scheduledDate, scheduledTime, duration, dayEntries);
+      await _saveNew(freq, scheduledDate, scheduledTime, duration, dayEntries);
     }
   }
 
-  // ── Edit mode: update existing order, keep sessions ──
-  void _saveEdit(
+  // ── Edit mode: update existing order via API ──
+  Future<void> _saveEdit(
     FrequencyType freq,
     DateTime scheduledDate,
     TimeOfDay scheduledTime,
     int duration,
     List<DayEntry> dayEntries,
-  ) {
+  ) async {
     final existing = widget.existingOrder!;
+    final orderId = int.tryParse(existing.id);
+    if (orderId == null) return;
 
-    final updated = OrderModel(
-      id: existing.id,
-      orderNumber: existing.orderNumber,
-      senior: existing.senior,
-      student: existing.student,
-      status: existing.status,
-      frequency: freq,
-      services: _selectedServices.toList(),
-      createdAt: existing.createdAt,
-      scheduledDate: scheduledDate,
-      scheduledStart: scheduledTime,
-      durationHours: duration,
-      notes: _notesCtrl.text.trim().isNotEmpty ? _notesCtrl.text.trim() : null,
-      address: existing.senior.address,
-      endDate: _endDate,
-      dayEntries: dayEntries,
-      sessions: existing.sessions, // keep existing sessions
-      promoCode: existing.promoCode,
-    );
+    final api = AdminApiService();
 
-    final idx = MockData.orders.indexWhere((o) => o.id == updated.id);
-    if (idx != -1) MockData.orders[idx] = updated;
+    // Build schedules for update
+    final schedulesToAdd = <Map<String, dynamic>>[];
+    if (freq == FrequencyType.oneTime) {
+      final endMin =
+          scheduledTime.hour * 60 + scheduledTime.minute + duration * 60;
+      schedulesToAdd.add({
+        'dayOfWeek': scheduledDate.weekday,
+        'startTime':
+            '${scheduledTime.hour.toString().padLeft(2, '0')}:${scheduledTime.minute.toString().padLeft(2, '0')}',
+        'endTime':
+            '${(endMin ~/ 60).toString().padLeft(2, '0')}:${(endMin % 60).toString().padLeft(2, '0')}',
+      });
+    } else {
+      for (final entry in dayEntries) {
+        final sh = entry.startTime.hour;
+        final sm = entry.startTime.minute;
+        final endMin = sh * 60 + sm + entry.durationHours * 60;
+        schedulesToAdd.add({
+          'dayOfWeek': entry.dayOfWeek,
+          'startTime':
+              '${sh.toString().padLeft(2, '0')}:${sm.toString().padLeft(2, '0')}',
+          'endTime':
+              '${(endMin ~/ 60).toString().padLeft(2, '0')}:${(endMin % 60).toString().padLeft(2, '0')}',
+        });
+      }
+    }
 
-    if (!context.mounted) return;
+    // Build services
+    final servicesToAdd = <Map<String, dynamic>>[];
+    for (final svc in _selectedServices) {
+      final svcId = await api.serviceTypeToId(svc);
+      if (!mounted) return;
+      if (svcId != null) servicesToAdd.add({'serviceId': svcId});
+    }
+
+    final data = <String, dynamic>{
+      'startDate': scheduledDate.toIso8601String().split('T').first,
+      'endDate': _endDate != null
+          ? _endDate!.toIso8601String().split('T').first
+          : scheduledDate.toIso8601String().split('T').first,
+      'schedulesToAdd': schedulesToAdd,
+      'servicesToAdd': servicesToAdd,
+    };
+
+    final result = await api.updateOrder(orderId, data);
+    if (!mounted) return;
+    if (!result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.error ?? 'Error'),
+          backgroundColor: HelpiTheme.primary,
+        ),
+      );
+      return;
+    }
+    await DataLoader.loadAll();
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AppStrings.editOrderSuccess),
         backgroundColor: HelpiTheme.accent,
       ),
     );
-    Navigator.pop(context, updated);
+    Navigator.pop(context, true);
   }
 
-  // ── Create mode: generate sessions & add new order ──
-  void _saveNew(
+  // ── Create mode: send new order to backend API ──
+  Future<void> _saveNew(
     FrequencyType freq,
     DateTime scheduledDate,
     TimeOfDay scheduledTime,
     int duration,
     List<DayEntry> dayEntries,
-  ) {
-    final orderNum = (MockData.orders.length + 1).toString().padLeft(4, '0');
-    final orderId = 'o${MockData.orders.length + 1}';
+  ) async {
+    final seniorId = int.tryParse(_selectedSenior!.id);
+    if (seniorId == null) return;
 
-    // Generate sessions (for one-time: 1 session, for recurring: ~4 weeks)
-    final sessions = <SessionModel>[];
-    if (_frequency == FrequencyType.oneTime) {
-      sessions.add(
-        SessionModel(
-          id: '${orderId}s1',
-          date: scheduledDate,
-          weekday: scheduledDate.weekday,
-          startTime: scheduledTime,
-          durationHours: duration,
-        ),
-      );
+    final api = AdminApiService();
+
+    // Build schedules
+    final schedules = <Map<String, dynamic>>[];
+    if (freq == FrequencyType.oneTime) {
+      final endMin =
+          scheduledTime.hour * 60 + scheduledTime.minute + duration * 60;
+      schedules.add({
+        'dayOfWeek': scheduledDate.weekday,
+        'startTime':
+            '${scheduledTime.hour.toString().padLeft(2, '0')}:${scheduledTime.minute.toString().padLeft(2, '0')}',
+        'endTime':
+            '${(endMin ~/ 60).toString().padLeft(2, '0')}:${(endMin % 60).toString().padLeft(2, '0')}',
+      });
     } else {
-      // Generate sessions for recurring orders (next 4 weeks)
-      int sessionIdx = 1;
-      final end = _endDate ?? _startDate!.add(const Duration(days: 28));
-      for (final entry in _dayEntries) {
-        var date = _nextOccurrence(entry.dayOfWeek, _startDate!);
-        while (!date.isAfter(end)) {
-          sessions.add(
-            SessionModel(
-              id: '${orderId}s$sessionIdx',
-              date: date,
-              weekday: date.weekday,
-              startTime: TimeOfDay(
-                hour: entry.startHour ?? 10,
-                minute: entry.startMinute ?? 0,
-              ),
-              durationHours: entry.durationHours ?? 2,
-            ),
-          );
-          sessionIdx++;
-          date = date.add(const Duration(days: 7));
-        }
+      for (final entry in dayEntries) {
+        final sh = entry.startTime.hour;
+        final sm = entry.startTime.minute;
+        final endMin = sh * 60 + sm + entry.durationHours * 60;
+        schedules.add({
+          'dayOfWeek': entry.dayOfWeek,
+          'startTime':
+              '${sh.toString().padLeft(2, '0')}:${sm.toString().padLeft(2, '0')}',
+          'endTime':
+              '${(endMin ~/ 60).toString().padLeft(2, '0')}:${(endMin % 60).toString().padLeft(2, '0')}',
+        });
       }
     }
 
-    final order = OrderModel(
-      id: orderId,
-      orderNumber: orderNum,
-      senior: _selectedSenior!,
-      status: OrderStatus.processing,
-      frequency: freq,
-      services: _selectedServices.toList(),
-      createdAt: DateTime.now(),
-      scheduledDate: scheduledDate,
-      scheduledStart: scheduledTime,
-      durationHours: duration,
-      notes: _notesCtrl.text.trim().isNotEmpty ? _notesCtrl.text.trim() : null,
-      address: _selectedSenior!.address,
-      endDate: _endDate,
-      dayEntries: dayEntries,
-      sessions: sessions,
-    );
+    // Build services list
+    final services = <Map<String, dynamic>>[];
+    for (final svc in _selectedServices) {
+      final svcId = await api.serviceTypeToId(svc);
+      if (!mounted) return;
+      if (svcId != null) services.add({'serviceId': svcId});
+    }
 
-    MockData.orders.add(order);
+    final orderData = <String, dynamic>{
+      'seniorId': seniorId,
+      'isRecurring': freq != FrequencyType.oneTime,
+      'startDate': scheduledDate.toIso8601String().split('T').first,
+      'endDate': _endDate != null
+          ? _endDate!.toIso8601String().split('T').first
+          : scheduledDate.toIso8601String().split('T').first,
+      if (_notesCtrl.text.trim().isNotEmpty) 'notes': _notesCtrl.text.trim(),
+      'services': services,
+      'schedules': schedules,
+    };
 
-    if (!context.mounted) return;
+    final result = await api.createOrder(orderData);
+    if (!mounted) return;
+    if (!result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.error ?? 'Error'),
+          backgroundColor: HelpiTheme.primary,
+        ),
+      );
+      return;
+    }
+    await DataLoader.loadAll();
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AppStrings.createOrderSuccess),
@@ -1330,11 +1373,6 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       ),
     );
     Navigator.pop(context, true);
-  }
-
-  DateTime _nextOccurrence(int weekday, DateTime from) {
-    final diff = (weekday - from.weekday + 7) % 7;
-    return from.add(Duration(days: diff == 0 ? 0 : diff));
   }
 
   void _showError(String message) {

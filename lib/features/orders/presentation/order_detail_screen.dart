@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:helpi_admin/app/theme.dart';
@@ -9,6 +9,8 @@ import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/utils/session_preview_helper.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/create_order_screen.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
+import 'package:helpi_admin/core/services/data_loader.dart';
 
 /// Order Detail Screen — detalji narudžbe + dodjela studenta.
 class OrderDetailScreen extends StatefulWidget {
@@ -1022,38 +1024,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ],
       ),
-    ).then((confirmed) {
+    ).then((confirmed) async {
       if (confirmed != true || !mounted) return;
-      setState(() {
-        final updatedSessions = _order.sessions.map((s) {
-          if (s.status == SessionStatus.scheduled) {
-            return s.copyWith(status: SessionStatus.cancelled);
-          }
-          return s;
-        }).toList();
-
-        _order = OrderModel(
-          id: _order.id,
-          orderNumber: _order.orderNumber,
-          senior: _order.senior,
-          student: _order.student,
-          status: OrderStatus.cancelled,
-          frequency: _order.frequency,
-          services: _order.services,
-          createdAt: _order.createdAt,
-          scheduledDate: _order.scheduledDate,
-          scheduledStart: _order.scheduledStart,
-          durationHours: _order.durationHours,
-          notes: _order.notes,
-          address: _order.address,
-          endDate: _order.endDate,
-          dayEntries: _order.dayEntries,
-          sessions: updatedSessions,
-          promoCode: _order.promoCode,
+      final orderId = int.tryParse(_order.id);
+      if (orderId == null) return;
+      final api = AdminApiService();
+      final result = await api.cancelOrder(orderId, 'Cancelled by admin');
+      if (!mounted) return;
+      if (!result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error ?? 'Error'),
+            backgroundColor: HelpiTheme.primary,
+          ),
         );
-        final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
-        if (idx != -1) MockData.orders[idx] = _order;
-      });
+        return;
+      }
+      await DataLoader.loadAll();
+      if (!mounted) return;
+      final refreshed =
+          MockData.orders.where((o) => o.id == _order.id).firstOrNull;
+      if (refreshed != null) {
+        setState(() => _order = refreshed);
+      }
     });
   }
 
@@ -1140,8 +1133,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         sessions: sessions ?? _order.sessions,
         promoCode: promoCode != null ? promoCode() : _order.promoCode,
       );
-      final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
-      if (idx != -1) MockData.orders[idx] = _order;
     });
   }
 
@@ -1174,8 +1165,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         sessions: updatedSessions,
         promoCode: _order.promoCode,
       );
-      final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
-      if (idx != -1) MockData.orders[idx] = _order;
     });
   }
 
@@ -1692,8 +1681,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           sessions: updatedSessions,
           promoCode: _order.promoCode,
         );
-        final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
-        if (idx != -1) MockData.orders[idx] = _order;
       });
     }
 
@@ -1813,11 +1800,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   sessions: updatedSessions,
                   promoCode: _order.promoCode,
                 );
-                // Persist to MockData so all screens see the change
-                final idx = MockData.orders.indexWhere(
-                  (o) => o.id == _order.id,
-                );
-                if (idx != -1) MockData.orders[idx] = _order;
               });
             },
             style: ElevatedButton.styleFrom(

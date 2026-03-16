@@ -104,6 +104,7 @@ class SeniorModel {
   final String email;
   final String phone;
   final String address;
+  final String city;
   final Gender gender;
   final DateTime dateOfBirth;
   final bool isActive;
@@ -125,6 +126,7 @@ class SeniorModel {
     required this.email,
     required this.phone,
     required this.address,
+    this.city = '',
     required this.gender,
     required this.dateOfBirth,
     this.isActive = true,
@@ -156,6 +158,7 @@ class StudentModel {
   final String email;
   final String phone;
   final String address;
+  final String city;
   final String faculty;
   final String studentIdNumber;
   final DateTime dateOfBirth;
@@ -182,6 +185,7 @@ class StudentModel {
     required this.email,
     required this.phone,
     required this.address,
+    this.city = '',
     required this.faculty,
     required this.studentIdNumber,
     required this.dateOfBirth,

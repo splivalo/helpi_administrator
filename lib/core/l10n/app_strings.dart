@@ -43,7 +43,7 @@ class AppStrings {
       'totalSeniors': 'Seniora',
       'recentOrders': 'Nedavne narudžbe',
       'todaysSessions': 'Današnji termini',
-      'expiringContracts': 'Ugovori koji ističu',
+      'expiringContracts': 'Istekli ugovori',
       'activeStudentsThisMonth': 'Aktivni studenti ovaj mjesec',
       'sessionsCount': 'termina',
       'hoursCount': 'sati',
@@ -142,6 +142,7 @@ class AppStrings {
       'studentCompletedJobs': 'Završenih',
       'studentCancelledJobs': 'Otkazanih',
       'studentAvailability': 'Dostupnost',
+      'noAvailability': 'Nema unesene dostupnosti.',
       'workSummary': 'Obračun',
       'workTotalHours': 'Ukupno sati',
       'workRegularHours': 'Redovni sati',
@@ -209,6 +210,8 @@ class AppStrings {
       'filterByGender': 'Spol',
       'filterByFaculty': 'Fakultet',
       'anyFaculty': 'Bilo koji',
+      'filterByCity': 'Grad',
+      'anyCity': 'Svi gradovi',
       'filterBySenior': 'Radio/la kod seniora',
       'filterApply': 'Primijeni',
       'filterReset': 'Poništi sve',
@@ -245,6 +248,14 @@ class AppStrings {
       'contractSelectPeriod': 'Odaberi period ugovora',
       'contractFileSelected': 'Odabran: {name}',
       'contractNoFileSelected': 'Nije odabran dokument.',
+      'contractNumber': 'Broj ugovora',
+      'contractDelete': 'Obriši ugovor',
+      'contractDeleteTitle': 'Brisanje ugovora',
+      'contractDeleteConfirm':
+          'Jeste li sigurni da želite obrisati ugovor? Datoteka će biti obrisana s Google Drivea.',
+      'contractDeleteSuccess': 'Ugovor uspješno obrisan.',
+      'contractLoading': 'Učitavanje ugovora...',
+      'contractDeleting': 'Brisanje ugovora...',
       'studentNotAvailable': 'Nedostupan',
       'studentNotAvailableMale': 'Nedostupan',
       'studentNotAvailableFemale': 'Nedostupna',
@@ -589,7 +600,7 @@ class AppStrings {
       'totalSeniors': 'Seniors',
       'recentOrders': 'Recent orders',
       'todaysSessions': "Today's sessions",
-      'expiringContracts': 'Expiring contracts',
+      'expiringContracts': 'Expired contracts',
       'activeStudentsThisMonth': 'Active students this month',
       'sessionsCount': 'sessions',
       'hoursCount': 'hours',
@@ -688,6 +699,7 @@ class AppStrings {
       'studentCompletedJobs': 'Completed',
       'studentCancelledJobs': 'Cancelled',
       'studentAvailability': 'Availability',
+      'noAvailability': 'No availability set.',
       'workSummary': 'Payout',
       'workTotalHours': 'Total hours',
       'workRegularHours': 'Regular hours',
@@ -755,6 +767,8 @@ class AppStrings {
       'filterByGender': 'Gender',
       'filterByFaculty': 'Faculty',
       'anyFaculty': 'Any',
+      'filterByCity': 'City',
+      'anyCity': 'All cities',
       'filterBySenior': 'Worked with senior',
       'filterApply': 'Apply',
       'filterReset': 'Reset all',
@@ -791,6 +805,14 @@ class AppStrings {
       'contractSelectPeriod': 'Select contract period',
       'contractFileSelected': 'Selected: {name}',
       'contractNoFileSelected': 'No document selected.',
+      'contractNumber': 'Contract number',
+      'contractDelete': 'Delete contract',
+      'contractDeleteTitle': 'Delete contract',
+      'contractDeleteConfirm':
+          'Are you sure you want to delete this contract? The file will be removed from Google Drive.',
+      'contractDeleteSuccess': 'Contract deleted successfully.',
+      'contractLoading': 'Loading contract...',
+      'contractDeleting': 'Deleting contract...',
       'studentNotAvailable': 'Not available',
       'studentNotAvailableMale': 'Not available',
       'studentNotAvailableFemale': 'Not available',
@@ -1243,6 +1265,7 @@ class AppStrings {
   static String get studentCompletedJobs => _t('studentCompletedJobs');
   static String get studentCancelledJobs => _t('studentCancelledJobs');
   static String get studentAvailability => _t('studentAvailability');
+  static String get noAvailability => _t('noAvailability');
   static String get workSummary => _t('workSummary');
   static String get workTotalHours => _t('workTotalHours');
   static String get workRegularHours => _t('workRegularHours');
@@ -1306,6 +1329,13 @@ class AppStrings {
   static String contractFileSelected(String name) =>
       _t('contractFileSelected', params: {'name': name});
   static String get contractNoFileSelected => _t('contractNoFileSelected');
+  static String get contractNumber => _t('contractNumber');
+  static String get contractDelete => _t('contractDelete');
+  static String get contractDeleteTitle => _t('contractDeleteTitle');
+  static String get contractDeleteConfirm => _t('contractDeleteConfirm');
+  static String get contractDeleteSuccess => _t('contractDeleteSuccess');
+  static String get contractLoading => _t('contractLoading');
+  static String get contractDeleting => _t('contractDeleting');
   static String get studentNotAvailable => _t('studentNotAvailable');
   static String studentNotAvailableGendered(Gender gender) =>
       gender == Gender.female
@@ -1406,6 +1436,8 @@ class AppStrings {
   static String get filterByGender => _t('filterByGender');
   static String get filterByFaculty => _t('filterByFaculty');
   static String get anyFaculty => _t('anyFaculty');
+  static String get filterByCity => _t('filterByCity');
+  static String get anyCity => _t('anyCity');
   static String get filterBySenior => _t('filterBySenior');
   static String get filterApply => _t('filterApply');
   static String get filterReset => _t('filterReset');

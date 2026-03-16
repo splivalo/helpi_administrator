@@ -13,6 +13,9 @@ import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/utils/session_preview_helper.dart';
 import 'package:helpi_admin/core/widgets/suspension_widgets.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
+import 'package:helpi_admin/core/services/data_loader.dart';
+import 'package:flutter/services.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 
 /// Student Detail Screen — profil studenta, ugovor, dostupnost, recenzije.
@@ -33,6 +36,18 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   /// Suspension status loaded from API.
   final _api = ApiClient();
   UserSuspensionStatus? _suspensionStatus;
+
+  /// Active contract data from backend.
+  Map<String, dynamic>? _activeContract;
+
+  /// Whether a contract operation is in progress.
+  bool _isContractLoading = false;
+
+  /// Whether we are deleting (true) vs uploading (false) — for spinner text.
+  bool _isContractDeleting = false;
+
+  /// Availability loaded from backend.
+  List<DayAvailability> _availability = [];
 
   /// Admin notes for this student (local state, later from API).
   final List<AdminNote> _adminNotes = [];
@@ -57,6 +72,41 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       _sectionOrder = List.generate(_sectionCount, (i) => i);
     }
     _loadSuspensionStatus();
+    _loadContracts();
+    _loadAvailability();
+  }
+
+  Future<void> _loadContracts() async {
+    final studentId = int.tryParse(_student.id);
+    if (studentId == null) return;
+    final api = AdminApiService();
+    final result = await api.getStudentContracts(studentId);
+    if (!mounted) return;
+    if (result.success && result.data != null) {
+      // Find active contract (not deleted, status=1=Active)
+      final contracts = result.data!;
+      Map<String, dynamic>? active;
+      for (final c in contracts) {
+        if (c['deletedOn'] == null && c['status'] == 1) {
+          active = c;
+          break;
+        }
+      }
+      setState(() => _activeContract = active);
+    }
+  }
+
+  Future<void> _loadAvailability() async {
+    final studentId = int.tryParse(_student.id);
+    if (studentId == null) return;
+    final api = AdminApiService();
+    final result = await api.getStudentAvailability(studentId);
+    if (!mounted) return;
+    if (result.success && result.data != null) {
+      final slots = result.data!
+        ..sort((a, b) => a.dayOfWeek.compareTo(b.dayOfWeek));
+      setState(() => _availability = slots);
+    }
   }
 
   Future<void> _loadSuspensionStatus() async {
@@ -94,9 +144,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     final reviews = MockData.reviews
         .where((r) => r.studentName == _student.fullName)
         .toList();
-    final orders = MockData.orders
-        .where((o) => o.student?.id == _student.id)
-        .toList();
+    final orders =
+        MockData.orders.where((o) => o.student?.id == _student.id).toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return Scaffold(
       appBar: AppBar(
@@ -461,7 +511,39 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   //  CONTRACT SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildContractSection() {
-    if (_student.contractStatus == ContractStatus.none) {
+    if (_isContractLoading) {
+      return SectionCard(
+        title: AppStrings.studentContractTitle,
+        icon: Icons.description,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Column(
+                children: [
+                  const SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _isContractDeleting
+                        ? AppStrings.contractDeleting
+                        : AppStrings.contractLoading,
+                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final hasContract = _activeContract != null;
+
+    if (!hasContract) {
       return SectionCard(
         title: AppStrings.studentContractTitle,
         icon: Icons.description,
@@ -495,6 +577,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       );
     }
 
+    final effectiveDate = _activeContract!['effectiveDate'] as String?;
+    final expirationDate = _activeContract!['expirationDate'] as String?;
+    final contractNumber = _activeContract!['contractNumber'] as String? ?? '';
+
     return SectionCard(
       title: AppStrings.studentContractTitle,
       icon: Icons.description,
@@ -512,24 +598,40 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                 ),
               ),
             ),
-            if (_student.contractStartDate != null)
+            if (contractNumber.isNotEmpty)
+              InfoField(
+                label: AppStrings.contractNumber,
+                value: contractNumber,
+              ),
+            if (effectiveDate != null)
               InfoField(
                 label: AppStrings.studentContractStart,
-                value: formatDateDot(_student.contractStartDate!),
+                value: formatDateDot(DateTime.parse(effectiveDate)),
               ),
-            if (_student.contractExpiryDate != null)
+            if (expirationDate != null)
               InfoField(
                 label: AppStrings.studentContractExpiry,
-                value: formatDateDot(_student.contractExpiryDate!),
+                value: formatDateDot(DateTime.parse(expirationDate)),
               ),
           ],
         ),
         const SizedBox(height: 12),
-        ActionChipButton(
-          icon: Icons.upload_file,
-          label: AppStrings.studentUploadContract,
-          color: HelpiTheme.accent,
-          onTap: _simulateContractUpload,
+        Row(
+          children: [
+            ActionChipButton(
+              icon: Icons.upload_file,
+              label: AppStrings.studentUploadContract,
+              color: HelpiTheme.accent,
+              onTap: _simulateContractUpload,
+            ),
+            const SizedBox(width: 8),
+            ActionChipButton(
+              icon: Icons.delete_outline,
+              label: AppStrings.contractDelete,
+              color: HelpiTheme.primary,
+              onTap: _confirmDeleteContract,
+            ),
+          ],
         ),
       ],
     );
@@ -636,53 +738,12 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       if (!success) return;
     }
 
-    // Cancel all active/processing orders for this student.
-    for (var i = 0; i < MockData.orders.length; i++) {
-      final o = MockData.orders[i];
-      if (o.student?.id == _student.id &&
-          (o.status == OrderStatus.active ||
-              o.status == OrderStatus.processing)) {
-        MockData.orders[i] = OrderModel(
-          id: o.id,
-          orderNumber: o.orderNumber,
-          senior: o.senior,
-          student: o.student,
-          status: OrderStatus.cancelled,
-          frequency: o.frequency,
-          services: o.services,
-          createdAt: o.createdAt,
-          scheduledDate: o.scheduledDate,
-          scheduledStart: o.scheduledStart,
-          durationHours: o.durationHours,
-          notes: o.notes,
-          address: o.address,
-          endDate: o.endDate,
-          dayEntries: o.dayEntries,
-          sessions: o.sessions,
-          promoCode: o.promoCode,
-        );
-      }
-    }
+    // Refresh data from backend (orders auto-cancelled by backend)
+    await DataLoader.loadAll();
+    if (!mounted) return;
 
-    // Update UI (works for both real API and mock data).
-    setState(() {
-      _suspensionStatus = UserSuspensionStatus(
-        isSuspended: true,
-        suspensionReason: reason,
-        suspendedAt: DateTime.now(),
-        suspensionHistory: [
-          SuspensionLogModel(
-            id: 0,
-            userId: userId ?? 0,
-            action: SuspensionAction.suspended,
-            reason: reason,
-            adminId: 0,
-            createdAt: DateTime.now(),
-          ),
-          ...(_suspensionStatus?.suspensionHistory ?? []),
-        ],
-      );
-    });
+    // Reload suspension status from backend
+    await _loadSuspensionStatus();
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
@@ -720,21 +781,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       if (!success) return;
     }
 
-    setState(() {
-      _suspensionStatus = UserSuspensionStatus(
-        isSuspended: false,
-        suspensionHistory: [
-          SuspensionLogModel(
-            id: 0,
-            userId: userId ?? 0,
-            action: SuspensionAction.activated,
-            adminId: 0,
-            createdAt: DateTime.now(),
-          ),
-          ...(_suspensionStatus?.suspensionHistory ?? []),
-        ],
-      );
-    });
+    // Reload suspension status from backend
+    await _loadSuspensionStatus();
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
@@ -863,10 +911,72 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       hourlyRate: _student.hourlyRate,
       sundayHourlyRate: _student.sundayHourlyRate,
     );
-    // Persist change to MockData so list screens reflect it
-    final idx = MockData.students.indexWhere((s) => s.id == updated.id);
-    if (idx != -1) MockData.students[idx] = updated;
     return updated;
+  }
+
+  Future<void> _confirmDeleteContract() async {
+    if (_activeContract == null) return;
+    final contractId = _activeContract!['id'] as int;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStrings.contractDeleteTitle),
+        content: SizedBox(
+          width: 400,
+          child: Text(AppStrings.contractDeleteConfirm),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(AppStrings.delete),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    setState(() {
+      _isContractLoading = true;
+      _isContractDeleting = true;
+    });
+
+    final api = AdminApiService();
+    final result = await api.deleteContract(contractId);
+    if (!mounted) return;
+    if (!result.success) {
+      setState(() => _isContractLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.error ?? 'Error'),
+          backgroundColor: HelpiTheme.primary,
+        ),
+      );
+      return;
+    }
+
+    await DataLoader.loadAll();
+    if (!mounted) return;
+    final refreshed = MockData.students
+        .where((s) => s.id == _student.id)
+        .firstOrNull;
+    setState(() {
+      _isContractLoading = false;
+      _isContractDeleting = false;
+      _activeContract = null;
+      if (refreshed != null) _student = refreshed;
+    });
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppStrings.contractDeleteSuccess),
+        backgroundColor: HelpiTheme.statusActiveText,
+      ),
+    );
   }
 
   Future<void> _simulateContractUpload() async {
@@ -910,13 +1020,46 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
     if (!mounted || picked == null) return;
 
-    // Step 3: Update student
-    setState(() {
-      _student = _rebuildStudent(
-        contractStatus: ContractStatus.active,
-        contractStartDate: picked.start,
-        contractExpiryDate: picked.end,
+    // Step 3: Read file bytes and upload to backend
+    final fileBytes = await file.readAsBytes();
+    if (!mounted) return;
+
+    final studentId = int.tryParse(_student.id);
+    if (studentId == null) return;
+
+    setState(() => _isContractLoading = true);
+
+    final api = AdminApiService();
+    final result = await api.uploadContract(
+      studentId: studentId,
+      fileBytes: Uint8List.fromList(fileBytes),
+      fileName: fileName,
+      effectiveDate: picked.start.toIso8601String().split('T').first,
+      expirationDate: picked.end.toIso8601String().split('T').first,
+    );
+    if (!mounted) return;
+    if (!result.success) {
+      setState(() => _isContractLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.error ?? 'Error'),
+          backgroundColor: HelpiTheme.primary,
+        ),
       );
+      return;
+    }
+
+    // Refresh data from backend
+    await DataLoader.loadAll();
+    if (!mounted) return;
+    await _loadContracts();
+    if (!mounted) return;
+    final refreshed = MockData.students
+        .where((s) => s.id == _student.id)
+        .firstOrNull;
+    setState(() {
+      _isContractLoading = false;
+      if (refreshed != null) _student = refreshed;
       if (!_isCustomRange) _initSummaryRange();
     });
 
@@ -947,25 +1090,38 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       title: AppStrings.studentAvailability,
       icon: Icons.schedule,
       children: [
-        ResponsiveFieldGrid(
-          children: [
-            ...List.generate(_student.availability.length, (i) {
-              final day = _student.availability[i];
-              if (!day.isEnabled) return null;
-              return InfoField(
-                label: dayLabels[i],
-                valueWidget: Text(
-                  '${formatTimeOfDay(day.from)} – ${formatTimeOfDay(day.to)}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: HelpiTheme.textPrimary,
+        if (_availability.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Text(
+                AppStrings.noAvailability,
+                style: const TextStyle(color: HelpiTheme.textSecondary),
+              ),
+            ),
+          ),
+        if (_availability.isNotEmpty)
+          ResponsiveFieldGrid(
+            children: [
+              ..._availability.map((day) {
+                final idx = day.dayOfWeek - 1;
+                final label = idx >= 0 && idx < dayLabels.length
+                    ? dayLabels[idx]
+                    : '?';
+                return InfoField(
+                  label: label,
+                  valueWidget: Text(
+                    '${formatTimeOfDay(day.from)} – ${formatTimeOfDay(day.to)}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: HelpiTheme.textPrimary,
+                    ),
                   ),
-                ),
-              );
-            }).nonNulls,
-          ],
-        ),
+                );
+              }),
+            ],
+          ),
       ],
     );
   }
@@ -1344,6 +1500,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   //  ORDERS SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildOrdersSection(List<OrderModel> orders) {
+    final visibleOrders = orders.take(5).toList();
+    final hasMore = orders.length > 5;
+
     return SectionCard(
       title: AppStrings.studentAssignedOrders,
       icon: Icons.receipt_long,
@@ -1368,60 +1527,23 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               ),
             ),
           ),
-        ...orders.map((o) {
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => OrderDetailScreen(order: o)),
-              ).then((_) {
-                if (!mounted) return;
-                setState(() {});
-              });
-            },
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: HelpiTheme.scaffold,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '#${o.orderNumber}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          o.senior.fullName,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: HelpiTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  StatusBadge.order(o.status),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.chevron_right,
-                    size: 20,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                ],
-              ),
+        if (orders.isNotEmpty)
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: hasMore ? 320 : double.infinity,
             ),
-          );
-        }),
+            child: hasMore
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: orders.length,
+                    itemBuilder: (_, i) => _buildOrderTile(orders[i]),
+                  )
+                : Column(
+                    children: visibleOrders
+                        .map((o) => _buildOrderTile(o))
+                        .toList(),
+                  ),
+          ),
         const SizedBox(height: 8),
         ActionChipButton(
           icon: Icons.assignment_ind,
@@ -1430,6 +1552,61 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           onTap: _openAssignSheet,
         ),
       ],
+    );
+  }
+
+  Widget _buildOrderTile(OrderModel o) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => OrderDetailScreen(order: o)),
+        ).then((_) {
+          if (!mounted) return;
+          setState(() {});
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: HelpiTheme.scaffold,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '#${o.orderNumber}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    o.senior.fullName,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: HelpiTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            StatusBadge.order(o.status),
+            const SizedBox(width: 4),
+            const Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: HelpiTheme.textSecondary,
+            ),
+          ],
+        ),
+      ),
     );
   }
 

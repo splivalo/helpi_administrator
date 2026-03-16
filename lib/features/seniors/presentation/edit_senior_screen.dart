@@ -325,9 +325,7 @@ class _EditSeniorScreenState extends State<EditSeniorScreen>
       creditCards: widget.senior.creditCards,
     );
 
-    // Persist to MockData
-    final idx = MockData.seniors.indexWhere((s) => s.id == updated.id);
-    if (idx != -1) MockData.seniors[idx] = updated;
+    // Backend PUT /api/seniors/{id} not yet available — edits are local only
 
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

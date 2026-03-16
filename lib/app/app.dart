@@ -22,6 +22,7 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
   final _authService = AuthService();
   bool _isLoggedIn = false;
   bool _isCheckingAuth = true;
+  bool _isLoadingData = false;
 
   @override
   void initState() {
@@ -48,12 +49,14 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
     });
   }
 
-  void _handleLogin() {
-    setState(() => _isLoggedIn = true);
-    DataLoader.loadAll().whenComplete(() {
-      if (!mounted) return;
-      // Data loaded in background, screens will use whatever is available
+  Future<void> _handleLogin() async {
+    setState(() {
+      _isLoggedIn = true;
+      _isLoadingData = true;
     });
+    await DataLoader.loadAll();
+    if (!mounted) return;
+    setState(() => _isLoadingData = false);
   }
 
   Future<void> _handleLogout() async {
@@ -88,7 +91,7 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          home: _isCheckingAuth
+          home: _isCheckingAuth || _isLoadingData
               ? const Scaffold(body: Center(child: CircularProgressIndicator()))
               : _isLoggedIn
               ? ResponsiveShell(

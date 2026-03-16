@@ -4,6 +4,8 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
+import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/features/seniors/presentation/senior_form_helpers.dart';
 
 /// Ekran za dodavanje novog seniora.
@@ -29,6 +31,7 @@ class _AddSeniorScreenState extends State<AddSeniorScreen>
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
   Gender? _gender;
   DateTime? _dateOfBirth;
 
@@ -49,6 +52,7 @@ class _AddSeniorScreenState extends State<AddSeniorScreen>
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
     _addressCtrl.dispose();
+    _passwordCtrl.dispose();
     _ordFirstNameCtrl.dispose();
     _ordLastNameCtrl.dispose();
     _ordEmailCtrl.dispose();
@@ -119,6 +123,13 @@ class _AddSeniorScreenState extends State<AddSeniorScreen>
             ),
             const SizedBox(height: 12),
             buildTextField(
+              controller: _passwordCtrl,
+              label: AppStrings.password,
+              obscureText: true,
+              required: true,
+            ),
+            const SizedBox(height: 12),
+            buildTextField(
               controller: _ordPhoneCtrl,
               label: AppStrings.seniorOrdererPhone,
               keyboardType: TextInputType.phone,
@@ -164,6 +175,13 @@ class _AddSeniorScreenState extends State<AddSeniorScreen>
               controller: _emailCtrl,
               label: AppStrings.seniorEmail,
               keyboardType: TextInputType.emailAddress,
+              required: true,
+            ),
+            const SizedBox(height: 12),
+            buildTextField(
+              controller: _passwordCtrl,
+              label: AppStrings.password,
+              obscureText: true,
               required: true,
             ),
             const SizedBox(height: 12),
@@ -261,7 +279,7 @@ class _AddSeniorScreenState extends State<AddSeniorScreen>
     );
   }
 
-  void _onSave() {
+  Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_gender == null || _dateOfBirth == null) {
@@ -284,30 +302,85 @@ class _AddSeniorScreenState extends State<AddSeniorScreen>
       return;
     }
 
-    final newId = 's${MockData.seniors.length + 1}';
+    final api = AdminApiService();
+    final int relationship;
+    final String email;
 
-    final senior = SeniorModel(
-      id: newId,
-      firstName: _firstNameCtrl.text.trim(),
-      lastName: _lastNameCtrl.text.trim(),
-      email: _hasOrderer ? _ordEmailCtrl.text.trim() : _emailCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim(),
-      address: _addressCtrl.text.trim(),
-      gender: _gender!,
-      dateOfBirth: _dateOfBirth!,
-      createdAt: DateTime.now(),
-      ordererFirstName: _hasOrderer ? _ordFirstNameCtrl.text.trim() : null,
-      ordererLastName: _hasOrderer ? _ordLastNameCtrl.text.trim() : null,
-      ordererEmail: _hasOrderer ? _ordEmailCtrl.text.trim() : null,
-      ordererPhone: _hasOrderer ? _ordPhoneCtrl.text.trim() : null,
-      ordererAddress: _hasOrderer ? _ordAddressCtrl.text.trim() : null,
-      ordererGender: _hasOrderer ? _ordGender : null,
-      ordererDateOfBirth: _hasOrderer ? _ordDateOfBirth : null,
+    Map<String, dynamic> buildContactInfo({
+      required String firstName,
+      required String lastName,
+      required String phone,
+      required String address,
+      required int gender,
+      required String dateOfBirth,
+    }) {
+      return {
+        'fullName': '$firstName $lastName',
+        'phone': phone,
+        'gender': gender,
+        'dateOfBirth': dateOfBirth,
+        'googlePlaceId': 'admin-manual-entry',
+        'fullAddress': address,
+        'languageCode': 'hr',
+        'country': 'Croatia',
+      };
+    }
+
+    Map<String, dynamic> contactInfo;
+    Map<String, dynamic>? seniorContactInfo;
+
+    if (_hasOrderer) {
+      email = _ordEmailCtrl.text.trim();
+      relationship = 3; // Relative
+      contactInfo = buildContactInfo(
+        firstName: _ordFirstNameCtrl.text.trim(),
+        lastName: _ordLastNameCtrl.text.trim(),
+        phone: _ordPhoneCtrl.text.trim(),
+        address: _ordAddressCtrl.text.trim(),
+        gender: _ordGender == Gender.male ? 0 : 1,
+        dateOfBirth: _ordDateOfBirth!.toIso8601String().split('T').first,
+      );
+      seniorContactInfo = buildContactInfo(
+        firstName: _firstNameCtrl.text.trim(),
+        lastName: _lastNameCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim(),
+        address: _addressCtrl.text.trim(),
+        gender: _gender == Gender.male ? 0 : 1,
+        dateOfBirth: _dateOfBirth!.toIso8601String().split('T').first,
+      );
+    } else {
+      email = _emailCtrl.text.trim();
+      relationship = 0; // Self
+      contactInfo = buildContactInfo(
+        firstName: _firstNameCtrl.text.trim(),
+        lastName: _lastNameCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim(),
+        address: _addressCtrl.text.trim(),
+        gender: _gender == Gender.male ? 0 : 1,
+        dateOfBirth: _dateOfBirth!.toIso8601String().split('T').first,
+      );
+    }
+
+    final result = await api.registerCustomer(
+      email: email,
+      password: _passwordCtrl.text,
+      relationship: relationship,
+      contactInfo: contactInfo,
+      seniorContactInfo: seniorContactInfo,
     );
+    if (!mounted) return;
+    if (!result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.error ?? 'Error'),
+          backgroundColor: HelpiTheme.primary,
+        ),
+      );
+      return;
+    }
 
-    MockData.seniors.add(senior);
-
-    if (!context.mounted) return;
+    await DataLoader.loadAll();
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AppStrings.addSeniorSuccess),

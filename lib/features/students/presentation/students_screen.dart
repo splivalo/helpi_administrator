@@ -53,6 +53,7 @@ class _StudentsScreenState extends State<StudentsScreen>
   TimeOfDay? _availableTo;
   String? _seniorFilter;
   String? _facultyFilter;
+  String? _cityFilter;
 
   static const _tabFilters = _StudentFilter.values;
 
@@ -268,6 +269,11 @@ class _StudentsScreenState extends State<StudentsScreen>
       students = students.where((s) => s.faculty == _facultyFilter).toList();
     }
 
+    // City filter
+    if (_cityFilter != null) {
+      students = students.where((s) => s.city == _cityFilter).toList();
+    }
+
     // Worked with specific senior
     if (_seniorFilter != null) {
       students = students.where((s) {
@@ -341,29 +347,97 @@ class _StudentsScreenState extends State<StudentsScreen>
       ),
       body: Column(
         children: [
-          // ── Search bar ──
+          // ── Search bar + City filter ──
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: (v) => setState(() => _searchQuery = v),
-              decoration: InputDecoration(
-                hintText: AppStrings.searchStudents,
-                prefixIcon: const Icon(Icons.search, color: HelpiTheme.accent),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 20),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final cities =
+                    MockData.students
+                        .map((s) => s.city)
+                        .where((c) => c.isNotEmpty)
+                        .toSet()
+                        .toList()
+                      ..sort();
+                final searchField = TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                  style: const TextStyle(fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: AppStrings.searchStudents,
+                    hintStyle: const TextStyle(fontSize: 14),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: HelpiTheme.accent,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 20),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
+                  ),
+                );
+                final cityDropdown = SizedBox(
+                  height: HelpiTheme.inputFieldHeight,
+                  child: DropdownButtonFormField<String?>(
+                    initialValue: _cityFilter,
+                    isExpanded: true,
+                    isDense: true,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: HelpiTheme.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                      hintStyle: const TextStyle(fontSize: 14),
+                      hintText: AppStrings.filterByCity,
+                      prefixIcon: const Icon(
+                        Icons.location_on_outlined,
+                        color: HelpiTheme.accent,
+                        size: 20,
+                      ),
+                    ),
+                    items: [
+                      DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text(AppStrings.anyCity),
+                      ),
+                      ...cities.map(
+                        (c) =>
+                            DropdownMenuItem<String?>(value: c, child: Text(c)),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() => _cityFilter = v),
+                  ),
+                );
+                if (constraints.maxWidth >= 600) {
+                  return Row(
+                    children: [
+                      Expanded(flex: 2, child: searchField),
+                      const SizedBox(width: 12),
+                      Expanded(child: cityDropdown),
+                    ],
+                  );
+                }
+                return Column(
+                  children: [
+                    searchField,
+                    const SizedBox(height: 8),
+                    cityDropdown,
+                  ],
+                );
+              },
             ),
           ),
 
@@ -575,6 +649,7 @@ class _StudentsScreenState extends State<StudentsScreen>
     final selected = _sort == value;
     return PopupMenuItem(
       value: value,
+      height: 36,
       child: Row(
         children: [
           if (selected)
@@ -585,6 +660,7 @@ class _StudentsScreenState extends State<StudentsScreen>
           Text(
             label,
             style: TextStyle(
+              fontSize: 14,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               color: selected ? HelpiTheme.accent : HelpiTheme.textPrimary,
             ),

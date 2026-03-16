@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/admin_models.dart';
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
@@ -23,6 +24,28 @@ class AdminApiService {
 
   AdminApiService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
+  // Cached pricing config
+  static double _cachedHourlyRate = 7.40;
+  static double _cachedSundayRate = 11.10;
+  static bool _pricingLoaded = false;
+
+  Future<void> _ensurePricingLoaded() async {
+    if (_pricingLoaded) return;
+    try {
+      final response = await _api.get(ApiEndpoints.pricingConfigurations);
+      final list = response.data as List<dynamic>;
+      if (list.isNotEmpty) {
+        final cfg = list.first as Map<String, dynamic>;
+        _cachedHourlyRate = (cfg['jobHourlyRate'] as num?)?.toDouble() ?? 7.40;
+        _cachedSundayRate =
+            (cfg['sundayHourlyRate'] as num?)?.toDouble() ?? 11.10;
+      }
+      _pricingLoaded = true;
+    } catch (_) {
+      // keep defaults
+    }
+  }
+
   // ─────────────────────────────────────────────
   //  STUDENTS
   // ─────────────────────────────────────────────
@@ -42,12 +65,15 @@ class AdminApiService {
         ApiEndpoints.students,
         queryParameters: params.isEmpty ? null : params,
       );
+      await _ensurePricingLoaded();
       final list = (response.data as List<dynamic>)
           .map((e) => _mapStudent(e as Map<String, dynamic>))
           .toList();
       return ApiResult.ok(list);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
+    } catch (e) {
+      return ApiResult.fail('getStudents mapper: $e');
     }
   }
 
@@ -80,6 +106,8 @@ class AdminApiService {
       return ApiResult.ok(list);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
+    } catch (e) {
+      return ApiResult.fail('getSeniors mapper: $e');
     }
   }
 
@@ -111,6 +139,8 @@ class AdminApiService {
       return ApiResult.ok(list);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
+    } catch (e) {
+      return ApiResult.fail('getOrders mapper: $e');
     }
   }
 
@@ -377,6 +407,8 @@ class AdminApiService {
       return ApiResult.ok(list);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
+    } catch (e) {
+      return ApiResult.fail('getReviews mapper: $e');
     }
   }
 
@@ -391,7 +423,243 @@ class AdminApiService {
       return ApiResult.ok(list);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
+    } catch (e) {
+      return ApiResult.fail('getNotifications mapper: $e');
     }
+  }
+
+  // ─────────────────────────────────────────────
+  //  CONTACT INFO
+  // ─────────────────────────────────────────────
+
+  Future<ApiResult<int>> createContactInfo({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String phone,
+    required String streetAddress,
+    required int gender,
+    required String dateOfBirth,
+    int? cityId,
+  }) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.contactInfos,
+        data: {
+          'firstName': firstName,
+          'lastName': lastName,
+          'email': email,
+          'phone': phone,
+          'streetAddress': streetAddress,
+          'gender': gender,
+          'dateOfBirth': dateOfBirth,
+          'cityId': ?cityId,
+        },
+      );
+      final data = response.data as Map<String, dynamic>;
+      return ApiResult.ok(data['id'] as int);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  //  CUSTOMERS (orderers / naručitelji)
+  // ─────────────────────────────────────────────
+
+  Future<ApiResult<int>> createCustomer({required int contactId}) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.customers,
+        data: {'contactId': contactId, 'preferredNotificationMethod': 0},
+      );
+      final data = response.data as Map<String, dynamic>;
+      return ApiResult.ok(data['userId'] as int? ?? data['id'] as int);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  //  SENIOR CREATE (backend entity)
+  // ─────────────────────────────────────────────
+
+  Future<ApiResult<int>> createSeniorBackend({
+    required int customerId,
+    required int contactId,
+    required int relationship,
+  }) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.seniors,
+        data: {
+          'customerId': customerId,
+          'contactId': contactId,
+          'relationship': relationship,
+        },
+      );
+      final data = response.data as Map<String, dynamic>;
+      return ApiResult.ok(data['id'] as int);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  //  REGISTER CUSTOMER (creates User+Customer+Senior)
+  // ─────────────────────────────────────────────
+
+  Future<ApiResult<void>> registerCustomer({
+    required String email,
+    required String password,
+    required int relationship,
+    required Map<String, dynamic> contactInfo,
+    Map<String, dynamic>? seniorContactInfo,
+  }) async {
+    try {
+      final data = <String, dynamic>{
+        'email': email,
+        'password': password,
+        'userType': 2, // Customer
+        'relationship': relationship,
+        'preferredNotificationMethod': 0,
+        'contactInfo': contactInfo,
+        if (seniorContactInfo != null) 'seniorContactInfo': seniorContactInfo,
+      };
+      await _api.post(ApiEndpoints.registerCustomer, data: data);
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  //  STUDENT CONTRACTS
+  // ─────────────────────────────────────────────
+
+  Future<ApiResult<void>> uploadContract({
+    required int studentId,
+    required Uint8List fileBytes,
+    required String fileName,
+    required String effectiveDate,
+    required String expirationDate,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'StudentId': studentId,
+        'EffectiveDate': effectiveDate,
+        'ExpirationDate': expirationDate,
+        'ContractFile': MultipartFile.fromBytes(fileBytes, filename: fileName),
+      });
+      await _api.post(ApiEndpoints.studentContracts, data: formData);
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<List<Map<String, dynamic>>>> getStudentContracts(
+    int studentId,
+  ) async {
+    try {
+      final response = await _api.get(
+        ApiEndpoints.contractsByStudent(studentId),
+      );
+      final list = (response.data as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> deleteContract(int contractId) async {
+    try {
+      await _api.delete('${ApiEndpoints.studentContracts}/$contractId');
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  //  STUDENT AVAILABILITY
+  // ─────────────────────────────────────────────
+
+  Future<ApiResult<List<DayAvailability>>> getStudentAvailability(
+    int studentId,
+  ) async {
+    try {
+      final response = await _api.get(
+        ApiEndpoints.availabilityByStudent(studentId),
+      );
+      final list = (response.data as List<dynamic>)
+          .map((e) => _mapAvailabilitySlot(e as Map<String, dynamic>))
+          .toList();
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  DayAvailability _mapAvailabilitySlot(Map<String, dynamic> json) {
+    final dayOfWeek = json['dayOfWeek'] as int? ?? 1;
+    final start = _parseTimeOnly(json['startTime']);
+    final end = _parseTimeOnly(json['endTime']);
+    return DayAvailability(
+      dayOfWeek: dayOfWeek,
+      isEnabled: true,
+      from: start,
+      to: end,
+    );
+  }
+
+  TimeOfDay _parseTimeOnly(dynamic value) {
+    if (value is String && value.isNotEmpty) {
+      final parts = value.split(':');
+      return TimeOfDay(
+        hour: int.tryParse(parts[0]) ?? 0,
+        minute: parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0,
+      );
+    }
+    return const TimeOfDay(hour: 0, minute: 0);
+  }
+
+  // ─────────────────────────────────────────────
+  //  BACKEND SERVICES (for serviceId lookup)
+  // ─────────────────────────────────────────────
+
+  static List<Map<String, dynamic>>? _cachedServices;
+
+  Future<ApiResult<List<Map<String, dynamic>>>> getBackendServices() async {
+    if (_cachedServices != null) return ApiResult.ok(_cachedServices!);
+    try {
+      final response = await _api.get(ApiEndpoints.services);
+      final list = (response.data as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      _cachedServices = list;
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Maps a frontend [ServiceType] to a backend service ID.
+  Future<int?> serviceTypeToId(ServiceType type) async {
+    final result = await getBackendServices();
+    if (!result.success || result.data == null) return null;
+    final enumName = type.name.toLowerCase();
+    for (final svc in result.data!) {
+      final translations = svc['translations'] as Map<String, dynamic>? ?? {};
+      final en = translations['en'] as Map<String, dynamic>?;
+      final name = (en?['name'] as String? ?? '').toLowerCase();
+      if (name == enumName || name.replaceAll('_', '') == enumName) {
+        return svc['id'] as int?;
+      }
+    }
+    return null;
   }
 
   // ═════════════════════════════════════════════
@@ -405,7 +673,7 @@ class AdminApiService {
     final firstName = nameParts.isNotEmpty ? nameParts.first : '';
     final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
-    final statusStr = json['status'] as String? ?? 'Active';
+    final statusStr = _studentStatusStr(json['status']);
 
     return StudentModel(
       id: '${json['userId']}',
@@ -414,6 +682,7 @@ class AdminApiService {
       email: contact?['email'] as String? ?? '',
       phone: contact?['phone'] as String? ?? '',
       address: contact?['fullAddress'] as String? ?? '',
+      city: contact?['cityName'] as String? ?? '',
       faculty: _extractFacultyName(json['faculty']),
       studentIdNumber: json['studentNumber'] as String? ?? '',
       dateOfBirth: _parseDate(contact?['dateOfBirth']),
@@ -434,14 +703,14 @@ class AdminApiService {
         statusStr,
         json['daysToContractExpire'],
       ),
-      contractStartDate: null, // from contract endpoint if needed
-      contractExpiryDate: _parseNullableDate(
-        json['daysToContractExpire'] != null
-            ? null // calculated from days if needed
-            : null,
-      ),
-      hourlyRate: 7.40,
-      sundayHourlyRate: 11.10,
+      contractStartDate: null,
+      contractExpiryDate: json['daysToContractExpire'] != null
+          ? DateTime.now().add(
+              Duration(days: (json['daysToContractExpire'] as num).toInt()),
+            )
+          : null,
+      hourlyRate: _cachedHourlyRate,
+      sundayHourlyRate: _cachedSundayRate,
     );
   }
 
@@ -459,6 +728,7 @@ class AdminApiService {
       email: contact?['email'] as String? ?? '',
       phone: contact?['phone'] as String? ?? '',
       address: contact?['fullAddress'] as String? ?? '',
+      city: contact?['cityName'] as String? ?? '',
       gender: _mapGender(contact?['gender']),
       dateOfBirth: _parseDate(contact?['dateOfBirth']),
       createdAt: _parseDateTime(contact?['createdAt']),
@@ -494,15 +764,15 @@ class AdminApiService {
 
     return OrderModel(
       id: '${json['id']}',
-      orderNumber: 'ORD-${json['id'].toString().padLeft(4, '0')}',
+      orderNumber: json['id'].toString().padLeft(4, '0'),
       senior: _mapOrderSenior(json),
-      student: null, // populated from schedule assignment if needed
-      status: _mapOrderStatus(json['status'] as String? ?? 'Pending'),
+      student: null,
+      status: _mapOrderStatus(json['status']),
       frequency: (json['isRecurring'] == true)
           ? FrequencyType.recurring
           : FrequencyType.oneTime,
       services: services,
-      createdAt: DateTime.now(), // not in OrderDto
+      createdAt: _parseDateTime(json['createdAt']),
       scheduledDate: _parseDate(json['startDate']),
       scheduledStart: _parseTimeOfDay(firstSchedule['startTime']),
       durationHours: _calcHours(
@@ -510,10 +780,10 @@ class AdminApiService {
         firstSchedule['endTime'],
       ),
       notes: json['notes'] as String?,
-      address: '', // from senior contact
+      address: json['seniorAddress'] as String? ?? '',
       endDate: _parseNullableDate(json['endDate']),
       dayEntries: dayEntries,
-      sessions: const [], // loaded separately
+      sessions: const [],
     );
   }
 
@@ -521,17 +791,19 @@ class AdminApiService {
     final senior = orderJson['senior'] as Map<String, dynamic>?;
     if (senior != null) return _mapSenior(senior);
 
-    // Minimal fallback
+    // Fallback using flattened fields from OrderDto
+    final fullName = orderJson['seniorName'] as String? ?? '';
+    final nameParts = fullName.split(' ');
     return SeniorModel(
       id: '${orderJson['seniorId']}',
-      firstName: orderJson['seniorName'] as String? ?? '',
-      lastName: '',
-      email: '',
-      phone: '',
-      address: '',
-      gender: Gender.female,
-      dateOfBirth: DateTime(1950),
-      createdAt: DateTime.now(),
+      firstName: nameParts.isNotEmpty ? nameParts.first : '',
+      lastName: nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '',
+      email: orderJson['seniorEmail'] as String? ?? '',
+      phone: orderJson['seniorPhone'] as String? ?? '',
+      address: orderJson['seniorAddress'] as String? ?? '',
+      gender: Gender.male,
+      dateOfBirth: DateTime(1900),
+      createdAt: _parseDateTime(orderJson['createdAt']),
     );
   }
 
@@ -548,7 +820,7 @@ class AdminApiService {
       startTime: _parseTimeOfDay(json['startTime']),
       durationHours: _calcHours(json['startTime'], json['endTime']),
       studentName: studentContact?['fullName'] as String?,
-      status: _mapSessionStatus(json['status'] as String? ?? 'Upcoming'),
+      status: _mapSessionStatus(json['status']),
       isModified: json['isRescheduleVariant'] == true,
     );
   }
@@ -584,20 +856,60 @@ class AdminApiService {
   //  ENUM MAPPERS
   // ═════════════════════════════════════════════
 
-  OrderStatus _mapOrderStatus(String s) => switch (s) {
-    'InActive' || 'Pending' => OrderStatus.processing,
-    'FullAssigned' => OrderStatus.active,
-    'Completed' => OrderStatus.completed,
-    'Cancelled' => OrderStatus.cancelled,
-    _ => OrderStatus.processing,
-  };
+  OrderStatus _mapOrderStatus(dynamic s) {
+    if (s is int) {
+      return switch (s) {
+        0 => OrderStatus.processing, // InActive
+        1 => OrderStatus.processing, // Pending
+        2 => OrderStatus.active, // FullAssigned
+        3 => OrderStatus.completed,
+        4 => OrderStatus.cancelled,
+        _ => OrderStatus.processing,
+      };
+    }
+    return switch ('$s') {
+      'InActive' || 'Pending' => OrderStatus.processing,
+      'FullAssigned' => OrderStatus.active,
+      'Completed' => OrderStatus.completed,
+      'Cancelled' => OrderStatus.cancelled,
+      _ => OrderStatus.processing,
+    };
+  }
 
-  SessionStatus _mapSessionStatus(String s) => switch (s) {
-    'Upcoming' || 'InProgress' => SessionStatus.scheduled,
-    'Completed' => SessionStatus.completed,
-    'Cancelled' || 'Rescheduled' => SessionStatus.cancelled,
-    _ => SessionStatus.scheduled,
-  };
+  SessionStatus _mapSessionStatus(dynamic s) {
+    if (s is int) {
+      return switch (s) {
+        0 => SessionStatus.scheduled, // Upcoming
+        1 => SessionStatus.scheduled, // InProgress
+        2 => SessionStatus.completed,
+        3 || 4 => SessionStatus.cancelled,
+        _ => SessionStatus.scheduled,
+      };
+    }
+    return switch ('$s') {
+      'Upcoming' || 'InProgress' => SessionStatus.scheduled,
+      'Completed' => SessionStatus.completed,
+      'Cancelled' || 'Rescheduled' => SessionStatus.cancelled,
+      _ => SessionStatus.scheduled,
+    };
+  }
+
+  /// Convert backend StudentStatus (int or string) to string label.
+  String _studentStatusStr(dynamic s) {
+    if (s is int) {
+      return const [
+            'InActive',
+            'Active',
+            'ContractAboutToExpire',
+            'Expired',
+            'AccountDeactivated',
+            'PendingPermanentDeletion',
+            'Deleted',
+          ].elementAtOrNull(s) ??
+          'Active';
+    }
+    return '$s';
+  }
 
   Gender _mapGender(dynamic g) {
     if (g is String) {

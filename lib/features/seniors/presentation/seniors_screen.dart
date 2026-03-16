@@ -44,6 +44,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
   SeniorSort _sort = SeniorSort.az;
   late final TabController _tabCtrl;
   bool _isGridView = false;
+  String? _cityFilter;
 
   static const _tabFilters = _SeniorStatusFilter.values;
 
@@ -135,6 +136,11 @@ class _SeniorsScreenState extends State<SeniorsScreen>
       }).toList();
     }
 
+    // City filter
+    if (_cityFilter != null) {
+      seniors = seniors.where((s) => s.city == _cityFilter).toList();
+    }
+
     // Sorting
     switch (_sort) {
       case SeniorSort.az:
@@ -181,29 +187,97 @@ class _SeniorsScreenState extends State<SeniorsScreen>
       ),
       body: Column(
         children: [
-          // ── Search bar ──
+          // ── Search bar + City filter ──
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: TextField(
-              controller: _searchCtrl,
-              onChanged: (v) => setState(() => _searchQuery = v),
-              decoration: InputDecoration(
-                hintText: AppStrings.searchSeniors,
-                prefixIcon: const Icon(Icons.search, color: HelpiTheme.accent),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 20),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-              ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final cities =
+                    MockData.seniors
+                        .map((s) => s.city)
+                        .where((c) => c.isNotEmpty)
+                        .toSet()
+                        .toList()
+                      ..sort();
+                final searchField = TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                  style: const TextStyle(fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: AppStrings.searchSeniors,
+                    hintStyle: const TextStyle(fontSize: 14),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: HelpiTheme.accent,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 20),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
+                  ),
+                );
+                final cityDropdown = SizedBox(
+                  height: HelpiTheme.inputFieldHeight,
+                  child: DropdownButtonFormField<String?>(
+                    initialValue: _cityFilter,
+                    isExpanded: true,
+                    isDense: true,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: HelpiTheme.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
+                      hintStyle: const TextStyle(fontSize: 14),
+                      hintText: AppStrings.filterByCity,
+                      prefixIcon: const Icon(
+                        Icons.location_on_outlined,
+                        color: HelpiTheme.accent,
+                        size: 20,
+                      ),
+                    ),
+                    items: [
+                      DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text(AppStrings.anyCity),
+                      ),
+                      ...cities.map(
+                        (c) =>
+                            DropdownMenuItem<String?>(value: c, child: Text(c)),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() => _cityFilter = v),
+                  ),
+                );
+                if (constraints.maxWidth >= 600) {
+                  return Row(
+                    children: [
+                      Expanded(flex: 2, child: searchField),
+                      const SizedBox(width: 12),
+                      Expanded(child: cityDropdown),
+                    ],
+                  );
+                }
+                return Column(
+                  children: [
+                    searchField,
+                    const SizedBox(height: 8),
+                    cityDropdown,
+                  ],
+                );
+              },
             ),
           ),
           // ── Status filter tabs ──
@@ -390,6 +464,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
     final selected = _sort == value;
     return PopupMenuItem(
       value: value,
+      height: 36,
       child: Row(
         children: [
           if (selected)
@@ -400,6 +475,7 @@ class _SeniorsScreenState extends State<SeniorsScreen>
           Text(
             label,
             style: TextStyle(
+              fontSize: 14,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               color: selected ? HelpiTheme.accent : HelpiTheme.textPrimary,
             ),
@@ -697,6 +773,7 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
       email: _senior.email,
       phone: _senior.phone,
       address: _senior.address,
+      city: _senior.city,
       gender: _senior.gender,
       dateOfBirth: _senior.dateOfBirth,
       isActive: isActive ?? _senior.isActive,

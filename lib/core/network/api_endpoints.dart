@@ -7,6 +7,7 @@ class ApiEndpoints {
   // Auth
   static const String login = '/api/auth/login';
   static const String registerAdmin = '/api/auth/register/admin';
+  static const String registerCustomer = '/api/auth/register/customer';
   static const String changePassword = '/api/auth/change-password';
   static const String forgotPassword = '/api/auth/forgot-password';
   static const String resetPassword = '/api/auth/reset-password-code';
@@ -35,6 +36,21 @@ class ApiEndpoints {
   static const String customers = '/api/customers';
   static String customerById(int id) => '/api/customers/$id';
 
+  // Contact Info
+  static const String contactInfos = '/api/contact-infos';
+
+  // Student Contracts
+  static const String studentContracts = '/api/student-contracts';
+  static String contractsByStudent(int studentId) =>
+      '/api/student-contracts/student/$studentId';
+
+  // Services
+  static const String services = '/api/services';
+
+  // Student Availability
+  static String availabilityByStudent(int studentId) =>
+      '/api/student-availability-slots/student/$studentId';
+
   // Schedule Assignments
   static const String scheduleAssignments = '/api/schedule-assignments';
   static const String adminAssign = '/api/schedule-assignments/admin-assign';
@@ -53,7 +69,7 @@ class ApiEndpoints {
   static const String promoCodeApply = '/api/promo-codes/apply';
 
   // Pricing
-  static const String pricingConfigurations = '/api/pricing-configurations';
+  static const String pricingConfigurations = '/api/PricingConfiguration';
 
   // Notifications
   static String notificationsByUser(int userId) =>

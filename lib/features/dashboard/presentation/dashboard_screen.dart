@@ -280,7 +280,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             const SizedBox(height: 24),
 
-            // ── Ugovori koji ističu ──
+            // ── Istekli ugovori ──
             if (expiringStudents.isNotEmpty) ...[
               _SectionHeader(title: AppStrings.expiringContracts),
               const SizedBox(height: 8),
