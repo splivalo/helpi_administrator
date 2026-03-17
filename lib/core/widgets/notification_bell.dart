@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/network/token_storage.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
 
 // TODO: Notifications are loaded from API but table is empty. Backend needs to create notifications when actions occur (order created, student assigned, etc.)
 
@@ -102,12 +104,14 @@ class _NotificationsDrawerState extends State<_NotificationsDrawer> {
                     ),
                     if (unreadCount > 0)
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
                             for (final n in notifications) {
                               n.isRead = true;
                             }
                           });
+                          final userId = await TokenStorage().getUserId() ?? 0;
+                          AdminApiService().markAllNotificationsRead(userId);
                         },
                         child: Text(
                           AppStrings.markAllRead,
@@ -156,6 +160,10 @@ class _NotificationsDrawerState extends State<_NotificationsDrawer> {
                             onTap: () {
                               if (!n.isRead) {
                                 setState(() => n.isRead = true);
+                                final nId = int.tryParse(n.id) ?? 0;
+                                if (nId > 0) {
+                                  AdminApiService().markNotificationRead(nId);
+                                }
                               }
                             },
                           );

@@ -659,6 +659,24 @@ class AdminApiService {
     }
   }
 
+  Future<ApiResult<void>> markNotificationRead(int notificationId) async {
+    try {
+      await _api.put(ApiEndpoints.notificationMarkRead(notificationId));
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> markAllNotificationsRead(int userId) async {
+    try {
+      await _api.put(ApiEndpoints.notificationMarkAllRead(userId));
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   // ─────────────────────────────────────────────
   //  CONTACT INFO
   // ─────────────────────────────────────────────
@@ -1102,6 +1120,12 @@ class AdminApiService {
         .map((s) => _mapServiceType(s as Map<String, dynamic>))
         .toList();
 
+    // Extract schedule IDs for admin-assign
+    final scheduleIds = schedules
+        .map((s) => s['id'] as int? ?? 0)
+        .where((id) => id > 0)
+        .toList();
+
     // Build day entries from schedules
     final dayEntries = schedules
         .map(
@@ -1140,6 +1164,7 @@ class AdminApiService {
       endDate: _parseNullableDate(json['endDate']),
       dayEntries: dayEntries,
       sessions: const [],
+      scheduleIds: scheduleIds,
     );
   }
 

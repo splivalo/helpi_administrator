@@ -1774,7 +1774,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   // ═══════════════════════════════════════════════════════════════
   //  ASSIGN STUDENT (single-modal flow with back navigation)
   // ═══════════════════════════════════════════════════════════════
-  void _showAssignSheet() {
+  Future<void> _showAssignSheet() async {
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
     void onConfirmed(
@@ -1844,18 +1844,42 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           dayEntries: _order.dayEntries,
           sessions: updatedSessions,
           promoCode: _order.promoCode,
+          scheduleIds: _order.scheduleIds,
         );
       });
     }
 
-    // Classify & filter out unavailable + current student
-    final activeStudents = MockData.students
-        .where(
-          (s) =>
-              s.isActive &&
-              s.contractStatus == ContractStatus.active &&
-              s.id != _order.student?.id,
-        )
+    // Fetch available students from API
+    final api = AdminApiService();
+    final dateStr =
+        '${_order.scheduledDate.year}-${_order.scheduledDate.month.toString().padLeft(2, '0')}-${_order.scheduledDate.day.toString().padLeft(2, '0')}';
+    final startStr =
+        '${_order.scheduledStart.hour.toString().padLeft(2, '0')}:${_order.scheduledStart.minute.toString().padLeft(2, '0')}';
+    final endHour = _order.scheduledStart.hour + _order.durationHours;
+    final endStr =
+        '${endHour.toString().padLeft(2, '0')}:${_order.scheduledStart.minute.toString().padLeft(2, '0')}';
+
+    final result = await api.getAvailableStudents(
+      date: dateStr,
+      startTime: startStr,
+      endTime: endStr,
+      orderId: int.tryParse(_order.id),
+    );
+
+    if (!mounted) return;
+
+    if (!result.success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.error ?? 'Error'),
+          backgroundColor: HelpiTheme.error,
+        ),
+      );
+      return;
+    }
+
+    final activeStudents = (result.data ?? <StudentModel>[])
+        .where((s) => s.id != _order.student?.id)
         .toList();
     final classified = <(StudentModel, _StudentAvail)>[];
     for (final s in activeStudents) {
@@ -1868,6 +1892,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (aIdx != bIdx) return aIdx.compareTo(bIdx);
       return b.$1.avgRating.compareTo(a.$1.avgRating);
     });
+
+    if (!mounted) return;
 
     if (isWide) {
       showDialog<void>(
@@ -1933,9 +1959,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: Text(AppStrings.cancel),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
               Navigator.pop(sheetContext);
+
+              final api = AdminApiService();
+              final studentId = int.tryParse(student.id) ?? 0;
+
+              // Assign student to each schedule of this order
+              for (final scheduleId in _order.scheduleIds) {
+                final result = await api.adminAssign(scheduleId, studentId);
+                if (!result.success) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result.error ?? 'Error'),
+                      backgroundColor: HelpiTheme.error,
+                    ),
+                  );
+                  return;
+                }
+              }
+
+              if (!mounted) return;
+
               setState(() {
                 // Propagate student to all upcoming sessions
                 final updatedSessions = _order.sessions.map((s) {
@@ -1963,8 +2010,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   dayEntries: _order.dayEntries,
                   sessions: updatedSessions,
                   promoCode: _order.promoCode,
+                  scheduleIds: _order.scheduleIds,
                 );
               });
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(AppStrings.assignSuccess),
+                  backgroundColor: HelpiTheme.accent,
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               minimumSize: Size.zero,

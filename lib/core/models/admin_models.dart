@@ -248,6 +248,7 @@ class OrderModel {
   final List<DayEntry> dayEntries;
   final List<SessionModel> sessions;
   final String? promoCode;
+  final List<int> scheduleIds;
 
   const OrderModel({
     required this.id,
@@ -267,6 +268,7 @@ class OrderModel {
     this.dayEntries = const [],
     this.sessions = const [],
     this.promoCode,
+    this.scheduleIds = const [],
   });
 }
 
