@@ -4,6 +4,8 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 
+// TODO: Notifications are loaded from API but table is empty. Backend needs to create notifications when actions occur (order created, student assigned, etc.)
+
 /// Bell icon with unread-count badge. Opens [NotificationsDrawer].
 class NotificationBell extends StatelessWidget {
   const NotificationBell({super.key});

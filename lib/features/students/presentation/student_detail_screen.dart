@@ -49,8 +49,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   /// Availability loaded from backend.
   List<DayAvailability> _availability = [];
 
-  /// Admin notes for this student (local state, later from API).
-  final List<AdminNote> _adminNotes = [];
+
 
   /// Date range for work summary payout calculation.
   late DateTime _summaryStart;
@@ -664,7 +663,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   //  ADMIN NOTES SECTION
   // ─────────────────────────────────────────────────────────
   Widget _buildNotesSection() {
-    return NotesSection(notes: _adminNotes);
+    final studentId = int.tryParse(_student.id) ?? 0;
+    return NotesSection(entityType: 'Student', entityId: studentId);
   }
 
   // ─────────────────────────────────────────────────────────
@@ -792,36 +792,96 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   // ── Archive / Unarchive logic ──
 
-  void _confirmArchive() {
-    // Check for active orders
-    final hasActiveOrders = MockData.orders.any(
-      (o) =>
-          o.student?.id == _student.id &&
-          (o.status == OrderStatus.active ||
-              o.status == OrderStatus.processing),
-    );
+  Future<void> _confirmArchive() async {
+    final api = AdminApiService();
+    final studentId = int.tryParse(_student.id) ?? 0;
 
-    if (hasActiveOrders) {
-      showDialog<void>(
+    // Check for blocking items via API
+    final checkResult = await api.getStudentArchiveCheck(studentId);
+    if (!mounted) return;
+
+    if (!checkResult.success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(checkResult.error ?? 'Error')));
+      return;
+    }
+
+    final check = checkResult.data!;
+
+    if (check.hasBlockingItems) {
+      // Show warning dialog with force option
+      final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(AppStrings.archiveBlockedTitle),
           content: SizedBox(
             width: 400,
-            child: Text(AppStrings.archiveBlockedMsg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppStrings.archiveBlockedMsg),
+                const SizedBox(height: 16),
+                if (check.activeAssignmentsCount > 0)
+                  Text('• ${check.activeAssignmentsCount} aktivnih dodjela'),
+                if (check.upcomingSessionsCount > 0)
+                  Text('• ${check.upcomingSessionsCount} nadolazećih termina'),
+                const SizedBox(height: 16),
+                Text(
+                  AppStrings.archiveForceWarning,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(AppStrings.ok),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(AppStrings.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: Text(AppStrings.studentArchive),
             ),
           ],
         ),
       );
+      if (!mounted) return;
+      if (confirmed != true) return;
+
+      // Force archive
+      final archiveResult = await api.archiveStudent(
+        studentId,
+        force: true,
+        reason: 'Admin forced archive',
+      );
+      if (!mounted) return;
+      if (archiveResult.success) {
+        await DataLoader.loadAll();
+        if (!mounted) return;
+        final refreshed = MockData.students
+            .where((s) => s.id == _student.id)
+            .firstOrNull;
+        if (refreshed != null) {
+          setState(() => _student = refreshed);
+        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
+      }
       return;
     }
 
-    showDialog<bool>(
+    // Can archive directly - simple confirmation
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppStrings.archiveConfirmTitle),
@@ -840,13 +900,29 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           ),
         ],
       ),
-    ).then((confirmed) {
-      if (confirmed == true) {
-        setState(() {
-          _student = _rebuildStudent(isArchived: true, isActive: false);
-        });
+    );
+    if (!mounted) return;
+    if (confirmed != true) return;
+
+    final archiveResult = await api.archiveStudent(studentId);
+    if (!mounted) return;
+    if (archiveResult.success) {
+      await DataLoader.loadAll();
+      if (!mounted) return;
+      final refreshed = MockData.students
+          .where((s) => s.id == _student.id)
+          .firstOrNull;
+      if (refreshed != null) {
+        setState(() => _student = refreshed);
       }
-    });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
+    }
   }
 
   void _confirmUnarchive() {
@@ -869,54 +945,138 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           ),
         ],
       ),
-    ).then((confirmed) {
-      if (confirmed == true) {
-        setState(() {
-          _student = _rebuildStudent(isArchived: false);
-        });
+    ).then((confirmed) async {
+      if (confirmed != true || !mounted) return;
+      final studentId = int.tryParse(_student.id);
+      if (studentId == null) return;
+      final api = AdminApiService();
+      final result = await api.unarchiveStudent(studentId);
+      if (!mounted) return;
+      if (!result.success) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
+        return;
       }
+      await DataLoader.loadAll();
+      if (!mounted) return;
+      final refreshed = MockData.students
+          .where((s) => s.id == _student.id)
+          .firstOrNull;
+      if (refreshed != null) {
+        setState(() => _student = refreshed);
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(AppStrings.unarchiveSuccess)));
     });
-  }
-
-  StudentModel _rebuildStudent({
-    bool? isActive,
-    bool? isArchived,
-    ContractStatus? contractStatus,
-    DateTime? contractStartDate,
-    DateTime? contractExpiryDate,
-  }) {
-    final updated = StudentModel(
-      id: _student.id,
-      firstName: _student.firstName,
-      lastName: _student.lastName,
-      email: _student.email,
-      phone: _student.phone,
-      address: _student.address,
-      faculty: _student.faculty,
-      studentIdNumber: _student.studentIdNumber,
-      dateOfBirth: _student.dateOfBirth,
-      gender: _student.gender,
-      isActive: isActive ?? _student.isActive,
-      isArchived: isArchived ?? _student.isArchived,
-      isVerified: _student.isVerified,
-      avgRating: _student.avgRating,
-      totalReviews: _student.totalReviews,
-      completedJobs: _student.completedJobs,
-      cancelledJobs: _student.cancelledJobs,
-      contractStatus: contractStatus ?? _student.contractStatus,
-      contractStartDate: contractStartDate ?? _student.contractStartDate,
-      contractExpiryDate: contractExpiryDate ?? _student.contractExpiryDate,
-      createdAt: _student.createdAt,
-      availability: _student.availability,
-      hourlyRate: _student.hourlyRate,
-      sundayHourlyRate: _student.sundayHourlyRate,
-    );
-    return updated;
   }
 
   Future<void> _confirmDeleteContract() async {
     if (_activeContract == null) return;
     final contractId = _activeContract!['id'] as int;
+    final api = AdminApiService();
+
+    // Check for blocking items via API
+    final checkResult = await api.getContractDeleteCheck(contractId);
+    if (!mounted) return;
+
+    if (!checkResult.success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(checkResult.error ?? 'Error')));
+      return;
+    }
+
+    final check = checkResult.data!;
+
+    if (check.hasBlockingItems) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(AppStrings.contractDeleteTitle),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppStrings.contractDeleteConfirm),
+                const SizedBox(height: 16),
+                if (check.activeAssignmentsCount > 0)
+                  Text('• ${check.activeAssignmentsCount} aktivnih dodjela'),
+                if (check.upcomingSessionsCount > 0)
+                  Text('• ${check.upcomingSessionsCount} nadolazećih termina'),
+                const SizedBox(height: 16),
+                Text(
+                  AppStrings.archiveForceWarning,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(AppStrings.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: Text(AppStrings.delete),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      if (confirmed != true) return;
+
+      setState(() {
+        _isContractLoading = true;
+        _isContractDeleting = true;
+      });
+
+      final deleteResult = await api.deleteContractWithCheck(
+        contractId,
+        force: true,
+        reason: 'Admin forced delete',
+      );
+      if (!mounted) return;
+      if (!deleteResult.success) {
+        setState(() => _isContractLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(deleteResult.error ?? 'Error'),
+            backgroundColor: HelpiTheme.primary,
+          ),
+        );
+        return;
+      }
+
+      await DataLoader.loadAll();
+      if (!mounted) return;
+      final refreshed = MockData.students
+          .where((s) => s.id == _student.id)
+          .firstOrNull;
+      setState(() {
+        _isContractLoading = false;
+        _isContractDeleting = false;
+        _activeContract = null;
+        if (refreshed != null) _student = refreshed;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.contractDeleteSuccess),
+          backgroundColor: HelpiTheme.statusActiveText,
+        ),
+      );
+      return;
+    }
+
+    // Can delete directly
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -944,7 +1104,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       _isContractDeleting = true;
     });
 
-    final api = AdminApiService();
     final result = await api.deleteContract(contractId);
     if (!mounted) return;
     if (!result.success) {

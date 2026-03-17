@@ -4,6 +4,9 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
+import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
+
+// TODO: Chat backend not implemented. Need ChatController, ChatRoom/Message entities, SignalR hub for real-time messaging.
 
 /// Chat Moderation Screen — admin chat s korisnicima.
 class ChatModScreen extends StatefulWidget {
@@ -133,29 +136,40 @@ class _ChatRoomList extends StatelessWidget {
                 : null,
             child: Row(
               children: [
-                // ── Avatar with icon — tap navigates to senior profile ──
+                // ── Avatar with icon — tap navigates to profile ──
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: room.isSenior
-                      ? () {
-                          final senior = MockData.seniors
-                              .where((s) => s.id == room.participantId)
-                              .firstOrNull;
-                          if (senior == null) return;
-                          final orders = MockData.orders
-                              .where((o) => o.senior.id == senior.id)
-                              .toList();
-                          Navigator.push(
-                            ctx,
-                            MaterialPageRoute(
-                              builder: (_) => SeniorDetailScreen(
-                                senior: senior,
-                                orders: orders,
-                              ),
-                            ),
-                          );
-                        }
-                      : null,
+                  onTap: () {
+                    if (room.isSenior) {
+                      final senior = MockData.seniors
+                          .where((s) => s.id == room.participantId)
+                          .firstOrNull;
+                      if (senior == null) return;
+                      final orders = MockData.orders
+                          .where((o) => o.senior.id == senior.id)
+                          .toList();
+                      Navigator.push(
+                        ctx,
+                        MaterialPageRoute(
+                          builder: (_) => SeniorDetailScreen(
+                            senior: senior,
+                            orders: orders,
+                          ),
+                        ),
+                      );
+                    } else {
+                      final student = MockData.students
+                          .where((s) => s.id == room.participantId)
+                          .firstOrNull;
+                      if (student == null) return;
+                      Navigator.push(
+                        ctx,
+                        MaterialPageRoute(
+                          builder: (_) => StudentDetailScreen(student: student),
+                        ),
+                      );
+                    }
+                  },
                   child: Container(
                     width: 36,
                     height: 36,

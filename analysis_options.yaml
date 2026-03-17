@@ -13,6 +13,8 @@ analyzer:
   errors:
     # dart:html deprecation - will migrate to package:web in future update
     deprecated_member_use: ignore
+    # Show TODOs/FIXMEs as warnings in Problems panel
+    todo: warning
 
 linter:
   # The lint rules applied to this project can be customized in the

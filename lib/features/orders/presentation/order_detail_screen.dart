@@ -586,8 +586,31 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ),
                           const SizedBox(width: 4),
                           GestureDetector(
-                            onTap: () {
-                              _rebuildOrder(promoCode: () => null);
+                            onTap: () async {
+                              final orderId = int.tryParse(_order.id);
+                              if (orderId == null) return;
+                              final api = AdminApiService();
+                              final result = await api.updateOrderPromoCode(
+                                orderId,
+                                null,
+                              );
+                              if (!mounted) return;
+                              if (!result.success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(result.error ?? 'Error'),
+                                  ),
+                                );
+                                return;
+                              }
+                              await DataLoader.loadAll();
+                              if (!mounted) return;
+                              final refreshed = MockData.orders
+                                  .where((o) => o.id == _order.id)
+                                  .firstOrNull;
+                              if (refreshed != null) {
+                                setState(() => _order = refreshed);
+                              }
                             },
                             child: const Icon(
                               Icons.close,
@@ -998,9 +1021,28 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ],
       ),
-    ).then((code) {
+    ).then((code) async {
       if (code == null || !mounted) return;
-      _rebuildOrder(promoCode: () => code.isEmpty ? null : code);
+      final orderId = int.tryParse(_order.id);
+      if (orderId == null) return;
+      final api = AdminApiService();
+      final promoValue = code.isEmpty ? null : code;
+      final result = await api.updateOrderPromoCode(orderId, promoValue);
+      if (!mounted) return;
+      if (!result.success) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
+        return;
+      }
+      await DataLoader.loadAll();
+      if (!mounted) return;
+      final refreshed = MockData.orders
+          .where((o) => o.id == _order.id)
+          .firstOrNull;
+      if (refreshed != null) {
+        setState(() => _order = refreshed);
+      }
     });
   }
 
@@ -1042,16 +1084,99 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       }
       await DataLoader.loadAll();
       if (!mounted) return;
-      final refreshed =
-          MockData.orders.where((o) => o.id == _order.id).firstOrNull;
+      final refreshed = MockData.orders
+          .where((o) => o.id == _order.id)
+          .firstOrNull;
       if (refreshed != null) {
         setState(() => _order = refreshed);
       }
     });
   }
 
-  void _confirmArchiveOrder() {
-    showDialog<bool>(
+  Future<void> _confirmArchiveOrder() async {
+    final api = AdminApiService();
+    final orderId = int.tryParse(_order.id) ?? 0;
+
+    final checkResult = await api.getOrderArchiveCheck(orderId);
+    if (!mounted) return;
+
+    if (!checkResult.success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(checkResult.error ?? 'Error')));
+      return;
+    }
+
+    final check = checkResult.data!;
+
+    if (check.hasBlockingItems) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(AppStrings.archiveBlockedTitle),
+          content: SizedBox(
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppStrings.archiveBlockedMsg),
+                const SizedBox(height: 16),
+                if (check.upcomingSessionsCount > 0)
+                  Text('• ${check.upcomingSessionsCount} nadolazećih termina'),
+                const SizedBox(height: 16),
+                Text(
+                  AppStrings.archiveForceWarning,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(AppStrings.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: Text(AppStrings.studentArchive),
+            ),
+          ],
+        ),
+      );
+      if (!mounted) return;
+      if (confirmed != true) return;
+
+      final archiveResult = await api.archiveOrder(
+        orderId,
+        force: true,
+        reason: 'Admin forced archive',
+      );
+      if (!mounted) return;
+      if (archiveResult.success) {
+        await DataLoader.loadAll();
+        if (!mounted) return;
+        final refreshed = MockData.orders
+            .where((o) => o.id == _order.id)
+            .firstOrNull;
+        if (refreshed != null) {
+          setState(() => _order = refreshed);
+        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
+      }
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppStrings.archiveConfirmTitle),
@@ -1070,14 +1195,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ],
       ),
-    ).then((confirmed) {
-      if (confirmed != true || !mounted) return;
-      _rebuildOrder(status: OrderStatus.archived);
-    });
+    );
+    if (!mounted) return;
+    if (confirmed != true) return;
+
+    final archiveResult = await api.archiveOrder(orderId);
+    if (!mounted) return;
+    if (archiveResult.success) {
+      await DataLoader.loadAll();
+      if (!mounted) return;
+      final refreshed = MockData.orders
+          .where((o) => o.id == _order.id)
+          .firstOrNull;
+      if (refreshed != null) {
+        setState(() => _order = refreshed);
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
+    }
   }
 
-  void _confirmUnarchiveOrder() {
-    showDialog<bool>(
+  Future<void> _confirmUnarchiveOrder() async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppStrings.unarchiveConfirmTitle),
@@ -1096,77 +1240,42 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ],
       ),
-    ).then((confirmed) {
-      if (confirmed != true || !mounted) return;
-      // Restore to previous meaningful status
-      final hasUpcoming = _order.sessions.any(
-        (s) => s.status == SessionStatus.scheduled,
-      );
-      _rebuildOrder(
-        status: hasUpcoming ? OrderStatus.active : OrderStatus.completed,
-      );
-    });
-  }
+    );
+    if (confirmed != true || !mounted) return;
 
-  void _rebuildOrder({
-    OrderStatus? status,
-    List<SessionModel>? sessions,
-    String? Function()? promoCode,
-  }) {
-    setState(() {
-      _order = OrderModel(
-        id: _order.id,
-        orderNumber: _order.orderNumber,
-        senior: _order.senior,
-        student: _order.student,
-        status: status ?? _order.status,
-        frequency: _order.frequency,
-        services: _order.services,
-        createdAt: _order.createdAt,
-        scheduledDate: _order.scheduledDate,
-        scheduledStart: _order.scheduledStart,
-        durationHours: _order.durationHours,
-        notes: _order.notes,
-        address: _order.address,
-        endDate: _order.endDate,
-        dayEntries: _order.dayEntries,
-        sessions: sessions ?? _order.sessions,
-        promoCode: promoCode != null ? promoCode() : _order.promoCode,
-      );
-    });
+    final orderId = int.tryParse(_order.id) ?? 0;
+    final api = AdminApiService();
+    final result = await api.unarchiveOrder(orderId);
+    if (!mounted) return;
+
+    if (!result.success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
+      return;
+    }
+
+    await DataLoader.loadAll();
+    if (!mounted) return;
+
+    final refreshed = MockData.orders
+        .where((o) => o.id == _order.id)
+        .firstOrNull;
+    if (refreshed != null) {
+      setState(() => _order = refreshed);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppStrings.unarchiveSuccess),
+        backgroundColor: HelpiTheme.accent,
+      ),
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════
   //  SESSION ACTIONS — CANCEL & RESCHEDULE
   // ═══════════════════════════════════════════════════════════════
-
-  void _updateSession(SessionModel oldSession, SessionModel newSession) {
-    final updatedSessions = _order.sessions.map((s) {
-      return s.id == oldSession.id ? newSession : s;
-    }).toList();
-
-    setState(() {
-      _order = OrderModel(
-        id: _order.id,
-        orderNumber: _order.orderNumber,
-        senior: _order.senior,
-        student: _order.student,
-        status: _order.status,
-        frequency: _order.frequency,
-        services: _order.services,
-        createdAt: _order.createdAt,
-        scheduledDate: _order.scheduledDate,
-        scheduledStart: _order.scheduledStart,
-        durationHours: _order.durationHours,
-        notes: _order.notes,
-        address: _order.address,
-        endDate: _order.endDate,
-        dayEntries: _order.dayEntries,
-        sessions: updatedSessions,
-        promoCode: _order.promoCode,
-      );
-    });
-  }
 
   void _confirmCancelSession(SessionModel session) {
     showDialog(
@@ -1183,12 +1292,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: Text(AppStrings.cancel),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              _updateSession(
-                session,
-                session.copyWith(status: SessionStatus.cancelled),
-              );
+              final sessionId = int.tryParse(session.id);
+              if (sessionId == null) return;
+              final api = AdminApiService();
+              final result = await api.cancelSession(sessionId);
+              if (!mounted) return;
+              if (!result.success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(result.error ?? 'Error')),
+                );
+                return;
+              }
+              await DataLoader.loadAll();
+              if (!mounted) return;
+              final refreshed = MockData.orders
+                  .where((o) => o.id == _order.id)
+                  .firstOrNull;
+              if (refreshed != null) {
+                setState(() => _order = refreshed);
+              }
             },
             child: Text(AppStrings.confirm),
           ),
@@ -1232,12 +1356,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: Text(AppStrings.cancel),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              _updateSession(
-                session,
-                session.copyWith(status: SessionStatus.scheduled),
-              );
+              final sessionId = int.tryParse(session.id);
+              if (sessionId == null) return;
+              final api = AdminApiService();
+              final result = await api.reactivateSession(sessionId);
+              if (!mounted) return;
+              if (!result.success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(result.error ?? 'Error')),
+                );
+                return;
+              }
+              await DataLoader.loadAll();
+              if (!mounted) return;
+              final refreshed = MockData.orders
+                  .where((o) => o.id == _order.id)
+                  .firstOrNull;
+              if (refreshed != null) {
+                setState(() => _order = refreshed);
+              }
             },
             child: Text(AppStrings.confirm),
           ),
@@ -1489,18 +1628,43 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 label: AppStrings.confirm,
                 color: HelpiTheme.primary,
                 size: ActionChipButtonSize.medium,
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(ctx);
-                  if (!context.mounted) return;
-                  _updateSession(
-                    session,
-                    session.copyWith(
-                      date: selectedDate,
-                      weekday: selectedDate.weekday,
-                      startTime: selectedTime,
-                      studentName: () => selectedStudentName,
-                    ),
+                  if (!mounted) return;
+                  final sessionId = int.tryParse(session.id);
+                  if (sessionId == null) return;
+                  final api = AdminApiService();
+                  // Find student ID from name
+                  int? studentId;
+                  if (selectedStudentName != null) {
+                    final student = MockData.students
+                        .where((s) => s.fullName == selectedStudentName)
+                        .firstOrNull;
+                    if (student != null) {
+                      studentId = int.tryParse(student.id);
+                    }
+                  }
+                  final result = await api.manageSession(
+                    sessionId,
+                    newDate: selectedDate,
+                    newStartTime: selectedTime,
+                    preferredStudentId: studentId,
                   );
+                  if (!mounted) return;
+                  if (!result.success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(result.error ?? 'Error')),
+                    );
+                    return;
+                  }
+                  await DataLoader.loadAll();
+                  if (!mounted) return;
+                  final refreshed = MockData.orders
+                      .where((o) => o.id == _order.id)
+                      .firstOrNull;
+                  if (refreshed != null) {
+                    setState(() => _order = refreshed);
+                  }
                 },
               ),
             ),

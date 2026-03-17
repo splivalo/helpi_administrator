@@ -5,6 +5,8 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/suspension_models.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
+import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/core/services/excel_export_service.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
@@ -765,8 +767,7 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
   final _api = ApiClient();
   UserSuspensionStatus? _suspensionStatus;
 
-  /// Admin notes for this senior (local state, later from API).
-  final List<AdminNote> _adminNotes = [];
+
 
   late List<int> _sectionOrder;
 
@@ -800,64 +801,92 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
     );
   }
 
-  SeniorModel _rebuildSenior({bool? isActive, bool? isArchived}) {
-    final updated = SeniorModel(
-      id: _senior.id,
-      firstName: _senior.firstName,
-      lastName: _senior.lastName,
-      email: _senior.email,
-      phone: _senior.phone,
-      address: _senior.address,
-      city: _senior.city,
-      gender: _senior.gender,
-      dateOfBirth: _senior.dateOfBirth,
-      isActive: isActive ?? _senior.isActive,
-      isArchived: isArchived ?? _senior.isArchived,
-      createdAt: _senior.createdAt,
-      ordererFirstName: _senior.ordererFirstName,
-      ordererLastName: _senior.ordererLastName,
-      ordererEmail: _senior.ordererEmail,
-      ordererPhone: _senior.ordererPhone,
-      ordererAddress: _senior.ordererAddress,
-      ordererGender: _senior.ordererGender,
-      ordererDateOfBirth: _senior.ordererDateOfBirth,
-      creditCards: _senior.creditCards,
-    );
-    // Persist change to MockData so list screens reflect it
-    final idx = MockData.seniors.indexWhere((s) => s.id == updated.id);
-    if (idx != -1) MockData.seniors[idx] = updated;
-    return updated;
-  }
+  Future<void> _confirmArchive() async {
+    final api = AdminApiService();
+    final seniorId = int.tryParse(_senior.id) ?? 0;
 
-  void _confirmArchive() {
-    final hasActiveOrders = MockData.orders.any(
-      (o) =>
-          o.senior.id == _senior.id &&
-          (o.status == OrderStatus.active ||
-              o.status == OrderStatus.processing),
-    );
+    final checkResult = await api.getSeniorArchiveCheck(seniorId);
+    if (!mounted) return;
 
-    if (hasActiveOrders) {
-      showDialog<void>(
+    if (!checkResult.success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(checkResult.error ?? 'Error')));
+      return;
+    }
+
+    final check = checkResult.data!;
+
+    if (check.hasBlockingItems) {
+      final confirmed = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: Text(AppStrings.archiveBlockedTitle),
           content: SizedBox(
             width: 400,
-            child: Text(AppStrings.archiveBlockedMsg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(AppStrings.archiveBlockedMsg),
+                const SizedBox(height: 16),
+                if (check.activeOrdersCount > 0)
+                  Text('• ${check.activeOrdersCount} aktivnih narudžbi'),
+                if (check.upcomingSessionsCount > 0)
+                  Text('• ${check.upcomingSessionsCount} nadolazećih termina'),
+                const SizedBox(height: 16),
+                Text(
+                  AppStrings.archiveForceWarning,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text(AppStrings.ok),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(AppStrings.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: Text(AppStrings.studentArchive),
             ),
           ],
         ),
       );
+      if (!mounted) return;
+      if (confirmed != true) return;
+
+      final archiveResult = await api.archiveSenior(
+        seniorId,
+        force: true,
+        reason: 'Admin forced archive',
+      );
+      if (!mounted) return;
+      if (archiveResult.success) {
+        await DataLoader.loadAll();
+        if (!mounted) return;
+        final refreshed = MockData.seniors
+            .where((s) => s.id == _senior.id)
+            .firstOrNull;
+        if (refreshed != null) {
+          setState(() => _senior = refreshed);
+        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
+      }
       return;
     }
 
-    showDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppStrings.archiveConfirmTitle),
@@ -876,17 +905,33 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
           ),
         ],
       ),
-    ).then((confirmed) {
-      if (confirmed == true) {
-        setState(() {
-          _senior = _rebuildSenior(isArchived: true, isActive: false);
-        });
+    );
+    if (!mounted) return;
+    if (confirmed != true) return;
+
+    final archiveResult = await api.archiveSenior(seniorId);
+    if (!mounted) return;
+    if (archiveResult.success) {
+      await DataLoader.loadAll();
+      if (!mounted) return;
+      final refreshed = MockData.seniors
+          .where((s) => s.id == _senior.id)
+          .firstOrNull;
+      if (refreshed != null) {
+        setState(() => _senior = refreshed);
       }
-    });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
+    }
   }
 
-  void _confirmUnarchive() {
-    showDialog<bool>(
+  Future<void> _confirmUnarchive() async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppStrings.unarchiveConfirmTitle),
@@ -905,13 +950,37 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
           ),
         ],
       ),
-    ).then((confirmed) {
-      if (confirmed == true) {
-        setState(() {
-          _senior = _rebuildSenior(isArchived: false);
-        });
-      }
-    });
+    );
+    if (!mounted || confirmed != true) return;
+
+    final seniorId = int.tryParse(_senior.id) ?? 0;
+    final api = AdminApiService();
+    final result = await api.unarchiveSenior(seniorId);
+    if (!mounted) return;
+
+    if (!result.success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
+      return;
+    }
+
+    await DataLoader.loadAll();
+    if (!mounted) return;
+
+    final refreshed = MockData.seniors
+        .where((s) => s.id == _senior.id)
+        .firstOrNull;
+    if (refreshed != null) {
+      setState(() => _senior = refreshed);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppStrings.unarchiveSuccess),
+        backgroundColor: HelpiTheme.accent,
+      ),
+    );
   }
 
   void _openEditSenior() {
@@ -1565,52 +1634,13 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
       if (!success) return;
     }
 
-    // Cancel all active/processing orders for this senior.
-    for (var i = 0; i < MockData.orders.length; i++) {
-      final o = MockData.orders[i];
-      if (o.senior.id == _senior.id &&
-          (o.status == OrderStatus.active ||
-              o.status == OrderStatus.processing)) {
-        MockData.orders[i] = OrderModel(
-          id: o.id,
-          orderNumber: o.orderNumber,
-          senior: o.senior,
-          student: o.student,
-          status: OrderStatus.cancelled,
-          frequency: o.frequency,
-          services: o.services,
-          createdAt: o.createdAt,
-          scheduledDate: o.scheduledDate,
-          scheduledStart: o.scheduledStart,
-          durationHours: o.durationHours,
-          notes: o.notes,
-          address: o.address,
-          endDate: o.endDate,
-          dayEntries: o.dayEntries,
-          sessions: o.sessions,
-          promoCode: o.promoCode,
-        );
-      }
-    }
+    // Backend auto-cancels all orders when suspending a customer.
+    // Refresh data from backend to get updated order statuses.
+    await DataLoader.loadAll();
+    if (!mounted) return;
 
-    setState(() {
-      _suspensionStatus = UserSuspensionStatus(
-        isSuspended: true,
-        suspensionReason: reason,
-        suspendedAt: DateTime.now(),
-        suspensionHistory: [
-          SuspensionLogModel(
-            id: 0,
-            userId: userId ?? 0,
-            action: SuspensionAction.suspended,
-            reason: reason,
-            adminId: 0,
-            createdAt: DateTime.now(),
-          ),
-          ...(_suspensionStatus?.suspensionHistory ?? []),
-        ],
-      );
-    });
+    // Reload suspension status from backend instead of manual rebuild
+    await _loadSuspensionStatus();
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
@@ -1648,21 +1678,12 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
       if (!success) return;
     }
 
-    setState(() {
-      _suspensionStatus = UserSuspensionStatus(
-        isSuspended: false,
-        suspensionHistory: [
-          SuspensionLogModel(
-            id: 0,
-            userId: userId ?? 0,
-            action: SuspensionAction.activated,
-            adminId: 0,
-            createdAt: DateTime.now(),
-          ),
-          ...(_suspensionStatus?.suspensionHistory ?? []),
-        ],
-      );
-    });
+    // Refresh data from backend
+    await DataLoader.loadAll();
+    if (!mounted) return;
+
+    // Reload suspension status from backend instead of manual rebuild
+    await _loadSuspensionStatus();
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
@@ -1671,7 +1692,8 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
   }
 
   Widget _buildNotesSection() {
-    return NotesSection(notes: _adminNotes);
+    final seniorId = int.tryParse(_senior.id) ?? 0;
+    return NotesSection(entityType: 'Senior', entityId: seniorId);
   }
 
   Widget _buildAdminActionsSection() {

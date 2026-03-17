@@ -1,5 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 
+export 'archive_models.dart';
+
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 //  ENUMS
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
@@ -99,6 +101,8 @@ class CreditCard {
 
 class SeniorModel {
   final String id;
+  final int? contactId; // For backend update via PUT /api/contact-infos/{id}
+  final int? ordererContactId; // For orderer update
   final String firstName;
   final String lastName;
   final String email;
@@ -121,6 +125,8 @@ class SeniorModel {
 
   const SeniorModel({
     required this.id,
+    this.contactId,
+    this.ordererContactId,
     required this.firstName,
     required this.lastName,
     required this.email,
@@ -447,7 +453,7 @@ class ChatMessage {
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class AdminNote {
-  final String id;
+  final int id;
   String text;
   final DateTime createdAt;
   DateTime updatedAt;
@@ -460,6 +466,83 @@ class AdminNote {
   }) : updatedAt = updatedAt ?? createdAt;
 
   bool get wasEdited => updatedAt.isAfter(createdAt);
+
+  /// Creates an AdminNote from backend JSON.
+  factory AdminNote.fromJson(Map<String, dynamic> json) {
+    return AdminNote(
+      id: json['id'] as int,
+      text: json['text'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.parse(json['updatedAt'] as String)
+          : null,
+    );
+  }
+}
+
+//
+//  ARCHIVE CHECK  API response models for archive/delete
+//
+
+/// Result of checking if an entity can be archived.
+class ArchiveCheckResult {
+  final bool canArchiveDirectly;
+  final bool hasBlockingItems;
+  final int activeAssignmentsCount;
+  final int upcomingSessionsCount;
+  final int activeOrdersCount;
+  final String? message;
+
+  const ArchiveCheckResult({
+    required this.canArchiveDirectly,
+    required this.hasBlockingItems,
+    this.activeAssignmentsCount = 0,
+    this.upcomingSessionsCount = 0,
+    this.activeOrdersCount = 0,
+    this.message,
+  });
+
+  factory ArchiveCheckResult.fromJson(Map<String, dynamic> json) {
+    return ArchiveCheckResult(
+      canArchiveDirectly: json['canArchiveDirectly'] as bool? ?? false,
+      hasBlockingItems: json['hasBlockingItems'] as bool? ?? false,
+      activeAssignmentsCount: json['activeAssignmentsCount'] as int? ?? 0,
+      upcomingSessionsCount: json['upcomingSessionsCount'] as int? ?? 0,
+      activeOrdersCount: json['activeOrdersCount'] as int? ?? 0,
+      message: json['message'] as String?,
+    );
+  }
+
+  int get totalBlockingItems =>
+      activeAssignmentsCount + upcomingSessionsCount + activeOrdersCount;
+}
+
+/// Result of archive operation.
+class ArchiveResult {
+  final bool success;
+  final String? message;
+  final int terminatedAssignmentsCount;
+  final int cancelledSessionsCount;
+  final int cancelledOrdersCount;
+
+  const ArchiveResult({
+    required this.success,
+    this.message,
+    this.terminatedAssignmentsCount = 0,
+    this.cancelledSessionsCount = 0,
+    this.cancelledOrdersCount = 0,
+  });
+
+  factory ArchiveResult.fromJson(Map<String, dynamic> json) {
+    return ArchiveResult(
+      success: json['success'] as bool? ?? false,
+      message: json['message'] as String?,
+      terminatedAssignmentsCount:
+          json['terminatedAssignmentsCount'] as int? ?? 0,
+      cancelledSessionsCount: json['cancelledSessionsCount'] as int? ?? 0,
+      cancelledOrdersCount: json['cancelledOrdersCount'] as int? ?? 0,
+    );
+  }
 }
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•

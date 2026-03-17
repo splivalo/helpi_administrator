@@ -276,6 +276,10 @@ class AppStrings {
       'archiveBlockedTitle': 'Nije moguće arhivirati',
       'archiveBlockedMsg':
           'Nije moguće arhivirati jer ima aktivnih narudžbi. Prvo otkazite ili prebacite narudžbe.',
+      'archiveForceWarning':
+          'Arhiviranjem će se automatski otkazati sve narudžbe i dodjele.',
+      'archiveSuccess': 'Uspješno arhivirano',
+      'unarchiveSuccess': 'Uspješno vraćeno iz arhive',
       'suspendWarningTitle': 'Upozorenje: aktivne narudžbe',
       'suspendWarningMsg':
           'Korisnik ima aktivnih narudžbi koje će biti automatski otkazane. Jeste li sigurni da želite nastaviti sa suspenzijom?',
@@ -841,6 +845,10 @@ class AppStrings {
       'archiveBlockedTitle': 'Cannot archive',
       'archiveBlockedMsg':
           'Cannot archive because there are active orders. Cancel or reassign orders first.',
+      'archiveForceWarning':
+          'Archiving will automatically cancel all orders and assignments.',
+      'archiveSuccess': 'Successfully archived',
+      'unarchiveSuccess': 'Successfully restored from archive',
       'suspendWarningTitle': 'Warning: active orders',
       'suspendWarningMsg':
           'This user has active orders that will be automatically cancelled. Are you sure you want to proceed with suspension?',
@@ -1372,6 +1380,9 @@ class AppStrings {
   static String get unarchiveConfirmMsg => _t('unarchiveConfirmMsg');
   static String get archiveBlockedTitle => _t('archiveBlockedTitle');
   static String get archiveBlockedMsg => _t('archiveBlockedMsg');
+  static String get archiveForceWarning => _t('archiveForceWarning');
+  static String get archiveSuccess => _t('archiveSuccess');
+  static String get unarchiveSuccess => _t('unarchiveSuccess');
   static String get suspendWarningTitle => _t('suspendWarningTitle');
   static String get suspendWarningMsg => _t('suspendWarningMsg');
   static String get filterAll => _t('filterAll');

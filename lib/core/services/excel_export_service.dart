@@ -190,7 +190,9 @@ class ExcelExportService {
   /// Downloads Excel file. On web, file goes to browser's Downloads folder.
   /// User can configure browser to "Ask where to save" for folder picker.
   static Future<bool> _downloadExcel(Excel excel, String baseFileName) async {
-    final bytes = excel.save();
+    // Use encode() instead of save() to avoid auto-download on web
+    // save() on web triggers default "FlutterExcel.xlsx" download
+    final bytes = excel.encode();
     if (bytes == null) return false;
 
     final now = DateTime.now();

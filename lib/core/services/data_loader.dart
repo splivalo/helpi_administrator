@@ -6,6 +6,8 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 
+// TODO: Add chatRooms loading once chat backend is implemented
+
 /// Loads data from the backend API into [MockData] static lists.
 ///
 /// Call [loadAll] after successful login. If the backend is unreachable
@@ -101,6 +103,10 @@ class DataLoader {
       allOk = false;
     }
 
+    // TODO: Chat backend not implemented - using demo data for development
+    // In production, chatRooms should be loaded from API like notifications
+    _seedDemoDataIfEmpty();
+
     _loaded = allOk;
     debugPrint(
       '[DataLoader] loadAll completed — '
@@ -109,9 +115,192 @@ class DataLoader {
       'orders=${MockData.orders.length}, '
       'reviews=${MockData.reviews.length}, '
       'notifications=${MockData.notifications.length}, '
+      'chatRooms=${MockData.chatRooms.length}, '
       'allOk=$allOk',
     );
     return allOk;
+  }
+
+  /// Seeds demo data for development when API returns empty results.
+  /// TODO: Remove this method before production - all data should come from backend
+  static void _seedDemoDataIfEmpty() {
+    // Demo notifications if none from API
+    if (MockData.notifications.isEmpty) {
+      MockData.notifications.addAll([
+        NotificationModel(
+          id: 'demo-notif-1',
+          type: NotificationType.newOrder,
+          title: 'Nova narudžba',
+          body: 'Senior Marija Horvat je kreirao novu narudžbu #ORD-001',
+          createdAt: DateTime.now().subtract(const Duration(minutes: 15)),
+          isRead: false,
+        ),
+        NotificationModel(
+          id: 'demo-notif-2',
+          type: NotificationType.info,
+          title: 'Student dodijeljen',
+          body: 'Ana Kovač je dodijeljena narudžbi #ORD-001',
+          createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+          isRead: false,
+        ),
+        NotificationModel(
+          id: 'demo-notif-3',
+          type: NotificationType.info,
+          title: 'Plaćanje uspješno',
+          body: 'Stripe naplata 45.00€ za narudžbu #ORD-002 je uspješna',
+          createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+          isRead: true,
+        ),
+        NotificationModel(
+          id: 'demo-notif-4',
+          type: NotificationType.contractExpiring,
+          title: 'Ugovor istječe',
+          body: 'Ugovor studenta Ivan Babić istječe za 5 dana',
+          createdAt: DateTime.now().subtract(const Duration(days: 1)),
+          isRead: true,
+        ),
+        NotificationModel(
+          id: 'demo-notif-5',
+          type: NotificationType.info,
+          title: 'Novi korisnik',
+          body: 'Senior Petar Novak se registrirao u sustav',
+          createdAt: DateTime.now().subtract(const Duration(days: 2)),
+          isRead: true,
+        ),
+      ]);
+    }
+
+    // Demo chat rooms if none exist - use real IDs from loaded data
+    if (MockData.chatRooms.isEmpty && MockData.seniors.isNotEmpty) {
+      final senior1 = MockData.seniors.isNotEmpty ? MockData.seniors[0] : null;
+      final senior2 = MockData.seniors.length > 1 ? MockData.seniors[1] : null;
+      final student1 = MockData.students.isNotEmpty
+          ? MockData.students[0]
+          : null;
+
+      if (senior1 != null) {
+        MockData.chatRooms.add(
+          ChatRoom(
+            id: 'demo-chat-1',
+            participantId: senior1.id,
+            participantName: senior1.fullName,
+            participantRole: 'senior',
+            lastMessage: 'Hvala na brzom odgovoru!',
+            lastMessageAt: DateTime.now().subtract(const Duration(minutes: 5)),
+            unreadCount: 2,
+            orderId: 'ORD-001',
+            messages: [
+              ChatMessage(
+                id: 'msg-1',
+                senderId: senior1.id,
+                senderName: senior1.fullName,
+                senderRole: 'senior',
+                content: 'Dobar dan, imam pitanje o narudžbi',
+                sentAt: DateTime.now().subtract(const Duration(minutes: 30)),
+              ),
+              ChatMessage(
+                id: 'msg-2',
+                senderId: 'admin-1',
+                senderName: 'Admin',
+                senderRole: 'admin',
+                content: 'Dobar dan! Kako Vam mogu pomoći?',
+                sentAt: DateTime.now().subtract(const Duration(minutes: 25)),
+              ),
+              ChatMessage(
+                id: 'msg-3',
+                senderId: senior1.id,
+                senderName: senior1.fullName,
+                senderRole: 'senior',
+                content: 'Mogu li promijeniti vrijeme dolaska studenta?',
+                sentAt: DateTime.now().subtract(const Duration(minutes: 10)),
+              ),
+              ChatMessage(
+                id: 'msg-4',
+                senderId: 'admin-1',
+                senderName: 'Admin',
+                senderRole: 'admin',
+                content: 'Da, naravno. Koje vrijeme Vam odgovara?',
+                sentAt: DateTime.now().subtract(const Duration(minutes: 8)),
+              ),
+              ChatMessage(
+                id: 'msg-5',
+                senderId: senior1.id,
+                senderName: senior1.fullName,
+                senderRole: 'senior',
+                content: 'Hvala na brzom odgovoru!',
+                sentAt: DateTime.now().subtract(const Duration(minutes: 5)),
+              ),
+            ],
+          ),
+        );
+      }
+
+      if (student1 != null) {
+        MockData.chatRooms.add(
+          ChatRoom(
+            id: 'demo-chat-2',
+            participantId: student1.id,
+            participantName: student1.fullName,
+            participantRole: 'student',
+            lastMessage: 'Razumijem, hvala!',
+            lastMessageAt: DateTime.now().subtract(const Duration(hours: 2)),
+            unreadCount: 0,
+            messages: [
+              ChatMessage(
+                id: 'msg-6',
+                senderId: student1.id,
+                senderName: student1.fullName,
+                senderRole: 'student',
+                content: 'Bok, kada mi istječe ugovor?',
+                sentAt: DateTime.now().subtract(const Duration(hours: 3)),
+              ),
+              ChatMessage(
+                id: 'msg-7',
+                senderId: 'admin-1',
+                senderName: 'Admin',
+                senderRole: 'admin',
+                content: 'Vaš ugovor vrijedi do 15.06.2026.',
+                sentAt: DateTime.now().subtract(
+                  const Duration(hours: 2, minutes: 30),
+                ),
+              ),
+              ChatMessage(
+                id: 'msg-8',
+                senderId: student1.id,
+                senderName: student1.fullName,
+                senderRole: 'student',
+                content: 'Razumijem, hvala!',
+                sentAt: DateTime.now().subtract(const Duration(hours: 2)),
+              ),
+            ],
+          ),
+        );
+      }
+
+      if (senior2 != null) {
+        MockData.chatRooms.add(
+          ChatRoom(
+            id: 'demo-chat-3',
+            participantId: senior2.id,
+            participantName: senior2.fullName,
+            participantRole: 'senior',
+            lastMessage: 'Studentica je bila izvrsna!',
+            lastMessageAt: DateTime.now().subtract(const Duration(days: 1)),
+            unreadCount: 1,
+            messages: [
+              ChatMessage(
+                id: 'msg-9',
+                senderId: senior2.id,
+                senderName: senior2.fullName,
+                senderRole: 'senior',
+                content: 'Studentica je bila izvrsna!',
+                sentAt: DateTime.now().subtract(const Duration(days: 1)),
+              ),
+            ],
+          ),
+        );
+      }
+    }
   }
 
   /// Reset loaded flag (e.g. on logout).

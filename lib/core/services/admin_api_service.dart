@@ -202,6 +202,29 @@ class AdminApiService {
     }
   }
 
+  /// Update order promo code. Pass null to remove promo code.
+  Future<ApiResult<void>> updateOrderPromoCode(
+    int orderId,
+    String? promoCode,
+  ) async {
+    try {
+      // PromoCodeId: 0 = remove, positive = set/change, null = no change
+      // Since we're using the general PUT endpoint, we pass promoCodeId
+      // We need to look up the promo code ID from the code string
+      // For removal (null), we send 0
+      final int promoCodeId = promoCode == null || promoCode.isEmpty ? 0 : -1;
+      // TODO: If setting a promo code, need to validate/look it up first
+      // For now, this method only supports REMOVAL (promoCode = null)
+      await _api.put(
+        ApiEndpoints.orderById(orderId),
+        data: {'promoCodeId': promoCodeId},
+      );
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   // ─────────────────────────────────────────────
   //  SESSIONS
   // ─────────────────────────────────────────────
@@ -245,6 +268,61 @@ class AdminApiService {
           .map((e) => _mapSession(e as Map<String, dynamic>))
           .toList();
       return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> cancelSession(int sessionId) async {
+    try {
+      await _api.post(ApiEndpoints.cancelSession(sessionId));
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> reactivateSession(int sessionId) async {
+    try {
+      await _api.post(ApiEndpoints.reactivateSession(sessionId));
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Reschedule/manage a session (change date, time, or student).
+  Future<ApiResult<void>> manageSession(
+    int sessionId, {
+    DateTime? newDate,
+    TimeOfDay? newStartTime,
+    TimeOfDay? newEndTime,
+    int? preferredStudentId,
+    String reason = 'Rescheduled by admin',
+  }) async {
+    try {
+      final data = <String, dynamic>{
+        'reason': reason,
+        'reassignStudent': preferredStudentId != null,
+        'requestedByUserId': 1, // Admin default
+      };
+      if (newDate != null) {
+        data['newDate'] =
+            '${newDate.year}-${newDate.month.toString().padLeft(2, '0')}-${newDate.day.toString().padLeft(2, '0')}';
+      }
+      if (newStartTime != null) {
+        data['newStartTime'] =
+            '${newStartTime.hour.toString().padLeft(2, '0')}:${newStartTime.minute.toString().padLeft(2, '0')}:00';
+      }
+      if (newEndTime != null) {
+        data['newEndTime'] =
+            '${newEndTime.hour.toString().padLeft(2, '0')}:${newEndTime.minute.toString().padLeft(2, '0')}:00';
+      }
+      if (preferredStudentId != null) {
+        data['preferredStudentId'] = preferredStudentId;
+      }
+      await _api.post(ApiEndpoints.manageSession(sessionId), data: data);
+      return const ApiResult._(success: true);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
     }
@@ -327,6 +405,159 @@ class AdminApiService {
     try {
       await _api.post(ApiEndpoints.activateUser(userId));
       return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  //  ARCHIVE CHECK & ARCHIVE
+  // ─────────────────────────────────────────────
+
+  Future<ApiResult<ArchiveCheckResult>> getStudentArchiveCheck(int id) async {
+    try {
+      final response = await _api.get(ApiEndpoints.studentArchiveCheck(id));
+      return ApiResult.ok(
+        ArchiveCheckResult.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<ArchiveResult>> archiveStudent(
+    int id, {
+    bool force = false,
+    String? reason,
+  }) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.studentArchive(id),
+        data: {'force': force, 'reason': reason},
+      );
+      return ApiResult.ok(
+        ArchiveResult.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<ArchiveResult>> unarchiveStudent(int id) async {
+    try {
+      final response = await _api.post(ApiEndpoints.studentUnarchive(id));
+      return ApiResult.ok(
+        ArchiveResult.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<ArchiveCheckResult>> getSeniorArchiveCheck(int id) async {
+    try {
+      final response = await _api.get(ApiEndpoints.seniorArchiveCheck(id));
+      return ApiResult.ok(
+        ArchiveCheckResult.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<ArchiveResult>> archiveSenior(
+    int id, {
+    bool force = false,
+    String? reason,
+  }) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.seniorArchive(id),
+        data: {'force': force, 'reason': reason},
+      );
+      return ApiResult.ok(
+        ArchiveResult.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<ArchiveResult>> unarchiveSenior(int id) async {
+    try {
+      final response = await _api.post('${ApiEndpoints.seniors}/$id/unarchive');
+      return ApiResult.ok(
+        ArchiveResult.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<ArchiveCheckResult>> getOrderArchiveCheck(int id) async {
+    try {
+      final response = await _api.get(ApiEndpoints.orderArchiveCheck(id));
+      return ApiResult.ok(
+        ArchiveCheckResult.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<ArchiveResult>> archiveOrder(
+    int id, {
+    bool force = false,
+    String? reason,
+  }) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.orderArchive(id),
+        data: {'force': force, 'reason': reason},
+      );
+      return ApiResult.ok(
+        ArchiveResult.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<ArchiveResult>> unarchiveOrder(int id) async {
+    try {
+      final response = await _api.post('${ApiEndpoints.orders}/$id/unarchive');
+      return ApiResult.ok(
+        ArchiveResult.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<ArchiveCheckResult>> getContractDeleteCheck(int id) async {
+    try {
+      final response = await _api.get(ApiEndpoints.contractDeleteCheck(id));
+      return ApiResult.ok(
+        ArchiveCheckResult.fromJson(response.data as Map<String, dynamic>),
+      );
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<ArchiveResult>> deleteContractWithCheck(
+    int id, {
+    bool force = false,
+    String? reason,
+  }) async {
+    try {
+      final response = await _api.delete(
+        ApiEndpoints.contractDeleteWithCheck(id),
+        data: {'force': force, 'reason': reason},
+      );
+      return ApiResult.ok(
+        ArchiveResult.fromJson(response.data as Map<String, dynamic>),
+      );
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
     }
@@ -458,6 +689,37 @@ class AdminApiService {
       );
       final data = response.data as Map<String, dynamic>;
       return ApiResult.ok(data['id'] as int);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> updateContactInfo({
+    required int contactId,
+    required String fullName,
+    required String email,
+    required String phone,
+    required String fullAddress,
+    required int gender,
+    required String dateOfBirth,
+  }) async {
+    try {
+      await _api.put(
+        '${ApiEndpoints.contactInfos}/$contactId',
+        data: {
+          'fullName': fullName,
+          'email': email,
+          'phone': phone,
+          'fullAddress': fullAddress,
+          'gender': gender,
+          'dateOfBirth': dateOfBirth,
+          'googlePlaceId': 'admin-manual-entry',
+          'languageCode': 'hr',
+          'country': 'Croatia',
+          'cityId': 1, // Default city, backend should handle null
+        },
+      );
+      return const ApiResult._(success: true);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
     }
@@ -663,6 +925,75 @@ class AdminApiService {
   }
 
   // ═════════════════════════════════════════════
+  //  ADMIN NOTES
+  // ═════════════════════════════════════════════
+
+  /// Fetches admin notes for a specific entity (Senior, Student, Order).
+  Future<ApiResult<List<Map<String, dynamic>>>> getAdminNotes(
+    String entityType,
+    int entityId,
+  ) async {
+    try {
+      final response = await _api.get(
+        ApiEndpoints.adminNotes(entityType, entityId),
+      );
+      final list = (response.data as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Creates a new admin note for an entity.
+  Future<ApiResult<Map<String, dynamic>>> createAdminNote({
+    required String entityType,
+    required int entityId,
+    required String text,
+  }) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.adminNotes(entityType, entityId),
+        data: {
+          'entityType': entityType,
+          'entityId': entityId,
+          'text': text,
+        },
+      );
+      return ApiResult.ok(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Updates an existing admin note.
+  Future<ApiResult<Map<String, dynamic>>> updateAdminNote({
+    required int id,
+    required String text,
+  }) async {
+    try {
+      final response = await _api.put(
+        ApiEndpoints.adminNoteById(id),
+        data: {'text': text},
+      );
+      return ApiResult.ok(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Deletes an admin note.
+  Future<ApiResult<void>> deleteAdminNote(int id) async {
+    try {
+      await _api.delete(ApiEndpoints.adminNoteById(id));
+      return ApiResult.ok(null);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  // ═════════════════════════════════════════════
   //  MAPPERS — Backend JSON → Frontend Models
   // ═════════════════════════════════════════════
 
@@ -721,8 +1052,25 @@ class AdminApiService {
     final firstName = nameParts.isNotEmpty ? nameParts.first : '';
     final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
 
+    // Parse orderer contact if present (when Relationship != Self)
+    final ordererContact = json['ordererContact'] as Map<String, dynamic>?;
+    String? ordererFirstName;
+    String? ordererLastName;
+    if (ordererContact != null) {
+      final ordererFullName = ordererContact['fullName'] as String? ?? '';
+      final ordererNameParts = ordererFullName.split(' ');
+      ordererFirstName = ordererNameParts.isNotEmpty
+          ? ordererNameParts.first
+          : null;
+      ordererLastName = ordererNameParts.length > 1
+          ? ordererNameParts.sublist(1).join(' ')
+          : null;
+    }
+
     return SeniorModel(
       id: '${json['id']}',
+      contactId: contact?['id'] as int?,
+      ordererContactId: ordererContact?['id'] as int?,
       firstName: firstName,
       lastName: lastName,
       email: contact?['email'] as String? ?? '',
@@ -735,6 +1083,18 @@ class AdminApiService {
       isActive: json['deletedAt'] == null,
       isArchived: json['deletedAt'] != null,
       creditCards: const [],
+      // Orderer data from ordererContact
+      ordererFirstName: ordererFirstName,
+      ordererLastName: ordererLastName,
+      ordererEmail: ordererContact?['email'] as String?,
+      ordererPhone: ordererContact?['phone'] as String?,
+      ordererAddress: ordererContact?['fullAddress'] as String?,
+      ordererGender: ordererContact != null
+          ? _mapGender(ordererContact['gender'])
+          : null,
+      ordererDateOfBirth: ordererContact != null
+          ? _parseNullableDate(ordererContact['dateOfBirth'])
+          : null,
     );
   }
 

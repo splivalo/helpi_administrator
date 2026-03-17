@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
+import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/seniors/presentation/senior_form_helpers.dart';
 
@@ -280,7 +282,7 @@ class _EditSeniorScreenState extends State<EditSeniorScreen>
     );
   }
 
-  void _onSave() {
+  Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_gender == null || _dateOfBirth == null) {
@@ -303,37 +305,74 @@ class _EditSeniorScreenState extends State<EditSeniorScreen>
       return;
     }
 
-    final updated = SeniorModel(
-      id: widget.senior.id,
-      firstName: _firstNameCtrl.text.trim(),
-      lastName: _lastNameCtrl.text.trim(),
-      email: _hasOrderer ? _ordEmailCtrl.text.trim() : _emailCtrl.text.trim(),
-      phone: _phoneCtrl.text.trim(),
-      address: _addressCtrl.text.trim(),
-      gender: _gender!,
-      dateOfBirth: _dateOfBirth!,
-      isActive: widget.senior.isActive,
-      isArchived: widget.senior.isArchived,
-      createdAt: widget.senior.createdAt,
-      ordererFirstName: _hasOrderer ? _ordFirstNameCtrl.text.trim() : null,
-      ordererLastName: _hasOrderer ? _ordLastNameCtrl.text.trim() : null,
-      ordererEmail: _hasOrderer ? _ordEmailCtrl.text.trim() : null,
-      ordererPhone: _hasOrderer ? _ordPhoneCtrl.text.trim() : null,
-      ordererAddress: _hasOrderer ? _ordAddressCtrl.text.trim() : null,
-      ordererGender: _hasOrderer ? _ordGender : null,
-      ordererDateOfBirth: _hasOrderer ? _ordDateOfBirth : null,
-      creditCards: widget.senior.creditCards,
-    );
+    final api = AdminApiService();
 
-    // Backend PUT /api/seniors/{id} not yet available — edits are local only
+    // Update senior contact info
+    final seniorContactId = widget.senior.contactId;
+    if (seniorContactId != null) {
+      final result = await api.updateContactInfo(
+        contactId: seniorContactId,
+        fullName: '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}',
+        email: _emailCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim(),
+        fullAddress: _addressCtrl.text.trim(),
+        gender: _gender == Gender.male ? 0 : 1,
+        dateOfBirth: _dateOfBirth!.toIso8601String().split('T').first,
+      );
+      if (!mounted) return;
+      if (!result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error ?? 'Error'),
+            backgroundColor: HelpiTheme.primary,
+          ),
+        );
+        return;
+      }
+    }
 
-    if (!context.mounted) return;
+    // Update orderer contact info if present
+    if (_hasOrderer) {
+      final ordererContactId = widget.senior.ordererContactId;
+      if (ordererContactId != null) {
+        final result = await api.updateContactInfo(
+          contactId: ordererContactId,
+          fullName:
+              '${_ordFirstNameCtrl.text.trim()} ${_ordLastNameCtrl.text.trim()}',
+          email: _ordEmailCtrl.text.trim(),
+          phone: _ordPhoneCtrl.text.trim(),
+          fullAddress: _ordAddressCtrl.text.trim(),
+          gender: _ordGender == Gender.male ? 0 : 1,
+          dateOfBirth: _ordDateOfBirth!.toIso8601String().split('T').first,
+        );
+        if (!mounted) return;
+        if (!result.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result.error ?? 'Error'),
+              backgroundColor: HelpiTheme.primary,
+            ),
+          );
+          return;
+        }
+      }
+    }
+
+    // Refresh data from backend
+    await DataLoader.loadAll();
+    if (!mounted) return;
+
+    // Find refreshed senior from MockData
+    final refreshed = MockData.seniors
+        .where((s) => s.id == widget.senior.id)
+        .firstOrNull;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AppStrings.editSeniorSuccess),
         backgroundColor: HelpiTheme.accent,
       ),
     );
-    Navigator.pop(context, updated);
+    Navigator.pop(context, refreshed ?? widget.senior);
   }
 }

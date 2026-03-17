@@ -23,6 +23,9 @@ class ApiEndpoints {
   // Sessions (JobInstances)
   static const String sessions = '/api/sessions';
   static String sessionById(int id) => '/api/sessions/$id';
+  static String cancelSession(int id) => '/api/sessions/$id/cancel';
+  static String reactivateSession(int id) => '/api/sessions/$id/reactivate';
+  static String manageSession(int id) => '/api/sessions/$id/manage';
 
   // Students
   static const String students = '/api/students';
@@ -99,4 +102,25 @@ class ApiEndpoints {
       '/api/suspensions/users/$userId/suspend';
   static String activateUser(int userId) =>
       '/api/suspensions/users/$userId/activate';
+
+  // Archive Check (Students, Seniors, Orders)
+  static String studentArchiveCheck(int id) =>
+      '/api/students/$id/archive-check';
+  static String studentArchive(int id) => '/api/students/$id/archive';
+  static String studentUnarchive(int id) => '/api/students/$id/unarchive';
+  static String seniorArchiveCheck(int id) => '/api/seniors/$id/archive-check';
+  static String seniorArchive(int id) => '/api/seniors/$id/archive';
+  static String orderArchiveCheck(int id) => '/api/orders/$id/archive-check';
+  static String orderArchive(int id) => '/api/orders/$id/archive';
+
+  // Contract Delete Check
+  static String contractDeleteCheck(int id) =>
+      '/api/student-contracts/$id/delete-check';
+  static String contractDeleteWithCheck(int id) =>
+      '/api/student-contracts/$id/with-check';
+
+  // Admin Notes
+  static String adminNotes(String entityType, int entityId) =>
+      '/api/admin-notes/$entityType/$entityId';
+  static String adminNoteById(int id) => '/api/admin-notes/$id';
 }

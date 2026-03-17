@@ -3,29 +3,66 @@ import 'package:flutter/material.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/shared_widgets.dart';
 
 /// Admin notes section — add / edit / delete personal notes on any user.
+/// Fully API-backed: loads from backend and persists all changes.
 class NotesSection extends StatefulWidget {
-  const NotesSection({super.key, required this.notes});
+  const NotesSection({
+    super.key,
+    required this.entityType,
+    required this.entityId,
+  });
 
-  final List<AdminNote> notes;
+  /// Entity type: "Senior", "Student", or "Order".
+  final String entityType;
+
+  /// The ID of the entity (senior/student/order).
+  final int entityId;
 
   @override
   State<NotesSection> createState() => _NotesSectionState();
 }
 
 class _NotesSectionState extends State<NotesSection> {
-  late List<AdminNote> _notes;
+  List<AdminNote>? _notes;
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _notes = widget.notes;
+    _loadNotes();
   }
 
-  int _nextId = 1000;
+  Future<void> _loadNotes() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    final result = await AdminApiService().getAdminNotes(
+      widget.entityType,
+      widget.entityId,
+    );
+
+    if (!mounted) return;
+
+    if (result.success && result.data != null) {
+      setState(() {
+        _notes = result.data!.map((json) => AdminNote.fromJson(json)).toList();
+        _loading = false;
+      });
+    } else {
+      setState(() {
+        _notes = [];
+        _error = result.error;
+        _loading = false;
+      });
+    }
+  }
 
   void _addNote() {
     _showNoteDialog(null);
@@ -35,8 +72,8 @@ class _NotesSectionState extends State<NotesSection> {
     _showNoteDialog(note);
   }
 
-  void _deleteNote(AdminNote note) {
-    showDialog<bool>(
+  Future<void> _deleteNote(AdminNote note) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(AppStrings.adminNoteDelete),
@@ -53,11 +90,21 @@ class _NotesSectionState extends State<NotesSection> {
           ),
         ],
       ),
-    ).then((confirmed) {
-      if (confirmed == true) {
-        setState(() => _notes.remove(note));
-      }
-    });
+    );
+
+    if (confirmed != true) return;
+    if (!mounted) return;
+
+    final result = await AdminApiService().deleteAdminNote(note.id);
+    if (!mounted) return;
+
+    if (result.success) {
+      setState(() => _notes?.remove(note));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.error ?? 'Error deleting note')),
+      );
+    }
   }
 
   void _showNoteDialog(AdminNote? existing) {
@@ -159,23 +206,50 @@ class _NotesSectionState extends State<NotesSection> {
       );
     }
 
-    result.then((text) {
+    result.then((text) async {
       if (text == null) return;
-      setState(() {
-        if (isEdit) {
-          existing.text = text;
-          existing.updatedAt = DateTime.now();
+      if (!mounted) return;
+
+      if (isEdit) {
+        // Update existing note via API
+        final updateResult = await AdminApiService().updateAdminNote(
+          id: existing.id,
+          text: text,
+        );
+        if (!mounted) return;
+
+        if (updateResult.success && updateResult.data != null) {
+          setState(() {
+            existing.text = text;
+            existing.updatedAt = DateTime.now();
+          });
         } else {
-          _notes.insert(
-            0,
-            AdminNote(
-              id: 'n${_nextId++}',
-              text: text,
-              createdAt: DateTime.now(),
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(updateResult.error ?? 'Error updating note'),
             ),
           );
         }
-      });
+      } else {
+        // Create new note via API
+        final createResult = await AdminApiService().createAdminNote(
+          entityType: widget.entityType,
+          entityId: widget.entityId,
+          text: text,
+        );
+        if (!mounted) return;
+
+        if (createResult.success && createResult.data != null) {
+          final newNote = AdminNote.fromJson(createResult.data!);
+          setState(() => _notes?.insert(0, newNote));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(createResult.error ?? 'Error creating note'),
+            ),
+          );
+        }
+      }
     });
   }
 
@@ -192,7 +266,37 @@ class _NotesSectionState extends State<NotesSection> {
           onTap: _addNote,
         ),
         const SizedBox(height: 12),
-        if (_notes.isEmpty)
+        if (_loading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (_error != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 36,
+                    color: HelpiTheme.error,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _error!,
+                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _loadNotes,
+                    child: Text(AppStrings.retry),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else if (_notes == null || _notes!.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(
@@ -213,7 +317,7 @@ class _NotesSectionState extends State<NotesSection> {
             ),
           )
         else
-          ..._notes.map(_buildNoteCard),
+          ..._notes!.map(_buildNoteCard),
       ],
     );
   }
@@ -221,9 +325,7 @@ class _NotesSectionState extends State<NotesSection> {
   Widget _buildNoteCard(AdminNote note) {
     final dateStr =
         '${formatDate(note.createdAt)} ${formatTime(note.createdAt)}';
-    final editedSuffix = note.wasEdited
-        ? ' (${AppStrings.adminNoteEdited})'
-        : '';
+    final editedSuffix = note.wasEdited ? ' (${AppStrings.adminNoteEdited})' : '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
