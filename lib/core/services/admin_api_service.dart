@@ -955,11 +955,7 @@ class AdminApiService {
     try {
       final response = await _api.post(
         ApiEndpoints.adminNotes(entityType, entityId),
-        data: {
-          'entityType': entityType,
-          'entityId': entityId,
-          'text': text,
-        },
+        data: {'entityType': entityType, 'entityId': entityId, 'text': text},
       );
       return ApiResult.ok(response.data as Map<String, dynamic>);
     } on DioException catch (e) {

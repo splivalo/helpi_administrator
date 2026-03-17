@@ -325,7 +325,9 @@ class _NotesSectionState extends State<NotesSection> {
   Widget _buildNoteCard(AdminNote note) {
     final dateStr =
         '${formatDate(note.createdAt)} ${formatTime(note.createdAt)}';
-    final editedSuffix = note.wasEdited ? ' (${AppStrings.adminNoteEdited})' : '';
+    final editedSuffix = note.wasEdited
+        ? ' (${AppStrings.adminNoteEdited})'
+        : '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

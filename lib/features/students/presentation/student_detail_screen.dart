@@ -49,8 +49,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   /// Availability loaded from backend.
   List<DayAvailability> _availability = [];
 
-
-
   /// Date range for work summary payout calculation.
   late DateTime _summaryStart;
   late DateTime _summaryEnd;

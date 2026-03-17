@@ -767,8 +767,6 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
   final _api = ApiClient();
   UserSuspensionStatus? _suspensionStatus;
 
-
-
   late List<int> _sectionOrder;
 
   @override
