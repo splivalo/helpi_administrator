@@ -341,21 +341,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           : children.length;
       final rowItems = children.sublist(i, end);
       rows.add(
-        Padding(
-          padding: EdgeInsets.only(
-            bottom: i + gridColumns < children.length ? 10 : 0,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var j = 0; j < gridColumns; j++) ...[
-                if (j > 0) const SizedBox(width: 10),
-                Expanded(
-                  child: j < rowItems.length ? rowItems[j] : const SizedBox(),
-                ),
-              ],
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var j = 0; j < gridColumns; j++) ...[
+              if (j > 0) const SizedBox(width: 10),
+              Expanded(
+                child: j < rowItems.length ? rowItems[j] : const SizedBox(),
+              ),
             ],
-          ),
+          ],
         ),
       );
     }

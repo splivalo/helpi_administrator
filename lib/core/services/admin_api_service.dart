@@ -927,19 +927,18 @@ class AdminApiService {
   }
 
   /// Maps a frontend [ServiceType] to a backend service ID.
+  /// Matches mobile app _serviceKeyToId mapping.
+  static const _serviceTypeToId = <ServiceType, int>{
+    ServiceType.companionship: 1,
+    ServiceType.walking: 4,
+    ServiceType.shopping: 11,
+    ServiceType.houseHelp: 21,
+    ServiceType.escort: 31,
+    ServiceType.other: 41,
+  };
+
   Future<int?> serviceTypeToId(ServiceType type) async {
-    final result = await getBackendServices();
-    if (!result.success || result.data == null) return null;
-    final enumName = type.name.toLowerCase();
-    for (final svc in result.data!) {
-      final translations = svc['translations'] as Map<String, dynamic>? ?? {};
-      final en = translations['en'] as Map<String, dynamic>?;
-      final name = (en?['name'] as String? ?? '').toLowerCase();
-      if (name == enumName || name.replaceAll('_', '') == enumName) {
-        return svc['id'] as int?;
-      }
-    }
-    return null;
+    return _serviceTypeToId[type];
   }
 
   // ═════════════════════════════════════════════
@@ -1313,13 +1312,20 @@ class AdminApiService {
     return ContractStatus.none;
   }
 
+  // Backend ServiceId → frontend ServiceType
+  // Matches mobile app _serviceKeyToId mapping
+  static const _serviceIdToType = <int, ServiceType>{
+    1: ServiceType.companionship,
+    4: ServiceType.walking,
+    11: ServiceType.shopping,
+    21: ServiceType.houseHelp,
+    31: ServiceType.escort,
+    41: ServiceType.other,
+  };
+
   ServiceType _mapServiceType(Map<String, dynamic> serviceJson) {
-    // Backend services have translations map
-    final translations =
-        serviceJson['translations'] as Map<String, dynamic>? ?? {};
-    final en = translations['en'] as Map<String, dynamic>?;
-    final name = (en?['name'] as String? ?? '').toLowerCase();
-    return ServiceType.fromCode(name);
+    final id = serviceJson['id'] as int? ?? 0;
+    return _serviceIdToType[id] ?? ServiceType.other;
   }
 
   // ═════════════════════════════════════════════
