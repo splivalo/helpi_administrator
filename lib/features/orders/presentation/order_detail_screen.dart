@@ -525,6 +525,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   // ─────────────────────────────────────────────────────────────
   Widget _buildOrderDetailsSection() {
     final dateStr = formatDate(_order.scheduledDate);
+    final startStr = formatTimeOfDay(_order.scheduledStart);
+    final endMinutes =
+        _order.scheduledStart.hour * 60 +
+        _order.scheduledStart.minute +
+        _order.durationHours * 60;
+    final endTime = TimeOfDay(
+      hour: (endMinutes ~/ 60) % 24,
+      minute: endMinutes % 60,
+    );
+    final timeStr = '$startStr – ${formatTimeOfDay(endTime)}';
     return SectionCard(
       title: AppStrings.orderDetails,
       icon: Icons.receipt_long,
@@ -532,10 +542,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ResponsiveFieldGrid(
           children: [
             InfoField(label: AppStrings.orderDate, value: dateStr),
+            InfoField(label: AppStrings.orderTime, value: timeStr),
+            InfoField(
+              label: AppStrings.orderDuration,
+              value: '${_order.durationHours}h',
+            ),
             InfoField(
               label: AppStrings.orderFrequency,
               value: _frequencyLabel(),
             ),
+            if (_order.dayEntries.length > 1)
+              InfoField(
+                label: AppStrings.orderSchedule,
+                value: _order.dayEntries
+                    .map((e) {
+                      final day = _dayName(
+                        e.dayOfWeek == 0 ? 7 : e.dayOfWeek,
+                        short: true,
+                      );
+                      final start = formatTimeOfDay(e.startTime);
+                      final endMin =
+                          e.startTime.hour * 60 +
+                          e.startTime.minute +
+                          e.durationHours * 60;
+                      final end = TimeOfDay(
+                        hour: (endMin ~/ 60) % 24,
+                        minute: endMin % 60,
+                      );
+                      return '$day $start–${formatTimeOfDay(end)}';
+                    })
+                    .join('\n'),
+              ),
             InfoField(label: AppStrings.seniorAddress, value: _order.address),
             if (_order.notes != null && _order.notes!.isNotEmpty)
               InfoField(label: AppStrings.orderNotes, value: _order.notes!),

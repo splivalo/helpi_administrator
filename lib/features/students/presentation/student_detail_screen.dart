@@ -1783,7 +1783,8 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   //  ASSIGN TO ORDER — matching logic
   // ─────────────────────────────────────────────────────────
 
-  /// Returns unassigned orders whose schedule fits the student's availability.
+  /// Returns unassigned orders whose schedule fits the student's availability
+  /// (day + time window).
   List<OrderModel> _findMatchingOrders() {
     final unassigned = MockData.orders.where(
       (o) => o.student == null && o.status == OrderStatus.processing,
@@ -1791,24 +1792,33 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
     return unassigned.where((order) {
       if (order.dayEntries.isNotEmpty) {
-        // Recurring: student must have the day enabled for every dayEntry
-        // (time mismatches are handled in the session preview)
         return order.dayEntries.every(
-          (entry) => _dayIsEnabled(entry.dayOfWeek),
+          (entry) =>
+              _slotFits(entry.dayOfWeek, entry.startTime, entry.durationHours),
         );
       }
-      // One-time: check scheduledDate's weekday is enabled
-      return _dayIsEnabled(order.scheduledDate.weekday);
+      return _slotFits(
+        order.scheduledDate.weekday,
+        order.scheduledStart,
+        order.durationHours,
+      );
     }).toList();
   }
 
-  /// Returns true if the student has that weekday enabled (or has no
-  /// availability set at all, which means "always available").
-  bool _dayIsEnabled(int dayOfWeek) {
+  /// Returns true if the student has availability on [dayOfWeek] that fully
+  /// covers the [start] … [start + durationHours] window.
+  bool _slotFits(int dayOfWeek, TimeOfDay start, int durationHours) {
     if (_student.availability.isEmpty) return true;
-    return _student.availability.any(
+    final avail = _student.availability.where(
       (a) => a.dayOfWeek == dayOfWeek && a.isEnabled,
     );
+    if (avail.isEmpty) return false;
+    final a = avail.first;
+    final sMin = start.hour * 60 + start.minute;
+    final eMin = sMin + durationHours * 60;
+    final fMin = a.from.hour * 60 + a.from.minute;
+    final tMin = a.to.hour * 60 + a.to.minute;
+    return sMin >= fMin && eMin <= tMin;
   }
 
   void _openAssignSheet() {
@@ -1832,7 +1842,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                   matchingOrders: matching,
                   onAssigned: (order) {
                     Navigator.pop(ctx);
-                    _simulateAssign(order);
+                    _assignToOrder(order);
                   },
                   useDialog: true,
                 ),
@@ -1852,7 +1862,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             matchingOrders: matching,
             onAssigned: (order) {
               Navigator.pop(ctx);
-              _simulateAssign(order);
+              _assignToOrder(order);
             },
           );
         },
@@ -1860,7 +1870,22 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     }
   }
 
-  void _simulateAssign(OrderModel order) {
+  Future<void> _assignToOrder(OrderModel order) async {
+    final api = AdminApiService();
+    final studentId = int.tryParse(_student.id) ?? 0;
+
+    for (final scheduleId in order.scheduleIds) {
+      final result = await api.adminAssign(scheduleId, studentId);
+      if (!mounted) return;
+      if (!result.success) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
+        return;
+      }
+    }
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${AppStrings.assignSuccess} #${order.orderNumber}'),

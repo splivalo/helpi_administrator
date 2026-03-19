@@ -79,6 +79,7 @@ class AppStrings {
       'orderServices': 'Usluge',
       'orderNotes': 'Napomena',
       'orderFrequency': 'Učestalost',
+      'orderSchedule': 'Raspored',
       'orderSenior': 'Senior',
       'orderStudent': 'Student',
       'assignStudent': 'Dodijeli studenta',
@@ -648,6 +649,7 @@ class AppStrings {
       'orderServices': 'Services',
       'orderNotes': 'Note',
       'orderFrequency': 'Frequency',
+      'orderSchedule': 'Schedule',
       'orderSenior': 'Senior',
       'orderStudent': 'Student',
       'assignStudent': 'Assign student',
@@ -1227,6 +1229,7 @@ class AppStrings {
   static String get orderServices => _t('orderServices');
   static String get orderNotes => _t('orderNotes');
   static String get orderFrequency => _t('orderFrequency');
+  static String get orderSchedule => _t('orderSchedule');
   static String get promoCode => _t('promoCode');
   static String get promoCodeHint => _t('promoCodeHint');
   static String get promoCodeApply => _t('promoCodeApply');
