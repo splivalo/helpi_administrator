@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:helpi_admin/app/theme.dart';
@@ -125,9 +125,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------
   //  SECTION REORDER HELPERS
-  // ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------
 
   static List<String> get _sectionLabels => [
     AppStrings.seniorOrdererTitle,
@@ -328,9 +328,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------
   //  EDIT ORDER MODAL (dialog on desktop / bottom sheet on mobile)
-  // ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------
   void _showEditOrderModal() {
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
@@ -374,9 +374,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
-  // ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------
   //  ORDERER SECTION
-  // ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------
   Widget _buildOrdererSection() {
     if (!_order.senior.hasOrderer) return const SizedBox.shrink();
     return SectionCard(
@@ -429,9 +429,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------
   //  SERVICE USER SECTION
-  // ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------
   Widget _buildServiceUserSection() {
     return SectionCard(
       title: AppStrings.seniorServiceUser,
@@ -478,9 +478,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------
   //  STUDENT SECTION
-  // ─────────────────────────────────────────────────────────
+  // ---------------------------------------------------------
   Widget _buildStudentSection() {
     return SectionCard(
       title: AppStrings.orderStudent,
@@ -555,9 +555,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────
+  // -------------------------------------------------------------
   //  ORDER DETAILS SECTION
-  // ─────────────────────────────────────────────────────────────
+  // -------------------------------------------------------------
   Widget _buildOrderDetailsSection() {
     final dateStr = formatDate(_order.scheduledDate);
     final startStr = formatTimeOfDay(_order.scheduledStart);
@@ -695,9 +695,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
   //  TERMINI (SESSIONS) SECTION
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
   Widget _buildSessionsSection() {
     return Container(
       width: double.infinity,
@@ -1003,9 +1003,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
   //  ADMIN ACTIONS SECTION
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
 
   Widget _buildAdminActionsSection() {
     final isCancelled = _order.status == OrderStatus.cancelled;
@@ -1195,7 +1195,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 Text(AppStrings.archiveBlockedMsg),
                 const SizedBox(height: 16),
                 if (check.upcomingSessionsCount > 0)
-                  Text('• ${check.upcomingSessionsCount} nadolazećih termina'),
+                  Text('• ${check.upcomingSessionsCount} nadolazecih termina'),
                 const SizedBox(height: 16),
                 Text(
                   AppStrings.archiveForceWarning,
@@ -1326,9 +1326,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
   //  SESSION ACTIONS — CANCEL & RESCHEDULE
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
 
   void _confirmCancelSession(SessionModel session) {
     showDialog(
@@ -1384,7 +1384,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   void _confirmReactivateSession(SessionModel session) {
     if (!_isStudentAvailableForSession(session)) {
-      // Student not available → open reschedule sheet directly
+      // Student not available ? open reschedule sheet directly
       _showRescheduleSheet(session.copyWith(status: SessionStatus.scheduled));
       return;
     }
@@ -1529,7 +1529,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               (student) => _StudentRadioTile(
                 name: student.fullName,
                 subtitle:
-                    '★ ${student.avgRating}  ·  ${student.completedJobs} poslova',
+                    '⭐ ${student.avgRating.toStringAsFixed(1)}  ·  ${student.completedJobs} poslova',
                 isSelected: selectedStudentName == student.fullName,
                 onTap: () {
                   setSheetState(() {
@@ -1574,7 +1574,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           const Divider(height: 1),
           const SizedBox(height: 12),
 
-          // ── Date picker row ──
+          // -- Date picker row --
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: _RescheduleRow(
@@ -1598,7 +1598,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           const SizedBox(height: 12),
 
-          // ── Time picker row (15-min intervals) ──
+          // -- Time picker row (15-min intervals) --
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: _RescheduleRow(
@@ -1619,7 +1619,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           const SizedBox(height: 12),
 
-          // ── Student selector label ──
+          // -- Student selector label --
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
@@ -1633,7 +1633,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           const SizedBox(height: 8),
 
-          // ── Student list (responsive) ──
+          // -- Student list (responsive) --
           if (scrollCtrl != null)
             Expanded(
               child: Padding(
@@ -1657,7 +1657,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ),
           const SizedBox(height: 24),
 
-          // ── Confirm button ──
+          // -- Confirm button --
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Align(
@@ -1758,14 +1758,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
   //  AVAILABILITY HELPERS
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
 
   /// Returns the order's schedule slots as (dayOfWeek, startTime) pairs.
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
   //  ASSIGN STUDENT (single-modal flow with back navigation)
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
   Future<void> _showAssignSheet() async {
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
@@ -1775,13 +1775,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     ) async {
       if (!context.mounted) return;
 
-      // ── Backend assign per schedule ──
+      // -- Backend assign per schedule --
       final assignApi = AdminApiService();
       final studentId = int.tryParse(student.id) ?? 0;
       final sIds = _order.scheduleIds;
       final entries = _order.dayEntries;
 
-      // Build weekday → scheduleId map (parallel arrays)
+      // Build weekday ? scheduleId map (parallel arrays)
       final weekdayToSchedule = <int, int>{};
       for (var i = 0; i < sIds.length && i < entries.length; i++) {
         weekdayToSchedule[entries[i].dayOfWeek] = sIds[i];
@@ -1970,10 +1970,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           : _StudentAvail.differentTimes;
       classified.add((entry.value, avail));
     }
+    final senLat = _order.senior.latitude;
+    final senLng = _order.senior.longitude;
     classified.sort((a, b) {
       final aIdx = a.$2.index;
       final bIdx = b.$2.index;
       if (aIdx != bIdx) return aIdx.compareTo(bIdx);
+      // Within same availability group, sort by distance (closest first)
+      if (senLat != null && senLng != null) {
+        final aLat = a.$1.latitude;
+        final aLng = a.$1.longitude;
+        final bLat = b.$1.latitude;
+        final bLng = b.$1.longitude;
+        final aDist = (aLat != null && aLng != null)
+            ? haversineKm(senLat, senLng, aLat, aLng)
+            : double.infinity;
+        final bDist = (bLat != null && bLng != null)
+            ? haversineKm(senLat, senLng, bLat, bLng)
+            : double.infinity;
+        if (aDist != bDist) return aDist.compareTo(bDist);
+      }
       return b.$1.avgRating.compareTo(a.$1.avgRating);
     });
 
@@ -2121,9 +2137,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
   //  HELPERS
-  // ═══════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------
 
   String _frequencyLabel() {
     switch (_order.frequency) {
@@ -2161,25 +2177,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 //  STUDENT ASSIGN CARD (bottom sheet)
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 //  STUDENT AVAILABILITY CATEGORY
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 enum _StudentAvail { full, differentTimes }
 
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 //  STUDENT ASSIGN CARD (bottom sheet)
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 class _StudentAssignCard extends StatelessWidget {
   const _StudentAssignCard({
     required this.student,
     required this.avail,
     required this.onAssign,
+    this.distanceKm,
   });
   final StudentModel student;
   final _StudentAvail avail;
   final VoidCallback onAssign;
+  final double? distanceKm;
 
   @override
   Widget build(BuildContext context) {
@@ -2221,7 +2239,7 @@ class _StudentAssignCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // ── Avatar ──
+          // -- Avatar --
           Container(
             width: 44,
             height: 44,
@@ -2242,7 +2260,7 @@ class _StudentAssignCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
 
-          // ── Info ──
+          // -- Info --
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -2266,12 +2284,28 @@ class _StudentAssignCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 3),
                     Text(
-                      '${student.avgRating}  ·  ${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
+                      student.avgRating.toStringAsFixed(1),
                       style: const TextStyle(
                         fontSize: 13,
                         color: HelpiTheme.textSecondary,
                       ),
                     ),
+                    if (distanceKm != null) ...[
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.location_on,
+                        size: 13,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '~${distanceKm!.toStringAsFixed(1)} km',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(height: 5),
@@ -2309,7 +2343,7 @@ class _StudentAssignCard extends StatelessWidget {
             ),
           ),
 
-          // ── Action button ──
+          // -- Action button --
           Material(
             color: availColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(8),
@@ -2352,9 +2386,9 @@ class _StudentAssignCard extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 //  SESSION ACTION BUTTON (small tappable label)
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 class _SessionActionButton extends StatelessWidget {
   const _SessionActionButton({
     required this.icon,
@@ -2406,9 +2440,9 @@ class _SessionActionButton extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 //  RESCHEDULE ROW (date / time picker trigger)
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 class _RescheduleRow extends StatelessWidget {
   const _RescheduleRow({
     required this.icon,
@@ -2463,9 +2497,9 @@ class _RescheduleRow extends StatelessWidget {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  ORDER ASSIGN FLOW SHEET (single modal: student list ↔ session preview)
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
+//  ORDER ASSIGN FLOW SHEET (single modal: student list ? session preview)
+// ---------------------------------------------------------------
 class _OrderAssignFlowSheet extends StatefulWidget {
   const _OrderAssignFlowSheet({
     required this.order,
@@ -2603,9 +2637,21 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
                   itemCount: widget.classified.length,
                   itemBuilder: (_, i) {
                     final (student, avail) = widget.classified[i];
+                    final senLat = widget.order.senior.latitude;
+                    final senLng = widget.order.senior.longitude;
+                    final stuLat = student.latitude;
+                    final stuLng = student.longitude;
+                    final distKm =
+                        (senLat != null &&
+                            senLng != null &&
+                            stuLat != null &&
+                            stuLng != null)
+                        ? haversineKm(senLat, senLng, stuLat, stuLng)
+                        : null;
                     return _StudentAssignCard(
                       student: student,
                       avail: avail,
+                      distanceKm: distKm,
                       onAssign: avail == _StudentAvail.full
                           ? () => widget.onAssignDirect(student)
                           : () => _selectStudent(student),
@@ -2618,9 +2664,9 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 //  ORDER SESSION PREVIEW — helper with order-specific logic
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 
 /// Holds order-detail-specific session generation, substitute filtering,
 /// and conflict messaging. Passed as callbacks to [SessionPreviewContent].
@@ -2652,7 +2698,7 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
         )
         .toList();
 
-    // One-time order → single session
+    // One-time order ? single session
     if (order.frequency == FrequencyType.oneTime) {
       final startMin = toMinutes(order.scheduledStart);
       final endMin = startMin + order.durationHours * 60;
@@ -2683,7 +2729,7 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
       ];
     }
 
-    // Recurring order → generate from dayEntries for next 8 weeks
+    // Recurring order ? generate from dayEntries for next 8 weeks
     final List<SessionInstancePreview> result = [];
     for (final entry in order.dayEntries) {
       var nextDate = today;
@@ -2752,9 +2798,9 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 //  STUDENT RADIO TILE (for reschedule student selector)
-// ═══════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------
 class _StudentRadioTile extends StatelessWidget {
   const _StudentRadioTile({
     required this.name,

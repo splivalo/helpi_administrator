@@ -110,6 +110,8 @@ class SeniorModel {
   final String phone;
   final String address;
   final String city;
+  final double? latitude;
+  final double? longitude;
   final Gender gender;
   final DateTime dateOfBirth;
   final bool isActive;
@@ -137,6 +139,8 @@ class SeniorModel {
     required this.phone,
     required this.address,
     this.city = '',
+    this.latitude,
+    this.longitude,
     required this.gender,
     required this.dateOfBirth,
     this.isActive = true,
@@ -171,6 +175,8 @@ class StudentModel {
   final String phone;
   final String address;
   final String city;
+  final double? latitude;
+  final double? longitude;
   final String faculty;
   final String studentIdNumber;
   final DateTime dateOfBirth;
@@ -200,6 +206,8 @@ class StudentModel {
     required this.phone,
     required this.address,
     this.city = '',
+    this.latitude,
+    this.longitude,
     required this.faculty,
     required this.studentIdNumber,
     required this.dateOfBirth,
