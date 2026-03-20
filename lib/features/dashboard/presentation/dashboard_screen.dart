@@ -53,9 +53,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Grid columns: >=1200 → 3, >=900 → 2, else 1
     final gridColumns = screenWidth >= 1200 ? 3 : (screenWidth >= 900 ? 2 : 1);
 
-    final processingOrders = MockData.orders
-        .where((o) => o.status == OrderStatus.processing)
-        .toList();
+    final processingOrders =
+        MockData.orders
+            .where((o) => o.status == OrderStatus.processing)
+            .toList()
+          ..sort((a, b) {
+            final ai = int.tryParse(a.id) ?? 0;
+            final bi = int.tryParse(b.id) ?? 0;
+            return bi.compareTo(ai);
+          });
     final processingCount = processingOrders.length;
     final activeCount = MockData.orders
         .where((o) => o.status == OrderStatus.active)
@@ -75,11 +81,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // ── Studenti koji su radili u odabranom mjesecu ──
     final monthStart = _selectedMonth;
     final monthEnd = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+    final suspendedStudentIds = MockData.students
+        .where((s) => s.isSuspended)
+        .map((s) => s.id)
+        .toSet();
     final activeStudentMap =
         <String, ({StudentModel student, int sessions, int hours})>{};
     for (final order in MockData.orders) {
       if (order.student == null) continue;
-      if (SuspensionStateManager.instance.isSuspended(order.student!.id)) {
+      if (suspendedStudentIds.contains(order.student!.id)) {
         continue;
       }
       for (final session in order.sessions) {

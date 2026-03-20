@@ -9,7 +9,7 @@ import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 import 'package:helpi_admin/features/orders/presentation/create_order_screen.dart';
 
-enum OrderSort { newest, oldest, az, za }
+enum OrderSort { newest, oldest }
 
 /// Admin Orders Screen — sve narudžbe s tabovima i filterima.
 class AdminOrdersScreen extends StatefulWidget {
@@ -91,16 +91,22 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
       }).toList();
     }
 
-    // Sorting
+    // Sorting — primary by ID (order number), fallback to createdAt
     switch (_sort) {
-      case OrderSort.az:
-        orders.sort((a, b) => a.orderNumber.compareTo(b.orderNumber));
-      case OrderSort.za:
-        orders.sort((a, b) => b.orderNumber.compareTo(a.orderNumber));
       case OrderSort.newest:
-        orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        orders.sort((a, b) {
+          final ai = int.tryParse(a.id) ?? 0;
+          final bi = int.tryParse(b.id) ?? 0;
+          if (ai != bi) return bi.compareTo(ai);
+          return b.createdAt.compareTo(a.createdAt);
+        });
       case OrderSort.oldest:
-        orders.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        orders.sort((a, b) {
+          final ai = int.tryParse(a.id) ?? 0;
+          final bi = int.tryParse(b.id) ?? 0;
+          if (ai != bi) return ai.compareTo(bi);
+          return a.createdAt.compareTo(b.createdAt);
+        });
     }
     return orders;
   }
@@ -201,10 +207,8 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
                     _prefs.setSort(_screenKey, v.name);
                   },
                   itemBuilder: (_) => [
-                    _sortMenuItem(OrderSort.newest, AppStrings.sortNewest),
-                    _sortMenuItem(OrderSort.oldest, AppStrings.sortOldest),
-                    _sortMenuItem(OrderSort.az, AppStrings.sortAZ),
-                    _sortMenuItem(OrderSort.za, AppStrings.sortZA),
+                    _sortMenuItem(OrderSort.newest, AppStrings.sortNewestF),
+                    _sortMenuItem(OrderSort.oldest, AppStrings.sortOldestF),
                   ],
                 ),
               );
@@ -336,6 +340,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
     final selected = _sort == value;
     return PopupMenuItem(
       value: value,
+      height: 36,
       child: Row(
         children: [
           if (selected)
@@ -346,6 +351,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen>
           Text(
             label,
             style: TextStyle(
+              fontSize: 14,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               color: selected ? HelpiTheme.accent : HelpiTheme.textPrimary,
             ),

@@ -10,7 +10,6 @@ import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
-import 'package:helpi_admin/core/utils/session_preview_helper.dart';
 import 'package:helpi_admin/core/widgets/suspension_widgets.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
@@ -102,7 +101,39 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     if (result.success && result.data != null) {
       final slots = result.data!
         ..sort((a, b) => a.dayOfWeek.compareTo(b.dayOfWeek));
-      setState(() => _availability = slots);
+      setState(() {
+        _availability = slots;
+        // Rebuild _student with real availability so matching/preview use it
+        _student = StudentModel(
+          id: _student.id,
+          firstName: _student.firstName,
+          lastName: _student.lastName,
+          email: _student.email,
+          phone: _student.phone,
+          address: _student.address,
+          city: _student.city,
+          faculty: _student.faculty,
+          studentIdNumber: _student.studentIdNumber,
+          dateOfBirth: _student.dateOfBirth,
+          gender: _student.gender,
+          avgRating: _student.avgRating,
+          totalReviews: _student.totalReviews,
+          completedJobs: _student.completedJobs,
+          cancelledJobs: _student.cancelledJobs,
+          isVerified: _student.isVerified,
+          isActive: _student.isActive,
+          isArchived: _student.isArchived,
+          isSuspended: _student.isSuspended,
+          suspensionReason: _student.suspensionReason,
+          createdAt: _student.createdAt,
+          contractStatus: _student.contractStatus,
+          contractStartDate: _student.contractStartDate,
+          contractExpiryDate: _student.contractExpiryDate,
+          availability: slots,
+          hourlyRate: _student.hourlyRate,
+          sundayHourlyRate: _student.sundayHourlyRate,
+        );
+      });
     }
   }
 
@@ -154,7 +185,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               child: Text(_student.fullName, overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(width: 8),
-            if (_suspensionStatus?.isSuspended == true)
+            if (_student.isSuspended)
               const SuspendedBadge()
             else
               StatusBadge.contract(_student.contractStatus),
@@ -691,12 +722,21 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   // ── Suspend / Activate logic ──
 
   Future<void> _confirmSuspend() async {
-    // Warn if user has active orders (will be auto-cancelled)
-    final hasActiveOrders = MockData.orders.any(
+    // Refresh orders from API so the active-order check is up to date
+    await DataLoader.loadAll();
+    if (!mounted) return;
+
+    // Warn if user has active orders (will be reassigned)
+    final studentOrders = MockData.orders
+        .where((o) => o.student?.id == _student.id)
+        .toList();
+    debugPrint(
+      '[SUSPEND] student=${_student.id} orders=${studentOrders.length} '
+      'statuses=${studentOrders.map((o) => '${o.id}:${o.status}').join(', ')}',
+    );
+    final hasActiveOrders = studentOrders.any(
       (o) =>
-          o.student?.id == _student.id &&
-          (o.status == OrderStatus.active ||
-              o.status == OrderStatus.processing),
+          o.status == OrderStatus.active || o.status == OrderStatus.processing,
     );
 
     if (hasActiveOrders) {
@@ -706,7 +746,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
           title: Text(AppStrings.suspendWarningTitle),
           content: SizedBox(
             width: 400,
-            child: Text(AppStrings.suspendWarningMsg),
+            child: Text(AppStrings.suspendWarningStudentMsg),
           ),
           actions: [
             TextButton(
@@ -731,22 +771,34 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
     final userId = int.tryParse(_student.id);
     if (userId != null) {
-      final success = await suspendUserApi(_api, userId, reason);
+      final error = await suspendUserApi(_api, userId, reason);
       if (!mounted) return;
-      if (!success) return;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.suspensionFailed}: $error')),
+        );
+        return;
+      }
     }
 
     // Refresh data from backend (orders auto-cancelled by backend)
     await DataLoader.loadAll();
     if (!mounted) return;
 
-    // Reload suspension status from backend
-    await _loadSuspensionStatus();
-    if (!mounted) return;
+    // Pick up fresh student data from the refreshed MockData
+    final fresh = MockData.students.firstWhere(
+      (s) => s.id == _student.id,
+      orElse: () => _student,
+    );
+    setState(() {
+      _student = fresh;
+    });
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(AppStrings.suspensionSuccess)));
     SuspensionStateManager.instance.suspend(_student.id);
+    // Refresh suspension history for the panel
+    _loadSuspensionStatus();
   }
 
   Future<void> _confirmActivate() async {
@@ -774,18 +826,34 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
     final userId = int.tryParse(_student.id);
     if (userId != null) {
-      final success = await activateUserApi(_api, userId);
+      final error = await activateUserApi(_api, userId);
       if (!mounted) return;
-      if (!success) return;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.activationFailed}: $error')),
+        );
+        return;
+      }
     }
 
-    // Reload suspension status from backend
-    await _loadSuspensionStatus();
+    // Refresh data from backend
+    await DataLoader.loadAll();
     if (!mounted) return;
+
+    // Pick up fresh student data from the refreshed MockData
+    final fresh = MockData.students.firstWhere(
+      (s) => s.id == _student.id,
+      orElse: () => _student,
+    );
+    setState(() {
+      _student = fresh;
+    });
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(AppStrings.activationSuccess)));
     SuspensionStateManager.instance.activate(_student.id);
+    // Refresh suspension history for the panel
+    _loadSuspensionStatus();
   }
 
   // ── Archive / Unarchive logic ──
@@ -1701,13 +1769,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
                         .toList(),
                   ),
           ),
-        const SizedBox(height: 8),
-        ActionChipButton(
-          icon: Icons.assignment_ind,
-          label: AppStrings.assignToOrder,
-          color: HelpiTheme.accent,
-          onTap: _openAssignSheet,
-        ),
       ],
     );
   }
@@ -1780,496 +1841,6 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   }
 
   // ─────────────────────────────────────────────────────────
-  //  ASSIGN TO ORDER — matching logic
-  // ─────────────────────────────────────────────────────────
-
-  /// Returns unassigned orders whose schedule fits the student's availability
-  /// (day + time window).
-  List<OrderModel> _findMatchingOrders() {
-    final unassigned = MockData.orders.where(
-      (o) => o.student == null && o.status == OrderStatus.processing,
-    );
-
-    return unassigned.where((order) {
-      if (order.dayEntries.isNotEmpty) {
-        return order.dayEntries.every(
-          (entry) =>
-              _slotFits(entry.dayOfWeek, entry.startTime, entry.durationHours),
-        );
-      }
-      return _slotFits(
-        order.scheduledDate.weekday,
-        order.scheduledStart,
-        order.durationHours,
-      );
-    }).toList();
-  }
-
-  /// Returns true if the student has availability on [dayOfWeek] that fully
-  /// covers the [start] … [start + durationHours] window.
-  bool _slotFits(int dayOfWeek, TimeOfDay start, int durationHours) {
-    if (_student.availability.isEmpty) return true;
-    final avail = _student.availability.where(
-      (a) => a.dayOfWeek == dayOfWeek && a.isEnabled,
-    );
-    if (avail.isEmpty) return false;
-    final a = avail.first;
-    final sMin = start.hour * 60 + start.minute;
-    final eMin = sMin + durationHours * 60;
-    final fMin = a.from.hour * 60 + a.from.minute;
-    final tMin = a.to.hour * 60 + a.to.minute;
-    return sMin >= fMin && eMin <= tMin;
-  }
-
-  void _openAssignSheet() {
-    final matching = _findMatchingOrders();
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
-
-    if (isWide) {
-      showDialog(
-        context: context,
-        builder: (ctx) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560, maxHeight: 700),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-                child: _AssignFlowSheet(
-                  student: _student,
-                  matchingOrders: matching,
-                  onAssigned: (order) {
-                    Navigator.pop(ctx);
-                    _assignToOrder(order);
-                  },
-                  useDialog: true,
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    } else {
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (ctx) {
-          return _AssignFlowSheet(
-            student: _student,
-            matchingOrders: matching,
-            onAssigned: (order) {
-              Navigator.pop(ctx);
-              _assignToOrder(order);
-            },
-          );
-        },
-      );
-    }
-  }
-
-  Future<void> _assignToOrder(OrderModel order) async {
-    final api = AdminApiService();
-    final studentId = int.tryParse(_student.id) ?? 0;
-
-    for (final scheduleId in order.scheduleIds) {
-      final result = await api.adminAssign(scheduleId, studentId);
-      if (!mounted) return;
-      if (!result.success) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
-        return;
-      }
-    }
-
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${AppStrings.assignSuccess} #${order.orderNumber}'),
-        backgroundColor: HelpiTheme.statusActiveText,
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────
   //  HELPERS
   // ─────────────────────────────────────────────────────────
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  ASSIGN FLOW SHEET — matching list + session preview in one sheet
-// ═══════════════════════════════════════════════════════════════
-class _AssignFlowSheet extends StatefulWidget {
-  const _AssignFlowSheet({
-    required this.student,
-    required this.matchingOrders,
-    required this.onAssigned,
-    this.useDialog = false,
-  });
-
-  final StudentModel student;
-  final List<OrderModel> matchingOrders;
-  final void Function(OrderModel order) onAssigned;
-  final bool useDialog;
-
-  @override
-  State<_AssignFlowSheet> createState() => _AssignFlowSheetState();
-}
-
-class _AssignFlowSheetState extends State<_AssignFlowSheet> {
-  OrderModel? _selectedOrder;
-
-  void _selectOrder(OrderModel order) {
-    setState(() => _selectedOrder = order);
-  }
-
-  void _goBack() {
-    setState(() => _selectedOrder = null);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final content = _selectedOrder != null
-        ? Builder(
-            builder: (_) {
-              final helper = _StudentSessionPreviewHelper(
-                student: widget.student,
-                order: _selectedOrder!,
-              );
-              return SessionPreviewContent(
-                key: ValueKey(_selectedOrder!.id),
-                student: widget.student,
-                order: _selectedOrder!,
-                onBack: _goBack,
-                onAssigned: (_) => widget.onAssigned(_selectedOrder!),
-                generateSessions: helper.generateSessions,
-                findSubstitutes: helper.findSubstitutes,
-                findAltSlots: helper.findAltSlots,
-                buildConflictMessage: helper.buildConflictMessage,
-                useDialog: widget.useDialog,
-              );
-            },
-          )
-        : _buildMatchingList();
-
-    if (widget.useDialog) {
-      return Container(
-        decoration: BoxDecoration(
-          color: HelpiTheme.scaffold,
-          borderRadius: BorderRadius.all(
-            Radius.circular(HelpiTheme.cardRadius),
-          ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.all(
-            Radius.circular(HelpiTheme.cardRadius),
-          ),
-          child: content,
-        ),
-      );
-    }
-
-    final height = _selectedOrder != null ? 0.9 : 0.65;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      height: MediaQuery.of(context).size.height * height,
-      decoration: BoxDecoration(
-        color: HelpiTheme.scaffold,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(HelpiTheme.cardRadius),
-        ),
-      ),
-      child: content,
-    );
-  }
-
-  Widget _buildMatchingList() {
-    return Column(
-      children: [
-        if (!widget.useDialog)
-          const Padding(
-            padding: EdgeInsets.only(top: 12, bottom: 4),
-            child: DragHandle(),
-          ),
-        // Header
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
-          child: Row(
-            children: [
-              const Icon(Icons.assignment_ind, color: HelpiTheme.accent),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${AppStrings.matchingOrders} (${widget.matchingOrders.length})',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        // List
-        Expanded(
-          child: widget.matchingOrders.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.event_busy,
-                        size: 56,
-                        color: HelpiTheme.border,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        AppStrings.noMatchingOrders,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: HelpiTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: widget.matchingOrders.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (_, i) {
-                    final o = widget.matchingOrders[i];
-                    return _MatchingOrderCard(
-                      order: o,
-                      onAssign: () => _selectOrder(o),
-                    );
-                  },
-                ),
-        ),
-      ],
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  SESSION PREVIEW CONTENT — shows inside the assign flow sheet
-// ═══════════════════════════════════════════════════════════════
-
-/// Thin wrapper that supplies student-detail-specific logic to the
-/// shared [SessionPreviewContent] widget.
-class _StudentSessionPreviewHelper extends SessionPreviewHelperBase {
-  _StudentSessionPreviewHelper({required super.student, required super.order});
-
-  @override
-  List<SessionInstancePreview> generateSessions() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    final studentOrders = MockData.orders
-        .where(
-          (o) =>
-              o.student?.id == student.id &&
-              o.status != OrderStatus.cancelled &&
-              o.id != order.id,
-        )
-        .toList();
-
-    if (order.frequency == FrequencyType.oneTime) {
-      final conflict = findConflict(
-        date: order.scheduledDate,
-        weekday: order.scheduledDate.weekday,
-        startMin: toMinutes(order.scheduledStart),
-        endMin: toMinutes(order.scheduledStart) + order.durationHours * 60,
-        studentOrders: studentOrders,
-      );
-      return [
-        SessionInstancePreview(
-          date: order.scheduledDate,
-          weekday: order.scheduledDate.weekday,
-          startTime: order.scheduledStart,
-          durationHours: order.durationHours,
-          conflictType: conflict != null
-              ? SessionConflictType.conflict
-              : SessionConflictType.free,
-          conflictingOrder: conflict,
-        ),
-      ];
-    }
-
-    final List<SessionInstancePreview> result = [];
-    for (final entry in order.dayEntries) {
-      var nextDate = today;
-      while (nextDate.weekday != entry.dayOfWeek) {
-        nextDate = nextDate.add(const Duration(days: 1));
-      }
-      for (int week = 0; week < 8; week++) {
-        final sessionDate = nextDate.add(Duration(days: week * 7));
-        if (order.endDate != null && sessionDate.isAfter(order.endDate!)) break;
-        final startMin = toMinutes(entry.startTime);
-        final endMin = startMin + entry.durationHours * 60;
-        final conflict = findConflict(
-          date: sessionDate,
-          weekday: entry.dayOfWeek,
-          startMin: startMin,
-          endMin: endMin,
-          studentOrders: studentOrders,
-        );
-        result.add(
-          SessionInstancePreview(
-            date: sessionDate,
-            weekday: entry.dayOfWeek,
-            startTime: entry.startTime,
-            durationHours: entry.durationHours,
-            conflictType: conflict != null
-                ? SessionConflictType.conflict
-                : SessionConflictType.free,
-            conflictingOrder: conflict,
-          ),
-        );
-      }
-    }
-    result.sort((a, b) => a.date.compareTo(b.date));
-    return result;
-  }
-
-  @override
-  String buildConflictMessage(SessionInstancePreview s) {
-    return '${AppStrings.conflictWith} '
-        '#${s.conflictingOrder?.orderNumber ?? "?"} '
-        '${s.conflictingOrder?.senior.fullName ?? ""}';
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  MATCHING ORDER CARD  (inside assign bottom sheet)
-// ═══════════════════════════════════════════════════════════════
-class _MatchingOrderCard extends StatelessWidget {
-  const _MatchingOrderCard({required this.order, required this.onAssign});
-
-  final OrderModel order;
-  final VoidCallback onAssign;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Header: order number + senior name ──
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '#${order.orderNumber}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      order.senior.fullName,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              ActionChipButton(
-                icon: Icons.check,
-                label: MediaQuery.sizeOf(context).width < 600
-                    ? AppStrings.assignShort
-                    : AppStrings.assignToOrder,
-                color: HelpiTheme.accent,
-                onTap: onAssign,
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // ── Schedule info ──
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today,
-                size: 14,
-                color: HelpiTheme.accent,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                formatDate(order.scheduledDate),
-                style: const TextStyle(fontSize: 13),
-              ),
-              const SizedBox(width: 12),
-              const Icon(Icons.access_time, size: 14, color: HelpiTheme.accent),
-              const SizedBox(width: 4),
-              Text(
-                formatTimeOfDay(order.scheduledStart),
-                style: const TextStyle(fontSize: 13),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '(${order.durationHours}${AppStrings.hours})',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: HelpiTheme.textSecondary,
-                ),
-              ),
-            ],
-          ),
-
-          // ── Services ──
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: order.services.map((s) => ServiceChip(type: s)).toList(),
-          ),
-
-          // ── Address ──
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              const Icon(
-                Icons.location_on_outlined,
-                size: 14,
-                color: HelpiTheme.textSecondary,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  order.address,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }

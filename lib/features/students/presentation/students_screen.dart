@@ -179,26 +179,32 @@ class _StudentsScreenState extends State<StudentsScreen>
       case _StudentFilter.active:
         students = students
             .where(
-              (s) => s.contractStatus == ContractStatus.active && !s.isArchived,
+              (s) =>
+                  s.contractStatus == ContractStatus.active &&
+                  !s.isArchived &&
+                  !s.isSuspended,
             )
             .toList();
       case _StudentFilter.expired:
         students = students
             .where(
               (s) =>
-                  s.contractStatus == ContractStatus.expired && !s.isArchived,
+                  s.contractStatus == ContractStatus.expired &&
+                  !s.isArchived &&
+                  !s.isSuspended,
             )
             .toList();
       case _StudentFilter.noContract:
         students = students
             .where(
-              (s) => s.contractStatus == ContractStatus.none && !s.isArchived,
+              (s) =>
+                  s.contractStatus == ContractStatus.none &&
+                  !s.isArchived &&
+                  !s.isSuspended,
             )
             .toList();
       case _StudentFilter.suspended:
-        students = students
-            .where((s) => SuspensionStateManager.instance.isSuspended(s.id))
-            .toList();
+        students = students.where((s) => s.isSuspended).toList();
       case _StudentFilter.archived:
         students = students.where((s) => s.isArchived).toList();
     }
@@ -299,9 +305,22 @@ class _StudentsScreenState extends State<StudentsScreen>
       case StudentSort.oldest:
         students.sort((a, b) => a.createdAt.compareTo(b.createdAt));
       case StudentSort.ratingHigh:
-        students.sort((a, b) => b.avgRating.compareTo(a.avgRating));
+        students.sort((a, b) {
+          // Unrated (0 reviews) always at bottom
+          if (a.totalReviews == 0 && b.totalReviews > 0) return 1;
+          if (b.totalReviews == 0 && a.totalReviews > 0) return -1;
+          final cmp = b.avgRating.compareTo(a.avgRating);
+          if (cmp != 0) return cmp;
+          return b.totalReviews.compareTo(a.totalReviews);
+        });
       case StudentSort.ratingLow:
-        students.sort((a, b) => a.avgRating.compareTo(b.avgRating));
+        students.sort((a, b) {
+          if (a.totalReviews == 0 && b.totalReviews > 0) return 1;
+          if (b.totalReviews == 0 && a.totalReviews > 0) return -1;
+          final cmp = a.avgRating.compareTo(b.avgRating);
+          if (cmp != 0) return cmp;
+          return a.totalReviews.compareTo(b.totalReviews);
+        });
     }
 
     return students;
@@ -1721,7 +1740,7 @@ class _StudentCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (SuspensionStateManager.instance.isSuspended(student.id))
+                if (student.isSuspended)
                   const SuspendedBadge()
                 else
                   StatusBadge.contract(student.contractStatus),
@@ -1774,7 +1793,7 @@ class _StudentCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            '${student.avgRating}  ·  ${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
+                            '${student.avgRating.toStringAsFixed(1)}  ·  ${student.totalReviews} ${AppStrings.studentReviewCount}',
                             style: const TextStyle(
                               fontSize: 14,
                               color: HelpiTheme.textSecondary,

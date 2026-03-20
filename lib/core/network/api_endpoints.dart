@@ -23,6 +23,7 @@ class ApiEndpoints {
   // Sessions (JobInstances)
   static const String sessions = '/api/sessions';
   static String sessionById(int id) => '/api/sessions/$id';
+  static String sessionsByOrder(int orderId) => '/api/sessions/order/$orderId';
   static String cancelSession(int id) => '/api/sessions/$id/cancel';
   static String reactivateSession(int id) => '/api/sessions/$id/reactivate';
   static String manageSession(int id) => '/api/sessions/$id/manage';
@@ -46,6 +47,10 @@ class ApiEndpoints {
   static const String studentContracts = '/api/student-contracts';
   static String contractsByStudent(int studentId) =>
       '/api/student-contracts/student/$studentId';
+
+  // Student Services
+  static String servicesByStudent(int studentId) =>
+      '/api/student-services/student/$studentId';
 
   // Services
   static const String services = '/api/services';

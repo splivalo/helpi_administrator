@@ -109,21 +109,29 @@ class _SeniorsScreenState extends State<SeniorsScreen>
       case _SeniorStatusFilter.processing:
         seniors = seniors
             .where(
-              (s) => s.isActive && !s.isArchived && !activeIds.contains(s.id),
+              (s) =>
+                  s.isActive &&
+                  !s.isArchived &&
+                  !s.isSuspended &&
+                  !activeIds.contains(s.id),
             )
             .toList();
       case _SeniorStatusFilter.active:
         seniors = seniors
             .where(
-              (s) => s.isActive && !s.isArchived && activeIds.contains(s.id),
+              (s) =>
+                  s.isActive &&
+                  !s.isArchived &&
+                  !s.isSuspended &&
+                  activeIds.contains(s.id),
             )
             .toList();
       case _SeniorStatusFilter.inactive:
-        seniors = seniors.where((s) => !s.isActive && !s.isArchived).toList();
-      case _SeniorStatusFilter.suspended:
         seniors = seniors
-            .where((s) => SuspensionStateManager.instance.isSuspended(s.id))
+            .where((s) => !s.isActive && !s.isArchived && !s.isSuspended)
             .toList();
+      case _SeniorStatusFilter.suspended:
+        seniors = seniors.where((s) => s.isSuspended).toList();
       case _SeniorStatusFilter.archived:
         seniors = seniors.where((s) => s.isArchived).toList();
     }
@@ -451,7 +459,10 @@ class _SeniorsScreenState extends State<SeniorsScreen>
         builder: (_) =>
             SeniorDetailScreen(senior: senior, orders: seniorOrders),
       ),
-    );
+    ).then((_) {
+      if (!mounted) return;
+      setState(() {});
+    });
   }
 
   void _showAddSeniorModal() {
@@ -543,7 +554,7 @@ class _SeniorCard extends StatelessWidget {
       Color chipTextColor,
       Color chipBgColor,
       String chipLabel,
-    ) = SuspensionStateManager.instance.isSuspended(senior.id)
+    ) = senior.isSuspended
         ? (HelpiTheme.error, HelpiTheme.statusCancelledBg, AppStrings.suspended)
         : senior.isArchived
         ? (
@@ -760,6 +771,7 @@ class SeniorDetailScreen extends StatefulWidget {
 
 class SeniorDetailScreenState extends State<SeniorDetailScreen> {
   late SeniorModel _senior;
+  late List<OrderModel> _orders;
   final _prefs = PreferencesService.instance;
   static const _screenKey = 'seniorDetail';
   static const _sectionCount = 8;
@@ -773,6 +785,7 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
   void initState() {
     super.initState();
     _senior = widget.senior;
+    _orders = widget.orders;
     final saved = _prefs.getSectionOrder(_screenKey);
     if (saved != null && saved.length == _sectionCount) {
       _sectionOrder = saved;
@@ -783,7 +796,7 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
   }
 
   Future<void> _loadSuspensionStatus() async {
-    final userId = int.tryParse(_senior.id);
+    final userId = _senior.userId;
     if (userId == null) {
       setState(
         () =>
@@ -1078,33 +1091,33 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
               child: Text(_senior.fullName, overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(width: 8),
-            if (_suspensionStatus?.isSuspended == true)
+            if (_senior.isSuspended)
               const SuspendedBadge()
-            else if (_senior.isActive && !_senior.isArchived)
+            else if (_senior.isArchived)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: HelpiTheme.statusActiveBg,
+                  color: HelpiTheme.chipBg,
                   border: Border.all(
-                    color: HelpiTheme.statusActiveText.withValues(alpha: 0.3),
+                    color: HelpiTheme.textSecondary.withValues(alpha: 0.3),
                   ),
                   borderRadius: BorderRadius.circular(
                     HelpiTheme.statusBadgeRadius,
                   ),
                 ),
                 child: Text(
-                  AppStrings.seniorFilterActive,
+                  AppStrings.statusArchived,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: HelpiTheme.statusActiveText,
+                    color: HelpiTheme.textSecondary,
                   ),
                 ),
               )
-            else if (!_senior.isActive && !_senior.isArchived)
+            else if (!_senior.isActive)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -1129,33 +1142,57 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
                     color: HelpiTheme.statusCancelledText,
                   ),
                 ),
-              ),
-            if (_senior.isArchived) ...[
-              const SizedBox(width: 6),
+              )
+            else if (_senior.isActive && _orders.any((o) => o.student != null))
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: HelpiTheme.chipBg,
+                  color: HelpiTheme.statusActiveBg,
                   border: Border.all(
-                    color: HelpiTheme.textSecondary.withValues(alpha: 0.3),
+                    color: HelpiTheme.statusActiveText.withValues(alpha: 0.3),
                   ),
                   borderRadius: BorderRadius.circular(
                     HelpiTheme.statusBadgeRadius,
                   ),
                 ),
                 child: Text(
-                  AppStrings.statusArchived,
+                  AppStrings.seniorFilterActive,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiTheme.statusActiveText,
+                  ),
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: HelpiTheme.statusProcessingBg,
+                  border: Border.all(
+                    color: HelpiTheme.statusProcessingText.withValues(
+                      alpha: 0.3,
+                    ),
+                  ),
+                  borderRadius: BorderRadius.circular(
+                    HelpiTheme.statusBadgeRadius,
+                  ),
+                ),
+                child: Text(
+                  AppStrings.filterProcessing,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: HelpiTheme.statusProcessingText,
                   ),
                 ),
               ),
-            ],
           ],
         ),
         actions: [
@@ -1530,9 +1567,8 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
       title: AppStrings.seniorOrders,
       icon: Icons.receipt_long,
       children: [
-        if (widget.orders.isNotEmpty)
-          ...widget.orders.map((o) => _buildOrderRow(o)),
-        if (widget.orders.isEmpty)
+        if (_orders.isNotEmpty) ..._orders.map((o) => _buildOrderRow(o)),
+        if (_orders.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(
@@ -1587,6 +1623,10 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
   }
 
   Future<void> _confirmSuspend() async {
+    // Refresh orders from API so the active-order check is up to date
+    await DataLoader.loadAll();
+    if (!mounted) return;
+
     // Warn if user has active orders (will be auto-cancelled)
     final hasActiveOrders = MockData.orders.any(
       (o) =>
@@ -1625,11 +1665,16 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
     final reason = await showSuspendDialog(context, _senior.fullName);
     if (!mounted || reason == null) return;
 
-    final userId = int.tryParse(_senior.id);
+    final userId = _senior.userId;
     if (userId != null) {
-      final success = await suspendUserApi(_api, userId, reason);
+      final error = await suspendUserApi(_api, userId, reason);
       if (!mounted) return;
-      if (!success) return;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.suspensionFailed}: $error')),
+        );
+        return;
+      }
     }
 
     // Backend auto-cancels all orders when suspending a customer.
@@ -1637,13 +1682,23 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
     await DataLoader.loadAll();
     if (!mounted) return;
 
-    // Reload suspension status from backend instead of manual rebuild
-    await _loadSuspensionStatus();
-    if (!mounted) return;
+    // Pick up fresh senior data from the refreshed MockData
+    final fresh = MockData.seniors.firstWhere(
+      (s) => s.id == _senior.id,
+      orElse: () => _senior,
+    );
+    final freshOrders = MockData.orders
+        .where((o) => o.senior.id == _senior.id)
+        .toList();
+    setState(() {
+      _senior = fresh;
+      _orders = freshOrders;
+    });
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(AppStrings.suspensionSuccess)));
     SuspensionStateManager.instance.suspend(_senior.id);
+    _loadSuspensionStatus();
   }
 
   Future<void> _confirmActivate() async {
@@ -1669,24 +1724,39 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
     );
     if (!mounted || confirmed != true) return;
 
-    final userId = int.tryParse(_senior.id);
+    final userId = _senior.userId;
     if (userId != null) {
-      final success = await activateUserApi(_api, userId);
+      final error = await activateUserApi(_api, userId);
       if (!mounted) return;
-      if (!success) return;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${AppStrings.activationFailed}: $error')),
+        );
+        return;
+      }
     }
 
     // Refresh data from backend
     await DataLoader.loadAll();
     if (!mounted) return;
 
-    // Reload suspension status from backend instead of manual rebuild
-    await _loadSuspensionStatus();
-    if (!mounted) return;
+    // Pick up fresh senior data from the refreshed MockData
+    final fresh = MockData.seniors.firstWhere(
+      (s) => s.id == _senior.id,
+      orElse: () => _senior,
+    );
+    final freshOrders = MockData.orders
+        .where((o) => o.senior.id == _senior.id)
+        .toList();
+    setState(() {
+      _senior = fresh;
+      _orders = freshOrders;
+    });
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(AppStrings.activationSuccess)));
     SuspensionStateManager.instance.activate(_senior.id);
+    _loadSuspensionStatus();
   }
 
   Widget _buildNotesSection() {

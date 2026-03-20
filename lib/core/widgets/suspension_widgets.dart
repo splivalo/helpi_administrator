@@ -214,22 +214,24 @@ Future<UserSuspensionStatus?> loadSuspensionStatus(
   }
 }
 
-/// Helper to suspend a user via API.
-Future<bool> suspendUserApi(ApiClient api, int userId, String reason) async {
+/// Helper to suspend a user via API. Returns null on success, or error message.
+Future<String?> suspendUserApi(ApiClient api, int userId, String reason) async {
   try {
     await api.post(ApiEndpoints.suspendUser(userId), data: {'reason': reason});
-    return true;
-  } catch (_) {
-    return false;
+    return null;
+  } catch (e) {
+    debugPrint('[suspendUserApi] ERROR: $e');
+    return e.toString();
   }
 }
 
-/// Helper to activate a user via API.
-Future<bool> activateUserApi(ApiClient api, int userId) async {
+/// Helper to activate a user via API. Returns null on success, or error message.
+Future<String?> activateUserApi(ApiClient api, int userId) async {
   try {
     await api.post(ApiEndpoints.activateUser(userId));
-    return true;
-  } catch (_) {
-    return false;
+    return null;
+  } catch (e) {
+    debugPrint('[activateUserApi] ERROR: $e');
+    return e.toString();
   }
 }

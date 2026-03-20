@@ -28,6 +28,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   late OrderModel _order;
   bool _sessionsExpanded = true;
+  bool _sessionsLoading = true;
   late List<int> _sectionOrder;
 
   @override
@@ -40,6 +41,33 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     } else {
       _sectionOrder = List.generate(_sectionCount, (i) => i);
     }
+    _loadSessions();
+  }
+
+  Future<void> _loadSessions() async {
+    final orderId = int.tryParse(_order.id);
+    if (orderId == null) return;
+    final result = await AdminApiService().getSessionsByOrder(orderId);
+    if (!mounted) return;
+    setState(() {
+      _sessionsLoading = false;
+      if (result.success && result.data != null) {
+        _order = _order.copyWith(sessions: result.data);
+      }
+    });
+  }
+
+  /// Reload order data from backend + sessions.
+  Future<void> _refreshOrder() async {
+    await DataLoader.loadAll();
+    if (!mounted) return;
+    final refreshed = MockData.orders
+        .where((o) => o.id == _order.id)
+        .firstOrNull;
+    if (refreshed != null) {
+      setState(() => _order = refreshed);
+    }
+    await _loadSessions();
   }
 
   @override
@@ -125,7 +153,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       _buildServiceUserSection(),
       _buildStudentSection(),
       _buildOrderDetailsSection(),
-      if (_order.sessions.isNotEmpty)
+      if (_sessionsLoading)
+        const Center(
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        )
+      else if (_order.sessions.isNotEmpty)
         _buildSessionsSection()
       else
         const SizedBox.shrink(),
@@ -640,14 +675,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 );
                                 return;
                               }
-                              await DataLoader.loadAll();
-                              if (!mounted) return;
-                              final refreshed = MockData.orders
-                                  .where((o) => o.id == _order.id)
-                                  .firstOrNull;
-                              if (refreshed != null) {
-                                setState(() => _order = refreshed);
-                              }
+                              await _refreshOrder();
                             },
                             child: const Icon(
                               Icons.close,
@@ -729,14 +757,35 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ],
           if (_sessionsExpanded) ...[
             const SizedBox(height: 16),
-            ..._order.sessions.asMap().entries.map((mapEntry) {
-              final isLast = mapEntry.key == _order.sessions.length - 1;
-              final session = mapEntry.value;
-              return Padding(
-                padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                child: _buildSessionCard(session),
-              );
-            }),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: _order.sessions.length > 5 ? 380 : double.infinity,
+              ),
+              child: _order.sessions.length > 5
+                  ? ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: _order.sessions.length,
+                      itemBuilder: (_, i) {
+                        final session = _order.sessions[i];
+                        final isLast = i == _order.sessions.length - 1;
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                          child: _buildSessionCard(session),
+                        );
+                      },
+                    )
+                  : Column(
+                      children: _order.sessions.asMap().entries.map((mapEntry) {
+                        final isLast =
+                            mapEntry.key == _order.sessions.length - 1;
+                        final session = mapEntry.value;
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                          child: _buildSessionCard(session),
+                        );
+                      }).toList(),
+                    ),
+            ),
           ],
         ],
       ),
@@ -1072,14 +1121,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
         return;
       }
-      await DataLoader.loadAll();
-      if (!mounted) return;
-      final refreshed = MockData.orders
-          .where((o) => o.id == _order.id)
-          .firstOrNull;
-      if (refreshed != null) {
-        setState(() => _order = refreshed);
-      }
+      await _refreshOrder();
     });
   }
 
@@ -1119,14 +1161,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         );
         return;
       }
-      await DataLoader.loadAll();
-      if (!mounted) return;
-      final refreshed = MockData.orders
-          .where((o) => o.id == _order.id)
-          .firstOrNull;
-      if (refreshed != null) {
-        setState(() => _order = refreshed);
-      }
+      await _refreshOrder();
     });
   }
 
@@ -1194,14 +1229,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       );
       if (!mounted) return;
       if (archiveResult.success) {
-        await DataLoader.loadAll();
+        await _refreshOrder();
         if (!mounted) return;
-        final refreshed = MockData.orders
-            .where((o) => o.id == _order.id)
-            .firstOrNull;
-        if (refreshed != null) {
-          setState(() => _order = refreshed);
-        }
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
@@ -1239,14 +1268,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final archiveResult = await api.archiveOrder(orderId);
     if (!mounted) return;
     if (archiveResult.success) {
-      await DataLoader.loadAll();
+      await _refreshOrder();
       if (!mounted) return;
-      final refreshed = MockData.orders
-          .where((o) => o.id == _order.id)
-          .firstOrNull;
-      if (refreshed != null) {
-        setState(() => _order = refreshed);
-      }
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
@@ -1292,15 +1315,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       return;
     }
 
-    await DataLoader.loadAll();
+    await _refreshOrder();
     if (!mounted) return;
-
-    final refreshed = MockData.orders
-        .where((o) => o.id == _order.id)
-        .firstOrNull;
-    if (refreshed != null) {
-      setState(() => _order = refreshed);
-    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1342,14 +1358,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 );
                 return;
               }
-              await DataLoader.loadAll();
-              if (!mounted) return;
-              final refreshed = MockData.orders
-                  .where((o) => o.id == _order.id)
-                  .firstOrNull;
-              if (refreshed != null) {
-                setState(() => _order = refreshed);
-              }
+              await _refreshOrder();
             },
             child: Text(AppStrings.confirm),
           ),
@@ -1406,14 +1415,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 );
                 return;
               }
-              await DataLoader.loadAll();
-              if (!mounted) return;
-              final refreshed = MockData.orders
-                  .where((o) => o.id == _order.id)
-                  .firstOrNull;
-              if (refreshed != null) {
-                setState(() => _order = refreshed);
-              }
+              await _refreshOrder();
             },
             child: Text(AppStrings.confirm),
           ),
@@ -1694,14 +1696,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     );
                     return;
                   }
-                  await DataLoader.loadAll();
-                  if (!mounted) return;
-                  final refreshed = MockData.orders
-                      .where((o) => o.id == _order.id)
-                      .firstOrNull;
-                  if (refreshed != null) {
-                    setState(() => _order = refreshed);
-                  }
+                  await _refreshOrder();
                 },
               ),
             ),
@@ -1768,57 +1763,67 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   // ═══════════════════════════════════════════════════════════════
 
   /// Returns the order's schedule slots as (dayOfWeek, startTime) pairs.
-  List<({int dayOfWeek, TimeOfDay startTime})> _orderSlots() {
-    if (_order.dayEntries.isNotEmpty) {
-      return _order.dayEntries
-          .map((e) => (dayOfWeek: e.dayOfWeek, startTime: e.startTime))
-          .toList();
-    }
-    return [
-      (
-        dayOfWeek: _order.scheduledDate.weekday,
-        startTime: _order.scheduledStart,
-      ),
-    ];
-  }
-
-  /// Classify student availability for this order.
-  ///   full          – covers all days at the right times
-  ///   differentTimes – covers all days but some at wrong times
-  ///   unavailable    – doesn't cover one or more days
-  _StudentAvail _classifyStudent(StudentModel student) {
-    if (student.availability.isEmpty) return _StudentAvail.full;
-    final slots = _orderSlots();
-    bool allTimesMatch = true;
-    for (final slot in slots) {
-      final dayEntries = student.availability.where(
-        (a) => a.dayOfWeek == slot.dayOfWeek,
-      );
-      if (dayEntries.isEmpty || !dayEntries.first.isEnabled) {
-        return _StudentAvail.unavailable;
-      }
-      final avail = dayEntries.first;
-      final selMin = slot.startTime.hour * 60 + slot.startTime.minute;
-      final fromMin = avail.from.hour * 60 + avail.from.minute;
-      final toMin = avail.to.hour * 60 + avail.to.minute;
-      if (selMin < fromMin || selMin >= toMin) {
-        allTimesMatch = false;
-      }
-    }
-    return allTimesMatch ? _StudentAvail.full : _StudentAvail.differentTimes;
-  }
-
   // ═══════════════════════════════════════════════════════════════
   //  ASSIGN STUDENT (single-modal flow with back navigation)
   // ═══════════════════════════════════════════════════════════════
   Future<void> _showAssignSheet() async {
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-    void onConfirmed(
+    Future<void> onConfirmed(
       StudentModel student,
       List<SessionInstancePreview> previewSessions,
-    ) {
+    ) async {
       if (!context.mounted) return;
+
+      // ── Backend assign per schedule ──
+      final assignApi = AdminApiService();
+      final studentId = int.tryParse(student.id) ?? 0;
+      final sIds = _order.scheduleIds;
+      final entries = _order.dayEntries;
+
+      // Build weekday → scheduleId map (parallel arrays)
+      final weekdayToSchedule = <int, int>{};
+      for (var i = 0; i < sIds.length && i < entries.length; i++) {
+        weekdayToSchedule[entries[i].dayOfWeek] = sIds[i];
+      }
+
+      // Determine which weekdays are fully skipped
+      final skippedWeekdays = <int>{};
+      final seenWeekdays = <int>{};
+      for (final p in previewSessions) {
+        seenWeekdays.add(p.weekday);
+        if (!p.isSkipped) {
+          // At least one session for this weekday is NOT skipped
+          skippedWeekdays.remove(p.weekday);
+        } else if (!skippedWeekdays.contains(p.weekday) &&
+            !previewSessions.any(
+              (o) => o.weekday == p.weekday && !o.isSkipped,
+            )) {
+          skippedWeekdays.add(p.weekday);
+        }
+      }
+
+      // Assign each non-skipped schedule to backend
+      for (final entry in weekdayToSchedule.entries) {
+        final weekday = entry.key;
+        final scheduleId = entry.value;
+        if (skippedWeekdays.contains(weekday)) continue;
+
+        final result = await assignApi.adminAssign(scheduleId, studentId);
+        if (!mounted) return;
+        if (!result.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result.error ?? 'Error'),
+              backgroundColor: HelpiTheme.error,
+            ),
+          );
+          return;
+        }
+      }
+
+      if (!mounted) return;
+
       setState(() {
         final updatedSessions = _order.sessions.map((s) {
           if (s.status != SessionStatus.scheduled) return s;
@@ -1884,44 +1889,86 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           scheduleIds: _order.scheduleIds,
         );
       });
-    }
 
-    // Fetch available students from API
-    final api = AdminApiService();
-    final dateStr =
-        '${_order.scheduledDate.year}-${_order.scheduledDate.month.toString().padLeft(2, '0')}-${_order.scheduledDate.day.toString().padLeft(2, '0')}';
-    final startStr =
-        '${_order.scheduledStart.hour.toString().padLeft(2, '0')}:${_order.scheduledStart.minute.toString().padLeft(2, '0')}';
-    final endHour = _order.scheduledStart.hour + _order.durationHours;
-    final endStr =
-        '${endHour.toString().padLeft(2, '0')}:${_order.scheduledStart.minute.toString().padLeft(2, '0')}';
+      // Sync updated order back to MockData
+      final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
+      if (idx >= 0) MockData.orders[idx] = _order;
 
-    final result = await api.getAvailableStudents(
-      date: dateStr,
-      startTime: startStr,
-      endTime: endStr,
-      orderId: int.tryParse(_order.id),
-    );
-
-    if (!mounted) return;
-
-    if (!result.success) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result.error ?? 'Error'),
-          backgroundColor: HelpiTheme.error,
+          content: Text(AppStrings.assignSuccess),
+          backgroundColor: HelpiTheme.accent,
         ),
       );
-      return;
     }
 
-    final activeStudents = (result.data ?? <StudentModel>[])
-        .where((s) => s.id != _order.student?.id)
-        .toList();
+    // Fetch available students per schedule and classify by coverage
+    final api = AdminApiService();
+    final scheduleIds = _order.scheduleIds;
+
+    final Map<String, StudentModel> allStudents = {};
+    final Map<String, int> studentScheduleHits = {};
+
+    if (scheduleIds.isNotEmpty) {
+      for (final sid in scheduleIds) {
+        final result = await api.getAvailableStudentsForSchedule(sid);
+        if (!mounted) return;
+        if (!result.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result.error ?? 'Error'),
+              backgroundColor: HelpiTheme.error,
+            ),
+          );
+          return;
+        }
+        for (final s in result.data ?? <StudentModel>[]) {
+          allStudents[s.id] = s;
+          studentScheduleHits[s.id] = (studentScheduleHits[s.id] ?? 0) + 1;
+        }
+      }
+    } else {
+      // Fallback: single-date query for orders without scheduleIds
+      final dateStr =
+          '${_order.scheduledDate.year}-${_order.scheduledDate.month.toString().padLeft(2, '0')}-${_order.scheduledDate.day.toString().padLeft(2, '0')}';
+      final startStr =
+          '${_order.scheduledStart.hour.toString().padLeft(2, '0')}:${_order.scheduledStart.minute.toString().padLeft(2, '0')}';
+      final endHour = _order.scheduledStart.hour + _order.durationHours;
+      final endStr =
+          '${endHour.toString().padLeft(2, '0')}:${_order.scheduledStart.minute.toString().padLeft(2, '0')}';
+
+      final result = await api.getAvailableStudents(
+        date: dateStr,
+        startTime: startStr,
+        endTime: endStr,
+        orderId: int.tryParse(_order.id),
+      );
+      if (!mounted) return;
+      if (!result.success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.error ?? 'Error'),
+            backgroundColor: HelpiTheme.error,
+          ),
+        );
+        return;
+      }
+      for (final s in result.data ?? <StudentModel>[]) {
+        allStudents[s.id] = s;
+        studentScheduleHits[s.id] = 1;
+      }
+    }
+
+    final totalSchedules = scheduleIds.isNotEmpty ? scheduleIds.length : 1;
     final classified = <(StudentModel, _StudentAvail)>[];
-    for (final s in activeStudents) {
-      final avail = _classifyStudent(s);
-      if (avail != _StudentAvail.unavailable) classified.add((s, avail));
+    for (final entry in allStudents.entries) {
+      if (entry.value.id == _order.student?.id) continue;
+      final hits = studentScheduleHits[entry.key] ?? 0;
+      final avail = hits >= totalSchedules
+          ? _StudentAvail.full
+          : _StudentAvail.differentTimes;
+      classified.add((entry.value, avail));
     }
     classified.sort((a, b) {
       final aIdx = a.$2.index;
@@ -2051,6 +2098,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 );
               });
 
+              // Sync updated order back to MockData so
+              // dashboard / list screens reflect the change
+              final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
+              if (idx >= 0) MockData.orders[idx] = _order;
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(AppStrings.assignSuccess),
@@ -2114,7 +2166,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 // ═══════════════════════════════════════════════════════════════
 //  STUDENT AVAILABILITY CATEGORY
 // ═══════════════════════════════════════════════════════════════
-enum _StudentAvail { full, differentTimes, unavailable }
+enum _StudentAvail { full, differentTimes }
 
 // ═══════════════════════════════════════════════════════════════
 //  STUDENT ASSIGN CARD (bottom sheet)
@@ -2587,68 +2639,102 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
 
   @override
   List<SessionInstancePreview> generateSessions() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     final studentOrders = MockData.orders
         .where(
           (o) =>
               o.student?.id == student.id &&
               o.status != OrderStatus.cancelled &&
+              o.status != OrderStatus.completed &&
               o.id != order.id,
         )
         .toList();
 
-    final List<SessionInstancePreview> result = [];
-    for (final session in order.sessions) {
-      if (session.status != SessionStatus.scheduled) continue;
-      final startMin = toMinutes(session.startTime);
-      final endMin = startMin + session.durationHours * 60;
+    // One-time order → single session
+    if (order.frequency == FrequencyType.oneTime) {
+      final startMin = toMinutes(order.scheduledStart);
+      final endMin = startMin + order.durationHours * 60;
+      final weekday = order.scheduledDate.weekday;
 
-      SessionConflictType conflictType = SessionConflictType.free;
-      OrderModel? conflictingOrder;
+      final availConflict = _checkAvailability(weekday, startMin);
+      final schedConflict = availConflict
+          ? null
+          : findConflict(
+              date: order.scheduledDate,
+              weekday: weekday,
+              startMin: startMin,
+              endMin: endMin,
+              studentOrders: studentOrders,
+            );
 
-      // 1) Check student availability window
-      if (student.availability.isNotEmpty) {
-        final dayAvail = student.availability.where(
-          (a) => a.dayOfWeek == session.weekday,
-        );
-        if (dayAvail.isEmpty || !dayAvail.first.isEnabled) {
-          conflictType = SessionConflictType.conflict;
-        } else {
-          final avail = dayAvail.first;
-          final fromMin = toMinutes(avail.from);
-          final toMin = toMinutes(avail.to);
-          if (startMin < fromMin || startMin >= toMin) {
-            conflictType = SessionConflictType.conflict;
-          }
-        }
-      }
-
-      // 2) Check scheduling conflicts with other orders
-      if (conflictType == SessionConflictType.free) {
-        conflictingOrder = findConflict(
-          date: session.date,
-          weekday: session.weekday,
-          startMin: startMin,
-          endMin: endMin,
-          studentOrders: studentOrders,
-        );
-        if (conflictingOrder != null) {
-          conflictType = SessionConflictType.conflict;
-        }
-      }
-
-      result.add(
+      return [
         SessionInstancePreview(
-          date: session.date,
-          weekday: session.weekday,
-          startTime: session.startTime,
-          durationHours: session.durationHours,
-          conflictType: conflictType,
-          conflictingOrder: conflictingOrder,
+          date: order.scheduledDate,
+          weekday: weekday,
+          startTime: order.scheduledStart,
+          durationHours: order.durationHours,
+          conflictType: (availConflict || schedConflict != null)
+              ? SessionConflictType.conflict
+              : SessionConflictType.free,
+          conflictingOrder: schedConflict,
         ),
-      );
+      ];
+    }
+
+    // Recurring order → generate from dayEntries for next 8 weeks
+    final List<SessionInstancePreview> result = [];
+    for (final entry in order.dayEntries) {
+      var nextDate = today;
+      while (nextDate.weekday != entry.dayOfWeek) {
+        nextDate = nextDate.add(const Duration(days: 1));
+      }
+      for (int week = 0; week < 8; week++) {
+        final sessionDate = nextDate.add(Duration(days: week * 7));
+        if (order.endDate != null && sessionDate.isAfter(order.endDate!)) break;
+
+        final startMin = toMinutes(entry.startTime);
+        final endMin = startMin + entry.durationHours * 60;
+
+        final availConflict = _checkAvailability(entry.dayOfWeek, startMin);
+        final schedConflict = availConflict
+            ? null
+            : findConflict(
+                date: sessionDate,
+                weekday: entry.dayOfWeek,
+                startMin: startMin,
+                endMin: endMin,
+                studentOrders: studentOrders,
+              );
+
+        result.add(
+          SessionInstancePreview(
+            date: sessionDate,
+            weekday: entry.dayOfWeek,
+            startTime: entry.startTime,
+            durationHours: entry.durationHours,
+            conflictType: (availConflict || schedConflict != null)
+                ? SessionConflictType.conflict
+                : SessionConflictType.free,
+            conflictingOrder: schedConflict,
+          ),
+        );
+      }
     }
     result.sort((a, b) => a.date.compareTo(b.date));
     return result;
+  }
+
+  /// Returns `true` if the student is NOT available on [weekday] at [startMin].
+  bool _checkAvailability(int weekday, int startMin) {
+    if (student.availability.isEmpty) return false;
+    final dayAvail = student.availability.where((a) => a.dayOfWeek == weekday);
+    if (dayAvail.isEmpty || !dayAvail.first.isEnabled) return true;
+    final avail = dayAvail.first;
+    final fromMin = toMinutes(avail.from);
+    final toMin = toMinutes(avail.to);
+    return startMin < fromMin || startMin >= toMin;
   }
 
   @override
@@ -2658,7 +2744,11 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
           '#${s.conflictingOrder!.orderNumber} '
           '${s.conflictingOrder!.senior.fullName}';
     }
-    return AppStrings.timeMismatch;
+    // Check if student has ANY availability slot for this weekday
+    final hasDay = student.availability.any(
+      (a) => a.dayOfWeek == s.weekday && a.isEnabled,
+    );
+    return hasDay ? AppStrings.timeMismatch : AppStrings.unavailableDay;
   }
 }
 

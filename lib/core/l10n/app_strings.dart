@@ -144,6 +144,7 @@ class AppStrings {
       'studentRating': 'Prosječna ocjena',
       'studentTotalJobs': 'Ukupno poslova',
       'studentCompletedJobs': 'Završenih',
+      'studentReviewCount': 'recenzija',
       'studentCancelledJobs': 'Otkazanih',
       'studentAvailability': 'Dostupnost',
       'noAvailability': 'Nema unesene dostupnosti.',
@@ -187,6 +188,8 @@ class AppStrings {
       'sortZA': 'Ž → A',
       'sortNewest': 'Najnoviji',
       'sortOldest': 'Najstariji',
+      'sortNewestF': 'Najnovije',
+      'sortOldestF': 'Najstarije',
       'sortRatingHigh': 'Ocjena ↓',
       'sortRatingLow': 'Ocjena ↑',
 
@@ -284,6 +287,8 @@ class AppStrings {
       'suspendWarningTitle': 'Upozorenje: aktivne narudžbe',
       'suspendWarningMsg':
           'Korisnik ima aktivnih narudžbi koje će biti automatski otkazane. Jeste li sigurni da želite nastaviti sa suspenzijom?',
+      'suspendWarningStudentMsg':
+          'Student ima aktivne narudžbe s kojih će biti uklonjen. Narudžbe će se vratiti na status "Na čekanju" dok se ne pronađe zamjena. Jeste li sigurni?',
       'filterAll': 'Svi',
       'filterProcessing': 'U obradi',
       'filterActive': 'Aktivni',
@@ -304,10 +309,7 @@ class AppStrings {
           'Jeste li sigurni da želite obrisati ovu bilješku?',
       'adminNotePlaceholder': 'Unesite bilješku...',
       'adminNoteEdited': 'uređeno',
-      'assignToOrder': 'Dodijeli narudžbu',
       'assignShort': 'Dodijeli',
-      'matchingOrders': 'Nalozi koje može pokriti',
-      'noMatchingOrders': 'Nema naloga koji odgovaraju dostupnosti.',
       'assignSuccess': 'Student dodijeljen na nalog',
       'hours': 'h',
 
@@ -453,6 +455,7 @@ class AppStrings {
       'reviewSessions': 'Pregled termina',
       'reviewShort': 'Pregled',
       'timeMismatch': 'Razlika u satima',
+      'unavailableDay': 'Nedostupan taj dan',
       'sessionReactivate': 'Vrati termin',
       'sessionReactivateConfirm':
           'Želite li vratiti ovaj termin kao nadolazeći?',
@@ -577,6 +580,8 @@ class AppStrings {
           'Jeste li sigurni da želite aktivirati korisnika {name}?',
       'suspensionSuccess': 'Korisnik uspješno suspendiran',
       'activationSuccess': 'Korisnik uspješno aktiviran',
+      'suspensionFailed': 'Suspenzija nije uspjela',
+      'activationFailed': 'Aktivacija nije uspjela',
       'suspensionReasonRequired': 'Razlog suspenzije je obavezan',
       'actionSuspended': 'Suspendiran',
       'actionActivated': 'Aktiviran',
@@ -714,6 +719,7 @@ class AppStrings {
       'studentRating': 'Average rating',
       'studentTotalJobs': 'Total jobs',
       'studentCompletedJobs': 'Completed',
+      'studentReviewCount': 'reviews',
       'studentCancelledJobs': 'Cancelled',
       'studentAvailability': 'Availability',
       'noAvailability': 'No availability set.',
@@ -757,6 +763,8 @@ class AppStrings {
       'sortZA': 'Z → A',
       'sortNewest': 'Newest',
       'sortOldest': 'Oldest',
+      'sortNewestF': 'Newest',
+      'sortOldestF': 'Oldest',
       'sortRatingHigh': 'Rating ↓',
       'sortRatingLow': 'Rating ↑',
 
@@ -854,6 +862,8 @@ class AppStrings {
       'suspendWarningTitle': 'Warning: active orders',
       'suspendWarningMsg':
           'This user has active orders that will be automatically cancelled. Are you sure you want to proceed with suspension?',
+      'suspendWarningStudentMsg':
+          'Student has active orders from which they will be removed. Orders will return to "Pending" status until a replacement is found. Are you sure?',
       'filterAll': 'All',
       'filterProcessing': 'Processing',
       'filterActive': 'Active',
@@ -873,10 +883,7 @@ class AppStrings {
       'adminNoteDeleteConfirm': 'Are you sure you want to delete this note?',
       'adminNotePlaceholder': 'Enter note...',
       'adminNoteEdited': 'edited',
-      'assignToOrder': 'Assign order',
       'assignShort': 'Assign',
-      'matchingOrders': 'Matching orders',
-      'noMatchingOrders': 'No orders match this student\'s availability.',
       'assignSuccess': 'Student assigned to order',
       'hours': 'h',
 
@@ -1018,6 +1025,7 @@ class AppStrings {
       'reviewSessions': 'Review sessions',
       'reviewShort': 'Review',
       'timeMismatch': 'Time mismatch',
+      'unavailableDay': 'Unavailable this day',
       'selectTime': 'Select time',
       'timePickerHour': 'Hour',
       'timePickerMinute': 'Min',
@@ -1143,6 +1151,8 @@ class AppStrings {
       'activateConfirmMsg': 'Are you sure you want to activate user {name}?',
       'suspensionSuccess': 'User suspended successfully',
       'activationSuccess': 'User activated successfully',
+      'suspensionFailed': 'Suspension failed',
+      'activationFailed': 'Activation failed',
       'suspensionReasonRequired': 'Suspension reason is required',
       'actionSuspended': 'Suspended',
       'actionActivated': 'Activated',
@@ -1293,6 +1303,7 @@ class AppStrings {
   static String get studentRating => _t('studentRating');
   static String get studentTotalJobs => _t('studentTotalJobs');
   static String get studentCompletedJobs => _t('studentCompletedJobs');
+  static String get studentReviewCount => _t('studentReviewCount');
   static String get studentCancelledJobs => _t('studentCancelledJobs');
   static String get studentAvailability => _t('studentAvailability');
   static String get noAvailability => _t('noAvailability');
@@ -1338,6 +1349,8 @@ class AppStrings {
   static String get sortZA => _t('sortZA');
   static String get sortNewest => _t('sortNewest');
   static String get sortOldest => _t('sortOldest');
+  static String get sortNewestF => _t('sortNewestF');
+  static String get sortOldestF => _t('sortOldestF');
   static String get sortRatingHigh => _t('sortRatingHigh');
   static String get sortRatingLow => _t('sortRatingLow');
 
@@ -1388,6 +1401,7 @@ class AppStrings {
   static String get unarchiveSuccess => _t('unarchiveSuccess');
   static String get suspendWarningTitle => _t('suspendWarningTitle');
   static String get suspendWarningMsg => _t('suspendWarningMsg');
+  static String get suspendWarningStudentMsg => _t('suspendWarningStudentMsg');
   static String get filterAll => _t('filterAll');
   static String get filterProcessing => _t('filterProcessing');
   static String get filterActive => _t('filterActive');
@@ -1407,10 +1421,7 @@ class AppStrings {
   static String get adminNoteDeleteConfirm => _t('adminNoteDeleteConfirm');
   static String get adminNotePlaceholder => _t('adminNotePlaceholder');
   static String get adminNoteEdited => _t('adminNoteEdited');
-  static String get assignToOrder => _t('assignToOrder');
   static String get assignShort => _t('assignShort');
-  static String get matchingOrders => _t('matchingOrders');
-  static String get noMatchingOrders => _t('noMatchingOrders');
   static String get assignSuccess => _t('assignSuccess');
   static String get hours => _t('hours');
 
@@ -1759,6 +1770,7 @@ class AppStrings {
   static String get reviewSessions => _t('reviewSessions');
   static String get reviewShort => _t('reviewShort');
   static String get timeMismatch => _t('timeMismatch');
+  static String get unavailableDay => _t('unavailableDay');
 
   // ── Suspenzija ──
   static String get suspend => _t('suspend');
@@ -1777,6 +1789,8 @@ class AppStrings {
       _t('activateConfirmMsg', params: {'name': name});
   static String get suspensionSuccess => _t('suspensionSuccess');
   static String get activationSuccess => _t('activationSuccess');
+  static String get suspensionFailed => _t('suspensionFailed');
+  static String get activationFailed => _t('activationFailed');
   static String get suspensionReasonRequired => _t('suspensionReasonRequired');
   static String get actionSuspended => _t('actionSuspended');
   static String get actionActivated => _t('actionActivated');

@@ -273,6 +273,18 @@ class AdminApiService {
     }
   }
 
+  Future<ApiResult<List<SessionModel>>> getSessionsByOrder(int orderId) async {
+    try {
+      final response = await _api.get(ApiEndpoints.sessionsByOrder(orderId));
+      final list = (response.data as List<dynamic>)
+          .map((e) => _mapSession(e as Map<String, dynamic>))
+          .toList();
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   Future<ApiResult<void>> cancelSession(int sessionId) async {
     try {
       await _api.post(ApiEndpoints.cancelSession(sessionId));
@@ -609,6 +621,22 @@ class AdminApiService {
     }
   }
 
+  Future<ApiResult<List<StudentModel>>> getAvailableStudentsForSchedule(
+    int scheduleId,
+  ) async {
+    try {
+      final response = await _api.get(
+        '${ApiEndpoints.students}/order-schedules/$scheduleId/available-students',
+      );
+      final list = (response.data as List<dynamic>)
+          .map((e) => _mapStudent(e as Map<String, dynamic>))
+          .toList();
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   // ─────────────────────────────────────────────
   //  PROMO CODES
   // ─────────────────────────────────────────────
@@ -867,6 +895,20 @@ class AdminApiService {
   //  STUDENT AVAILABILITY
   // ─────────────────────────────────────────────
 
+  Future<ApiResult<Set<int>>> getStudentServiceIds(int studentId) async {
+    try {
+      final response = await _api.get(
+        ApiEndpoints.servicesByStudent(studentId),
+      );
+      final ids = (response.data as List<dynamic>)
+          .map((e) => (e as Map<String, dynamic>)['serviceId'] as int)
+          .toSet();
+      return ApiResult.ok(ids);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   Future<ApiResult<List<DayAvailability>>> getStudentAvailability(
     int studentId,
   ) async {
@@ -1019,6 +1061,18 @@ class AdminApiService {
 
     final statusStr = _studentStatusStr(json['status']);
 
+    // Parse availability slots from backend
+    final rawSlots = json['availabilitySlots'] as List<dynamic>? ?? [];
+    final availability = rawSlots.map((slot) {
+      final s = slot as Map<String, dynamic>;
+      return DayAvailability(
+        dayOfWeek: (s['dayOfWeek'] as num).toInt(),
+        isEnabled: true,
+        from: _parseTimeOfDay(s['startTime']),
+        to: _parseTimeOfDay(s['endTime']),
+      );
+    }).toList();
+
     return StudentModel(
       id: '${json['userId']}',
       firstName: firstName,
@@ -1042,6 +1096,8 @@ class AdminApiService {
           statusStr != 'Deleted',
       isArchived:
           statusStr == 'PendingPermanentDeletion' || statusStr == 'Deleted',
+      isSuspended: json['isSuspended'] as bool? ?? false,
+      suspensionReason: json['suspensionReason'] as String?,
       createdAt: _parseDateTime(json['dateRegistered']),
       contractStatus: _mapContractStatus(
         statusStr,
@@ -1055,6 +1111,7 @@ class AdminApiService {
           : null,
       hourlyRate: _cachedHourlyRate,
       sundayHourlyRate: _cachedSundayRate,
+      availability: availability,
     );
   }
 
@@ -1082,6 +1139,7 @@ class AdminApiService {
 
     return SeniorModel(
       id: '${json['id']}',
+      userId: json['customerId'] as int?,
       contactId: contact?['id'] as int?,
       ordererContactId: ordererContact?['id'] as int?,
       firstName: firstName,
@@ -1095,6 +1153,8 @@ class AdminApiService {
       createdAt: _parseDateTime(contact?['createdAt']),
       isActive: json['deletedAt'] == null,
       isArchived: json['deletedAt'] != null,
+      isSuspended: json['isSuspended'] as bool? ?? false,
+      suspensionReason: json['suspensionReason'] as String?,
       creditCards: const [],
       // Orderer data from ordererContact
       ordererFirstName: ordererFirstName,
@@ -1141,11 +1201,59 @@ class AdminApiService {
         ? schedules.first
         : <String, dynamic>{};
 
+    // Build assigned student (if any) from backend fields
+    final assignedStudentName = json['assignedStudentName'] as String?;
+    final assignedStudentId = json['assignedStudentId'] as int?;
+    StudentModel? assignedStudent;
+    if (assignedStudentName != null && assignedStudentId != null) {
+      final nameParts = assignedStudentName.split(' ');
+      final statusStr = _studentStatusStr(json['assignedStudentStatus']);
+      assignedStudent = StudentModel(
+        id: '$assignedStudentId',
+        firstName: nameParts.isNotEmpty ? nameParts.first : '',
+        lastName: nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '',
+        email: json['assignedStudentEmail'] as String? ?? '',
+        phone: json['assignedStudentPhone'] as String? ?? '',
+        address: json['assignedStudentAddress'] as String? ?? '',
+        city: json['assignedStudentCity'] as String? ?? '',
+        faculty: '',
+        studentIdNumber: json['assignedStudentNumber'] as String? ?? '',
+        dateOfBirth:
+            _parseNullableDate(json['assignedStudentDateOfBirth']) ??
+            DateTime(2000),
+        gender: _mapGender(json['assignedStudentGender']),
+        avgRating: _toDouble(json['assignedStudentAverageRating']),
+        totalReviews: json['assignedStudentTotalReviews'] as int? ?? 0,
+        isVerified: statusStr == 'Active',
+        isActive:
+            statusStr != 'AccountDeactivated' &&
+            statusStr != 'PendingPermanentDeletion' &&
+            statusStr != 'Deleted',
+        isArchived:
+            statusStr == 'PendingPermanentDeletion' || statusStr == 'Deleted',
+        createdAt: DateTime.now(),
+        contractStatus: _mapContractStatus(
+          statusStr,
+          json['assignedStudentDaysToContractExpire'],
+        ),
+        contractExpiryDate: json['assignedStudentDaysToContractExpire'] != null
+            ? DateTime.now().add(
+                Duration(
+                  days: (json['assignedStudentDaysToContractExpire'] as num)
+                      .toInt(),
+                ),
+              )
+            : null,
+        hourlyRate: _cachedHourlyRate,
+        sundayHourlyRate: _cachedSundayRate,
+      );
+    }
+
     return OrderModel(
       id: '${json['id']}',
       orderNumber: json['id'].toString().padLeft(4, '0'),
       senior: _mapOrderSenior(json),
-      student: null,
+      student: assignedStudent,
       status: _mapOrderStatus(json['status']),
       frequency: (json['isRecurring'] == true)
           ? FrequencyType.recurring

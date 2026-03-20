@@ -87,7 +87,10 @@ abstract class SessionPreviewHelperBase {
       final sEnd = sStart + session.durationHours * 60;
       if (toMinutes(a.from) > sStart || toMinutes(a.to) < sEnd) return false;
       final subOrders = MockData.orders.where(
-        (o) => o.student?.id == s.id && o.status != OrderStatus.cancelled,
+        (o) =>
+            o.student?.id == s.id &&
+            o.status != OrderStatus.cancelled &&
+            o.status != OrderStatus.completed,
       );
       for (final o in subOrders) {
         if (o.dayEntries.isNotEmpty) {
@@ -134,7 +137,10 @@ abstract class SessionPreviewHelperBase {
 
     final busy = <({int start, int end})>[];
     for (final o in MockData.orders.where(
-      (o) => o.student?.id == student.id && o.status != OrderStatus.cancelled,
+      (o) =>
+          o.student?.id == student.id &&
+          o.status != OrderStatus.cancelled &&
+          o.status != OrderStatus.completed,
     )) {
       if (o.dayEntries.isNotEmpty) {
         for (final e in o.dayEntries) {

@@ -50,6 +50,7 @@ class DataLoader {
       api.getOrders(), // 2
       api.getReviews(), // 3
       api.getNotifications(userId), // 4
+      api.getSessions(), // 5
     ]);
 
     final studentsResult = results[0] as ApiResult<List<StudentModel>>;
@@ -57,6 +58,7 @@ class DataLoader {
     final ordersResult = results[2] as ApiResult<List<OrderModel>>;
     final reviewsResult = results[3] as ApiResult<List<ReviewModel>>;
     final notifResult = results[4] as ApiResult<List<NotificationModel>>;
+    final sessionsResult = results[5] as ApiResult<List<SessionModel>>;
 
     if (studentsResult.success && studentsResult.data != null) {
       MockData.students
@@ -100,6 +102,31 @@ class DataLoader {
         ..addAll(notifResult.data!);
     } else {
       debugPrint('[DataLoader] notifications failed: ${notifResult.error}');
+      allOk = false;
+    }
+
+    // Merge sessions into orders
+    if (sessionsResult.success && sessionsResult.data != null) {
+      final sessionsByOrder = <String, List<SessionModel>>{};
+      for (final s in sessionsResult.data!) {
+        final oid = s.orderId;
+        if (oid != null) {
+          sessionsByOrder.putIfAbsent(oid, () => []).add(s);
+        }
+      }
+      for (var i = 0; i < MockData.orders.length; i++) {
+        final order = MockData.orders[i];
+        final orderSessions = sessionsByOrder[order.id];
+        if (orderSessions != null && orderSessions.isNotEmpty) {
+          MockData.orders[i] = order.copyWith(sessions: orderSessions);
+        }
+      }
+      debugPrint(
+        '[DataLoader] sessions merged: ${sessionsResult.data!.length} total, '
+        '${sessionsByOrder.length} orders with sessions',
+      );
+    } else {
+      debugPrint('[DataLoader] sessions failed: ${sessionsResult.error}');
       allOk = false;
     }
 

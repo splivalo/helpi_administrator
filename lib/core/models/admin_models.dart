@@ -101,6 +101,7 @@ class CreditCard {
 
 class SeniorModel {
   final String id;
+  final int? userId; // Customer/User ID (AspNetUsers.Id) — for suspend/activate
   final int? contactId; // For backend update via PUT /api/contact-infos/{id}
   final int? ordererContactId; // For orderer update
   final String firstName;
@@ -113,6 +114,8 @@ class SeniorModel {
   final DateTime dateOfBirth;
   final bool isActive;
   final bool isArchived;
+  final bool isSuspended;
+  final String? suspensionReason;
   final DateTime createdAt;
   final String? ordererFirstName;
   final String? ordererLastName;
@@ -125,6 +128,7 @@ class SeniorModel {
 
   const SeniorModel({
     required this.id,
+    this.userId,
     this.contactId,
     this.ordererContactId,
     required this.firstName,
@@ -137,6 +141,8 @@ class SeniorModel {
     required this.dateOfBirth,
     this.isActive = true,
     this.isArchived = false,
+    this.isSuspended = false,
+    this.suspensionReason,
     required this.createdAt,
     this.ordererFirstName,
     this.ordererLastName,
@@ -176,6 +182,8 @@ class StudentModel {
   final bool isVerified;
   final bool isActive;
   final bool isArchived;
+  final bool isSuspended;
+  final String? suspensionReason;
   final DateTime createdAt;
   final ContractStatus contractStatus;
   final DateTime? contractStartDate;
@@ -203,6 +211,8 @@ class StudentModel {
     this.isVerified = false,
     this.isActive = true,
     this.isArchived = false,
+    this.isSuspended = false,
+    this.suspensionReason,
     required this.createdAt,
     this.contractStatus = ContractStatus.none,
     this.contractStartDate,
@@ -270,6 +280,33 @@ class OrderModel {
     this.promoCode,
     this.scheduleIds = const [],
   });
+
+  OrderModel copyWith({
+    StudentModel? Function()? student,
+    OrderStatus? status,
+    List<SessionModel>? sessions,
+  }) {
+    return OrderModel(
+      id: id,
+      orderNumber: orderNumber,
+      senior: senior,
+      student: student != null ? student() : this.student,
+      status: status ?? this.status,
+      frequency: frequency,
+      services: services,
+      createdAt: createdAt,
+      scheduledDate: scheduledDate,
+      scheduledStart: scheduledStart,
+      durationHours: durationHours,
+      notes: notes,
+      address: address,
+      endDate: endDate,
+      dayEntries: dayEntries,
+      sessions: sessions ?? this.sessions,
+      promoCode: promoCode,
+      scheduleIds: scheduleIds,
+    );
+  }
 }
 
 class DayEntry {

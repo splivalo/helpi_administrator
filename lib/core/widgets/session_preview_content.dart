@@ -417,13 +417,15 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                     () => _skipSession(index),
                   ),
                   const SizedBox(width: 8),
-                  _actionBtn(
-                    Icons.schedule,
-                    AppStrings.changeTime,
-                    HelpiTheme.accent,
-                    () => _toggleTimePicker(index),
-                  ),
-                  const SizedBox(width: 8),
+                  if (widget.findAltSlots(s).isNotEmpty) ...[
+                    _actionBtn(
+                      Icons.schedule,
+                      AppStrings.changeTime,
+                      HelpiTheme.accent,
+                      () => _toggleTimePicker(index),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   _actionBtn(
                     Icons.person_add_alt_1,
                     AppStrings.findSubstitute,
