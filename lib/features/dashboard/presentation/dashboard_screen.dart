@@ -768,7 +768,7 @@ class _ExpiringContractCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            '${student.avgRating}  ·  ${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
+                            '${student.avgRating.toStringAsFixed(1)}  ·  ${student.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
                             style: const TextStyle(
                               fontSize: 14,
                               color: HelpiTheme.textSecondary,
@@ -942,7 +942,7 @@ class _ActiveStudentCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 3),
                           Text(
-                            '${student.avgRating}  ·  $sessionCount ${AppStrings.sessionsCount}  ·  $totalHours ${AppStrings.hoursCount}',
+                            '${student.avgRating.toStringAsFixed(1)}  ·  $sessionCount ${AppStrings.sessionsCount}  ·  $totalHours ${AppStrings.hoursCount}',
                             style: const TextStyle(
                               fontSize: 14,
                               color: HelpiTheme.textSecondary,

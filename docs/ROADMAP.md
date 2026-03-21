@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-15
+> Zadnja izmjena: 2026-03-21
 
 ## TODO (čeka potvrdu)
 
@@ -63,6 +63,11 @@
 - [x] **Tab hover boja** — tabBarTheme s neutralnim sivim overlayColor (2026-03-15)
 - [x] **ContractStatus cleanup** — Uklonjeni deactivated + expiring tabovi/enum/filteri/badge (2026-03-15)
 - [x] **Dashboard expiring → date-based** — active + expiryDate < 30 dana umjesto enum-based (2026-03-15)
+- [x] **Haversine udaljenost** — Izračun km udaljenosti student↔senior, prikaz u assign modalu i reschedule pickeru (2026-03-18→19)
+- [x] **Sortiranje studenata po udaljenosti** — 3-level sort: dostupnost → udaljenost → ocjena (2026-03-19)
+- [x] **Rating decimal fix** — toStringAsFixed(1) na svih 8 lokacija u 5 fajlova (2026-03-19)
+- [x] **Planirani termini (projected sessions)** — Prikaz planiranih sesija za Pending narudžbe iz rasporeda prije dodjele studenta (2026-03-20)
+- [x] **Order Details cleanup** — Uklonjene redundantne sekcije (vrijeme, trajanje, raspored, adresa) iz detalja narudžbe (2026-03-21)
 
 ---
 

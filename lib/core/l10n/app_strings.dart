@@ -428,6 +428,9 @@ class AppStrings {
       // ── Termini ──────────────────────────────────
       'sessionsTitle': 'Termini',
       'sessionsMonthlySubtitle': 'Prikazani termini za tekući mjesec.',
+      'sessionsPlannedSubtitle':
+          'Planirani termini — čeka se dodjela studenta.',
+      'sessionStatusPlanned': 'Planirano',
       'sessionStatusScheduled': 'Nadolazeći',
       'sessionStatusCompleted': 'Obavljen',
       'sessionStatusCancelled': 'Otkazan',
@@ -1002,6 +1005,9 @@ class AppStrings {
       // ── Termini ──────────────────────────────────
       'sessionsTitle': 'Sessions',
       'sessionsMonthlySubtitle': 'Sessions for the current month.',
+      'sessionsPlannedSubtitle':
+          'Planned sessions — awaiting student assignment.',
+      'sessionStatusPlanned': 'Planned',
       'sessionStatusScheduled': 'Scheduled',
       'sessionStatusCompleted': 'Completed',
       'sessionStatusCancelled': 'Cancelled',
@@ -1723,6 +1729,8 @@ class AppStrings {
   // ── Termini ──
   static String get sessionsTitle => _t('sessionsTitle');
   static String get sessionsMonthlySubtitle => _t('sessionsMonthlySubtitle');
+  static String get sessionsPlannedSubtitle => _t('sessionsPlannedSubtitle');
+  static String get sessionStatusPlanned => _t('sessionStatusPlanned');
   static String get sessionStatusScheduled => _t('sessionStatusScheduled');
   static String get sessionStatusCompleted => _t('sessionStatusCompleted');
   static String get sessionStatusCancelled => _t('sessionStatusCancelled');

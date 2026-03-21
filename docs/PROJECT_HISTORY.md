@@ -197,6 +197,49 @@
 
 ---
 
+## 2026-03-15 — Suspenzija, Admin Notes & Tab Cleanup
+
+- **Review comment scroll** — Zamjena truncation (maxLines:5) s ConstrainedBox(maxHeight:100) + SingleChildScrollView
+- **Admin Notes (NotesSection)** — Widget za admin bilješke (add/edit/delete) integriran u StudentDetail (9 sekcija) i SeniorDetail (8 sekcija)
+- **Suspension warning dialog** — Upozorenje s brojem aktivnih narudžbi prije suspenzije (student + senior detail)
+- **Auto-cancel orders on suspend** — Loop u \_confirmSuspend() otkazuje aktivne/processing narudžbe pri suspenziji
+- **SuspensionStateManager listener fix** — Dodano addListener u initState() na StudentsScreen i SeniorsScreen
+- **Tab hover boja fix** — tabBarTheme u theme.dart s neutralnim sivim overlayColor umjesto teal splasha
+- **Uklonjen ContractStatus.deactivated** — Enum, tab, filter, badge, AppStrings (4 ključa)
+- **Uklonjen ContractStatus.expiring** — Prebačeno na date-based (active + expiryDate < 30 dana)
+- **Suspend button style** — TextButton.styleFrom(foregroundColor: error) za pravilan hover
+- **Rezultat**: 0 errors → 0 errors (dart analyze)
+
+---
+
+## 2026-03-18→19 — Udaljenost & Sortiranje studenata
+
+- **Haversine formula** — `haversineKm()` dodan u `formatters.dart` za izračun udaljenosti između studenta i seniora
+- **Lat/Lng polja na modelima** — `latitude`/`longitude` dodani na SeniorModel i StudentModel, parsirani iz backend API odgovora
+- **Prikaz udaljenosti u assign modalu** — Km udaljenost studenta od seniora prikazana na student assign kartici (zamjenjuje broj završenih narudžbi)
+- **Sortiranje studenata** — 3-level sort: dostupnost → udaljenost → ocjena (najdostupniji i najbliži student prvi)
+- **Udaljenost u reschedule pickeru** — Km prikaz i u modalnom izborniku za promjenu studenta
+- **Uklonjen `~` prefix** — Nekorišten prefix ispred udaljenosti uklonjen
+- **Rating decimal fix** — `toStringAsFixed(1)` na svih 8 lokacija u 5 fajlova (dashboard_screen, session_preview_content, session_preview_sheet, order_detail_screen)
+- **Backend fix: StudentQueryBuilder** — Dodani `Latitude`/`Longitude` u `ContactInfoDto` projekciju (riješen 5331 km bug)
+- **Backend fix: OrderDto** — Dodani `SeniorLatitude`/`SeniorLongitude` u OrderDto + AutoMapper mapping
+- **Rezultat**: 0 errors (dart analyze), backend build success
+
+---
+
+## 2026-03-20→21 — Planirani termini & Order Details Cleanup
+
+- **AdminDirectAssign instant JobInstance generation** — Backend `AdminDirectAssignAsync()` sada odmah generira JobInstance zapise pri dodjeli studenta (ranije ovisilo o Hangfire periodic jobu). Dodane 3 nove ovisnosti + metoda `GenerateJobInstancesForAssignmentAsync()`.
+- **OrderScheduleRepository enhancement** — `.ThenInclude(o => o.Senior)` dodan u `GetByIdAsync()` za pristup `order.Senior.CustomerId` pri generaciji instanci.
+- **Projected sessions za Pending narudžbe** — Nova metoda `_generateProjectedSessions()` u order_detail_screen.dart generira planirane termine iz `dayEntries` rasporeda (one-time: 1 sesija, recurring: weekly do endDate/3mj horizonta)
+- **Muted session card dizajn** — `_buildProjectedSessionCard()` s Column layoutom: datum gore, vrijeme + trajanje dolje, sivi tonovi, bez akcijskih gumba
+- **"Planirano" badge** — Narančasti badge u sessions sekciji i subtitle "Planirani termini — čeka se dodjela studenta."
+- **Detalji narudžbe cleanup** — Uklonjene 4 redundantne sekcije iz "Detalji narudžbe" kartice: Vrijeme (vidljivo u terminima), Trajanje (vidljivo u terminima), Raspored (vidljiv u terminima), Adresa (vidljiva u "Korisnik usluge" kartici)
+- **AppStrings** — Dodani `sessionsPlannedSubtitle`, `sessionStatusPlanned` (HR + EN + getteri)
+- **Rezultat**: 0 errors (dart analyze), backend build success, testiran Order 9 → 21 sesija odmah po dodjeli
+
+---
+
 ## Arhitekturalne odluke
 
 | Odluka                                         | Razlog                                                  | Datum      |
@@ -221,3 +264,6 @@
 | confirmText/cancelText na showDatePicker       | "U redu" umjesto "U REDU" caps lock                     | 2026-03-05 |
 | ValueKey locale rebuild u IndexedStack         | Force rebuild ekrana pri promjeni jezika                | 2026-03-05 |
 | ClipRRect na assign flow step 2                | Content clipping za zaobljene rubove                    | 2026-03-05 |
+| Haversine za km udaljenost                     | Sortiranje i prikaz koliko je student daleko od seniora | 2026-03-18 |
+| Projected sessions iz dayEntries               | Planirani termini vidljivi i prije dodjele studenta     | 2026-03-20 |
+| Instant JobInstance na admin assign            | Sesije odmah vidljive nakon dodjele, ne čeka Hangfire   | 2026-03-20 |

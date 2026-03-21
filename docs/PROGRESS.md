@@ -1,32 +1,32 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-03-15
+> Zadnja izmjena: 2026-03-21
 
 ## Ukupno stanje
 
-| Modul                 | Status                                                                        | Dovršenost |
-| --------------------- | ----------------------------------------------------------------------------- | ---------- |
-| Auth (Login)          | ✅ UI gotov, mock login                                                       | 90%        |
-| Dashboard             | ✅ KPI, narudžbe u obradi, aktivni studenti, ugovori, grid/list               | 100%       |
-| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                      | 100%       |
-| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta    | 100%       |
-| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                         | 100%       |
-| Seniori – Detalj      | ✅ Profil, narudžbe, "Dodaj narudžbu", status logika                          | 100%       |
-| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                              | 100%       |
-| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                   | 100%       |
-| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje, uređivanje, promo kod  | 100%       |
-| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                    | 100%       |
-| Chat (Moderacija)     | ✅ Lista razgovora + poruke                                                   | 90%        |
-| Notifikacije          | ✅ NotificationBell widget + drawer sa mock podacima                          | 90%        |
-| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild                         | 100%       |
-| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane             | 100%       |
-| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                   | 100%       |
-| Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                      | 100%       |
-| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum | 100%       |
-| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                  | 100%       |
-| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges  | 100%       |
-| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                         | 100%       |
-| Backend integracija   | ❌ Nije započeta                                                              | 0%         |
+| Modul                 | Status                                                                                                      | Dovršenost |
+| --------------------- | ----------------------------------------------------------------------------------------------------------- | ---------- |
+| Auth (Login)          | ✅ UI gotov, mock login                                                                                     | 90%        |
+| Dashboard             | ✅ KPI, narudžbe u obradi, aktivni studenti, ugovori, grid/list                                             | 100%       |
+| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                    | 100%       |
+| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                  | 100%       |
+| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                       | 100%       |
+| Seniori – Detalj      | ✅ Profil, narudžbe, "Dodaj narudžbu", status logika                                                        | 100%       |
+| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                            | 100%       |
+| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                 | 100%       |
+| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje, uređivanje, promo kod, udaljenost, planirani termini | 100%       |
+| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                  | 100%       |
+| Chat (Moderacija)     | ✅ Lista razgovora + poruke                                                                                 | 90%        |
+| Notifikacije          | ✅ NotificationBell widget + drawer sa mock podacima                                                        | 90%        |
+| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild                                                       | 100%       |
+| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                           | 100%       |
+| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                 | 100%       |
+| Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                    | 100%       |
+| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                               | 100%       |
+| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                | 100%       |
+| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                | 100%       |
+| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                       | 100%       |
+| Backend integracija   | ❌ Nije započeta                                                                                            | 0%         |
 
 **Ukupna dovršenost frontenda: ~98%**
 **27 Dart fajlova, ~18.345 linija koda**
@@ -133,6 +133,26 @@
 - [x] **Uklonjen ContractStatus.deactivated** — Enum, tab, filter, badge, AppStrings (4 ključa)
 - [x] **Uklonjen ContractStatus.expiring** — Enum, tab, filter, badge, AppStrings; Dashboard "ističe" logika prebačena na date-based (active + expiryDate < 30 dana)
 - [x] **Suspend button style** — TextButton.styleFrom(foregroundColor: error) za pravilan hover
+
+### Udaljenost & Sortiranje (2026-03-18→19)
+
+- [x] **Haversine formula** — `haversineKm()` u `formatters.dart` za izračun udaljenosti student↔senior
+- [x] **Lat/Lng polja** — Dodani `latitude`/`longitude` na SeniorModel i StudentModel
+- [x] **Prikaz udaljenosti u assign modalu** — Km udaljenost studenta od seniora na student assign kartici (zamjenjuje broj završenih narudžbi)
+- [x] **Sortiranje studenata** — Dostupnost → Udaljenost → Ocjena (3-level sort)
+- [x] **Udaljenost u reschedule pickeru** — Km prikaz i u modalnom izborniku za promjenu studenta
+- [x] **Uklonjen `~` prefix** — Oznaka "~" ispred udaljenosti uklonjena (nepotrebna)
+- [x] **Rating decimal fix** — `toStringAsFixed(1)` na svih 8 lokacija u 5 fajlova (dashboard, session_preview_content, session_preview_sheet, order_detail_screen)
+
+### Planirani termini & UI Cleanup (2026-03-20→21)
+
+- [x] **Projected sessions za Pending narudžbe** — Generiranje planiranih termina iz `dayEntries` rasporeda prije dodjele studenta
+- [x] **`_generateProjectedSessions()`** — Algoritam: one-time → 1 sesija, recurring → weekly do endDate ili 3 mjeseca, poravnato s `RecurrenceDateGenerator`
+- [x] **Muted session card dizajn** — Sivi `_buildProjectedSessionCard()` s Column layoutom (datum + vrijeme/trajanje), bez akcijskih gumba
+- [x] **"Planirano" badge** — Narančasti badge i subtitle "Planirani termini — čeka se dodjela studenta."
+- [x] **Vrijeme + trajanje na kartici** — Column layout: datum gore, HH:MM · Xh dolje s ikonom
+- [x] **Detalji narudžbe cleanup** — Uklonjeni redundantni: Vrijeme, Trajanje, Raspored, Adresa (vidljivi u drugim sekcijama)
+- [x] **AppStrings dodani** — `sessionsPlannedSubtitle`, `sessionStatusPlanned` (HR + EN)
 
 ### Promo kod (Stripe priprema)
 

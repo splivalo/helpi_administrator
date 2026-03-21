@@ -148,6 +148,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   ];
 
   List<Widget> _buildAllSections() {
+    final hasSessionsOrSchedule =
+        _order.sessions.isNotEmpty || _order.dayEntries.isNotEmpty;
     return [
       _buildOrdererSection(),
       _buildServiceUserSection(),
@@ -160,7 +162,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
         )
-      else if (_order.sessions.isNotEmpty)
+      else if (hasSessionsOrSchedule)
         _buildSessionsSection()
       else
         const SizedBox.shrink(),
@@ -510,7 +512,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               InfoField(
                 label: AppStrings.studentRating,
                 value:
-                    '${_order.student!.avgRating}/5 (${_order.student!.totalReviews})',
+                    '${_order.student!.avgRating.toStringAsFixed(1)}/5 (${_order.student!.totalReviews})',
               ),
             ],
           ),
@@ -560,16 +562,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   // -------------------------------------------------------------
   Widget _buildOrderDetailsSection() {
     final dateStr = formatDate(_order.scheduledDate);
-    final startStr = formatTimeOfDay(_order.scheduledStart);
-    final endMinutes =
-        _order.scheduledStart.hour * 60 +
-        _order.scheduledStart.minute +
-        _order.durationHours * 60;
-    final endTime = TimeOfDay(
-      hour: (endMinutes ~/ 60) % 24,
-      minute: endMinutes % 60,
-    );
-    final timeStr = '$startStr – ${formatTimeOfDay(endTime)}';
     return SectionCard(
       title: AppStrings.orderDetails,
       icon: Icons.receipt_long,
@@ -577,44 +569,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ResponsiveFieldGrid(
           children: [
             InfoField(label: AppStrings.orderDate, value: dateStr),
-            InfoField(label: AppStrings.orderTime, value: timeStr),
-            InfoField(
-              label: AppStrings.orderDuration,
-              value: '${_order.durationHours}h',
-            ),
             InfoField(
               label: AppStrings.orderFrequency,
               value: _frequencyLabel(),
             ),
-            if (_order.dayEntries.length > 1)
-              InfoField(
-                label: AppStrings.orderSchedule,
-                value: _order.dayEntries
-                    .map((e) {
-                      final day = _dayName(
-                        e.dayOfWeek == 0 ? 7 : e.dayOfWeek,
-                        short: true,
-                      );
-                      final start = formatTimeOfDay(e.startTime);
-                      final endMin =
-                          e.startTime.hour * 60 +
-                          e.startTime.minute +
-                          e.durationHours * 60;
-                      final end = TimeOfDay(
-                        hour: (endMin ~/ 60) % 24,
-                        minute: endMin % 60,
-                      );
-                      return '$day $start–${formatTimeOfDay(end)}';
-                    })
-                    .join('\n'),
-              ),
-            InfoField(label: AppStrings.seniorAddress, value: _order.address),
-            if (_order.notes != null && _order.notes!.isNotEmpty)
-              InfoField(label: AppStrings.orderNotes, value: _order.notes!),
             InfoField(
               label: AppStrings.orderServices,
               value: _order.services.map((s) => serviceLabel(s)).join(', '),
             ),
+            if (_order.notes != null && _order.notes!.isNotEmpty)
+              InfoField(label: AppStrings.orderNotes, value: _order.notes!),
             if (_order.promoCode != null && _order.promoCode!.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -699,6 +663,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   //  TERMINI (SESSIONS) SECTION
   // ---------------------------------------------------------------
   Widget _buildSessionsSection() {
+    final hasRealSessions = _order.sessions.isNotEmpty;
+    final isProjected = !hasRealSessions && _order.dayEntries.isNotEmpty;
+    final projectedSessions = isProjected
+        ? _generateProjectedSessions()
+        : <SessionModel>[];
+    final displaySessions = hasRealSessions
+        ? _order.sessions
+        : projectedSessions;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -721,10 +694,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             },
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.calendar_month,
                   size: 20,
-                  color: HelpiTheme.accent,
+                  color: isProjected
+                      ? HelpiTheme.textSecondary
+                      : HelpiTheme.accent,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -735,6 +710,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     color: HelpiTheme.textPrimary,
                   ),
                 ),
+                if (isProjected) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF3E0),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      AppStrings.sessionStatusPlanned,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFE65100),
+                      ),
+                    ),
+                  ),
+                ],
                 const Spacer(),
                 Icon(
                   _sessionsExpanded
@@ -745,48 +741,171 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ],
             ),
           ),
-          if (_order.frequency != FrequencyType.oneTime) ...[
-            const SizedBox(height: 6),
-            Text(
-              AppStrings.sessionsMonthlySubtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                color: HelpiTheme.textSecondary,
-              ),
+          const SizedBox(height: 6),
+          Text(
+            isProjected
+                ? AppStrings.sessionsPlannedSubtitle
+                : _order.frequency != FrequencyType.oneTime
+                ? AppStrings.sessionsMonthlySubtitle
+                : '',
+            style: const TextStyle(
+              fontSize: 12,
+              color: HelpiTheme.textSecondary,
             ),
-          ],
-          if (_sessionsExpanded) ...[
+          ),
+          if (_sessionsExpanded && displaySessions.isNotEmpty) ...[
             const SizedBox(height: 16),
             ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: _order.sessions.length > 5 ? 380 : double.infinity,
+                maxHeight: displaySessions.length > 5 ? 380 : double.infinity,
               ),
-              child: _order.sessions.length > 5
+              child: displaySessions.length > 5
                   ? ListView.builder(
                       shrinkWrap: true,
-                      itemCount: _order.sessions.length,
+                      itemCount: displaySessions.length,
                       itemBuilder: (_, i) {
-                        final session = _order.sessions[i];
-                        final isLast = i == _order.sessions.length - 1;
+                        final session = displaySessions[i];
+                        final isLast = i == displaySessions.length - 1;
                         return Padding(
                           padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                          child: _buildSessionCard(session),
+                          child: isProjected
+                              ? _buildProjectedSessionCard(session)
+                              : _buildSessionCard(session),
                         );
                       },
                     )
                   : Column(
-                      children: _order.sessions.asMap().entries.map((mapEntry) {
+                      children: displaySessions.asMap().entries.map((mapEntry) {
                         final isLast =
-                            mapEntry.key == _order.sessions.length - 1;
+                            mapEntry.key == displaySessions.length - 1;
                         final session = mapEntry.value;
                         return Padding(
                           padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                          child: _buildSessionCard(session),
+                          child: isProjected
+                              ? _buildProjectedSessionCard(session)
+                              : _buildSessionCard(session),
                         );
                       }).toList(),
                     ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  /// Generate projected session dates from OrderSchedule data (dayEntries).
+  List<SessionModel> _generateProjectedSessions() {
+    final sessions = <SessionModel>[];
+    final startDate = _order.scheduledDate;
+    final now = DateTime.now();
+    final effectiveStart = startDate.isAfter(now) ? startDate : now;
+    final isRecurring = _order.frequency != FrequencyType.oneTime;
+    final horizonDate =
+        _order.endDate ?? DateTime(now.year, now.month + 3, now.day);
+
+    for (final entry in _order.dayEntries) {
+      // Find first matching weekday on/after effectiveStart
+      var current = effectiveStart;
+      final daysToAdd = (entry.dayOfWeek - current.weekday + 7) % 7;
+      current = current.add(Duration(days: daysToAdd));
+      // If aligned to today but startDate is in the past, ensure we don't go before startDate
+      if (current.isBefore(startDate)) {
+        current = current.add(const Duration(days: 7));
+      }
+
+      if (!isRecurring) {
+        // One-time: just the first matching date
+        if (!current.isAfter(horizonDate)) {
+          sessions.add(
+            SessionModel(
+              id: 'projected_${entry.dayOfWeek}_${sessions.length}',
+              date: current,
+              weekday: entry.dayOfWeek,
+              startTime: entry.startTime,
+              durationHours: entry.durationHours,
+            ),
+          );
+        }
+      } else {
+        // Recurring: weekly until horizon
+        while (!current.isAfter(horizonDate)) {
+          sessions.add(
+            SessionModel(
+              id: 'projected_${entry.dayOfWeek}_${sessions.length}',
+              date: current,
+              weekday: entry.dayOfWeek,
+              startTime: entry.startTime,
+              durationHours: entry.durationHours,
+            ),
+          );
+          current = current.add(const Duration(days: 7));
+        }
+      }
+    }
+
+    sessions.sort((a, b) => a.date.compareTo(b.date));
+    return sessions;
+  }
+
+  /// Lighter card for projected (planned) sessions — no action buttons.
+  Widget _buildProjectedSessionCard(SessionModel session) {
+    final useShort = MediaQuery.sizeOf(context).width < 600;
+    final dateStr =
+        '${_dayName(session.weekday, short: useShort)}, ${formatDateDot(session.date)}';
+    final timeStr = formatTimeOfDay(session.startTime);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFAFA),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: HelpiTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.event_note,
+                size: 18,
+                color: HelpiTheme.textSecondary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  dateStr,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 26),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.access_time,
+                  size: 14,
+                  color: HelpiTheme.textSecondary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '$timeStr  ·  ${session.durationHours}h',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -1523,21 +1642,36 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ),
             ),
           ),
-        ...filteredStudents
-            .where((s) => s.fullName != session.studentName)
-            .map(
-              (student) => _StudentRadioTile(
-                name: student.fullName,
-                subtitle:
-                    '⭐ ${student.avgRating.toStringAsFixed(1)}  ·  ${student.completedJobs} poslova',
-                isSelected: selectedStudentName == student.fullName,
-                onTap: () {
-                  setSheetState(() {
-                    selectedStudentName = student.fullName;
-                  });
-                },
-              ),
-            ),
+        ...filteredStudents.where((s) => s.fullName != session.studentName).map(
+          (student) {
+            final senLat = _order.senior.latitude;
+            final senLng = _order.senior.longitude;
+            final stuLat = student.latitude;
+            final stuLng = student.longitude;
+            final distKm =
+                (senLat != null &&
+                    senLng != null &&
+                    stuLat != null &&
+                    stuLng != null)
+                ? haversineKm(senLat, senLng, stuLat, stuLng)
+                : null;
+            final distLabel = distKm != null
+                ? '${distKm.toStringAsFixed(1)} km'
+                : '';
+            final sep = distLabel.isNotEmpty ? '  ·  ' : '';
+            return _StudentRadioTile(
+              name: student.fullName,
+              subtitle:
+                  '⭐ ${student.avgRating.toStringAsFixed(1)}$sep$distLabel',
+              isSelected: selectedStudentName == student.fullName,
+              onTap: () {
+                setSheetState(() {
+                  selectedStudentName = student.fullName;
+                });
+              },
+            );
+          },
+        ),
       ];
 
       return Column(
@@ -2299,7 +2433,7 @@ class _StudentAssignCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 2),
                       Text(
-                        '~${distanceKm!.toStringAsFixed(1)} km',
+                        '${distanceKm!.toStringAsFixed(1)} km',
                         style: const TextStyle(
                           fontSize: 13,
                           color: HelpiTheme.textSecondary,

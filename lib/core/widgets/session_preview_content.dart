@@ -689,7 +689,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                         ),
                         const SizedBox(width: 2),
                         Text(
-                          '${sub.avgRating}',
+                          sub.avgRating.toStringAsFixed(1),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,

@@ -464,7 +464,7 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
                   ),
                   title: Text(sub.fullName),
                   subtitle: Text(
-                    '⭐ ${sub.avgRating}  •  ${sub.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
+                    '⭐ ${sub.avgRating.toStringAsFixed(1)}  •  ${sub.completedJobs} ${AppStrings.studentCompletedJobs.toLowerCase()}',
                     style: const TextStyle(fontSize: 12),
                   ),
                   onTap: () {
