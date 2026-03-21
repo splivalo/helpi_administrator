@@ -5,9 +5,8 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
-import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
-import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
+import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
 /// Admin Dashboard — pregled statistika i nedavnih narudžbi.
@@ -53,16 +52,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Grid columns: >=1200 → 3, >=900 → 2, else 1
     final gridColumns = screenWidth >= 1200 ? 3 : (screenWidth >= 900 ? 2 : 1);
 
-    final processingOrders =
-        MockData.orders
-            .where((o) => o.status == OrderStatus.processing)
-            .toList()
-          ..sort((a, b) {
-            final ai = int.tryParse(a.id) ?? 0;
-            final bi = int.tryParse(b.id) ?? 0;
-            return bi.compareTo(ai);
-          });
+    final processingOrders = MockData.orders
+        .where((o) => o.status == OrderStatus.processing)
+        .toList();
     final processingCount = processingOrders.length;
+
+    // ── Seniori "U obradi" — imaju narudžbe bez dodijeljenog studenta ──
+    final processingSeniors = MockData.seniors.where((senior) {
+      if (senior.isSuspended || senior.isArchived || !senior.isActive) {
+        return false;
+      }
+      final seniorOrders = MockData.orders.where(
+        (o) => o.senior.id == senior.id,
+      );
+      if (seniorOrders.isEmpty) return false;
+      return !seniorOrders.any((o) => o.student != null);
+    }).toList();
+
     final activeCount = MockData.orders
         .where((o) => o.status == OrderStatus.active)
         .length;
@@ -228,16 +234,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             const SizedBox(height: 24),
 
-            // ── Narudžbe u obradi ──
+            // ── Seniori u obradi ──
             _SectionHeader(title: AppStrings.processingOrders),
             const SizedBox(height: 8),
-            if (processingOrders.isNotEmpty)
+            if (processingSeniors.isNotEmpty)
               _buildCardSection(
                 gridColumns: gridColumns,
-                children: processingOrders
+                children: processingSeniors
                     .map(
-                      (order) => _RecentOrderCard(
-                        order: order,
+                      (senior) => _ProcessingSeniorCard(
+                        senior: senior,
                         theme: theme,
                         onReturn: () {
                           if (!mounted) return;
@@ -530,28 +536,32 @@ class _MonthDropdown extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  RECENT ORDER CARD (matches _OrderListCard from orders_screen)
+//  PROCESSING SENIOR CARD (senior "U obradi" — no student assigned)
 // ═══════════════════════════════════════════════════════════════
-class _RecentOrderCard extends StatelessWidget {
-  const _RecentOrderCard({
-    required this.order,
+class _ProcessingSeniorCard extends StatelessWidget {
+  const _ProcessingSeniorCard({
+    required this.senior,
     required this.theme,
     this.onReturn,
   });
-  final OrderModel order;
+  final SeniorModel senior;
   final ThemeData theme;
   final VoidCallback? onReturn;
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = formatDate(order.scheduledDate);
-    final timeStr = formatTimeOfDay(order.scheduledStart);
+    final seniorOrders = MockData.orders
+        .where((o) => o.senior.id == senior.id)
+        .toList();
 
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order)),
+          MaterialPageRoute(
+            builder: (_) =>
+                SeniorDetailScreen(senior: senior, orders: seniorOrders),
+          ),
         ).then((_) => onReturn?.call());
       },
       child: Container(
@@ -565,94 +575,146 @@ class _RecentOrderCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Header: order number + status ──
-            SizedBox(
-              height: 40,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        AppStrings.orderNumber(order.orderNumber),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
+            // ── Header: Avatar + Name + "U obradi" chip ──
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: const BoxDecoration(
+                    color: HelpiTheme.pastelTeal,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      senior.firstName[0] + senior.lastName[0],
+                      style: const TextStyle(
+                        color: HelpiTheme.accent,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
                       ),
                     ),
                   ),
-                  StatusBadge.order(order.status),
-                ],
-              ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    senior.fullName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: HelpiTheme.statusProcessingBg,
+                    border: Border.all(
+                      color: HelpiTheme.statusProcessingText.withValues(
+                        alpha: 0.3,
+                      ),
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      HelpiTheme.statusBadgeRadius,
+                    ),
+                  ),
+                  child: Text(
+                    AppStrings.filterProcessing,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: HelpiTheme.statusProcessingText,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 10),
             const Divider(height: 1),
             const SizedBox(height: 10),
 
-            // ── Details + Arrow ──
+            // ── Details + Chevron ──
             Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // ── Senior ──
+                      // ── Phone ──
                       Row(
                         children: [
                           const Icon(
-                            Icons.elderly,
-                            size: 18,
+                            Icons.phone_outlined,
+                            size: 14,
                             color: HelpiTheme.textSecondary,
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            order.senior.fullName,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-
-                      // ── Student ──
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.school,
-                            size: 18,
-                            color: order.student != null
-                                ? HelpiTheme.textSecondary
-                                : HelpiTheme.statusCancelledText,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            order.student?.fullName ??
-                                AppStrings.noStudentAssigned,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: order.student != null
-                                  ? HelpiTheme.textPrimary
-                                  : HelpiTheme.textSecondary,
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              senior.contactPhone,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: HelpiTheme.textSecondary,
+                              ),
                             ),
                           ),
+                          const SizedBox(width: 4),
+                          PhoneCallButton(phone: senior.contactPhone),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
 
-                      // ── Date + Time ──
+                      // ── Email ──
                       Row(
                         children: [
                           const Icon(
-                            Icons.calendar_today,
-                            size: 16,
+                            Icons.email_outlined,
+                            size: 14,
                             color: HelpiTheme.textSecondary,
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '$dateStr  $timeStr  ·  ${order.durationHours}h',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: HelpiTheme.textSecondary,
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              senior.contactEmail,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: HelpiTheme.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          EmailCopyButton(email: senior.contactEmail),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      // ── Address ──
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on_outlined,
+                            size: 14,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              senior.address,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: HelpiTheme.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -661,7 +723,7 @@ class _RecentOrderCard extends StatelessWidget {
                   ),
                 ),
 
-                // ── Arrow ──
+                // ── Chevron ──
                 const Icon(
                   Icons.chevron_right,
                   color: HelpiTheme.textSecondary,

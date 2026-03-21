@@ -35,7 +35,7 @@ class AppStrings {
       // ── Dashboard ─────────────────────────────
       'dashboardTitle': 'Pregled',
       'totalOrders': 'Ukupno narudžbi',
-      'processingOrders': 'Narudžbe u obradi',
+      'processingOrders': 'Seniori u obradi',
       'activeOrders': 'Aktivne',
       'completedOrders': 'Završene',
       'totalStudents': 'Studenata',
@@ -49,7 +49,7 @@ class AppStrings {
       'hoursCount': 'sati',
       'viewAll': 'Prikaži sve',
       'noData': 'Nema podataka',
-      'noProcessingOrders': 'Nema narudžbi u obradi',
+      'noProcessingOrders': 'Nema seniora u obradi',
       'noActiveStudentsMonth': 'Nema aktivnih studenata',
       'noExpiringContracts': 'Nema isteklih ugovora',
 
@@ -613,7 +613,7 @@ class AppStrings {
       // ── Dashboard ─────────────────────────────
       'dashboardTitle': 'Dashboard',
       'totalOrders': 'Total orders',
-      'processingOrders': 'Orders in processing',
+      'processingOrders': 'Seniors in processing',
       'activeOrders': 'Active',
       'completedOrders': 'Completed',
       'totalStudents': 'Students',
@@ -627,7 +627,7 @@ class AppStrings {
       'hoursCount': 'hours',
       'viewAll': 'View all',
       'noData': 'No data',
-      'noProcessingOrders': 'No orders in processing',
+      'noProcessingOrders': 'No seniors in processing',
       'noActiveStudentsMonth': 'No active students',
       'noExpiringContracts': 'No expiring contracts',
 

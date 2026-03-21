@@ -7,7 +7,6 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
 import 'package:helpi_admin/features/chat/presentation/chat_screen.dart';
 import 'package:helpi_admin/features/dashboard/presentation/dashboard_screen.dart';
-import 'package:helpi_admin/features/orders/presentation/orders_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 import 'package:helpi_admin/features/students/presentation/students_screen.dart';
 
@@ -39,7 +38,6 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     final locale = AppStrings.currentLocale;
     return <Widget>[
       DashboardScreen(key: ValueKey('dashboard_$locale')),
-      AdminOrdersScreen(key: ValueKey('orders_$locale')),
       StudentsScreen(key: ValueKey('students_$locale')),
       SeniorsScreen(key: ValueKey('seniors_$locale')),
       ChatModScreen(key: ValueKey('chat_$locale')),
@@ -114,24 +112,18 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                       ),
                       _sidebarItem(
                         1,
-                        Icons.receipt_outlined,
-                        Icons.receipt,
-                        AppStrings.navOrders,
-                      ),
-                      _sidebarItem(
-                        2,
                         Icons.school_outlined,
                         Icons.school,
                         AppStrings.navStudents,
                       ),
                       _sidebarItem(
-                        3,
+                        2,
                         Icons.elderly_outlined,
                         Icons.elderly,
                         AppStrings.navSeniors,
                       ),
                       _sidebarItem(
-                        4,
+                        3,
                         Icons.chat_bubble_outline,
                         Icons.chat_bubble,
                         AppStrings.navChat,
@@ -312,11 +304,6 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                 label: Text(AppStrings.navDashboard),
               ),
               NavigationRailDestination(
-                icon: const Icon(Icons.receipt_outlined),
-                selectedIcon: const Icon(Icons.receipt),
-                label: Text(AppStrings.navOrders),
-              ),
-              NavigationRailDestination(
                 icon: const Icon(Icons.school_outlined),
                 selectedIcon: const Icon(Icons.school),
                 label: Text(AppStrings.navStudents),
@@ -367,11 +354,6 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
               icon: const Icon(Icons.dashboard_outlined, size: 26),
               activeIcon: const Icon(Icons.dashboard, size: 26),
               label: AppStrings.navDashboard,
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.receipt_outlined, size: 26),
-              activeIcon: const Icon(Icons.receipt, size: 26),
-              label: AppStrings.navOrders,
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.school_outlined, size: 26),
