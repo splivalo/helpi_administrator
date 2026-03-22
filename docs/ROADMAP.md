@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-22
+> Zadnja izmjena: 2026-03-22 (Sidney handoff update)
 
 ## TODO (čeka potvrdu)
 
@@ -16,16 +16,16 @@
 ### Suspenzija
 
 - [x] **Suspenzija — auto-otkazivanje narudžbi (backend)** — Backend `SuspendUserAsync` VEĆ poziva `CancelAllOrdersForCustomerAsync(userId)` za seniore i `ReassignExpiredContractJobs` za studente. ✅
-- [ ] **Suspenzija — API middleware blokada (backend)** — Suspendirani korisnici mogu i dalje koristiti API. Potreban middleware ili auth check koji blokira sve API pozive suspendiranog korisnika (osim GET suspension statusa).
+- [x] **Suspenzija — API middleware blokada (backend)** — `SuspensionCheckMiddleware.cs` vraća 403 za suspendirane korisnike. Preskače auth/suspensions endpointe i admine. ✅ (2026-03-22, commit `a652bff`)
 - [ ] **Suspenzija — notifikacije (backend + app)** — Kad se korisnik suspendira: (1) push notifikacija korisniku, (2) notifikacija povezanim korisnicima (npr. senioru čiji je student suspendiran), (3) email obavijest. ⚠️ Push ovisi o Firebase credentials.
-- [ ] **Suspenzija — "suspendirani" ekran u helpi_app** — Kad suspendirani korisnik otvori aplikaciju, treba vidjeti dedicirani ekran s razlogom suspenzije i kontakt informacijama, umjesto normalnog UI-ja.
-- [ ] **Suspenzija — provjera prije kreiranja narudžbe (backend)** — Backend ne provjerava je li korisnik suspendiran prilikom kreiranja nove narudžbe. Dodati provjeru u CreateOrder flow.
+- [x] **Suspenzija — "suspendirani" ekran u helpi_app** — `suspended_screen.dart` prikazuje razlog suspenzije + kontakt info + delete account. `ApiClient` interceptor hvata 403 i trigera suspension state. ✅ (2026-03-22, commit `5ca6a13`)
+- [x] **Suspenzija — provjera prije kreiranja narudžbe (backend)** — `OrdersService.CreateOrderAsync()` provjerava `Senior→Customer→User→IsSuspended` na vrhu. Throw-a `ForbiddenException` ako je suspendiran. ✅ (2026-03-22, commit `a652bff`)
 
 ### Admin app & infrastruktura
 
 - [ ] **Backend integracija** — Zamjena MockData s REST API pozivima. Definiranje API endpointova, autentifikacija (JWT), error handling. Ovo je GLAVNI preostali zadatak.
 - [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
-- [ ] **Blagdani (javni praznici)** — Definirati listu hrvatskih blagdana i integrirati u obračun sati. Sati odrađeni na blagdan trebaju koristiti `sundayHourlyRate` (11.10 €) umjesto redovne satnice. Potrebno odlučiti: hardkodirana lista RH blagdana ili konfigurabilan popis iz backenda.
+- [x] **Blagdani (javni praznici)** — `CroatianHolidays.cs` (backend) + `croatian_holidays.dart` (admin) — 13 fiksnih praznika + Computus algoritam za Uskrsni ponedjeljak i Tijelovo. `HangfireRecurringJobService` koristi `isOvertimeDay = Sunday || CroatianHolidays.IsPublicHoliday(date)`. Label: "Povećana satnica" (ne "Nedjeljna"). ✅ (2026-03-22, commit backend `a652bff`, admin `742ff07`)
 - [ ] **Notifikacije (push)** — Push notifikacije za administratora (nova narudžba, istek ugovora, otkazana sesija). Trenutno su notifikacije samo lokalne mock. ⚠️ Ovisi o Firebase credentials.
 
 ## Dovršeno
