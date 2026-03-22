@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
@@ -12,16 +13,16 @@ import 'package:helpi_admin/features/seniors/presentation/senior_form_helpers.da
 ///
 /// Kad je [isModal] `true`, renderira se bez [Scaffold]
 /// pa se može staviti u dialog ili bottom-sheet.
-class AddSeniorScreen extends StatefulWidget {
+class AddSeniorScreen extends ConsumerStatefulWidget {
   const AddSeniorScreen({super.key, this.isModal = false});
 
   final bool isModal;
 
   @override
-  State<AddSeniorScreen> createState() => _AddSeniorScreenState();
+  ConsumerState<AddSeniorScreen> createState() => _AddSeniorScreenState();
 }
 
-class _AddSeniorScreenState extends State<AddSeniorScreen>
+class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
     with SeniorFormHelpers {
   final _formKey = GlobalKey<FormState>();
 
@@ -379,7 +380,7 @@ class _AddSeniorScreenState extends State<AddSeniorScreen>
       return;
     }
 
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

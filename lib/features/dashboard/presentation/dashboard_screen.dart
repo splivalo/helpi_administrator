@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
@@ -10,14 +12,14 @@ import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
 /// Admin Dashboard — pregled statistika i nedavnih narudžbi.
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   static const _screenKey = 'dashboard';
   final _prefs = PreferencesService.instance;
 
@@ -52,29 +54,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Grid columns: >=1200 → 3, >=900 → 2, else 1
     final gridColumns = screenWidth >= 1200 ? 3 : (screenWidth >= 900 ? 2 : 1);
 
-    final processingOrders = MockData.orders
+    final allOrders = ref.watch(ordersProvider);
+    final allStudents = ref.watch(studentsProvider);
+    final allSeniors = ref.watch(seniorsProvider);
+
+    final processingOrders = allOrders
         .where((o) => o.status == OrderStatus.processing)
         .toList();
     final processingCount = processingOrders.length;
 
     // ── Seniori "U obradi" — imaju narudžbe bez dodijeljenog studenta ──
-    final processingSeniors = MockData.seniors.where((senior) {
+    final processingSeniors = allSeniors.where((senior) {
       if (senior.isSuspended || senior.isArchived || !senior.isActive) {
         return false;
       }
-      final seniorOrders = MockData.orders.where(
-        (o) => o.senior.id == senior.id,
-      );
+      final seniorOrders = allOrders.where((o) => o.senior.id == senior.id);
       if (seniorOrders.isEmpty) return false;
       return !seniorOrders.any((o) => o.student != null);
     }).toList();
 
-    final activeCount = MockData.orders
+    final activeCount = allOrders
         .where((o) => o.status == OrderStatus.active)
         .length;
     final now = DateTime.now();
     final soon = now.add(const Duration(days: 30));
-    final expiringStudents = MockData.students
+    final expiringStudents = allStudents
         .where(
           (s) =>
               s.contractStatus == ContractStatus.expired ||
@@ -87,13 +91,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // ── Studenti koji su radili u odabranom mjesecu ──
     final monthStart = _selectedMonth;
     final monthEnd = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
-    final suspendedStudentIds = MockData.students
+    final suspendedStudentIds = allStudents
         .where((s) => s.isSuspended)
         .map((s) => s.id)
         .toSet();
     final activeStudentMap =
         <String, ({StudentModel student, int sessions, int hours})>{};
-    for (final order in MockData.orders) {
+    for (final order in allOrders) {
       if (order.student == null) continue;
       if (suspendedStudentIds.contains(order.student!.id)) {
         continue;
@@ -162,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: _KpiCard(
                       icon: Icons.school_outlined,
                       label: AppStrings.totalStudents,
-                      value: '${MockData.students.length}',
+                      value: '${allStudents.length}',
                       color: HelpiTheme.accent,
                       bgColor: HelpiTheme.pastelTeal,
                     ),
@@ -172,7 +176,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: _KpiCard(
                       icon: Icons.elderly_outlined,
                       label: AppStrings.totalSeniors,
-                      value: '${MockData.seniors.length}',
+                      value: '${allSeniors.length}',
                       color: HelpiTheme.accent,
                       bgColor: HelpiTheme.pastelTeal,
                     ),
@@ -212,7 +216,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: _KpiCard(
                           icon: Icons.school_outlined,
                           label: AppStrings.totalStudents,
-                          value: '${MockData.students.length}',
+                          value: '${allStudents.length}',
                           color: HelpiTheme.accent,
                           bgColor: HelpiTheme.pastelTeal,
                         ),
@@ -222,7 +226,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         child: _KpiCard(
                           icon: Icons.elderly_outlined,
                           label: AppStrings.totalSeniors,
-                          value: '${MockData.seniors.length}',
+                          value: '${allSeniors.length}',
                           color: HelpiTheme.accent,
                           bgColor: HelpiTheme.pastelTeal,
                         ),
@@ -245,6 +249,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       (senior) => _ProcessingSeniorCard(
                         senior: senior,
                         theme: theme,
+                        orders: allOrders,
                         onReturn: () {
                           if (!mounted) return;
                           setState(() {});
@@ -542,17 +547,17 @@ class _ProcessingSeniorCard extends StatelessWidget {
   const _ProcessingSeniorCard({
     required this.senior,
     required this.theme,
+    required this.orders,
     this.onReturn,
   });
   final SeniorModel senior;
   final ThemeData theme;
+  final List<OrderModel> orders;
   final VoidCallback? onReturn;
 
   @override
   Widget build(BuildContext context) {
-    final seniorOrders = MockData.orders
-        .where((o) => o.senior.id == senior.id)
-        .toList();
+    final seniorOrders = orders.where((o) => o.senior.id == senior.id).toList();
 
     return GestureDetector(
       onTap: () {

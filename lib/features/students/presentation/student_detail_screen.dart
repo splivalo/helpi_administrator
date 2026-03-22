@@ -1,5 +1,6 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
@@ -7,6 +8,7 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/faculty.dart';
 import 'package:helpi_admin/core/models/suspension_models.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/utils/croatian_holidays.dart';
@@ -19,15 +21,16 @@ import 'package:flutter/services.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
 
 /// Student Detail Screen — profil studenta, ugovor, dostupnost, recenzije.
-class StudentDetailScreen extends StatefulWidget {
+class StudentDetailScreen extends ConsumerStatefulWidget {
   const StudentDetailScreen({super.key, required this.student});
   final StudentModel student;
 
   @override
-  State<StudentDetailScreen> createState() => _StudentDetailScreenState();
+  ConsumerState<StudentDetailScreen> createState() =>
+      _StudentDetailScreenState();
 }
 
-class _StudentDetailScreenState extends State<StudentDetailScreen> {
+class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
   late StudentModel _student;
   final _prefs = PreferencesService.instance;
   static const _screenKey = 'studentDetail';
@@ -170,11 +173,15 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final reviews = MockData.reviews
+    final reviews = ref
+        .watch(reviewsProvider)
         .where((r) => r.studentName == _student.fullName)
         .toList();
     final orders =
-        MockData.orders.where((o) => o.student?.id == _student.id).toList()
+        ref
+            .watch(ordersProvider)
+            .where((o) => o.student?.id == _student.id)
+            .toList()
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return Scaffold(
@@ -724,11 +731,12 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   Future<void> _confirmSuspend() async {
     // Refresh orders from API so the active-order check is up to date
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
     // Warn if user has active orders (will be reassigned)
-    final studentOrders = MockData.orders
+    final studentOrders = ref
+        .read(ordersProvider)
         .where((o) => o.student?.id == _student.id)
         .toList();
     debugPrint(
@@ -783,14 +791,13 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     }
 
     // Refresh data from backend (orders auto-cancelled by backend)
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
     // Pick up fresh student data from the refreshed MockData
-    final fresh = MockData.students.firstWhere(
-      (s) => s.id == _student.id,
-      orElse: () => _student,
-    );
+    final fresh = ref
+        .read(studentsProvider)
+        .firstWhere((s) => s.id == _student.id, orElse: () => _student);
     setState(() {
       _student = fresh;
     });
@@ -838,14 +845,13 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     }
 
     // Refresh data from backend
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
     // Pick up fresh student data from the refreshed MockData
-    final fresh = MockData.students.firstWhere(
-      (s) => s.id == _student.id,
-      orElse: () => _student,
-    );
+    final fresh = ref
+        .read(studentsProvider)
+        .firstWhere((s) => s.id == _student.id, orElse: () => _student);
     setState(() {
       _student = fresh;
     });
@@ -928,9 +934,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       );
       if (!mounted) return;
       if (archiveResult.success) {
-        await DataLoader.loadAll();
+        await DataLoader.loadAll(ref: ref);
         if (!mounted) return;
-        final refreshed = MockData.students
+        final refreshed = ref
+            .read(studentsProvider)
             .where((s) => s.id == _student.id)
             .firstOrNull;
         if (refreshed != null) {
@@ -974,9 +981,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     final archiveResult = await api.archiveStudent(studentId);
     if (!mounted) return;
     if (archiveResult.success) {
-      await DataLoader.loadAll();
+      await DataLoader.loadAll(ref: ref);
       if (!mounted) return;
-      final refreshed = MockData.students
+      final refreshed = ref
+          .read(studentsProvider)
           .where((s) => s.id == _student.id)
           .firstOrNull;
       if (refreshed != null) {
@@ -1025,9 +1033,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
         return;
       }
-      await DataLoader.loadAll();
+      await DataLoader.loadAll(ref: ref);
       if (!mounted) return;
-      final refreshed = MockData.students
+      final refreshed = ref
+          .read(studentsProvider)
           .where((s) => s.id == _student.id)
           .firstOrNull;
       if (refreshed != null) {
@@ -1122,9 +1131,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
         return;
       }
 
-      await DataLoader.loadAll();
+      await DataLoader.loadAll(ref: ref);
       if (!mounted) return;
-      final refreshed = MockData.students
+      final refreshed = ref
+          .read(studentsProvider)
           .where((s) => s.id == _student.id)
           .firstOrNull;
       setState(() {
@@ -1184,9 +1194,10 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
       return;
     }
 
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
-    final refreshed = MockData.students
+    final refreshed = ref
+        .read(studentsProvider)
         .where((s) => s.id == _student.id)
         .firstOrNull;
     setState(() {
@@ -1276,11 +1287,12 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     }
 
     // Refresh data from backend
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
     await _loadContracts();
     if (!mounted) return;
-    final refreshed = MockData.students
+    final refreshed = ref
+        .read(studentsProvider)
         .where((s) => s.id == _student.id)
         .firstOrNull;
     setState(() {
@@ -1358,9 +1370,9 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   /// Counts (completed, cancelled) orders within [_summaryStart]..[_summaryEnd].
   (int, int) _rangeJobCounts() {
-    final studentOrders = MockData.orders.where(
-      (o) => o.student?.id == _student.id,
-    );
+    final studentOrders = ref
+        .read(ordersProvider)
+        .where((o) => o.student?.id == _student.id);
 
     int completed = 0;
     int cancelled = 0;
@@ -1400,11 +1412,14 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
 
   /// Calculates (regularHours, overtimeHours) within [_summaryStart]..[_summaryEnd].
   (double, double) _rangeHours() {
-    final studentOrders = MockData.orders.where(
-      (o) =>
-          o.student?.id == _student.id &&
-          (o.status == OrderStatus.active || o.status == OrderStatus.completed),
-    );
+    final studentOrders = ref
+        .read(ordersProvider)
+        .where(
+          (o) =>
+              o.student?.id == _student.id &&
+              (o.status == OrderStatus.active ||
+                  o.status == OrderStatus.completed),
+        );
 
     double regular = 0;
     double overtime = 0;

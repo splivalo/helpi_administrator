@@ -1,14 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 
 // TODO: Add chatRooms loading once chat backend is implemented
 
-/// Loads data from the backend API into [MockData] static lists.
+/// Loads data from the backend API into Riverpod providers (and [MockData]
+/// for backward compatibility).
 ///
 /// Call [loadAll] after successful login. If the backend is unreachable
 /// the existing mock data is kept as a fallback so the UI remains usable
@@ -20,15 +23,17 @@ class DataLoader {
   static bool get isLoaded => _loaded;
 
   /// Fetch students, seniors, orders, reviews and notifications
-  /// from the API **in parallel** and replace [MockData] contents.
+  /// from the API **in parallel** and replace provider + [MockData] contents.
   ///
   /// The entire operation is capped at [_timeout] so the UI never
   /// hangs when the backend is unreachable — mock data stays as fallback.
   static const _timeout = Duration(seconds: 8);
 
-  static Future<bool> loadAll() async {
+  /// Pass [ref] to populate Riverpod providers reactively.
+  /// Without ref, only [MockData] static lists are populated (legacy path).
+  static Future<bool> loadAll({WidgetRef? ref}) async {
     try {
-      return await _doLoad().timeout(_timeout);
+      return await _doLoad(ref: ref).timeout(_timeout);
     } on TimeoutException {
       debugPrint('[DataLoader] loadAll TIMEOUT — using mock data');
       return false;
@@ -38,7 +43,7 @@ class DataLoader {
     }
   }
 
-  static Future<bool> _doLoad() async {
+  static Future<bool> _doLoad({WidgetRef? ref}) async {
     final api = AdminApiService();
     final userId = await TokenStorage().getUserId() ?? 0;
     var allOk = true;
@@ -133,6 +138,16 @@ class DataLoader {
     // TODO: Chat backend not implemented - using demo data for development
     // In production, chatRooms should be loaded from API like notifications
     _seedDemoDataIfEmpty();
+
+    // Sync Riverpod providers for reactive UI updates
+    if (ref != null) {
+      ref.read(studentsProvider.notifier).setAll(MockData.students);
+      ref.read(seniorsProvider.notifier).setAll(MockData.seniors);
+      ref.read(ordersProvider.notifier).setAll(MockData.orders);
+      ref.read(reviewsProvider.notifier).setAll(MockData.reviews);
+      ref.read(notificationsProvider.notifier).setAll(MockData.notifications);
+      ref.read(chatRoomsProvider.notifier).setAll(MockData.chatRooms);
+    }
 
     _loaded = allOk;
     debugPrint(

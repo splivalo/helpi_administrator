@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 
 // TODO: Notifications are loaded from API but table is empty. Backend needs to create notifications when actions occur (order created, student assigned, etc.)
 
 /// Bell icon with unread-count badge. Opens [NotificationsDrawer].
-class NotificationBell extends StatelessWidget {
+class NotificationBell extends ConsumerWidget {
   const NotificationBell({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final unread = MockData.notifications.where((n) => !n.isRead).length;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(notificationsProvider).where((n) => !n.isRead).length;
     return IconButton(
       icon: Badge(
         isLabelVisible: unread > 0,
@@ -55,17 +57,17 @@ class NotificationBell extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────
 //  Notifications Drawer (right-side panel)
 // ─────────────────────────────────────────────────────────────
-class _NotificationsDrawer extends StatefulWidget {
+class _NotificationsDrawer extends ConsumerStatefulWidget {
   const _NotificationsDrawer();
 
   @override
-  State<_NotificationsDrawer> createState() => _NotificationsDrawerState();
+  ConsumerState<_NotificationsDrawer> createState() => _NotificationsDrawerState();
 }
 
-class _NotificationsDrawerState extends State<_NotificationsDrawer> {
+class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
   @override
   Widget build(BuildContext context) {
-    final notifications = MockData.notifications;
+    final notifications = ref.watch(notificationsProvider);
     final unreadCount = notifications.where((n) => !n.isRead).length;
 
     return Align(
@@ -105,12 +107,9 @@ class _NotificationsDrawerState extends State<_NotificationsDrawer> {
                     if (unreadCount > 0)
                       TextButton(
                         onPressed: () async {
-                          setState(() {
-                            for (final n in notifications) {
-                              n.isRead = true;
-                            }
-                          });
+                          ref.read(notificationsProvider.notifier).markAllRead();
                           final userId = await TokenStorage().getUserId() ?? 0;
+                          if (!context.mounted) return;
                           AdminApiService().markAllNotificationsRead(userId);
                         },
                         child: Text(
@@ -159,7 +158,7 @@ class _NotificationsDrawerState extends State<_NotificationsDrawer> {
                             notification: n,
                             onTap: () {
                               if (!n.isRead) {
-                                setState(() => n.isRead = true);
+                                ref.read(notificationsProvider.notifier).markRead(n.id);
                                 final nId = int.tryParse(n.id) ?? 0;
                                 if (nId > 0) {
                                   AdminApiService().markNotificationRead(nId);

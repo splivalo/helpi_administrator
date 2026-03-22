@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/suspension_models.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/core/services/excel_export_service.dart';
@@ -30,14 +32,14 @@ enum _SeniorStatusFilter {
   archived,
 }
 
-class SeniorsScreen extends StatefulWidget {
+class SeniorsScreen extends ConsumerStatefulWidget {
   const SeniorsScreen({super.key});
 
   @override
-  State<SeniorsScreen> createState() => _SeniorsScreenState();
+  ConsumerState<SeniorsScreen> createState() => _SeniorsScreenState();
 }
 
-class _SeniorsScreenState extends State<SeniorsScreen>
+class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
     with SingleTickerProviderStateMixin {
   static const _screenKey = 'seniors';
   final _prefs = PreferencesService.instance;
@@ -93,11 +95,12 @@ class _SeniorsScreenState extends State<SeniorsScreen>
   }
 
   List<SeniorModel> _filteredSeniors(_SeniorStatusFilter filter) {
-    var seniors = MockData.seniors.toList();
+    var seniors = ref.read(seniorsProvider).toList();
 
     // Senior is "active" only when they have at least one order
     // with an assigned student. Otherwise they are "processing".
-    final activeIds = MockData.orders
+    final activeIds = ref
+        .read(ordersProvider)
         .where((o) => o.student != null)
         .map((o) => o.senior.id)
         .toSet();
@@ -204,7 +207,8 @@ class _SeniorsScreenState extends State<SeniorsScreen>
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final cities =
-                    MockData.seniors
+                    ref
+                        .read(seniorsProvider)
                         .map((s) => s.city)
                         .where((c) => c.isNotEmpty)
                         .toSet()
@@ -449,7 +453,8 @@ class _SeniorsScreenState extends State<SeniorsScreen>
   }
 
   void _openSeniorDetail(SeniorModel senior) {
-    final seniorOrders = MockData.orders
+    final seniorOrders = ref
+        .read(ordersProvider)
         .where((o) => o.senior.id == senior.id)
         .toList();
 
@@ -537,17 +542,19 @@ class _SeniorsScreenState extends State<SeniorsScreen>
 // ═══════════════════════════════════════════════════════════════
 //  SENIOR CARD
 // ═══════════════════════════════════════════════════════════════
-class _SeniorCard extends StatelessWidget {
+class _SeniorCard extends ConsumerWidget {
   const _SeniorCard({required this.senior, required this.onTap});
   final SeniorModel senior;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Determine status chip
     // Senior is "Active" only when they have at least one order
     // with an assigned student. Otherwise they are "Processing".
-    final seniorOrders = MockData.orders.where((o) => o.senior.id == senior.id);
+    final seniorOrders = ref
+        .read(ordersProvider)
+        .where((o) => o.senior.id == senior.id);
     final bool hasStudentAssigned = seniorOrders.any((o) => o.student != null);
 
     final (
@@ -756,7 +763,7 @@ class _SeniorCard extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════
 //  SENIOR DETAIL (inline same file)
 // ═══════════════════════════════════════════════════════════════
-class SeniorDetailScreen extends StatefulWidget {
+class SeniorDetailScreen extends ConsumerStatefulWidget {
   const SeniorDetailScreen({
     super.key,
     required this.senior,
@@ -766,10 +773,10 @@ class SeniorDetailScreen extends StatefulWidget {
   final List<OrderModel> orders;
 
   @override
-  State<SeniorDetailScreen> createState() => SeniorDetailScreenState();
+  ConsumerState<SeniorDetailScreen> createState() => SeniorDetailScreenState();
 }
 
-class SeniorDetailScreenState extends State<SeniorDetailScreen> {
+class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
   late SeniorModel _senior;
   late List<OrderModel> _orders;
   final _prefs = PreferencesService.instance;
@@ -878,9 +885,10 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
       );
       if (!mounted) return;
       if (archiveResult.success) {
-        await DataLoader.loadAll();
+        await DataLoader.loadAll(ref: ref);
         if (!mounted) return;
-        final refreshed = MockData.seniors
+        final refreshed = ref
+            .read(seniorsProvider)
             .where((s) => s.id == _senior.id)
             .firstOrNull;
         if (refreshed != null) {
@@ -923,9 +931,10 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
     final archiveResult = await api.archiveSenior(seniorId);
     if (!mounted) return;
     if (archiveResult.success) {
-      await DataLoader.loadAll();
+      await DataLoader.loadAll(ref: ref);
       if (!mounted) return;
-      final refreshed = MockData.seniors
+      final refreshed = ref
+          .read(seniorsProvider)
           .where((s) => s.id == _senior.id)
           .firstOrNull;
       if (refreshed != null) {
@@ -976,10 +985,11 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
       return;
     }
 
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
-    final refreshed = MockData.seniors
+    final refreshed = ref
+        .read(seniorsProvider)
         .where((s) => s.id == _senior.id)
         .firstOrNull;
     if (refreshed != null) {
@@ -1624,16 +1634,18 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
 
   Future<void> _confirmSuspend() async {
     // Refresh orders from API so the active-order check is up to date
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
     // Warn if user has active orders (will be auto-cancelled)
-    final hasActiveOrders = MockData.orders.any(
-      (o) =>
-          o.senior.id == _senior.id &&
-          (o.status == OrderStatus.active ||
-              o.status == OrderStatus.processing),
-    );
+    final hasActiveOrders = ref
+        .read(ordersProvider)
+        .any(
+          (o) =>
+              o.senior.id == _senior.id &&
+              (o.status == OrderStatus.active ||
+                  o.status == OrderStatus.processing),
+        );
 
     if (hasActiveOrders) {
       final proceed = await showDialog<bool>(
@@ -1679,15 +1691,15 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
 
     // Backend auto-cancels all orders when suspending a customer.
     // Refresh data from backend to get updated order statuses.
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
     // Pick up fresh senior data from the refreshed MockData
-    final fresh = MockData.seniors.firstWhere(
-      (s) => s.id == _senior.id,
-      orElse: () => _senior,
-    );
-    final freshOrders = MockData.orders
+    final fresh = ref
+        .read(seniorsProvider)
+        .firstWhere((s) => s.id == _senior.id, orElse: () => _senior);
+    final freshOrders = ref
+        .read(ordersProvider)
         .where((o) => o.senior.id == _senior.id)
         .toList();
     setState(() {
@@ -1737,15 +1749,15 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
     }
 
     // Refresh data from backend
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
     // Pick up fresh senior data from the refreshed MockData
-    final fresh = MockData.seniors.firstWhere(
-      (s) => s.id == _senior.id,
-      orElse: () => _senior,
-    );
-    final freshOrders = MockData.orders
+    final fresh = ref
+        .read(seniorsProvider)
+        .firstWhere((s) => s.id == _senior.id, orElse: () => _senior);
+    final freshOrders = ref
+        .read(ordersProvider)
         .where((o) => o.senior.id == _senior.id)
         .toList();
     setState(() {
@@ -1784,8 +1796,10 @@ class SeniorDetailScreenState extends State<SeniorDetailScreen> {
     );
   }
 
-  List<ReviewModel> get _seniorReviews =>
-      MockData.reviews.where((r) => r.seniorName == _senior.fullName).toList();
+  List<ReviewModel> get _seniorReviews => ref
+      .read(reviewsProvider)
+      .where((r) => r.seniorName == _senior.fullName)
+      .toList();
 
   Widget _buildReviewsSection(List<ReviewModel> reviews) {
     final avgRating = reviews.isEmpty

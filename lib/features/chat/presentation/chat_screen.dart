@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
@@ -101,7 +103,7 @@ class _ChatDetailPage extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════
 //  CHAT ROOM LIST
 // ═══════════════════════════════════════════════════════════════
-class _ChatRoomList extends StatelessWidget {
+class _ChatRoomList extends ConsumerWidget {
   const _ChatRoomList({
     required this.selectedRoomId,
     required this.onRoomSelected,
@@ -111,8 +113,8 @@ class _ChatRoomList extends StatelessWidget {
   final ValueChanged<ChatRoom> onRoomSelected;
 
   @override
-  Widget build(BuildContext context) {
-    final rooms = MockData.chatRooms;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rooms = ref.watch(chatRoomsProvider);
 
     return ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -141,11 +143,13 @@ class _ChatRoomList extends StatelessWidget {
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
                     if (room.isSenior) {
-                      final senior = MockData.seniors
+                      final senior = ref
+                          .read(seniorsProvider)
                           .where((s) => s.id == room.participantId)
                           .firstOrNull;
                       if (senior == null) return;
-                      final orders = MockData.orders
+                      final orders = ref
+                          .read(ordersProvider)
                           .where((o) => o.senior.id == senior.id)
                           .toList();
                       Navigator.push(
@@ -158,7 +162,8 @@ class _ChatRoomList extends StatelessWidget {
                         ),
                       );
                     } else {
-                      final student = MockData.students
+                      final student = ref
+                          .read(studentsProvider)
                           .where((s) => s.id == room.participantId)
                           .firstOrNull;
                       if (student == null) return;

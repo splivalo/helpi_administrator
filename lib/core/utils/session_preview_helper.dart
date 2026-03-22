@@ -9,10 +9,17 @@ import 'package:helpi_admin/core/utils/formatters.dart';
 /// - [buildConflictMessage] — different message format
 /// - [isSubstituteCandidate] / [onNoAvailability] — substitute pre-filter hooks
 abstract class SessionPreviewHelperBase {
-  SessionPreviewHelperBase({required this.student, required this.order});
+  SessionPreviewHelperBase({
+    required this.student,
+    required this.order,
+    required this.allStudents,
+    required this.allOrders,
+  });
 
   final StudentModel student;
   final OrderModel order;
+  final List<StudentModel> allStudents;
+  final List<OrderModel> allOrders;
 
   // ── Abstract ────────────────────────────────────────────────
 
@@ -76,7 +83,7 @@ abstract class SessionPreviewHelperBase {
   // ── Shared: find substitutes ────────────────────────────────
 
   List<StudentModel> findSubstitutes(SessionInstancePreview session) {
-    return MockData.students.where((s) {
+    return allStudents.where((s) {
       if (!isSubstituteCandidate(s)) return false;
       final avail = s.availability.where(
         (a) => a.dayOfWeek == session.weekday && a.isEnabled,
@@ -86,7 +93,7 @@ abstract class SessionPreviewHelperBase {
       final sStart = toMinutes(session.startTime);
       final sEnd = sStart + session.durationHours * 60;
       if (toMinutes(a.from) > sStart || toMinutes(a.to) < sEnd) return false;
-      final subOrders = MockData.orders.where(
+      final subOrders = allOrders.where(
         (o) =>
             o.student?.id == s.id &&
             o.status != OrderStatus.cancelled &&
@@ -136,7 +143,7 @@ abstract class SessionPreviewHelperBase {
     final dur = session.durationHours * 60;
 
     final busy = <({int start, int end})>[];
-    for (final o in MockData.orders.where(
+    for (final o in allOrders.where(
       (o) =>
           o.student?.id == student.id &&
           o.status != OrderStatus.cancelled &&

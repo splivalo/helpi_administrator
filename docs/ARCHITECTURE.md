@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-12
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-22
 
 ---
 
@@ -17,7 +17,7 @@
 | Lokalna pohrana | shared_preferences       | ^2.5.4      |
 | Lokalizacija    | flutter_localizations    | SDK         |
 | Ikone           | cupertino_icons          | ^1.0.8      |
-| State mgmt      | StatefulWidget (lokalni) | —           |
+| State mgmt      | **Riverpod** (flutter_riverpod) | ^2.6.1 |
 | Backend         | ❌ Mock (MockData klasa) | —           |
 | Deploy          | Flutter Web              | Chrome      |
 
@@ -29,9 +29,9 @@
 
 ```
 lib/
-├── main.dart                          # Entry point (async, init SharedPreferences) (8 linija)
+├── main.dart                          # Entry point (ProviderScope, async init) (10 linija)
 ├── app/
-│   ├── app.dart                       # Root widget (HelpiAdminApp) (59 linija)
+│   ├── app.dart                       # Root widget (HelpiAdminApp) — ConsumerStatefulWidget (59 linija)
 │   ├── theme.dart                     # HelpiTheme – boje, dimenzije, ThemeData (212 linija)
 │   └── responsive_shell.dart          # Responsive shell (sidebar/rail/bottomnav) (387 linija)
 ├── core/
@@ -40,17 +40,21 @@ lib/
 │   │   └── locale_notifier.dart       # ValueNotifier<Locale> (11 linija)
 │   ├── models/
 │   │   └── admin_models.dart          # Svi modeli + MockData + enumi (1717 linija)
+│   ├── providers/
+│   │   └── data_providers.dart        # 6 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms)
 │   ├── services/
+│   │   ├── data_loader.dart           # DataLoader — API load + MockData + provider sync (ref param)
 │   │   └── preferences_service.dart   # SharedPreferences wrapper (singleton, web-safe) (88 linija)
 │   ├── utils/
-│   │   └── formatters.dart            # Formatiranje datuma/vremena (14 linija)
+│   │   ├── formatters.dart            # Formatiranje datuma/vremena + haversineKm (14 linija)
+│   │   └── session_preview_helper.dart # Base class za session preview helpers (allStudents/allOrders params)
 │   └── widgets/
 │       ├── widgets.dart               # Barrel export (6 linija)
 │       ├── status_badges.dart         # StatusBadge (size enum), ServiceChip (177 linija)
 │       ├── shared_widgets.dart        # SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (size enum), show15MinTimePicker (459 linija)
-│       ├── session_preview_sheet.dart # SessionPreviewSheet — prikaz sesija, dodjela studenta iz narudžbe (851 linija)
+│       ├── session_preview_sheet.dart # SessionPreviewSheet — prikaz sesija, dodjela studenta (ConsumerStatefulWidget) (851 linija)
 │       ├── contact_actions.dart       # PhoneCallButton, EmailCopyButton (45 linija)
-│       └── notification_bell.dart     # NotificationBell + NotificationsDrawer (283 linija)
+│       └── notification_bell.dart     # NotificationBell (ConsumerWidget) + NotificationsDrawer (ConsumerStatefulWidget) (283 linija)
 └── features/
     ├── auth/
     │   └── presentation/
@@ -78,7 +82,7 @@ lib/
             └── chat_screen.dart        # Chat moderacija (461 linija)
 ```
 
-**27 Dart fajlova, ~18.345 linija koda**
+**28 Dart fajlova, ~18.400 linija koda**
 
 ### Shared widgeti/utilitiji (core/)
 
@@ -88,10 +92,11 @@ lib/
 | `core/services/preferences_service.dart`        | PreferencesService singleton — grid/sort/tab per screen, web-safe fallback                                                               |
 | `core/widgets/status_badges.dart`               | StatusBadge (StatusBadgeSize enum: small/large), ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel                        |
 | `core/widgets/shared_widgets.dart`              | SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (ActionChipButtonSize enum: small/medium) |
-| `core/widgets/session_preview_sheet.dart`       | SessionPreviewSheet — prikaz generiranih sesija, dodjela studenta iz narudžbe/uređivanja                                                 |
+| `core/widgets/session_preview_sheet.dart`       | SessionPreviewSheet — prikaz generiranih sesija, dodjela studenta (ConsumerStatefulWidget)                                                |
 | `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                                                                                         |
-| `core/widgets/notification_bell.dart`           | NotificationBell (badge + drawer s mock notifikacijama)                                                                                  |
+| `core/widgets/notification_bell.dart`           | NotificationBell (ConsumerWidget) + NotificationsDrawer (ConsumerStatefulWidget, markRead via provider)                                   |
 | `core/widgets/widgets.dart`                     | Barrel export svih widgeta                                                                                                               |
+| `core/providers/data_providers.dart`            | 6 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms)                                        |
 | `seniors/presentation/senior_form_helpers.dart` | SeniorFormHelpers mixin (forme za add/edit senior)                                                                                       |
 
 ---
@@ -111,6 +116,59 @@ Navigacija koristi `IndexedStack` s 5 ekrana: Dashboard, Narudžbe, Studenti, Se
 **Locale-aware rebuild:** `_screens` je getter (ne `late final`) koji koristi `ValueKey('screenName_$locale')`. Kad se promijeni jezik, `IndexedStack` tretira ekrane kao nove widgete i rebuilda ih sa svježim stringovima.
 
 **Responsive gumbi:** Action gumbi koriste `LayoutBuilder` — full-width na <800px, 1/3 širine na ≥800px.
+
+---
+
+## State Management — Riverpod
+
+> Dodano 2026-03-22. Svi ekrani migrirani sa `StatefulWidget` + `MockData.*` na `ConsumerStatefulWidget` + Riverpod providere.
+
+### Provideri (`core/providers/data_providers.dart`)
+
+6 `StateNotifierProvider`-a:
+
+| Provider                  | Tip podataka            | Metode                                                      |
+| ------------------------- | ----------------------- | ----------------------------------------------------------- |
+| `studentsProvider`        | `List<StudentModel>`    | `setAll`, `addItem`, `updateItem`, `removeItem`             |
+| `seniorsProvider`         | `List<SeniorModel>`     | `setAll`, `addItem`, `updateItem`, `removeItem`             |
+| `ordersProvider`          | `List<OrderModel>`      | `setAll`, `addItem`, `updateItem`, `removeItem`             |
+| `reviewsProvider`         | `List<StudentReview>`   | `setAll`, `addItem`                                         |
+| `notificationsProvider`   | `List<NotificationModel>` | `setAll`, `addItem`, `markRead(id)`, `markAllRead()`      |
+| `chatRoomsProvider`       | `List<ChatRoom>`        | `setAll`, `addItem`                                         |
+
+### Data Flow
+
+```
+DataLoader.loadAll(ref: ref)
+  → API fetch → MockData.xxx = results    (intermediate store)
+  → ref.read(xxxProvider.notifier).setAll(MockData.xxx)   (provider sync)
+```
+
+### Korištenje u UI-ju
+
+- **`ref.watch()`** u `build()` — reaktivno, rebuild kad se podaci promijene
+- **`ref.read()`** u metodama — jednokratno čitanje, bez subscribea
+- **`ref.read(xxxProvider.notifier).updateItem()`** — mutacija podataka kroz provider
+
+### Migrirana hijerarhija
+
+| Widget                       | Tip                       | Koristi                                   |
+| ---------------------------- | ------------------------- | ----------------------------------------- |
+| `HelpiAdminApp`              | `ConsumerStatefulWidget`  | DataLoader.loadAll(ref: ref)              |
+| `DashboardScreen`            | `ConsumerStatefulWidget`  | ref.watch(orders/students/seniors)        |
+| `StudentsScreen`             | `ConsumerStatefulWidget`  | ref.watch/read(students/orders/seniors)   |
+| `StudentDetailScreen`        | `ConsumerStatefulWidget`  | ref.watch/read(reviews/orders/students)   |
+| `SeniorsScreen`              | `ConsumerStatefulWidget`  | ref.watch/read(seniors/orders)            |
+| `SeniorDetailScreen`         | `ConsumerStatefulWidget`  | ref.watch/read(seniors/orders)            |
+| `EditSeniorScreen`           | `ConsumerStatefulWidget`  | ref.read(seniors)                         |
+| `AddSeniorScreen`            | `ConsumerStatefulWidget`  | DataLoader.loadAll(ref: ref)              |
+| `OrderDetailScreen`          | `ConsumerStatefulWidget`  | ref.read/watch(orders), notifier.update   |
+| `CreateOrderScreen`          | `ConsumerStatefulWidget`  | ref.read(seniors)                         |
+| `_ChatRoomList`              | `ConsumerWidget`          | ref.watch(chatRooms), ref.read(seniors/students/orders) |
+| `NotificationBell`           | `ConsumerWidget`          | ref.watch(notifications)                  |
+| `_NotificationsDrawer`       | `ConsumerStatefulWidget`  | ref.watch(notifications), markRead/markAllRead |
+| `_SessionPreviewSheet`       | `ConsumerStatefulWidget`  | ref.read(orders/students)                 |
+| `SessionPreviewHelperBase`   | Plain class (not widget)  | `allStudents`/`allOrders` constructor params |
 
 ---
 

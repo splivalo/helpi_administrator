@@ -1,6 +1,6 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-03-21
+> Zadnja izmjena: 2026-03-22
 
 ## Ukupno stanje
 
@@ -22,6 +22,7 @@
 | i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                           | 100%       |
 | Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                 | 100%       |
 | Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                    | 100%       |
+| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                        | 100%       |
 | DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                               | 100%       |
 | SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                | 100%       |
 | UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                | 100%       |
@@ -29,7 +30,7 @@
 | Backend integracija   | ❌ Nije započeta                                                                                            | 0%         |
 
 **Ukupna dovršenost frontenda: ~98%**
-**27 Dart fajlova, ~18.345 linija koda**
+**28 Dart fajlova, ~18.400 linija koda**
 **Deploy:** `https://kungfu.digital/helpi/index.html`
 
 ---
@@ -181,6 +182,28 @@
 - [x] `core/widgets/widgets.dart` — barrel export
 - [x] `core/services/preferences_service.dart` — SharedPreferences wrapper
 - [x] `features/seniors/presentation/senior_form_helpers.dart` — SeniorFormHelpers mixin
+
+### State Management — Riverpod migracija (2026-03-22)
+
+- [x] `flutter_riverpod: ^2.6.1` dodan u pubspec.yaml
+- [x] `ProviderScope` wrapper u main.dart
+- [x] `core/providers/data_providers.dart` — 6 StateNotifier providera (students, seniors, orders, reviews, notifications, chatRooms)
+- [x] `DataLoader.loadAll(ref: ref)` — sinkronizira MockData → Riverpod providere nakon svakog učitavanja
+- [x] `app.dart` → ConsumerStatefulWidget
+- [x] `dashboard_screen.dart` → ConsumerStatefulWidget, ref.watch() za reaktivne podatke
+- [x] `students_screen.dart` → ConsumerStatefulWidget, _FilterPanel dobiva seniors parametar
+- [x] `student_detail_screen.dart` → ConsumerStatefulWidget, svi MockData → ref.read()
+- [x] `seniors_screen.dart` → ConsumerStatefulWidget, _SeniorCard→ConsumerWidget, SeniorDetailScreen→ConsumerStatefulWidget
+- [x] `edit_senior_screen.dart` → ConsumerStatefulWidget
+- [x] `add_senior_screen.dart` → ConsumerStatefulWidget
+- [x] `order_detail_screen.dart` → ConsumerStatefulWidget, provider.notifier.updateItem(), _OrderAssignFlowSheet→ConsumerStatefulWidget
+- [x] `create_order_screen.dart` → ConsumerStatefulWidget
+- [x] `chat_screen.dart` → _ChatRoomList претvorен у ConsumerWidget
+- [x] `notification_bell.dart` → ConsumerWidget + ConsumerStatefulWidget, markRead/markAllRead через provajder
+- [x] `session_preview_sheet.dart` → ConsumerStatefulWidget
+- [x] `session_preview_helper.dart` → allStudents/allOrders parametri umjesto MockData
+- [x] Nula MockData referenci u UI sloju (samo DataLoader koristi MockData kao intermediate store)
+- [x] flutter analyze: 0 errors throughout
 
 ### Session Preview & Scheduling
 

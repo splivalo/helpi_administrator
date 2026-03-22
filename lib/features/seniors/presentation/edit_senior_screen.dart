@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/seniors/presentation/senior_form_helpers.dart';
 
 /// Ekran za uređivanje postojećeg seniora.
-class EditSeniorScreen extends StatefulWidget {
+class EditSeniorScreen extends ConsumerStatefulWidget {
   const EditSeniorScreen({
     super.key,
     required this.senior,
@@ -20,10 +22,10 @@ class EditSeniorScreen extends StatefulWidget {
   final bool isModal;
 
   @override
-  State<EditSeniorScreen> createState() => _EditSeniorScreenState();
+  ConsumerState<EditSeniorScreen> createState() => _EditSeniorScreenState();
 }
 
-class _EditSeniorScreenState extends State<EditSeniorScreen>
+class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
     with SeniorFormHelpers {
   final _formKey = GlobalKey<FormState>();
 
@@ -359,11 +361,12 @@ class _EditSeniorScreenState extends State<EditSeniorScreen>
     }
 
     // Refresh data from backend
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
-    // Find refreshed senior from MockData
-    final refreshed = MockData.seniors
+    // Find refreshed senior from provider
+    final refreshed = ref
+        .read(seniorsProvider)
         .where((s) => s.id == widget.senior.id)
         .firstOrNull;
 

@@ -240,6 +240,29 @@
 
 ---
 
+## 2026-03-22 — Riverpod State Management migracija
+
+- **flutter_riverpod ^2.6.1 dodan** u pubspec.yaml
+- **ProviderScope** wrapper u main.dart
+- **6 StateNotifier providera** kreirano u `core/providers/data_providers.dart`:
+  - `studentsProvider`, `seniorsProvider`, `ordersProvider`, `reviewsProvider`, `notificationsProvider`, `chatRoomsProvider`
+  - Svaki ima: `setAll()`, `addItem()`, `updateItem()`, `removeItem()` (gdje primjenjivo)
+  - `notificationsProvider` ima dodatno: `markRead(id)`, `markAllRead()` (NotificationModel nema copyWith, mutira isRead direktno)
+- **DataLoader.loadAll(ref: ref)** — WidgetRef? parametar dodan; nakon MockData populacije, sinkronizira sve 6 providera
+- **17 widgeta migrirano** na ConsumerStatefulWidget / ConsumerWidget:
+  - `app.dart`, `dashboard_screen.dart`, `students_screen.dart`, `student_detail_screen.dart`, `seniors_screen.dart` (3 klase), `edit_senior_screen.dart`, `add_senior_screen.dart`, `order_detail_screen.dart` (2 klase), `create_order_screen.dart`, `chat_screen.dart` (_ChatRoomList), `notification_bell.dart` (2 klase), `session_preview_sheet.dart`
+- **session_preview_helper.dart** — `allStudents`/`allOrders` parametri dodani u base class (ne-widget klasa, ne može koristiti ref)
+- **Nula MockData referenci u UI sloju** — samo DataLoader koristi MockData kao intermediate store za API fetch → provider sync
+- **Ključni patterni:**
+  - `ref.watch()` u `build()` za reaktivne rebuilde
+  - `ref.read()` u metodama za jednokratno čitanje
+  - `ref.read(xxxProvider.notifier).updateItem()` za mutacije
+  - Privatni child widgeti koji nemaju `ref`: konvertirani u ConsumerWidget ili primaju podatke kao parametar
+- **Backward kompatibilno**: MockData i dalje postoji kao data source (API → MockData → Provider). Buduća integracija može zamijeniti MockData s direktnim provider populiranjem.
+- **Rezultat**: 0 errors → 0 errors (flutter analyze) throughout all 17+ file changes
+
+---
+
 ## Arhitekturalne odluke
 
 | Odluka                                         | Razlog                                                  | Datum      |
@@ -249,7 +272,8 @@
 | MockData umjesto API-ja                        | Brži frontend development bez backenda                  | 2026-02    |
 | Dva showDatePicker umjesto showDateRangePicker | Performanse — DateRangePicker preopterećen              | 2026-03-04 |
 | LayoutBuilder za responsive gumbe              | Inline responsive bez globalnog breakpointa             | 2026-03-04 |
-| Nema state management libraryja (zasad)        | Mock faza, lokalni state dovoljan                       | 2026-02    |
+| ~~Nema state management libraryja~~            | ~~Mock faza, lokalni state dovoljan~~ → **Riverpod** (2026-03-22) | 2026-02    |
+| **Riverpod state management**                  | Reaktivni UI, konzistentnost s helpi_app, zero MockData u UI | 2026-03-22 |
 | DRY refactor — shared widgeti + mixin          | Eliminacija ~1000+ linija duplikata                     | 2026-03-04 |
 | GestureDetector umjesto IconButton za contact  | Material 3 min tap target 48px blokira 20px             | 2026-03-04 |
 | InfoRow Flexible trailing                      | Ikona uz tekst, ne na rubu                              | 2026-03-04 |

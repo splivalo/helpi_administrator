@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-22 (Sidney handoff update)
+> Zadnja izmjena: 2026-03-22 (Riverpod state management complete)
 
 ## 📖 Za Sidney-a — Što čitati
 
@@ -100,6 +100,7 @@
 - [x] **Rating decimal fix** — toStringAsFixed(1) na svih 8 lokacija u 5 fajlova (2026-03-19)
 - [x] **Planirani termini (projected sessions)** — Prikaz planiranih sesija za Pending narudžbe iz rasporeda prije dodjele studenta (2026-03-20)
 - [x] **Order Details cleanup** — Uklonjene redundantne sekcije (vrijeme, trajanje, raspored, adresa) iz detalja narudžbe (2026-03-21)
+- [x] **Riverpod state management** — flutter_riverpod ^2.6.1, 6 StateNotifier providera, 17 widgeta migrirano, reaktivni UI bez manual refresha, 0 MockData referenci u UI sloju (2026-03-22)
 
 ---
 

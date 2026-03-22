@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/utils/session_preview_helper.dart';
@@ -13,15 +15,15 @@ import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
 
 /// Order Detail Screen — detalji narudžbe + dodjela studenta.
-class OrderDetailScreen extends StatefulWidget {
+class OrderDetailScreen extends ConsumerStatefulWidget {
   const OrderDetailScreen({super.key, required this.order});
   final OrderModel order;
 
   @override
-  State<OrderDetailScreen> createState() => _OrderDetailScreenState();
+  ConsumerState<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
-class _OrderDetailScreenState extends State<OrderDetailScreen> {
+class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   final _prefs = PreferencesService.instance;
   static const _screenKey = 'orderDetail';
   static const _sectionCount = 6;
@@ -59,9 +61,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   /// Reload order data from backend + sessions.
   Future<void> _refreshOrder() async {
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
-    final refreshed = MockData.orders
+    final refreshed = ref
+        .read(ordersProvider)
         .where((o) => o.id == _order.id)
         .firstOrNull;
     if (refreshed != null) {
@@ -1552,7 +1555,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
     String? selectedStudentName = session.studentName;
 
-    final allActiveStudents = MockData.students
+    final allActiveStudents = ref
+        .read(studentsProvider)
         .where((s) => s.isActive && s.contractStatus == ContractStatus.active)
         .toList();
 
@@ -1810,7 +1814,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   // Find student ID from name
                   int? studentId;
                   if (selectedStudentName != null) {
-                    final student = MockData.students
+                    final student = ref
+                        .read(studentsProvider)
                         .where((s) => s.fullName == selectedStudentName)
                         .firstOrNull;
                     if (student != null) {
@@ -2024,9 +2029,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         );
       });
 
-      // Sync updated order back to MockData
-      final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
-      if (idx >= 0) MockData.orders[idx] = _order;
+      // Sync updated order back to provider for reactive UI
+      ref.read(ordersProvider.notifier).updateItem(_order);
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2248,10 +2252,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 );
               });
 
-              // Sync updated order back to MockData so
-              // dashboard / list screens reflect the change
-              final idx = MockData.orders.indexWhere((o) => o.id == _order.id);
-              if (idx >= 0) MockData.orders[idx] = _order;
+              // Sync updated order back to provider for reactive UI
+              ref.read(ordersProvider.notifier).updateItem(_order);
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -2634,7 +2636,7 @@ class _RescheduleRow extends StatelessWidget {
 // ---------------------------------------------------------------
 //  ORDER ASSIGN FLOW SHEET (single modal: student list ? session preview)
 // ---------------------------------------------------------------
-class _OrderAssignFlowSheet extends StatefulWidget {
+class _OrderAssignFlowSheet extends ConsumerStatefulWidget {
   const _OrderAssignFlowSheet({
     required this.order,
     required this.classified,
@@ -2654,10 +2656,11 @@ class _OrderAssignFlowSheet extends StatefulWidget {
   final bool useDialog;
 
   @override
-  State<_OrderAssignFlowSheet> createState() => _OrderAssignFlowSheetState();
+  ConsumerState<_OrderAssignFlowSheet> createState() =>
+      _OrderAssignFlowSheetState();
 }
 
-class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
+class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
   StudentModel? _selectedStudent;
 
   void _selectStudent(StudentModel student) {
@@ -2676,6 +2679,8 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
               final helper = _OrderSessionPreviewHelper(
                 student: _selectedStudent!,
                 order: widget.order,
+                allOrders: ref.read(ordersProvider),
+                allStudents: ref.read(studentsProvider),
               );
               return SessionPreviewContent(
                 key: ValueKey(_selectedStudent!.id),
@@ -2805,7 +2810,12 @@ class _OrderAssignFlowSheetState extends State<_OrderAssignFlowSheet> {
 /// Holds order-detail-specific session generation, substitute filtering,
 /// and conflict messaging. Passed as callbacks to [SessionPreviewContent].
 class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
-  _OrderSessionPreviewHelper({required super.student, required super.order});
+  _OrderSessionPreviewHelper({
+    required super.student,
+    required super.order,
+    required super.allOrders,
+    required super.allStudents,
+  });
 
   @override
   bool isSubstituteCandidate(StudentModel s) {
@@ -2822,7 +2832,7 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    final studentOrders = MockData.orders
+    final studentOrders = allOrders
         .where(
           (o) =>
               o.student?.id == student.id &&

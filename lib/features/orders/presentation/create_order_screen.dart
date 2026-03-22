@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
@@ -19,7 +21,7 @@ import 'package:helpi_admin/core/services/data_loader.dart';
 ///
 /// When [isModal] is `true` the widget renders without a [Scaffold]
 /// so it can be placed inside a dialog or bottom-sheet.
-class CreateOrderScreen extends StatefulWidget {
+class CreateOrderScreen extends ConsumerStatefulWidget {
   const CreateOrderScreen({
     super.key,
     this.senior,
@@ -32,10 +34,10 @@ class CreateOrderScreen extends StatefulWidget {
   final bool isModal;
 
   @override
-  State<CreateOrderScreen> createState() => _CreateOrderScreenState();
+  ConsumerState<CreateOrderScreen> createState() => _CreateOrderScreenState();
 }
 
-class _CreateOrderScreenState extends State<CreateOrderScreen> {
+class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _scrollCtrl = ScrollController();
   late final TextEditingController _notesCtrl;
@@ -172,10 +174,9 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
 
   List<SeniorModel> get _filteredSeniors {
     final q = _seniorSearchCtrl.text.toLowerCase();
-    if (q.isEmpty) return MockData.seniors;
-    return MockData.seniors
-        .where((s) => s.fullName.toLowerCase().contains(q))
-        .toList();
+    final seniors = ref.read(seniorsProvider);
+    if (q.isEmpty) return seniors;
+    return seniors.where((s) => s.fullName.toLowerCase().contains(q)).toList();
   }
 
   Set<int> get _usedDays => _dayEntries.map((e) => e.dayOfWeek).toSet();
@@ -1282,7 +1283,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       );
       return;
     }
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1364,7 +1365,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       );
       return;
     }
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

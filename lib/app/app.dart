@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/responsive_shell.dart';
 import 'package:helpi_admin/app/theme.dart';
@@ -10,14 +11,14 @@ import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/features/auth/presentation/login_screen.dart';
 
 /// Root widget za Helpi Admin app.
-class HelpiAdminApp extends StatefulWidget {
+class HelpiAdminApp extends ConsumerStatefulWidget {
   const HelpiAdminApp({super.key});
 
   @override
-  State<HelpiAdminApp> createState() => _HelpiAdminAppState();
+  ConsumerState<HelpiAdminApp> createState() => _HelpiAdminAppState();
 }
 
-class _HelpiAdminAppState extends State<HelpiAdminApp> {
+class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
   final _localeNotifier = LocaleNotifier();
   final _authService = AuthService();
   bool _isLoggedIn = false;
@@ -36,7 +37,7 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
       loggedIn = await _authService.isLoggedIn();
       if (!mounted) return;
       if (loggedIn) {
-        await DataLoader.loadAll();
+        await DataLoader.loadAll(ref: ref);
         if (!mounted) return;
       }
     } catch (_) {
@@ -54,7 +55,7 @@ class _HelpiAdminAppState extends State<HelpiAdminApp> {
       _isLoggedIn = true;
       _isLoadingData = true;
     });
-    await DataLoader.loadAll();
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
     setState(() => _isLoadingData = false);
   }

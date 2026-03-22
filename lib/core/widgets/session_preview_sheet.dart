@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/shared_widgets.dart';
 
@@ -39,7 +41,7 @@ void showSessionPreviewSheet({
   );
 }
 
-class _SessionPreviewSheet extends StatefulWidget {
+class _SessionPreviewSheet extends ConsumerStatefulWidget {
   const _SessionPreviewSheet({
     required this.student,
     required this.order,
@@ -51,10 +53,10 @@ class _SessionPreviewSheet extends StatefulWidget {
   final VoidCallback onAssigned;
 
   @override
-  State<_SessionPreviewSheet> createState() => _SessionPreviewSheetState();
+  ConsumerState<_SessionPreviewSheet> createState() => _SessionPreviewSheetState();
 }
 
-class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
+class _SessionPreviewSheetState extends ConsumerState<_SessionPreviewSheet> {
   /// Minutes of travel buffer between two consecutive Helpi sessions.
   static const _buffer = 15;
 
@@ -75,7 +77,7 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
     final today = DateTime(now.year, now.month, now.day);
 
     // Gather student's existing assigned orders (non-cancelled)
-    final studentOrders = MockData.orders
+    final studentOrders = ref.read(ordersProvider)
         .where(
           (o) =>
               o.student?.id == student.id &&
@@ -203,7 +205,7 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
   // ── Find substitute students ────────────────────────────────
 
   List<StudentModel> _findSubstitutes(SessionInstancePreview session) {
-    return MockData.students.where((s) {
+    return ref.read(studentsProvider).where((s) {
       if (s.id == widget.student.id) return false;
       // Check if this student has the weekday available
       final avail = s.availability.where(
@@ -218,7 +220,7 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
       if (aFrom > sStart || aTo < sEnd) return false;
 
       // Also check the substitute doesn't have a conflict at this time
-      final subOrders = MockData.orders.where(
+      final subOrders = ref.read(ordersProvider).where(
         (o) => o.student?.id == s.id && o.status != OrderStatus.cancelled,
       );
       for (final o in subOrders) {
@@ -264,7 +266,7 @@ class _SessionPreviewSheetState extends State<_SessionPreviewSheet> {
 
     // Collect all busy intervals on this weekday
     final busyIntervals = <({int start, int end})>[];
-    final studentOrders = MockData.orders.where(
+    final studentOrders = ref.read(ordersProvider).where(
       (o) =>
           o.student?.id == widget.student.id &&
           o.status != OrderStatus.cancelled,

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/faculty.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/excel_export_service.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
@@ -22,14 +24,14 @@ enum StudentSort { az, za, newest, oldest, ratingHigh, ratingLow }
 
 enum _StudentFilter { all, active, expired, noContract, suspended, archived }
 
-class StudentsScreen extends StatefulWidget {
+class StudentsScreen extends ConsumerStatefulWidget {
   const StudentsScreen({super.key});
 
   @override
-  State<StudentsScreen> createState() => _StudentsScreenState();
+  ConsumerState<StudentsScreen> createState() => _StudentsScreenState();
 }
 
-class _StudentsScreenState extends State<StudentsScreen>
+class _StudentsScreenState extends ConsumerState<StudentsScreen>
     with SingleTickerProviderStateMixin {
   static const _screenKey = 'students';
   final _prefs = PreferencesService.instance;
@@ -132,7 +134,8 @@ class _StudentsScreenState extends State<StudentsScreen>
 
   // ── Jobs in a date range ──
   int _jobsInRange(StudentModel student, DateTime from, DateTime to) {
-    return MockData.orders
+    final allOrders = ref.read(ordersProvider);
+    return allOrders
         .where(
           (o) =>
               o.student?.id == student.id &&
@@ -144,7 +147,8 @@ class _StudentsScreenState extends State<StudentsScreen>
   }
 
   Set<String> _seniorIdsForStudent(StudentModel student) {
-    return MockData.orders
+    final allOrders = ref.read(ordersProvider);
+    return allOrders
         .where((o) => o.student?.id == student.id)
         .map((o) => o.senior.id)
         .toSet();
@@ -170,7 +174,7 @@ class _StudentsScreenState extends State<StudentsScreen>
   }
 
   List<StudentModel> _filteredStudents(_StudentFilter filter) {
-    var students = MockData.students.toList();
+    var students = ref.read(studentsProvider).toList();
 
     // Combined status + contract filter
     switch (filter) {
@@ -373,7 +377,8 @@ class _StudentsScreenState extends State<StudentsScreen>
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final cities =
-                    MockData.students
+                    ref
+                        .watch(studentsProvider)
                         .map((s) => s.city)
                         .where((c) => c.isNotEmpty)
                         .toSet()
@@ -739,6 +744,7 @@ class _StudentsScreenState extends State<StudentsScreen>
               constraints: const BoxConstraints(maxWidth: 560, maxHeight: 700),
               child: _FilterPanel(
                 isDialog: true,
+                seniors: ref.read(seniorsProvider),
                 activityPeriod: _activityPeriod,
                 activityWorked: _activityWorked,
                 customFrom: _customFrom,
@@ -801,6 +807,7 @@ class _StudentsScreenState extends State<StudentsScreen>
         backgroundColor: Colors.transparent,
         builder: (ctx) {
           return _FilterPanel(
+            seniors: ref.read(seniorsProvider),
             activityPeriod: _activityPeriod,
             activityWorked: _activityWorked,
             customFrom: _customFrom,
@@ -864,6 +871,7 @@ class _StudentsScreenState extends State<StudentsScreen>
 class _FilterPanel extends StatefulWidget {
   const _FilterPanel({
     this.isDialog = false,
+    required this.seniors,
     required this.activityPeriod,
     required this.activityWorked,
     required this.customFrom,
@@ -882,6 +890,7 @@ class _FilterPanel extends StatefulWidget {
   });
 
   final bool isDialog;
+  final List<SeniorModel> seniors;
   final ActivityPeriod? activityPeriod;
   final bool? activityWorked;
   final DateTime? customFrom;
@@ -1471,7 +1480,7 @@ class _FilterPanelState extends State<_FilterPanel> {
                       value: null,
                       child: Text(AppStrings.anySenior),
                     ),
-                    ...MockData.seniors.map(
+                    ...widget.seniors.map(
                       (s) => DropdownMenuItem<String?>(
                         value: s.id,
                         child: Text(s.fullName),
