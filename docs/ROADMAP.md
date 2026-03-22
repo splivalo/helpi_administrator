@@ -2,6 +2,22 @@
 
 > Zadnja izmjena: 2026-03-22 (Sidney handoff update)
 
+## 📖 Za Sidney-a — Što čitati
+
+| Repo | Fajl | Sadržaj |
+|------|------|---------|
+| helpi_admin | **docs/ROADMAP.md** (ovaj fajl) | Svi preostali TODO-ovi |
+| helpi_admin | docs/PROGRESS.md | Admin app status (98% frontend done) |
+| helpi_admin | docs/ARCHITECTURE.md | Admin tech stack, folder structure, UI standardi |
+| helpi_admin | docs/PROJECT_HISTORY.md | Kronologija odluka (Feb→Mart 2026) |
+| helpi_backend | PROGRESS.md | Backend task tracking (16 taskova ✅) |
+| helpi_backend | README.md | DB schema, use case flows, 19 LINQ queries |
+| helpi_backend | seeds/README.md | Test data, login credentials, promo codes |
+| helpi_app | README.md | App tech stack, Riverpod/SignalR info |
+| helpi_app | ARCHITECTURE.md | Folder structure, 64 fajlova, providers |
+
+---
+
 ## TODO (čeka potvrdu)
 
 ### Integracije (backend kod postoji, treba credentials + testiranje)
@@ -27,6 +43,14 @@
 - [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
 - [x] **Blagdani (javni praznici)** — `CroatianHolidays.cs` (backend) + `croatian_holidays.dart` (admin) — 13 fiksnih praznika + Computus algoritam za Uskrsni ponedjeljak i Tijelovo. `HangfireRecurringJobService` koristi `isOvertimeDay = Sunday || CroatianHolidays.IsPublicHoliday(date)`. Label: "Povećana satnica" (ne "Nedjeljna"). ✅ (2026-03-22, commit backend `a652bff`, admin `742ff07`)
 - [ ] **Notifikacije (push)** — Push notifikacije za administratora (nova narudžba, istek ugovora, otkazana sesija). Trenutno su notifikacije samo lokalne mock. ⚠️ Ovisi o Firebase credentials.
+
+### Chat / Poruke sustav (NIŠTA ne postoji u backendu!)
+
+- [ ] **Backend: Chat entiteti + migracija** — Kreirati `ChatRoom` i `ChatMessage` entitete u `Helpi.Domain`, DB migracija. Nema NI JEDNOG chat entityja u backendu trenutno.
+- [ ] **Backend: ChatController + ChatService** — CRUD za chat rooms, send/receive poruke, lista razgovora. Endpoint: `api/chat`.
+- [ ] **Backend: ChatHub (SignalR)** — Real-time poruke. Trenutno postoji samo `NotificationHub` (za push). Treba ili proširiti ili napraviti zasebni `ChatHub`.
+- [ ] **Admin app: wiring** — `ChatModScreen` je UI-gotov (split-view, moderacija), ali čita iz `MockData.chatRooms` (prazan `[]`). `DataLoader` ima TODO comment. Treba: zamjena MockData → API pozivi.
+- [ ] **helpi_app: zamjena mock chata** — `senior_chat_list_screen.dart` i `student_chat_screen.dart` su identične kopije s hardkodiranim `_ChatMessage` listom (lokalni state, ne šalje ništa). Treba: pravi model, ChatService, SignalR konekcija.
 
 ## Dovršeno
 
