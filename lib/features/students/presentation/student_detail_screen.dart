@@ -794,7 +794,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
-    // Pick up fresh student data from the refreshed MockData
+    // Pick up fresh student data from the refreshed AppData
     final fresh = ref
         .read(studentsProvider)
         .firstWhere((s) => s.id == _student.id, orElse: () => _student);
@@ -848,7 +848,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
-    // Pick up fresh student data from the refreshed MockData
+    // Pick up fresh student data from the refreshed AppData
     final fresh = ref
         .read(studentsProvider)
         .firstWhere((s) => s.id == _student.id, orElse: () => _student);

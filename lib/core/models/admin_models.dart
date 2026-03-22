@@ -1,10 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 export 'archive_models.dart';
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════
 //  ENUMS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════
 
 enum OrderStatus { processing, active, completed, cancelled, archived }
 
@@ -39,13 +39,13 @@ enum Gender { male, female }
 
 enum NotificationType { newOrder, contractExpiring, sessionCancelled, info }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════
 //  MODELS
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════
 
 enum CardBrand { visa, mastercard, maestro, amex, diners, unknown }
 
-// â”€â”€ Notification â”€â”€
+// ── Notification ──
 class NotificationModel {
   final String id;
   final NotificationType type;
@@ -101,7 +101,7 @@ class CreditCard {
 
 class SeniorModel {
   final String id;
-  final int? userId; // Customer/User ID (AspNetUsers.Id) — for suspend/activate
+  final int? userId; // Customer/User ID (AspNetUsers.Id) � for suspend/activate
   final int? contactId; // For backend update via PUT /api/contact-infos/{id}
   final int? ordererContactId; // For orderer update
   final String firstName;
@@ -377,7 +377,7 @@ class SessionModel {
   }
 }
 
-// â”€â”€ Session Preview (for assign flow) â”€â”€
+// ── Session Preview (for assign flow) ──
 
 /// Conflict type for a generated session preview instance.
 enum SessionConflictType { free, conflict }
@@ -495,9 +495,9 @@ class ChatMessage {
   bool get isAdmin => senderRole == 'admin';
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════
 //  ADMIN NOTE
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════
 
 class AdminNote {
   final int id;
@@ -592,12 +592,12 @@ class ArchiveResult {
   }
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  DATA STORE â€” populated by DataLoader from API
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══════════════════════════════════════════════════════════════
+//  DATA STORE — populated by DataLoader from API
+// ═══════════════════════════════════════════════════════════════
 
-class MockData {
-  MockData._();
+class AppData {
+  AppData._();
 
   static final List<SeniorModel> seniors = [];
   static final List<StudentModel> students = [];

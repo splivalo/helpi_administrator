@@ -1694,7 +1694,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
     await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
-    // Pick up fresh senior data from the refreshed MockData
+    // Pick up fresh senior data from the refreshed AppData
     final fresh = ref
         .read(seniorsProvider)
         .firstWhere((s) => s.id == _senior.id, orElse: () => _senior);
@@ -1752,7 +1752,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
     await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
-    // Pick up fresh senior data from the refreshed MockData
+    // Pick up fresh senior data from the refreshed AppData
     final fresh = ref
         .read(seniorsProvider)
         .firstWhere((s) => s.id == _senior.id, orElse: () => _senior);

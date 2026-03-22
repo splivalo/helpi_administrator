@@ -53,7 +53,8 @@ class _SessionPreviewSheet extends ConsumerStatefulWidget {
   final VoidCallback onAssigned;
 
   @override
-  ConsumerState<_SessionPreviewSheet> createState() => _SessionPreviewSheetState();
+  ConsumerState<_SessionPreviewSheet> createState() =>
+      _SessionPreviewSheetState();
 }
 
 class _SessionPreviewSheetState extends ConsumerState<_SessionPreviewSheet> {
@@ -77,7 +78,8 @@ class _SessionPreviewSheetState extends ConsumerState<_SessionPreviewSheet> {
     final today = DateTime(now.year, now.month, now.day);
 
     // Gather student's existing assigned orders (non-cancelled)
-    final studentOrders = ref.read(ordersProvider)
+    final studentOrders = ref
+        .read(ordersProvider)
         .where(
           (o) =>
               o.student?.id == student.id &&
@@ -220,9 +222,11 @@ class _SessionPreviewSheetState extends ConsumerState<_SessionPreviewSheet> {
       if (aFrom > sStart || aTo < sEnd) return false;
 
       // Also check the substitute doesn't have a conflict at this time
-      final subOrders = ref.read(ordersProvider).where(
-        (o) => o.student?.id == s.id && o.status != OrderStatus.cancelled,
-      );
+      final subOrders = ref
+          .read(ordersProvider)
+          .where(
+            (o) => o.student?.id == s.id && o.status != OrderStatus.cancelled,
+          );
       for (final o in subOrders) {
         if (o.dayEntries.isNotEmpty) {
           for (final entry in o.dayEntries) {
@@ -266,11 +270,13 @@ class _SessionPreviewSheetState extends ConsumerState<_SessionPreviewSheet> {
 
     // Collect all busy intervals on this weekday
     final busyIntervals = <({int start, int end})>[];
-    final studentOrders = ref.read(ordersProvider).where(
-      (o) =>
-          o.student?.id == widget.student.id &&
-          o.status != OrderStatus.cancelled,
-    );
+    final studentOrders = ref
+        .read(ordersProvider)
+        .where(
+          (o) =>
+              o.student?.id == widget.student.id &&
+              o.status != OrderStatus.cancelled,
+        );
     for (final o in studentOrders) {
       if (o.dayEntries.isNotEmpty) {
         for (final entry in o.dayEntries) {

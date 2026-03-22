@@ -39,7 +39,7 @@
 
 ### Admin app & infrastruktura
 
-- [ ] **Backend integracija** — Zamjena MockData s REST API pozivima. Definiranje API endpointova, autentifikacija (JWT), error handling. Ovo je GLAVNI preostali zadatak.
+- [ ] **Backend integracija** — Zamjena AppData s REST API pozivima. Definiranje API endpointova, autentifikacija (JWT), error handling. Ovo je GLAVNI preostali zadatak.
 - [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
 - [x] **Blagdani (javni praznici)** — `CroatianHolidays.cs` (backend) + `croatian_holidays.dart` (admin) — 13 fiksnih praznika + Computus algoritam za Uskrsni ponedjeljak i Tijelovo. `HangfireRecurringJobService` koristi `isOvertimeDay = Sunday || CroatianHolidays.IsPublicHoliday(date)`. Label: "Povećana satnica" (ne "Nedjeljna"). ✅ (2026-03-22, commit backend `a652bff`, admin `742ff07`)
 - [ ] **Notifikacije (push)** — Push notifikacije za administratora (nova narudžba, istek ugovora, otkazana sesija). Trenutno su notifikacije samo lokalne mock. ⚠️ Ovisi o Firebase credentials.
@@ -49,7 +49,7 @@
 - [ ] **Backend: Chat entiteti + migracija** — Kreirati `ChatRoom` i `ChatMessage` entitete u `Helpi.Domain`, DB migracija. Nema NI JEDNOG chat entityja u backendu trenutno.
 - [ ] **Backend: ChatController + ChatService** — CRUD za chat rooms, send/receive poruke, lista razgovora. Endpoint: `api/chat`.
 - [ ] **Backend: ChatHub (SignalR)** — Real-time poruke. Trenutno postoji samo `NotificationHub` (za push). Treba ili proširiti ili napraviti zasebni `ChatHub`.
-- [ ] **Admin app: wiring** — `ChatModScreen` je UI-gotov (split-view, moderacija), ali čita iz `MockData.chatRooms` (prazan `[]`). `DataLoader` ima TODO comment. Treba: zamjena MockData → API pozivi.
+- [ ] **Admin app: wiring** — `ChatModScreen` je UI-gotov (split-view, moderacija), ali čita iz `AppData.chatRooms` (prazan `[]`). `DataLoader` ima TODO comment. Treba: zamjena AppData → API pozivi.
 - [ ] **helpi_app: zamjena mock chata** — `senior_chat_list_screen.dart` i `student_chat_screen.dart` su identične kopije s hardkodiranim `_ChatMessage` listom (lokalni state, ne šalje ništa). Treba: pravi model, ChatService, SignalR konekcija.
 
 ## Dovršeno
@@ -100,7 +100,7 @@
 - [x] **Rating decimal fix** — toStringAsFixed(1) na svih 8 lokacija u 5 fajlova (2026-03-19)
 - [x] **Planirani termini (projected sessions)** — Prikaz planiranih sesija za Pending narudžbe iz rasporeda prije dodjele studenta (2026-03-20)
 - [x] **Order Details cleanup** — Uklonjene redundantne sekcije (vrijeme, trajanje, raspored, adresa) iz detalja narudžbe (2026-03-21)
-- [x] **Riverpod state management** — flutter_riverpod ^2.6.1, 6 StateNotifier providera, 17 widgeta migrirano, reaktivni UI bez manual refresha, 0 MockData referenci u UI sloju (2026-03-22)
+- [x] **Riverpod state management** — flutter_riverpod ^2.6.1, 6 StateNotifier providera, 17 widgeta migrirano, reaktivni UI bez manual refresha, 0 AppData referenci u UI sloju (2026-03-22)
 
 ---
 

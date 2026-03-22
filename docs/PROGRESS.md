@@ -44,7 +44,7 @@
 - [x] ResponsiveShell — BottomNav (<600px), NavigationRail (600–900px), Sidebar (≥900px)
 - [x] SVG logo u sidebaru
 - [x] AppStrings (i18n) — HR + EN, parametrizirani stringovi, Gemini Hybrid pattern
-- [x] MockData — studenti, seniori (uključujući Ankica Tomić s6 s 0 narudžbi), narudžbe, sesije, chat sobe, notifikacije
+- [x] AppData — studenti, seniori (uključujući Ankica Tomić s6 s 0 narudžbi), narudžbe, sesije, chat sobe, notifikacije
 - [x] Dokumentacija (docs/ folder)
 - [x] Flutter Web build i deploy (`--base-href /helpi/`)
 
@@ -188,21 +188,21 @@
 - [x] `flutter_riverpod: ^2.6.1` dodan u pubspec.yaml
 - [x] `ProviderScope` wrapper u main.dart
 - [x] `core/providers/data_providers.dart` — 6 StateNotifier providera (students, seniors, orders, reviews, notifications, chatRooms)
-- [x] `DataLoader.loadAll(ref: ref)` — sinkronizira MockData → Riverpod providere nakon svakog učitavanja
+- [x] `DataLoader.loadAll(ref: ref)` — sinkronizira AppData → Riverpod providere nakon svakog učitavanja
 - [x] `app.dart` → ConsumerStatefulWidget
 - [x] `dashboard_screen.dart` → ConsumerStatefulWidget, ref.watch() za reaktivne podatke
-- [x] `students_screen.dart` → ConsumerStatefulWidget, _FilterPanel dobiva seniors parametar
-- [x] `student_detail_screen.dart` → ConsumerStatefulWidget, svi MockData → ref.read()
-- [x] `seniors_screen.dart` → ConsumerStatefulWidget, _SeniorCard→ConsumerWidget, SeniorDetailScreen→ConsumerStatefulWidget
+- [x] `students_screen.dart` → ConsumerStatefulWidget, \_FilterPanel dobiva seniors parametar
+- [x] `student_detail_screen.dart` → ConsumerStatefulWidget, svi AppData → ref.read()
+- [x] `seniors_screen.dart` → ConsumerStatefulWidget, \_SeniorCard→ConsumerWidget, SeniorDetailScreen→ConsumerStatefulWidget
 - [x] `edit_senior_screen.dart` → ConsumerStatefulWidget
 - [x] `add_senior_screen.dart` → ConsumerStatefulWidget
-- [x] `order_detail_screen.dart` → ConsumerStatefulWidget, provider.notifier.updateItem(), _OrderAssignFlowSheet→ConsumerStatefulWidget
+- [x] `order_detail_screen.dart` → ConsumerStatefulWidget, provider.notifier.updateItem(), \_OrderAssignFlowSheet→ConsumerStatefulWidget
 - [x] `create_order_screen.dart` → ConsumerStatefulWidget
-- [x] `chat_screen.dart` → _ChatRoomList претvorен у ConsumerWidget
+- [x] `chat_screen.dart` → \_ChatRoomList претvorен у ConsumerWidget
 - [x] `notification_bell.dart` → ConsumerWidget + ConsumerStatefulWidget, markRead/markAllRead через provajder
 - [x] `session_preview_sheet.dart` → ConsumerStatefulWidget
-- [x] `session_preview_helper.dart` → allStudents/allOrders parametri umjesto MockData
-- [x] Nula MockData referenci u UI sloju (samo DataLoader koristi MockData kao intermediate store)
+- [x] `session_preview_helper.dart` → allStudents/allOrders parametri umjesto AppData
+- [x] Nula AppData referenci u UI sloju (samo DataLoader koristi AppData kao intermediate store)
 - [x] flutter analyze: 0 errors throughout
 
 ### Session Preview & Scheduling

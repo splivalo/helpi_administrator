@@ -16,7 +16,10 @@ class NotificationBell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unread = ref.watch(notificationsProvider).where((n) => !n.isRead).length;
+    final unread = ref
+        .watch(notificationsProvider)
+        .where((n) => !n.isRead)
+        .length;
     return IconButton(
       icon: Badge(
         isLabelVisible: unread > 0,
@@ -61,7 +64,8 @@ class _NotificationsDrawer extends ConsumerStatefulWidget {
   const _NotificationsDrawer();
 
   @override
-  ConsumerState<_NotificationsDrawer> createState() => _NotificationsDrawerState();
+  ConsumerState<_NotificationsDrawer> createState() =>
+      _NotificationsDrawerState();
 }
 
 class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
@@ -107,7 +111,9 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                     if (unreadCount > 0)
                       TextButton(
                         onPressed: () async {
-                          ref.read(notificationsProvider.notifier).markAllRead();
+                          ref
+                              .read(notificationsProvider.notifier)
+                              .markAllRead();
                           final userId = await TokenStorage().getUserId() ?? 0;
                           if (!context.mounted) return;
                           AdminApiService().markAllNotificationsRead(userId);
@@ -158,7 +164,9 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                             notification: n,
                             onTap: () {
                               if (!n.isRead) {
-                                ref.read(notificationsProvider.notifier).markRead(n.id);
+                                ref
+                                    .read(notificationsProvider.notifier)
+                                    .markRead(n.id);
                                 final nId = int.tryParse(n.id) ?? 0;
                                 if (nId > 0) {
                                   AdminApiService().markNotificationRead(nId);

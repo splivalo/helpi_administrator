@@ -8,7 +8,7 @@ Admin panel za Helpi platformu — povezivanje studenata i seniora za usluge pom
 - **Dart** ≥3.10.7
 - **State management:** Riverpod (flutter_riverpod ^2.6.1)
 - **Lokalizacija:** HR + EN (AppStrings Gemini Hybrid pattern)
-- **Data:** Mock podaci (backend integracija planirana)
+- **Data:** AppData (in-memory store, backend integracija planirana)
 
 ## Pokretanje
 

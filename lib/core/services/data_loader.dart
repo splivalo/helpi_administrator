@@ -10,7 +10,7 @@ import 'package:helpi_admin/core/services/admin_api_service.dart';
 
 // TODO: Add chatRooms loading once chat backend is implemented
 
-/// Loads data from the backend API into Riverpod providers (and [MockData]
+/// Loads data from the backend API into Riverpod providers (and [AppData]
 /// for backward compatibility).
 ///
 /// Call [loadAll] after successful login. If the backend is unreachable
@@ -23,14 +23,14 @@ class DataLoader {
   static bool get isLoaded => _loaded;
 
   /// Fetch students, seniors, orders, reviews and notifications
-  /// from the API **in parallel** and replace provider + [MockData] contents.
+  /// from the API **in parallel** and replace provider + [AppData] contents.
   ///
   /// The entire operation is capped at [_timeout] so the UI never
   /// hangs when the backend is unreachable — mock data stays as fallback.
   static const _timeout = Duration(seconds: 8);
 
   /// Pass [ref] to populate Riverpod providers reactively.
-  /// Without ref, only [MockData] static lists are populated (legacy path).
+  /// Without ref, only [AppData] static lists are populated (legacy path).
   static Future<bool> loadAll({WidgetRef? ref}) async {
     try {
       return await _doLoad(ref: ref).timeout(_timeout);
@@ -66,7 +66,7 @@ class DataLoader {
     final sessionsResult = results[5] as ApiResult<List<SessionModel>>;
 
     if (studentsResult.success && studentsResult.data != null) {
-      MockData.students
+      AppData.students
         ..clear()
         ..addAll(studentsResult.data!);
     } else {
@@ -75,7 +75,7 @@ class DataLoader {
     }
 
     if (seniorsResult.success && seniorsResult.data != null) {
-      MockData.seniors
+      AppData.seniors
         ..clear()
         ..addAll(seniorsResult.data!);
     } else {
@@ -84,7 +84,7 @@ class DataLoader {
     }
 
     if (ordersResult.success && ordersResult.data != null) {
-      MockData.orders
+      AppData.orders
         ..clear()
         ..addAll(ordersResult.data!);
     } else {
@@ -93,7 +93,7 @@ class DataLoader {
     }
 
     if (reviewsResult.success && reviewsResult.data != null) {
-      MockData.reviews
+      AppData.reviews
         ..clear()
         ..addAll(reviewsResult.data!);
     } else {
@@ -102,7 +102,7 @@ class DataLoader {
     }
 
     if (notifResult.success && notifResult.data != null) {
-      MockData.notifications
+      AppData.notifications
         ..clear()
         ..addAll(notifResult.data!);
     } else {
@@ -119,11 +119,11 @@ class DataLoader {
           sessionsByOrder.putIfAbsent(oid, () => []).add(s);
         }
       }
-      for (var i = 0; i < MockData.orders.length; i++) {
-        final order = MockData.orders[i];
+      for (var i = 0; i < AppData.orders.length; i++) {
+        final order = AppData.orders[i];
         final orderSessions = sessionsByOrder[order.id];
         if (orderSessions != null && orderSessions.isNotEmpty) {
-          MockData.orders[i] = order.copyWith(sessions: orderSessions);
+          AppData.orders[i] = order.copyWith(sessions: orderSessions);
         }
       }
       debugPrint(
@@ -141,23 +141,23 @@ class DataLoader {
 
     // Sync Riverpod providers for reactive UI updates
     if (ref != null) {
-      ref.read(studentsProvider.notifier).setAll(MockData.students);
-      ref.read(seniorsProvider.notifier).setAll(MockData.seniors);
-      ref.read(ordersProvider.notifier).setAll(MockData.orders);
-      ref.read(reviewsProvider.notifier).setAll(MockData.reviews);
-      ref.read(notificationsProvider.notifier).setAll(MockData.notifications);
-      ref.read(chatRoomsProvider.notifier).setAll(MockData.chatRooms);
+      ref.read(studentsProvider.notifier).setAll(AppData.students);
+      ref.read(seniorsProvider.notifier).setAll(AppData.seniors);
+      ref.read(ordersProvider.notifier).setAll(AppData.orders);
+      ref.read(reviewsProvider.notifier).setAll(AppData.reviews);
+      ref.read(notificationsProvider.notifier).setAll(AppData.notifications);
+      ref.read(chatRoomsProvider.notifier).setAll(AppData.chatRooms);
     }
 
     _loaded = allOk;
     debugPrint(
       '[DataLoader] loadAll completed — '
-      'students=${MockData.students.length}, '
-      'seniors=${MockData.seniors.length}, '
-      'orders=${MockData.orders.length}, '
-      'reviews=${MockData.reviews.length}, '
-      'notifications=${MockData.notifications.length}, '
-      'chatRooms=${MockData.chatRooms.length}, '
+      'students=${AppData.students.length}, '
+      'seniors=${AppData.seniors.length}, '
+      'orders=${AppData.orders.length}, '
+      'reviews=${AppData.reviews.length}, '
+      'notifications=${AppData.notifications.length}, '
+      'chatRooms=${AppData.chatRooms.length}, '
       'allOk=$allOk',
     );
     return allOk;
@@ -167,8 +167,8 @@ class DataLoader {
   /// TODO: Remove this method before production - all data should come from backend
   static void _seedDemoDataIfEmpty() {
     // Demo notifications if none from API
-    if (MockData.notifications.isEmpty) {
-      MockData.notifications.addAll([
+    if (AppData.notifications.isEmpty) {
+      AppData.notifications.addAll([
         NotificationModel(
           id: 'demo-notif-1',
           type: NotificationType.newOrder,
@@ -213,15 +213,15 @@ class DataLoader {
     }
 
     // Demo chat rooms if none exist - use real IDs from loaded data
-    if (MockData.chatRooms.isEmpty && MockData.seniors.isNotEmpty) {
-      final senior1 = MockData.seniors.isNotEmpty ? MockData.seniors[0] : null;
-      final senior2 = MockData.seniors.length > 1 ? MockData.seniors[1] : null;
-      final student1 = MockData.students.isNotEmpty
-          ? MockData.students[0]
+    if (AppData.chatRooms.isEmpty && AppData.seniors.isNotEmpty) {
+      final senior1 = AppData.seniors.isNotEmpty ? AppData.seniors[0] : null;
+      final senior2 = AppData.seniors.length > 1 ? AppData.seniors[1] : null;
+      final student1 = AppData.students.isNotEmpty
+          ? AppData.students[0]
           : null;
 
       if (senior1 != null) {
-        MockData.chatRooms.add(
+        AppData.chatRooms.add(
           ChatRoom(
             id: 'demo-chat-1',
             participantId: senior1.id,
@@ -278,7 +278,7 @@ class DataLoader {
       }
 
       if (student1 != null) {
-        MockData.chatRooms.add(
+        AppData.chatRooms.add(
           ChatRoom(
             id: 'demo-chat-2',
             participantId: student1.id,
@@ -320,7 +320,7 @@ class DataLoader {
       }
 
       if (senior2 != null) {
-        MockData.chatRooms.add(
+        AppData.chatRooms.add(
           ChatRoom(
             id: 'demo-chat-3',
             participantId: senior2.id,
