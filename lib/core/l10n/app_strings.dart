@@ -26,7 +26,6 @@ class AppStrings {
 
       // ── Navigacija ────────────────────────────
       'navDashboard': 'Pregled',
-      'navOrders': 'Narudžbe',
       'navStudents': 'Studenti',
       'navSeniors': 'Seniori',
       'navChat': 'Poruke',
@@ -54,13 +53,7 @@ class AppStrings {
       'noExpiringContracts': 'Nema isteklih ugovora',
 
       // ── Narudžbe ──────────────────────────────
-      'ordersTitle': 'Narudžbe',
-      'allOrders': 'Sve',
       'ordersProcessing': 'U obradi',
-      'ordersActive': 'Aktivne',
-      'ordersCompleted': 'Završene',
-      'ordersCancelled': 'Otkazane',
-      'ordersArchived': 'Arhivirane',
       'cancelOrderConfirmTitle': 'Otkaži narudžbu',
       'cancelOrderConfirmMsg':
           'Jeste li sigurni da želite otkazati ovu narudžbu? Svi nadolazeći termini će biti otkazani.',
@@ -604,7 +597,6 @@ class AppStrings {
 
       // ── Navigacija ────────────────────────────
       'navDashboard': 'Dashboard',
-      'navOrders': 'Orders',
       'navStudents': 'Students',
       'navSeniors': 'Seniors',
       'navChat': 'Messages',
@@ -632,13 +624,7 @@ class AppStrings {
       'noExpiringContracts': 'No expiring contracts',
 
       // ── Narudžbe ──────────────────────────────
-      'ordersTitle': 'Orders',
-      'allOrders': 'All',
       'ordersProcessing': 'Processing',
-      'ordersActive': 'Active',
-      'ordersCompleted': 'Completed',
-      'ordersCancelled': 'Cancelled',
-      'ordersArchived': 'Archived',
       'cancelOrderConfirmTitle': 'Cancel order',
       'cancelOrderConfirmMsg':
           'Are you sure you want to cancel this order? All upcoming sessions will be cancelled.',
@@ -1193,7 +1179,6 @@ class AppStrings {
 
   // ── Navigacija ──
   static String get navDashboard => _t('navDashboard');
-  static String get navOrders => _t('navOrders');
   static String get navStudents => _t('navStudents');
   static String get navSeniors => _t('navSeniors');
   static String get navChat => _t('navChat');
@@ -1221,13 +1206,7 @@ class AppStrings {
   static String get noExpiringContracts => _t('noExpiringContracts');
 
   // ── Narudžbe ──
-  static String get ordersTitle => _t('ordersTitle');
-  static String get allOrders => _t('allOrders');
   static String get ordersProcessing => _t('ordersProcessing');
-  static String get ordersActive => _t('ordersActive');
-  static String get ordersCompleted => _t('ordersCompleted');
-  static String get ordersCancelled => _t('ordersCancelled');
-  static String get ordersArchived => _t('ordersArchived');
   static String get cancelOrderConfirmTitle => _t('cancelOrderConfirmTitle');
   static String get cancelOrderConfirmMsg => _t('cancelOrderConfirmMsg');
   static String get cancelOrderBtn => _t('cancelOrderBtn');
