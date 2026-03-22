@@ -9,6 +9,7 @@ import 'package:helpi_admin/core/models/suspension_models.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
+import 'package:helpi_admin/core/utils/croatian_holidays.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/suspension_widgets.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
@@ -1381,16 +1382,23 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     return (completed, cancelled);
   }
 
-  /// Counts how many times [dayOfWeek] (1=Mon..7=Sun) falls in [start]..[end].
-  int _dayOccurrencesInRange(DateTime start, DateTime end, int dayOfWeek) {
-    int count = 0;
+  /// Counts (regular, overtime) occurrences of [dayOfWeek] in [start]..[end].
+  /// Overtime = Sunday OR Croatian public holiday.
+  (int, int) _splitOccurrences(DateTime start, DateTime end, int dayOfWeek) {
+    int regular = 0;
+    int overtime = 0;
     for (var d = start; !d.isAfter(end); d = d.add(const Duration(days: 1))) {
-      if (d.weekday == dayOfWeek) count++;
+      if (d.weekday != dayOfWeek) continue;
+      if (CroatianHolidays.isOvertimeDay(d)) {
+        overtime++;
+      } else {
+        regular++;
+      }
     }
-    return count;
+    return (regular, overtime);
   }
 
-  /// Calculates (regularHours, sundayHours) within [_summaryStart]..[_summaryEnd].
+  /// Calculates (regularHours, overtimeHours) within [_summaryStart]..[_summaryEnd].
   (double, double) _rangeHours() {
     final studentOrders = MockData.orders.where(
       (o) =>
@@ -1399,38 +1407,34 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
     );
 
     double regular = 0;
-    double sunday = 0;
+    double overtime = 0;
 
     for (final order in studentOrders) {
       if (order.dayEntries.isNotEmpty) {
-        // Recurring: count each day's occurrences in the selected range
+        // Recurring: split each day’s occurrences into regular vs overtime
         for (final entry in order.dayEntries) {
-          final occurrences = _dayOccurrencesInRange(
+          final (reg, ovt) = _splitOccurrences(
             _summaryStart,
             _summaryEnd,
             entry.dayOfWeek,
           );
-          final hours = entry.durationHours.toDouble() * occurrences;
-          if (entry.dayOfWeek == DateTime.sunday) {
-            sunday += hours;
-          } else {
-            regular += hours;
-          }
+          regular += entry.durationHours.toDouble() * reg;
+          overtime += entry.durationHours.toDouble() * ovt;
         }
       } else {
         // One-time: only if scheduledDate falls within range
         if (!order.scheduledDate.isBefore(_summaryStart) &&
             !order.scheduledDate.isAfter(_summaryEnd)) {
           final hours = order.durationHours.toDouble();
-          if (order.scheduledDate.weekday == DateTime.sunday) {
-            sunday += hours;
+          if (CroatianHolidays.isOvertimeDay(order.scheduledDate)) {
+            overtime += hours;
           } else {
             regular += hours;
           }
         }
       }
     }
-    return (regular, sunday);
+    return (regular, overtime);
   }
 
   Future<void> _pickStartDate() async {
@@ -1479,11 +1483,11 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
   }
 
   Widget _buildWorkSummarySection() {
-    final (regularHrs, sundayHrs) = _rangeHours();
-    final totalHrs = regularHrs + sundayHrs;
+    final (regularHrs, overtimeHrs) = _rangeHours();
+    final totalHrs = regularHrs + overtimeHrs;
     final regularPay = regularHrs * _student.hourlyRate;
-    final sundayPay = sundayHrs * _student.sundayHourlyRate;
-    final totalPay = regularPay + sundayPay;
+    final overtimePay = overtimeHrs * _student.sundayHourlyRate;
+    final totalPay = regularPay + overtimePay;
 
     final (completedCount, cancelledCount) = _rangeJobCounts();
 
@@ -1692,7 +1696,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
               ),
               InfoField(
                 label: AppStrings.workSundayHours,
-                value: '${sundayHrs.toStringAsFixed(0)} ${AppStrings.hours}',
+                value: '${overtimeHrs.toStringAsFixed(0)} ${AppStrings.hours}',
               ),
               InfoField(
                 label: AppStrings.workTotalHours,
@@ -1709,7 +1713,7 @@ class _StudentDetailScreenState extends State<StudentDetailScreen> {
             padding: const EdgeInsets.only(top: 2),
             child: Text(
               '${regularHrs.toStringAsFixed(0)}h × ${_student.hourlyRate.toStringAsFixed(2)}€ = ${regularPay.toStringAsFixed(2)}€'
-              '${sundayHrs > 0 ? '  +  ${sundayHrs.toStringAsFixed(0)}h × ${_student.sundayHourlyRate.toStringAsFixed(2)}€ = ${sundayPay.toStringAsFixed(2)}€' : ''}',
+              '${overtimeHrs > 0 ? '  +  ${overtimeHrs.toStringAsFixed(0)}h × ${_student.sundayHourlyRate.toStringAsFixed(2)}€ = ${overtimePay.toStringAsFixed(2)}€' : ''}',
               style: const TextStyle(
                 fontSize: 11,
                 color: HelpiTheme.textSecondary,

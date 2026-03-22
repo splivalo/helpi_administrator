@@ -1,24 +1,32 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-21
+> Zadnja izmjena: 2026-03-22
 
 ## TODO (čeka potvrdu)
 
-- [ ] **Suspenzija — auto-otkazivanje narudžbi (backend)** — Frontend admin app VEĆ otkazuje narudžbe lokalno (MockData) pri suspenziji. Backend `SuspendUserAsync` u `SuspensionService.cs` MORA napraviti isto: dohvatiti sve Order-e tog korisnika sa statusom Active/Processing, postaviti ih na Cancelled, otkazati sve scheduled sesije (JobInstance → Cancelled). Bez toga će pri backend integraciji narudžbe ostati aktivne unatoč suspenziji.
+### Integracije (backend kod postoji, treba credentials + testiranje)
+
+- [ ] **Stripe — produkcijski ključevi + e2e test** — Backend `StripePaymentService` potpuno implementiran (CreateCustomer, ChargePayment, SetupIntent, SavePaymentMethod). Credentials `credentials/stripe.json` imaju DUMMY test ključeve. Treba: (1) nabaviti prave Stripe test ključeve, (2) testirati payment flow end-to-end (setup intent → save card → charge), (3) konfigurirati webhook endpoint u Stripe Dashboard, (4) Flutter app već ima `StripePaymentController` integraciju.
+- [ ] **Minimax — produkcijski credentials + e2e test** — Backend `MinimaxService` potpuno implementiran (OAuth2, CreateCustomer, CreateIssuedInvoice, ProcessIssuedInvoice). Credentials `credentials/minimax.json` imaju DUMMY podatke. Treba: (1) nabaviti prave Minimax HR portal credentials (clientId, clientSecret, username, password), (2) verificirati organizationId, (3) testirati invoice generation flow, (4) pregledati VAT rate (0%) i currency (EUR) postavke.
+- [ ] **Mailgun — produkcijski credentials + verified domain** — Backend `MailgunService` potpuno implementiran (SendEmailAsync s HTML body + PDF attachments). Credentials `credentials/mailgun.json` imaju sandbox domain. Treba: (1) nabaviti pravi API key, (2) verificirati sending domain u Mailgun, (3) testirati slanje emaila s invoice PDF-om, (4) pregledati email template.
+- [ ] **MailerLite — produkcijski API key + grupe** — Backend `MailerLiteService` potpuno implementiran (AddSubscriberAsync s group assignment). Credentials `credentials/mailerlite.json` imaju DUMMY key. Treba: (1) nabaviti pravi API key iz MailerLite dashboarda, (2) kreirati grupe u MailerLite (welcome, contractNotifications), (3) testirati subscriber flow pri registraciji.
+- [ ] **Firebase — produkcijski service account + FCM test** — Backend `FirebaseService` potpuno implementiran (GenerateCustomToken, SendPushNotification, AnonymizeUser). Credentials `credentials/helpi-firebase-service-account.json` imaju DUMMY service account (init se preskače u Development modu). Treba: (1) kreirati Firebase projekt (ili koristiti postojeći), (2) download-ati pravi service account JSON, (3) testirati FCM push notifikacije na uređaju, (4) konfigurirati Firestore rules.
+- [x] **Google Drive — student contract upload** — Backend `GoogleDriveService` implementiran. Pravi credentials kreirani, upload ugovora testiran i radi (naming: contractNumber-userId-year). ✅
+
+### Suspenzija
+
+- [x] **Suspenzija — auto-otkazivanje narudžbi (backend)** — Backend `SuspendUserAsync` VEĆ poziva `CancelAllOrdersForCustomerAsync(userId)` za seniore i `ReassignExpiredContractJobs` za studente. ✅
 - [ ] **Suspenzija — API middleware blokada (backend)** — Suspendirani korisnici mogu i dalje koristiti API. Potreban middleware ili auth check koji blokira sve API pozive suspendiranog korisnika (osim GET suspension statusa).
-- [ ] **Suspenzija — notifikacije (backend + app)** — Kad se korisnik suspendira: (1) push notifikacija korisniku, (2) notifikacija povezanim korisnicima (npr. senioru čiji je student suspendiran), (3) email obavijest.
+- [ ] **Suspenzija — notifikacije (backend + app)** — Kad se korisnik suspendira: (1) push notifikacija korisniku, (2) notifikacija povezanim korisnicima (npr. senioru čiji je student suspendiran), (3) email obavijest. ⚠️ Push ovisi o Firebase credentials.
 - [ ] **Suspenzija — "suspendirani" ekran u helpi_app** — Kad suspendirani korisnik otvori aplikaciju, treba vidjeti dedicirani ekran s razlogom suspenzije i kontakt informacijama, umjesto normalnog UI-ja.
 - [ ] **Suspenzija — provjera prije kreiranja narudžbe (backend)** — Backend ne provjerava je li korisnik suspendiran prilikom kreiranja nove narudžbe. Dodati provjeru u CreateOrder flow.
-- [ ] **Suspenzija — aktivacija cleanup (backend)** — Kad se korisnik aktivira nakon suspenzije, razmotriti treba li automatski ponovo aktivirati prethodno otkazane narudžbe ili kreirati nove.
+
+### Admin app & infrastruktura
+
 - [ ] **Backend integracija** — Zamjena MockData s REST API pozivima. Definiranje API endpointova, autentifikacija (JWT), error handling. Ovo je GLAVNI preostali zadatak.
-- [ ] **State management** — Uvesti Riverpod ili Bloc za state management umjesto lokalnog StatefulWidget stanja. Potrebno za backend integraciju.
 - [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
 - [ ] **Blagdani (javni praznici)** — Definirati listu hrvatskih blagdana i integrirati u obračun sati. Sati odrađeni na blagdan trebaju koristiti `sundayHourlyRate` (11.10 €) umjesto redovne satnice. Potrebno odlučiti: hardkodirana lista RH blagdana ili konfigurabilan popis iz backenda.
-- [ ] **Notifikacije (push)** — Push notifikacije za administratora (nova narudžba, istek ugovora, otkazana sesija). Trenutno su notifikacije samo lokalne mock.
-- [ ] **Export podataka** — PDF/Excel export za obračune, liste studenata, izvještaje.
-- [ ] **Filteri na narudžbama** — Napredni filteri za narudžbe (po seniorima, studentima, datumu, statusu) — slično studenti filter panelu.
-- [ ] **Lokacija/mapa** — Prikaz lokacija seniora/studenata na mapi za optimizaciju dodjele.
-- [ ] **Dark mode** — Podrška za tamnu temu.
+- [ ] **Notifikacije (push)** — Push notifikacije za administratora (nova narudžba, istek ugovora, otkazana sesija). Trenutno su notifikacije samo lokalne mock. ⚠️ Ovisi o Firebase credentials.
 
 ## Dovršeno
 
