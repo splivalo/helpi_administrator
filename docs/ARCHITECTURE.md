@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-22
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-23
 
 ---
 
@@ -18,6 +18,7 @@
 | Lokalizacija    | flutter_localizations           | SDK         |
 | Ikone           | cupertino_icons                 | ^1.0.8      |
 | State mgmt      | **Riverpod** (flutter_riverpod) | ^2.6.1      |
+| Real-time       | **SignalR** (signalr_netcore)   | ^1.4.4      |
 | Backend         | ❌ AppData (in-memory store)    | —           |
 | Deploy          | Flutter Web                     | Chrome      |
 
@@ -44,7 +45,8 @@ lib/
 │   │   └── data_providers.dart        # 6 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms)
 │   ├── services/
 │   │   ├── data_loader.dart           # DataLoader — API load + AppData + provider sync (ref param)
-│   │   └── preferences_service.dart   # SharedPreferences wrapper (singleton, web-safe) (88 linija)
+│   │   ├── preferences_service.dart   # SharedPreferences wrapper (singleton, web-safe) (88 linija)
+│   │   └── signalr_notification_service.dart # SignalR real-time notifications (auto-reconnect, Riverpod sync) (165 linija)
 │   ├── utils/
 │   │   ├── formatters.dart            # Formatiranje datuma/vremena + haversineKm (14 linija)
 │   │   └── session_preview_helper.dart # Base class za session preview helpers (allStudents/allOrders params)

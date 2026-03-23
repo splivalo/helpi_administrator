@@ -1,6 +1,6 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-03-22
+> Zadnja izmjena: 2026-03-23
 
 ## Ukupno stanje
 
@@ -17,12 +17,13 @@
 | Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje, uređivanje, promo kod, udaljenost, planirani termini | 100%       |
 | Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                  | 100%       |
 | Chat (Moderacija)     | ✅ Lista razgovora + poruke                                                                                 | 90%        |
-| Notifikacije          | ✅ NotificationBell widget + drawer sa mock podacima                                                        | 90%        |
+| Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + 30-type enum aligned with backend + 7 icon/color mappings | 95%        |
 | Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild                                                       | 100%       |
 | i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                           | 100%       |
 | Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                 | 100%       |
 | Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                    | 100%       |
 | State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                        | 100%       |
+| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification handler, Riverpod sync                       | 100%       |
 | DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                               | 100%       |
 | SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                | 100%       |
 | UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                | 100%       |

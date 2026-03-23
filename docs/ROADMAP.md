@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-22 (Riverpod state management complete)
+> Zadnja izmjena: 2026-03-23 (Admin notifications + SignalR real-time)
 
 ## 📖 Za Sidney-a — Što čitati
 
@@ -42,7 +42,8 @@
 - [ ] **Backend integracija** — Zamjena AppData s REST API pozivima. Definiranje API endpointova, autentifikacija (JWT), error handling. Ovo je GLAVNI preostali zadatak.
 - [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
 - [x] **Blagdani (javni praznici)** — `CroatianHolidays.cs` (backend) + `croatian_holidays.dart` (admin) — 13 fiksnih praznika + Computus algoritam za Uskrsni ponedjeljak i Tijelovo. `HangfireRecurringJobService` koristi `isOvertimeDay = Sunday || CroatianHolidays.IsPublicHoliday(date)`. Label: "Povećana satnica" (ne "Nedjeljna"). ✅ (2026-03-22, commit backend `a652bff`, admin `742ff07`)
-- [ ] **Notifikacije (push)** — Push notifikacije za administratora (nova narudžba, istek ugovora, otkazana sesija). Trenutno su notifikacije samo lokalne mock. ⚠️ Ovisi o Firebase credentials.
+- [x] **Admin notifikacije (SignalR)** — 7 backend notifikacija (newStudent, newSenior, orderCancel, jobCancel, contractExpired, paymentSuccess, paymentFailed) + SignalR real-time delivery u admin app + icon/color mapping za svaki tip. NE ovisi o Firebase — koristi SignalR WebSocket. ✅ (2026-03-23, backend commit `69aec15`, admin commit `adcad0f`)
+- [ ] **Push notifikacije (Firebase FCM)** — Push notifikacije za mobilne korisnike (student app, senior app). ⚠️ Ovisi o Firebase credentials.
 
 ### Chat / Poruke sustav (NIŠTA ne postoji u backendu!)
 
@@ -101,6 +102,7 @@
 - [x] **Planirani termini (projected sessions)** — Prikaz planiranih sesija za Pending narudžbe iz rasporeda prije dodjele studenta (2026-03-20)
 - [x] **Order Details cleanup** — Uklonjene redundantne sekcije (vrijeme, trajanje, raspored, adresa) iz detalja narudžbe (2026-03-21)
 - [x] **Riverpod state management** — flutter_riverpod ^2.6.1, 6 StateNotifier providera, 17 widgeta migrirano, reaktivni UI bez manual refresha, 0 AppData referenci u UI sloju (2026-03-22)
+- [x] **Admin notifikacije + SignalR real-time** — signalr_netcore ^1.4.4, NotificationType enum 30 tipova, SignalRNotificationService s auto-reconnect, 7 icon/color mappinga, notification parser fix (2026-03-23)
 
 ---
 

@@ -263,6 +263,32 @@
 
 ---
 
+## 2026-03-23 — Admin Notifications + SignalR Real-time
+
+- **NotificationType enum aligned** — Zamjena 4-value enuma (`newOrder, contractExpiring, sessionCancelled, info`) sa 30-value enumom koji točno odgovara backend `NotificationType` (0=General→29=AdminDeleted)
+- **signalr_netcore ^1.4.4** — Dodan package za SignalR konekciju s backendom
+- **SignalRNotificationService kreiran** (165 linija) — `lib/core/services/signalr_notification_service.dart`:
+  - HubConnectionBuilder s WebSocket transport + bearer token auth
+  - Auto-reconnect (5 pokušaja s eksponencijalnim backoffom)
+  - `ReceiveNotification` handler — parsira JSON → NotificationModel, insertira u AppData + refresha Riverpod provider
+  - `start(ref:)` / `stop()` lifecycle metode
+- **App lifecycle wiring** — `app.dart`:
+  - SignalR start nakon uspješnog logina i session restore
+  - SignalR stop pri logout i dispose
+- **Notification parser fix** — `admin_api_service.dart` `_mapNotification()` sada koristi `_mapNotificationType(json['type'])` umjesto hardkodiranog `NotificationType.info`
+- **Icon/color/background mapping** — `notification_bell.dart` ažuriran za 7 specifičnih admin notifikacija:
+  - `newStudentAdded` / `newSeniorAdded` → person_add / teal
+  - `orderCancelled` / `jobCancelled` → shopping_bag / event_busy / crvena
+  - `contractExpired` → warning / narančasta
+  - `paymentSuccess` → payment / zelena
+  - `paymentFailed` → money_off / crvena
+  - Svi ostali tipovi → info_outline / sivi (wildcard `_` default)
+- **data_loader.dart demo data fix** — Zamjena starih enum konstanti (`newOrder`, `info`, `contractExpiring`) s novim (`orderCancelled`, `general`, `paymentSuccess`, `contractExpired`, `newSeniorAdded`)
+- **Rezultat**: 0 errors → 0 errors (flutter analyze)
+- **Commit:** `adcad0f`
+
+---
+
 ## Arhitekturalne odluke
 
 | Odluka                                         | Razlog                                                            | Datum      |
