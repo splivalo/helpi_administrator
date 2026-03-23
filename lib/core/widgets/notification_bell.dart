@@ -238,7 +238,8 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
 
     // Order-related notifications — navigate to the senior who owns the order
     if (n.orderId != null &&
-        (type == NotificationType.orderCancelled ||
+        (type == NotificationType.newOrderAdded ||
+            type == NotificationType.orderCancelled ||
             type == NotificationType.paymentSuccess ||
             type == NotificationType.paymentFailed ||
             type == NotificationType.paymentRefunded)) {
@@ -363,6 +364,7 @@ class _NotificationTile extends StatelessWidget {
     return switch (type) {
       NotificationType.newStudentAdded => Icons.person_add_outlined,
       NotificationType.newSeniorAdded => Icons.person_add_outlined,
+      NotificationType.newOrderAdded => Icons.shopping_bag_outlined,
       NotificationType.orderCancelled => Icons.shopping_bag_outlined,
       NotificationType.jobCancelled => Icons.event_busy_outlined,
       NotificationType.contractExpired => Icons.warning_amber_rounded,
@@ -376,6 +378,7 @@ class _NotificationTile extends StatelessWidget {
     return switch (type) {
       NotificationType.newStudentAdded => HelpiTheme.accent,
       NotificationType.newSeniorAdded => HelpiTheme.accent,
+      NotificationType.newOrderAdded => HelpiTheme.accent,
       NotificationType.orderCancelled => HelpiTheme.statusCancelledText,
       NotificationType.jobCancelled => HelpiTheme.statusCancelledText,
       NotificationType.contractExpired => const Color(0xFFE65100),
@@ -389,6 +392,7 @@ class _NotificationTile extends StatelessWidget {
     return switch (type) {
       NotificationType.newStudentAdded => HelpiTheme.pastelTeal,
       NotificationType.newSeniorAdded => HelpiTheme.pastelTeal,
+      NotificationType.newOrderAdded => HelpiTheme.pastelTeal,
       NotificationType.orderCancelled => HelpiTheme.statusCancelledBg,
       NotificationType.jobCancelled => HelpiTheme.statusCancelledBg,
       NotificationType.contractExpired => const Color(0xFFFFF3E0),

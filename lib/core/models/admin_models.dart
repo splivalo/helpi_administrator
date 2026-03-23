@@ -68,6 +68,7 @@ enum NotificationType {
   seniorDeleted, // 27
   customerDeleted, // 28
   adminDeleted, // 29
+  newOrderAdded, // 30
 }
 
 // ═══════════════════════════════════════════════════════════════
