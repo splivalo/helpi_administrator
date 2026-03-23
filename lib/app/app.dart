@@ -8,6 +8,8 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
 import 'package:helpi_admin/core/services/auth_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
+import 'package:helpi_admin/core/services/signalr_notification_service.dart';
+import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/features/auth/presentation/login_screen.dart';
 import 'package:helpi_admin/features/auth/presentation/server_unavailable_screen.dart';
 
@@ -22,6 +24,7 @@ class HelpiAdminApp extends ConsumerStatefulWidget {
 class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
   final _localeNotifier = LocaleNotifier();
   final _authService = AuthService();
+  final _signalR = SignalRNotificationService(TokenStorage());
   bool _isLoggedIn = false;
   bool _isCheckingAuth = true;
   bool _isLoadingData = false;
@@ -52,6 +55,9 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
       _isCheckingAuth = false;
       _serverUnavailable = loggedIn && !dataOk;
     });
+    if (loggedIn && dataOk) {
+      _signalR.start(ref: ref);
+    }
   }
 
   Future<void> _handleLogin() async {
@@ -65,6 +71,9 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
       _isLoadingData = false;
       _serverUnavailable = !dataOk;
     });
+    if (dataOk) {
+      _signalR.start(ref: ref);
+    }
   }
 
   Future<void> _handleServerBack() async {
@@ -78,6 +87,7 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
   }
 
   Future<void> _handleLogout() async {
+    await _signalR.stop();
     await _authService.logout();
     DataLoader.reset();
     if (!mounted) return;
@@ -86,6 +96,7 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
 
   @override
   void dispose() {
+    _signalR.stop();
     _localeNotifier.dispose();
     super.dispose();
   }

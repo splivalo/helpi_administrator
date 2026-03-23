@@ -278,28 +278,40 @@ class _NotificationTile extends StatelessWidget {
 
   static IconData _icon(NotificationType type) {
     return switch (type) {
-      NotificationType.newOrder => Icons.shopping_bag_outlined,
-      NotificationType.contractExpiring => Icons.warning_amber_rounded,
-      NotificationType.sessionCancelled => Icons.event_busy_outlined,
-      NotificationType.info => Icons.info_outline,
+      NotificationType.newStudentAdded => Icons.person_add_outlined,
+      NotificationType.newSeniorAdded => Icons.person_add_outlined,
+      NotificationType.orderCancelled => Icons.shopping_bag_outlined,
+      NotificationType.jobCancelled => Icons.event_busy_outlined,
+      NotificationType.contractExpired => Icons.warning_amber_rounded,
+      NotificationType.paymentSuccess => Icons.payment_outlined,
+      NotificationType.paymentFailed => Icons.money_off_outlined,
+      _ => Icons.info_outline,
     };
   }
 
   static Color _iconColor(NotificationType type) {
     return switch (type) {
-      NotificationType.newOrder => HelpiTheme.accent,
-      NotificationType.contractExpiring => const Color(0xFFE65100),
-      NotificationType.sessionCancelled => HelpiTheme.statusCancelledText,
-      NotificationType.info => HelpiTheme.textSecondary,
+      NotificationType.newStudentAdded => HelpiTheme.accent,
+      NotificationType.newSeniorAdded => HelpiTheme.accent,
+      NotificationType.orderCancelled => HelpiTheme.statusCancelledText,
+      NotificationType.jobCancelled => HelpiTheme.statusCancelledText,
+      NotificationType.contractExpired => const Color(0xFFE65100),
+      NotificationType.paymentSuccess => Colors.green,
+      NotificationType.paymentFailed => Colors.red,
+      _ => HelpiTheme.textSecondary,
     };
   }
 
   static Color _iconBg(NotificationType type) {
     return switch (type) {
-      NotificationType.newOrder => HelpiTheme.pastelTeal,
-      NotificationType.contractExpiring => const Color(0xFFFFF3E0),
-      NotificationType.sessionCancelled => HelpiTheme.statusCancelledBg,
-      NotificationType.info => const Color(0xFFF5F5F5),
+      NotificationType.newStudentAdded => HelpiTheme.pastelTeal,
+      NotificationType.newSeniorAdded => HelpiTheme.pastelTeal,
+      NotificationType.orderCancelled => HelpiTheme.statusCancelledBg,
+      NotificationType.jobCancelled => HelpiTheme.statusCancelledBg,
+      NotificationType.contractExpired => const Color(0xFFFFF3E0),
+      NotificationType.paymentSuccess => const Color(0xFFE8F5E9),
+      NotificationType.paymentFailed => const Color(0xFFFFEBEE),
+      _ => const Color(0xFFF5F5F5),
     };
   }
 

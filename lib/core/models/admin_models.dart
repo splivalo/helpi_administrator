@@ -37,7 +37,38 @@ enum SessionStatus { scheduled, completed, cancelled }
 
 enum Gender { male, female }
 
-enum NotificationType { newOrder, contractExpiring, sessionCancelled, info }
+enum NotificationType {
+  general, // 0
+  paymentSuccess, // 1
+  paymentFailed, // 2
+  paymentRefunded, // 3
+  jobRequest, // 4
+  jobStartReminder, // 5
+  jobInProgress, // 6
+  jobCompleted, // 7
+  jobCancelled, // 8
+  jobRescheduled, // 9
+  scheduleAssignmentCancelled, // 10
+  orderScheduleCancelled, // 11
+  orderCancelled, // 12
+  contractAboutToExpire, // 13
+  contractExpired, // 14
+  contractAdded, // 15
+  contractUpdated, // 16
+  contractDeleted, // 17
+  allEligibleStudentsNotified, // 18
+  noEligibleStudents, // 19
+  matchingMaxAttemptsReached, // 20
+  reviewRequest, // 21
+  reassignmentStarted, // 22
+  reassignmentCompleted, // 23
+  newStudentAdded, // 24
+  newSeniorAdded, // 25
+  studentDeleted, // 26
+  seniorDeleted, // 27
+  customerDeleted, // 28
+  adminDeleted, // 29
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  MODELS

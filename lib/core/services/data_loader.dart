@@ -171,7 +171,7 @@ class DataLoader {
       AppData.notifications.addAll([
         NotificationModel(
           id: 'demo-notif-1',
-          type: NotificationType.newOrder,
+          type: NotificationType.orderCancelled,
           title: 'Nova narudžba',
           body: 'Senior Marija Horvat je kreirao novu narudžbu #ORD-001',
           createdAt: DateTime.now().subtract(const Duration(minutes: 15)),
@@ -179,7 +179,7 @@ class DataLoader {
         ),
         NotificationModel(
           id: 'demo-notif-2',
-          type: NotificationType.info,
+          type: NotificationType.general,
           title: 'Student dodijeljen',
           body: 'Ana Kovač je dodijeljena narudžbi #ORD-001',
           createdAt: DateTime.now().subtract(const Duration(hours: 1)),
@@ -187,7 +187,7 @@ class DataLoader {
         ),
         NotificationModel(
           id: 'demo-notif-3',
-          type: NotificationType.info,
+          type: NotificationType.paymentSuccess,
           title: 'Plaćanje uspješno',
           body: 'Stripe naplata 45.00€ za narudžbu #ORD-002 je uspješna',
           createdAt: DateTime.now().subtract(const Duration(hours: 3)),
@@ -195,7 +195,7 @@ class DataLoader {
         ),
         NotificationModel(
           id: 'demo-notif-4',
-          type: NotificationType.contractExpiring,
+          type: NotificationType.contractExpired,
           title: 'Ugovor istječe',
           body: 'Ugovor studenta Ivan Babić istječe za 5 dana',
           createdAt: DateTime.now().subtract(const Duration(days: 1)),
@@ -203,7 +203,7 @@ class DataLoader {
         ),
         NotificationModel(
           id: 'demo-notif-5',
-          type: NotificationType.info,
+          type: NotificationType.newSeniorAdded,
           title: 'Novi korisnik',
           body: 'Senior Petar Novak se registrirao u sustav',
           createdAt: DateTime.now().subtract(const Duration(days: 2)),
@@ -216,9 +216,7 @@ class DataLoader {
     if (AppData.chatRooms.isEmpty && AppData.seniors.isNotEmpty) {
       final senior1 = AppData.seniors.isNotEmpty ? AppData.seniors[0] : null;
       final senior2 = AppData.seniors.length > 1 ? AppData.seniors[1] : null;
-      final student1 = AppData.students.isNotEmpty
-          ? AppData.students[0]
-          : null;
+      final student1 = AppData.students.isNotEmpty ? AppData.students[0] : null;
 
       if (senior1 != null) {
         AppData.chatRooms.add(

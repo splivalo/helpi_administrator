@@ -1338,12 +1338,19 @@ class AdminApiService {
   NotificationModel _mapNotification(Map<String, dynamic> json) {
     return NotificationModel(
       id: '${json['id']}',
-      type: NotificationType.info,
+      type: _mapNotificationType(json['type']),
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? json['message'] as String? ?? '',
       createdAt: _parseDateTime(json['createdAt']),
       isRead: json['isRead'] as bool? ?? false,
     );
+  }
+
+  NotificationType _mapNotificationType(dynamic value) {
+    if (value is int && value >= 0 && value < NotificationType.values.length) {
+      return NotificationType.values[value];
+    }
+    return NotificationType.general;
   }
 
   // ═════════════════════════════════════════════
