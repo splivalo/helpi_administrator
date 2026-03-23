@@ -1343,6 +1343,10 @@ class AdminApiService {
       body: json['body'] as String? ?? json['message'] as String? ?? '',
       createdAt: _parseDateTime(json['createdAt']),
       isRead: json['isRead'] as bool? ?? false,
+      studentId: json['studentId'] as int?,
+      seniorId: json['seniorId'] as int?,
+      orderId: json['orderId'] as int?,
+      jobInstanceId: json['jobInstanceId'] as int?,
     );
   }
 

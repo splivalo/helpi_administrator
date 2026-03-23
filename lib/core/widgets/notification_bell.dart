@@ -7,6 +7,8 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
+import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
+import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
 // TODO: Notifications are loaded from API but table is empty. Backend needs to create notifications when actions occur (order created, student assigned, etc.)
 
@@ -172,6 +174,7 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                                   AdminApiService().markNotificationRead(nId);
                                 }
                               }
+                              _navigateToEntity(n);
                             },
                           );
                         },
@@ -182,6 +185,86 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
         ),
       ),
     );
+  }
+
+  void _navigateToEntity(NotificationModel n) {
+    final type = n.type;
+
+    // Senior-related notifications
+    if (n.seniorId != null &&
+        (type == NotificationType.newSeniorAdded ||
+            type == NotificationType.seniorDeleted)) {
+      final senior = ref
+          .read(seniorsProvider)
+          .where((s) => s.id == '${n.seniorId}')
+          .firstOrNull;
+      if (senior == null) return;
+      final orders = ref
+          .read(ordersProvider)
+          .where((o) => o.senior.id == senior.id)
+          .toList();
+      Navigator.of(context).pop(); // close drawer
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SeniorDetailScreen(senior: senior, orders: orders),
+        ),
+      );
+      return;
+    }
+
+    // Student-related notifications
+    if (n.studentId != null &&
+        (type == NotificationType.newStudentAdded ||
+            type == NotificationType.studentDeleted ||
+            type == NotificationType.contractExpired ||
+            type == NotificationType.contractAboutToExpire ||
+            type == NotificationType.contractAdded ||
+            type == NotificationType.contractUpdated)) {
+      final student = ref
+          .read(studentsProvider)
+          .where((s) => s.id == '${n.studentId}')
+          .firstOrNull;
+      if (student == null) return;
+      Navigator.of(context).pop(); // close drawer
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => StudentDetailScreen(student: student),
+        ),
+      );
+      return;
+    }
+
+    // Order-related notifications — navigate to the senior who owns the order
+    if (n.orderId != null &&
+        (type == NotificationType.orderCancelled ||
+            type == NotificationType.paymentSuccess ||
+            type == NotificationType.paymentFailed ||
+            type == NotificationType.paymentRefunded)) {
+      final order = ref
+          .read(ordersProvider)
+          .where((o) => o.id == '${n.orderId}')
+          .firstOrNull;
+      if (order == null) return;
+      final senior = ref
+          .read(seniorsProvider)
+          .where((s) => s.id == order.senior.id)
+          .firstOrNull;
+      if (senior == null) return;
+      final orders = ref
+          .read(ordersProvider)
+          .where((o) => o.senior.id == senior.id)
+          .toList();
+      Navigator.of(context).pop(); // close drawer
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SeniorDetailScreen(senior: senior, orders: orders),
+        ),
+      );
+      return;
+    }
   }
 }
 

@@ -84,6 +84,10 @@ class NotificationModel {
   final String body;
   final DateTime createdAt;
   bool isRead;
+  final int? studentId;
+  final int? seniorId;
+  final int? orderId;
+  final int? jobInstanceId;
 
   NotificationModel({
     required this.id,
@@ -92,6 +96,10 @@ class NotificationModel {
     required this.body,
     required this.createdAt,
     this.isRead = false,
+    this.studentId,
+    this.seniorId,
+    this.orderId,
+    this.jobInstanceId,
   });
 }
 

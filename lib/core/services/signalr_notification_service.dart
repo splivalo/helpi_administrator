@@ -131,6 +131,10 @@ class SignalRNotificationService {
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
       isRead: json['isRead'] as bool? ?? false,
+      studentId: json['studentId'] as int?,
+      seniorId: json['seniorId'] as int?,
+      orderId: json['orderId'] as int?,
+      jobInstanceId: json['jobInstanceId'] as int?,
     );
   }
 
