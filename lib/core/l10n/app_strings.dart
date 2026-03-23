@@ -588,6 +588,13 @@ class AppStrings {
       'exportToExcel': 'Izvezi u Excel',
       'exportSuccess': 'Podaci uspješno izvezeni',
       'studentCreatedAt': 'Datum registracije',
+
+      // ── Server nedostupan ─────────────────────────
+      'serverUnavailableTitle': 'Server nedostupan',
+      'serverUnavailableMessage':
+          'Nije moguće spojiti se na server. Provjerite je li backend pokrenut.',
+      'serverUnavailableRetrying': 'Pokušavam ponovo...',
+      'serverUnavailableRetry': 'Pokušaj ponovo',
     },
 
     'en': {
@@ -1155,6 +1162,13 @@ class AppStrings {
       'exportToExcel': 'Export to Excel',
       'exportSuccess': 'Data exported successfully',
       'studentCreatedAt': 'Registration date',
+
+      // ── Server Unavailable ────────────────────────
+      'serverUnavailableTitle': 'Server Unavailable',
+      'serverUnavailableMessage':
+          'Unable to connect to server. Please check if the backend is running.',
+      'serverUnavailableRetrying': 'Retrying...',
+      'serverUnavailableRetry': 'Retry',
     },
   };
 
@@ -1788,4 +1802,11 @@ class AppStrings {
   static String get exportToExcel => _t('exportToExcel');
   static String get exportSuccess => _t('exportSuccess');
   static String get studentCreatedAt => _t('studentCreatedAt');
+
+  // ── Server nedostupan ──
+  static String get serverUnavailableTitle => _t('serverUnavailableTitle');
+  static String get serverUnavailableMessage => _t('serverUnavailableMessage');
+  static String get serverUnavailableRetrying =>
+      _t('serverUnavailableRetrying');
+  static String get serverUnavailableRetry => _t('serverUnavailableRetry');
 }

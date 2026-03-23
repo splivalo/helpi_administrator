@@ -9,6 +9,7 @@ import 'package:helpi_admin/core/l10n/locale_notifier.dart';
 import 'package:helpi_admin/core/services/auth_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/features/auth/presentation/login_screen.dart';
+import 'package:helpi_admin/features/auth/presentation/server_unavailable_screen.dart';
 
 /// Root widget za Helpi Admin app.
 class HelpiAdminApp extends ConsumerStatefulWidget {
@@ -24,6 +25,7 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
   bool _isLoggedIn = false;
   bool _isCheckingAuth = true;
   bool _isLoadingData = false;
+  bool _serverUnavailable = false;
 
   @override
   void initState() {
@@ -33,11 +35,12 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
 
   Future<void> _checkExistingSession() async {
     bool loggedIn = false;
+    bool dataOk = true;
     try {
       loggedIn = await _authService.isLoggedIn();
       if (!mounted) return;
       if (loggedIn) {
-        await DataLoader.loadAll(ref: ref);
+        dataOk = await DataLoader.loadAll(ref: ref);
         if (!mounted) return;
       }
     } catch (_) {
@@ -47,6 +50,7 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
     setState(() {
       _isLoggedIn = loggedIn;
       _isCheckingAuth = false;
+      _serverUnavailable = loggedIn && !dataOk;
     });
   }
 
@@ -55,9 +59,22 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
       _isLoggedIn = true;
       _isLoadingData = true;
     });
-    await DataLoader.loadAll(ref: ref);
+    final dataOk = await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
-    setState(() => _isLoadingData = false);
+    setState(() {
+      _isLoadingData = false;
+      _serverUnavailable = !dataOk;
+    });
+  }
+
+  Future<void> _handleServerBack() async {
+    setState(() => _isLoadingData = true);
+    final dataOk = await DataLoader.loadAll(ref: ref);
+    if (!mounted) return;
+    setState(() {
+      _isLoadingData = false;
+      _serverUnavailable = !dataOk;
+    });
   }
 
   Future<void> _handleLogout() async {
@@ -94,6 +111,8 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
           ],
           home: _isCheckingAuth || _isLoadingData
               ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+              : _serverUnavailable
+              ? ServerUnavailableScreen(onServerBack: _handleServerBack)
               : _isLoggedIn
               ? ResponsiveShell(
                   localeNotifier: _localeNotifier,
