@@ -63,12 +63,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         .toList();
     final processingCount = processingOrders.length;
 
-    // ── Seniori "U obradi" — imaju narudžbe bez dodijeljenog studenta ──
+    // ── Seniori "U obradi" — imaju aktivne narudžbe bez dodijeljenog studenta ──
+    final liveOrders = allOrders
+        .where(
+          (o) =>
+              o.status == OrderStatus.processing ||
+              o.status == OrderStatus.active,
+        )
+        .toList();
     final processingSeniors = allSeniors.where((senior) {
       if (senior.isSuspended || senior.isArchived || !senior.isActive) {
         return false;
       }
-      final seniorOrders = allOrders.where((o) => o.senior.id == senior.id);
+      final seniorOrders =
+          liveOrders.where((o) => o.senior.id == senior.id);
       if (seniorOrders.isEmpty) return false;
       return !seniorOrders.any((o) => o.student != null);
     }).toList();

@@ -9,6 +9,7 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
+import 'package:helpi_admin/core/services/data_loader.dart';
 
 /// SignalR service for real-time admin notifications.
 ///
@@ -105,6 +106,11 @@ class SignalRNotificationService {
       if (_ref != null) {
         final notifier = _ref!.read(notificationsProvider.notifier);
         notifier.setAll(AppData.notifications);
+
+        // Refresh all data for notification types that change entities
+        if (_isDataChangingType(notification.type)) {
+          DataLoader.loadAll(ref: _ref!);
+        }
       }
 
       debugPrint('[SignalR] notification received: ${notification.title}');
@@ -112,6 +118,25 @@ class SignalRNotificationService {
       debugPrint('[SignalR] parse notification error: $e');
     }
   }
+
+  static const _dataChangingTypes = {
+    NotificationType.newOrderAdded,
+    NotificationType.orderCancelled,
+    NotificationType.newStudentAdded,
+    NotificationType.newSeniorAdded,
+    NotificationType.studentDeleted,
+    NotificationType.seniorDeleted,
+    NotificationType.customerDeleted,
+    NotificationType.contractAdded,
+    NotificationType.contractUpdated,
+    NotificationType.contractDeleted,
+    NotificationType.jobCompleted,
+    NotificationType.jobCancelled,
+    NotificationType.reassignmentCompleted,
+  };
+
+  bool _isDataChangingType(NotificationType type) =>
+      _dataChangingTypes.contains(type);
 
   NotificationModel _parseNotification(Map<String, dynamic> json) {
     final typeValue = json['type'];

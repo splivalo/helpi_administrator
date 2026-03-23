@@ -99,14 +99,23 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
 
     final allOrders = ref.read(ordersProvider);
 
+    // Samo aktivne narudžbe (processing/active) — isključi otkazane/završene
+    final liveOrders = allOrders
+        .where(
+          (o) =>
+              o.status == OrderStatus.processing ||
+              o.status == OrderStatus.active,
+        )
+        .toList();
+
     // Seniori koji imaju barem jednu narudžbu s dodijeljenim studentom
-    final activeIds = allOrders
+    final activeIds = liveOrders
         .where((o) => o.student != null)
         .map((o) => o.senior.id)
         .toSet();
 
-    // Seniori koji imaju barem jednu narudžbu
-    final hasOrderIds = allOrders.map((o) => o.senior.id).toSet();
+    // Seniori koji imaju barem jednu aktivnu narudžbu
+    final hasOrderIds = liveOrders.map((o) => o.senior.id).toSet();
 
     // Status filter
     switch (filter) {
