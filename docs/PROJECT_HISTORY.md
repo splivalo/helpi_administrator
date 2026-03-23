@@ -307,30 +307,30 @@
 
 ## Arhitekturalne odluke
 
-| Odluka                                         | Razlog                                                            | Datum      |
-| ---------------------------------------------- | ----------------------------------------------------------------- | ---------- |
-| Feature-based folder struktura                 | Skalabilnost, jasna separacija                                    | 2026-02    |
-| AppStrings Gemini Hybrid pattern               | Backend šalje labelKey, Flutter mapira lokalno                    | 2026-02    |
-| AppData umjesto API-ja                         | Brži frontend development bez backenda                            | 2026-02    |
-| Dva showDatePicker umjesto showDateRangePicker | Performanse — DateRangePicker preopterećen                        | 2026-03-04 |
-| LayoutBuilder za responsive gumbe              | Inline responsive bez globalnog breakpointa                       | 2026-03-04 |
-| ~~Nema state management libraryja~~            | ~~Mock faza, lokalni state dovoljan~~ → **Riverpod** (2026-03-22) | 2026-02    |
-| **Riverpod state management**                  | Reaktivni UI, konzistentnost s helpi_app, zero AppData u UI       | 2026-03-22 |
-| DRY refactor — shared widgeti + mixin          | Eliminacija ~1000+ linija duplikata                               | 2026-03-04 |
-| GestureDetector umjesto IconButton za contact  | Material 3 min tap target 48px blokira 20px                       | 2026-03-04 |
-| InfoRow Flexible trailing                      | Ikona uz tekst, ne na rubu                                        | 2026-03-04 |
-| SharedPreferences za UI preferencije           | Pamti korisničke UI odabire između sesija                         | 2026-03-04 |
-| Web-safe PreferencesService s fallback         | Sprječava crash na web hot-restart                                | 2026-03-04 |
-| bodyLarge 16px globalno                        | Konzistentna veličina teksta u svim inputima                      | 2026-03-04 |
-| CreateOrderScreen single-page forma            | Sve na jednom ekranu, auto-scroll UX                              | 2026-03-04 |
-| Senior status → hasStudentAssigned logika      | Automatski "U obradi" / "Aktivan" po podacima                     | 2026-03-04 |
-| SessionPreviewSheet kao shared widget          | Reusable između create i assign flowova                           | 2026-03-05 |
-| ActionChipButtonSize enum (small/medium)       | Konzistentni gumbi — mali za kartice, srednji za modale           | 2026-03-05 |
-| DatePicker theme globalno u ThemeData          | Jedan izvor istine za boje/font/shape svuda                       | 2026-03-05 |
-| confirmText/cancelText na showDatePicker       | "U redu" umjesto "U REDU" caps lock                               | 2026-03-05 |
-| ValueKey locale rebuild u IndexedStack         | Force rebuild ekrana pri promjeni jezika                          | 2026-03-05 |
-| ClipRRect na assign flow step 2                | Content clipping za zaobljene rubove                              | 2026-03-05 |
-| Haversine za km udaljenost                     | Sortiranje i prikaz koliko je student daleko od seniora           | 2026-03-18 |
-| Projected sessions iz dayEntries               | Planirani termini vidljivi i prije dodjele studenta               | 2026-03-20 |
-| Instant JobInstance na admin assign            | Sesije odmah vidljive nakon dodjele, ne čeka Hangfire             | 2026-03-20 |
-| Senior status = Neaktivan bez narudžbi          | !isActive \|\| !hasOrders = Neaktivan; hasOrders && !assigned = U obradi  | 2026-03-23 |
+| Odluka                                         | Razlog                                                                   | Datum      |
+| ---------------------------------------------- | ------------------------------------------------------------------------ | ---------- |
+| Feature-based folder struktura                 | Skalabilnost, jasna separacija                                           | 2026-02    |
+| AppStrings Gemini Hybrid pattern               | Backend šalje labelKey, Flutter mapira lokalno                           | 2026-02    |
+| AppData umjesto API-ja                         | Brži frontend development bez backenda                                   | 2026-02    |
+| Dva showDatePicker umjesto showDateRangePicker | Performanse — DateRangePicker preopterećen                               | 2026-03-04 |
+| LayoutBuilder za responsive gumbe              | Inline responsive bez globalnog breakpointa                              | 2026-03-04 |
+| ~~Nema state management libraryja~~            | ~~Mock faza, lokalni state dovoljan~~ → **Riverpod** (2026-03-22)        | 2026-02    |
+| **Riverpod state management**                  | Reaktivni UI, konzistentnost s helpi_app, zero AppData u UI              | 2026-03-22 |
+| DRY refactor — shared widgeti + mixin          | Eliminacija ~1000+ linija duplikata                                      | 2026-03-04 |
+| GestureDetector umjesto IconButton za contact  | Material 3 min tap target 48px blokira 20px                              | 2026-03-04 |
+| InfoRow Flexible trailing                      | Ikona uz tekst, ne na rubu                                               | 2026-03-04 |
+| SharedPreferences za UI preferencije           | Pamti korisničke UI odabire između sesija                                | 2026-03-04 |
+| Web-safe PreferencesService s fallback         | Sprječava crash na web hot-restart                                       | 2026-03-04 |
+| bodyLarge 16px globalno                        | Konzistentna veličina teksta u svim inputima                             | 2026-03-04 |
+| CreateOrderScreen single-page forma            | Sve na jednom ekranu, auto-scroll UX                                     | 2026-03-04 |
+| Senior status → hasStudentAssigned logika      | Automatski "U obradi" / "Aktivan" po podacima                            | 2026-03-04 |
+| SessionPreviewSheet kao shared widget          | Reusable između create i assign flowova                                  | 2026-03-05 |
+| ActionChipButtonSize enum (small/medium)       | Konzistentni gumbi — mali za kartice, srednji za modale                  | 2026-03-05 |
+| DatePicker theme globalno u ThemeData          | Jedan izvor istine za boje/font/shape svuda                              | 2026-03-05 |
+| confirmText/cancelText na showDatePicker       | "U redu" umjesto "U REDU" caps lock                                      | 2026-03-05 |
+| ValueKey locale rebuild u IndexedStack         | Force rebuild ekrana pri promjeni jezika                                 | 2026-03-05 |
+| ClipRRect na assign flow step 2                | Content clipping za zaobljene rubove                                     | 2026-03-05 |
+| Haversine za km udaljenost                     | Sortiranje i prikaz koliko je student daleko od seniora                  | 2026-03-18 |
+| Projected sessions iz dayEntries               | Planirani termini vidljivi i prije dodjele studenta                      | 2026-03-20 |
+| Instant JobInstance na admin assign            | Sesije odmah vidljive nakon dodjele, ne čeka Hangfire                    | 2026-03-20 |
+| Senior status = Neaktivan bez narudžbi         | !isActive \|\| !hasOrders = Neaktivan; hasOrders && !assigned = U obradi | 2026-03-23 |

@@ -218,8 +218,8 @@
 
 - [x] **Login server vs auth error distinction** — `AuthResult.isConnectionError` flag, DioException type checking (connectionTimeout, connectionError, receiveTimeout, null response). Orange "Server nedostupan" vs red auth error.
 - [x] **ServerUnavailableScreen compact restyle** — maxWidth 420, icon 48px, titleLarge, warm off-white bg (#FAF6F1)
-- [x] **Senior section reorder overflow fix** — SizedBox(height: _sectionCount * 56.0) → Flexible (fixes 16px bottom overflow)
-- [x] **Senior status logic fix** — Senior bez narudžbi sada prikazuje "Neaktivan" (ne "U obradi"). U obradi = ima narudžbe bez dodijeljenog studenta. Fix primijenjen na 3 mjesta: filter logika, _SeniorCard badge, SeniorDetailScreen badge.
+- [x] **Senior section reorder overflow fix** — SizedBox(height: \_sectionCount \* 56.0) → Flexible (fixes 16px bottom overflow)
+- [x] **Senior status logic fix** — Senior bez narudžbi sada prikazuje "Neaktivan" (ne "U obradi"). U obradi = ima narudžbe bez dodijeljenog studenta. Fix primijenjen na 3 mjesta: filter logika, \_SeniorCard badge, SeniorDetailScreen badge.
 
 ---
 
