@@ -282,7 +282,7 @@
   - `contractExpired` → warning / narančasta
   - `paymentSuccess` → payment / zelena
   - `paymentFailed` → money_off / crvena
-  - Svi ostali tipovi → info_outline / sivi (wildcard `_` default)
+  - Svi ostali tipovi → info*outline / sivi (wildcard `*` default)
 - **data_loader.dart demo data fix** — Zamjena starih enum konstanti (`newOrder`, `info`, `contractExpiring`) s novim (`orderCancelled`, `general`, `paymentSuccess`, `contractExpired`, `newSeniorAdded`)
 - **Rezultat**: 0 errors → 0 errors (flutter analyze)
 - **Commit:** `adcad0f`
@@ -295,11 +295,11 @@
 | ---------------------------------------------- | ----------------------------------------------------------------- | ---------- |
 | Feature-based folder struktura                 | Skalabilnost, jasna separacija                                    | 2026-02    |
 | AppStrings Gemini Hybrid pattern               | Backend šalje labelKey, Flutter mapira lokalno                    | 2026-02    |
-| AppData umjesto API-ja                        | Brži frontend development bez backenda                            | 2026-02    |
+| AppData umjesto API-ja                         | Brži frontend development bez backenda                            | 2026-02    |
 | Dva showDatePicker umjesto showDateRangePicker | Performanse — DateRangePicker preopterećen                        | 2026-03-04 |
 | LayoutBuilder za responsive gumbe              | Inline responsive bez globalnog breakpointa                       | 2026-03-04 |
 | ~~Nema state management libraryja~~            | ~~Mock faza, lokalni state dovoljan~~ → **Riverpod** (2026-03-22) | 2026-02    |
-| **Riverpod state management**                  | Reaktivni UI, konzistentnost s helpi_app, zero AppData u UI      | 2026-03-22 |
+| **Riverpod state management**                  | Reaktivni UI, konzistentnost s helpi_app, zero AppData u UI       | 2026-03-22 |
 | DRY refactor — shared widgeti + mixin          | Eliminacija ~1000+ linija duplikata                               | 2026-03-04 |
 | GestureDetector umjesto IconButton za contact  | Material 3 min tap target 48px blokira 20px                       | 2026-03-04 |
 | InfoRow Flexible trailing                      | Ikona uz tekst, ne na rubu                                        | 2026-03-04 |

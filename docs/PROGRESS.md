@@ -4,31 +4,31 @@
 
 ## Ukupno stanje
 
-| Modul                 | Status                                                                                                      | Dovršenost |
-| --------------------- | ----------------------------------------------------------------------------------------------------------- | ---------- |
-| Auth (Login)          | ✅ UI gotov, mock login                                                                                     | 90%        |
-| Dashboard             | ✅ KPI, narudžbe u obradi, aktivni studenti, ugovori, grid/list                                             | 100%       |
-| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                    | 100%       |
-| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                  | 100%       |
-| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                       | 100%       |
-| Seniori – Detalj      | ✅ Profil, narudžbe, "Dodaj narudžbu", status logika                                                        | 100%       |
-| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                            | 100%       |
-| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                 | 100%       |
-| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje, uređivanje, promo kod, udaljenost, planirani termini | 100%       |
-| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                  | 100%       |
-| Chat (Moderacija)     | ✅ Lista razgovora + poruke                                                                                 | 90%        |
+| Modul                 | Status                                                                                                       | Dovršenost |
+| --------------------- | ------------------------------------------------------------------------------------------------------------ | ---------- |
+| Auth (Login)          | ✅ UI gotov, mock login                                                                                      | 90%        |
+| Dashboard             | ✅ KPI, narudžbe u obradi, aktivni studenti, ugovori, grid/list                                              | 100%       |
+| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                     | 100%       |
+| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                   | 100%       |
+| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                        | 100%       |
+| Seniori – Detalj      | ✅ Profil, narudžbe, "Dodaj narudžbu", status logika                                                         | 100%       |
+| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                             | 100%       |
+| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                  | 100%       |
+| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje, uređivanje, promo kod, udaljenost, planirani termini  | 100%       |
+| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                   | 100%       |
+| Chat (Moderacija)     | ✅ Lista razgovora + poruke                                                                                  | 90%        |
 | Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + 30-type enum aligned with backend + 7 icon/color mappings | 95%        |
-| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild                                                       | 100%       |
-| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                           | 100%       |
-| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                 | 100%       |
-| Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                    | 100%       |
-| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                        | 100%       |
-| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification handler, Riverpod sync                       | 100%       |
-| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                               | 100%       |
-| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                | 100%       |
-| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                | 100%       |
-| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                       | 100%       |
-| Backend integracija   | ❌ Nije započeta                                                                                            | 0%         |
+| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild                                                        | 100%       |
+| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                            | 100%       |
+| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                  | 100%       |
+| Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                     | 100%       |
+| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                         | 100%       |
+| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification handler, Riverpod sync                        | 100%       |
+| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                | 100%       |
+| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                 | 100%       |
+| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                 | 100%       |
+| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                        | 100%       |
+| Backend integracija   | ❌ Nije započeta                                                                                             | 0%         |
 
 **Ukupna dovršenost frontenda: ~98%**
 **28 Dart fajlova, ~18.400 linija koda**
