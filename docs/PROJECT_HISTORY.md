@@ -289,6 +289,22 @@
 
 ---
 
+## 2026-03-23 — Error Handling, Senior Status Fix & Contract Logic
+
+- **Login error distinction** — `AuthResult.isConnectionError` flag razlikuje server nedostupan (narančasta poruka) od krivih credentialsa (crvena poruka). DioException type checking: connectionTimeout, connectionError, receiveTimeout, null response.
+- **ServerUnavailableScreen compact restyle** — maxWidth 420, icon 48px, titleLarge, full-width button, warm off-white background (#FAF6F1)
+- **Senior section reorder overflow** — `SizedBox(height: _sectionCount * 56.0)` zamijenjen s `Flexible` — riješen 16px bottom overflow
+- **Senior status logika popravljena** — Senior bez narudžbi sada prikazuje "Neaktivan" (ne "U obradi"). Nova logika:
+  - Suspendiran → isSuspended
+  - Arhiviran → isArchived
+  - **Neaktivan** → !isActive ILI nema narudžbi
+  - **Aktivan** → isActive + ima narudžbe + bar jedna dodijeljena
+  - **U obradi** → isActive + ima narudžbe + nijedna dodijeljena
+  - Fix na 3 mjesta: `_filteredSeniors()` filter, `_SeniorCard` badge, `SeniorDetailScreen` AppBar badge
+- **Rezultat**: 0 errors → 0 errors (flutter analyze)
+
+---
+
 ## Arhitekturalne odluke
 
 | Odluka                                         | Razlog                                                            | Datum      |
@@ -317,3 +333,4 @@
 | Haversine za km udaljenost                     | Sortiranje i prikaz koliko je student daleko od seniora           | 2026-03-18 |
 | Projected sessions iz dayEntries               | Planirani termini vidljivi i prije dodjele studenta               | 2026-03-20 |
 | Instant JobInstance na admin assign            | Sesije odmah vidljive nakon dodjele, ne čeka Hangfire             | 2026-03-20 |
+| Senior status = Neaktivan bez narudžbi          | !isActive \|\| !hasOrders = Neaktivan; hasOrders && !assigned = U obradi  | 2026-03-23 |

@@ -23,12 +23,14 @@ class AuthResult {
   final String? message;
   final int? userId;
   final String? userType;
+  final bool isConnectionError;
 
   const AuthResult({
     required this.success,
     this.message,
     this.userId,
     this.userType,
+    this.isConnectionError = false,
   });
 }
 
@@ -70,6 +72,16 @@ class AuthService {
         return AuthResult(
           success: false,
           message: AppStrings.invalidCredentials,
+        );
+      }
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.response == null) {
+        return AuthResult(
+          success: false,
+          message: AppStrings.serverUnavailableTitle,
+          isConnectionError: true,
         );
       }
       return AuthResult(success: false, message: AppStrings.loginError);

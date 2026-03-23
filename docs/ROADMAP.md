@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-23 (Admin notifications + SignalR real-time)
+> Zadnja izmjena: 2026-03-23 (Admin notifications + SignalR real-time + Senior status fix + Contract renewal)
 
 ## 📖 Za Sidney-a — Što čitati
 

@@ -29,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
   String? _errorMessage;
+  bool _isServerError = false;
   late String _selectedLang = AppStrings.currentLocale.toUpperCase();
 
   @override
@@ -50,6 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
+      _isServerError = false;
     });
 
     final result = await _authService.login(email, password);
@@ -62,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = false;
         _errorMessage = result.message ?? AppStrings.loginError;
+        _isServerError = result.isConnectionError;
       });
     }
   }
@@ -168,16 +171,39 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.red.shade50,
+                        color: _isServerError
+                            ? Colors.orange.shade50
+                            : Colors.red.shade50,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red.shade200),
-                      ),
-                      child: Text(
-                        _errorMessage!,
-                        style: TextStyle(
-                          color: Colors.red.shade700,
-                          fontSize: 14,
+                        border: Border.all(
+                          color: _isServerError
+                              ? Colors.orange.shade200
+                              : Colors.red.shade200,
                         ),
+                      ),
+                      child: Row(
+                        children: [
+                          if (_isServerError)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Icon(
+                                Icons.cloud_off_outlined,
+                                color: Colors.orange.shade700,
+                                size: 20,
+                              ),
+                            ),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: TextStyle(
+                                color: _isServerError
+                                    ? Colors.orange.shade700
+                                    : Colors.red.shade700,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),

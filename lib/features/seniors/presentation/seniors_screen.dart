@@ -97,25 +97,30 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
   List<SeniorModel> _filteredSeniors(_SeniorStatusFilter filter) {
     var seniors = ref.read(seniorsProvider).toList();
 
-    // Senior is "active" only when they have at least one order
-    // with an assigned student. Otherwise they are "processing".
-    final activeIds = ref
-        .read(ordersProvider)
+    final allOrders = ref.read(ordersProvider);
+
+    // Seniori koji imaju barem jednu narudžbu s dodijeljenim studentom
+    final activeIds = allOrders
         .where((o) => o.student != null)
         .map((o) => o.senior.id)
         .toSet();
+
+    // Seniori koji imaju barem jednu narudžbu
+    final hasOrderIds = allOrders.map((o) => o.senior.id).toSet();
 
     // Status filter
     switch (filter) {
       case _SeniorStatusFilter.all:
         break;
       case _SeniorStatusFilter.processing:
+        // U obradi = ima narudžbe, ali nijedna nije dodijeljena
         seniors = seniors
             .where(
               (s) =>
                   s.isActive &&
                   !s.isArchived &&
                   !s.isSuspended &&
+                  hasOrderIds.contains(s.id) &&
                   !activeIds.contains(s.id),
             )
             .toList();
@@ -130,8 +135,15 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
             )
             .toList();
       case _SeniorStatusFilter.inactive:
+        // Neaktivan = nema narudžbi ILI deletedAt != null
         seniors = seniors
-            .where((s) => !s.isActive && !s.isArchived && !s.isSuspended)
+            .where(
+              (s) =>
+                  !s.isArchived &&
+                  !s.isSuspended &&
+                  ((!s.isActive) ||
+                      (s.isActive && !hasOrderIds.contains(s.id))),
+            )
             .toList();
       case _SeniorStatusFilter.suspended:
         seniors = seniors.where((s) => s.isSuspended).toList();
@@ -550,11 +562,10 @@ class _SeniorCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Determine status chip
-    // Senior is "Active" only when they have at least one order
-    // with an assigned student. Otherwise they are "Processing".
     final seniorOrders = ref
         .read(ordersProvider)
         .where((o) => o.senior.id == senior.id);
+    final bool hasOrders = seniorOrders.isNotEmpty;
     final bool hasStudentAssigned = seniorOrders.any((o) => o.student != null);
 
     final (
@@ -569,7 +580,7 @@ class _SeniorCard extends ConsumerWidget {
             HelpiTheme.chipBg,
             AppStrings.statusArchived,
           )
-        : !senior.isActive
+        : !senior.isActive || !hasOrders
         ? (
             HelpiTheme.statusCancelledText,
             HelpiTheme.statusCancelledBg,
@@ -1127,7 +1138,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
                   ),
                 ),
               )
-            else if (!_senior.isActive)
+            else if (!_senior.isActive || _orders.isEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -1327,8 +1338,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: _sectionCount * 56.0,
+          Flexible(
             child: ReorderableListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               shrinkWrap: true,
