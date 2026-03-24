@@ -573,7 +573,12 @@ class _SeniorCard extends ConsumerWidget {
     // Determine status chip
     final seniorOrders = ref
         .read(ordersProvider)
-        .where((o) => o.senior.id == senior.id);
+        .where(
+          (o) =>
+              o.senior.id == senior.id &&
+              (o.status == OrderStatus.processing ||
+                  o.status == OrderStatus.active),
+        );
     final bool hasOrders = seniorOrders.isNotEmpty;
     final bool hasStudentAssigned = seniorOrders.any((o) => o.student != null);
 

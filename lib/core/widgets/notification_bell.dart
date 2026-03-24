@@ -124,6 +124,17 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                           AppStrings.markAllRead,
                           style: const TextStyle(fontSize: 12),
                         ),
+                      )
+                    else
+                      TextButton(
+                        onPressed: null,
+                        child: Text(
+                          AppStrings.markAllRead,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: HelpiTheme.textSecondary.withAlpha(100),
+                          ),
+                        ),
                       ),
                     IconButton(
                       icon: const Icon(Icons.close),

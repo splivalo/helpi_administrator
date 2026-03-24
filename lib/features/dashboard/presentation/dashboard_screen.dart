@@ -75,8 +75,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (senior.isSuspended || senior.isArchived || !senior.isActive) {
         return false;
       }
-      final seniorOrders =
-          liveOrders.where((o) => o.senior.id == senior.id);
+      final seniorOrders = liveOrders.where((o) => o.senior.id == senior.id);
       if (seniorOrders.isEmpty) return false;
       return !seniorOrders.any((o) => o.student != null);
     }).toList();
