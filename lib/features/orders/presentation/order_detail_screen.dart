@@ -1131,10 +1131,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
   Widget _buildAdminActionsSection() {
     final isCancelled = _order.status == OrderStatus.cancelled;
-    final isArchived = _order.status == OrderStatus.archived;
     final isCompleted = _order.status == OrderStatus.completed;
-    final canCancel = !isCancelled && !isArchived && !isCompleted;
-    final canArchive = isCancelled || isCompleted;
+    final canCancel = !isCancelled && !isCompleted;
 
     return SectionCard(
       title: AppStrings.adminActions,
@@ -1151,23 +1149,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 color: HelpiTheme.primary,
                 onTap: _confirmCancelOrder,
               ),
-            if (isArchived)
-              ActionChipButton(
-                icon: Icons.unarchive,
-                label: AppStrings.studentUnarchive,
-                color: HelpiTheme.accent,
-                onTap: _confirmUnarchiveOrder,
-              )
-            else
-              ActionChipButton(
-                icon: Icons.archive,
-                label: AppStrings.studentArchive,
-                color: HelpiTheme.textSecondary,
-                onTap: () => canArchive
-                    ? _confirmArchiveOrder()
-                    : _showArchiveBlockedDialog(),
-              ),
-            if (!isCancelled && !isArchived)
+            if (!isCancelled)
               ActionChipButton(
                 icon: Icons.discount_outlined,
                 label: AppStrings.promoCodeApply,
@@ -1177,25 +1159,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           ],
         ),
       ],
-    );
-  }
-
-  void _showArchiveBlockedDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.archiveOrderBlockedTitle),
-        content: SizedBox(
-          width: 400,
-          child: Text(AppStrings.archiveOrderBlockedMsg),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(AppStrings.ok),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1285,167 +1248,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       }
       await _refreshOrder();
     });
-  }
-
-  Future<void> _confirmArchiveOrder() async {
-    final api = AdminApiService();
-    final orderId = int.tryParse(_order.id) ?? 0;
-
-    final checkResult = await api.getOrderArchiveCheck(orderId);
-    if (!mounted) return;
-
-    if (!checkResult.success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(checkResult.error ?? 'Error')));
-      return;
-    }
-
-    final check = checkResult.data!;
-
-    if (check.hasBlockingItems) {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(AppStrings.archiveBlockedTitle),
-          content: SizedBox(
-            width: 400,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(AppStrings.archiveBlockedMsg),
-                const SizedBox(height: 16),
-                if (check.upcomingSessionsCount > 0)
-                  Text('• ${check.upcomingSessionsCount} nadolazecih termina'),
-                const SizedBox(height: 16),
-                Text(
-                  AppStrings.archiveForceWarning,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(AppStrings.cancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error,
-              ),
-              child: Text(AppStrings.studentArchive),
-            ),
-          ],
-        ),
-      );
-      if (!mounted) return;
-      if (confirmed != true) return;
-
-      final archiveResult = await api.archiveOrder(
-        orderId,
-        force: true,
-        reason: 'Admin forced archive',
-      );
-      if (!mounted) return;
-      if (archiveResult.success) {
-        await _refreshOrder();
-        if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
-      }
-      return;
-    }
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.archiveConfirmTitle),
-        content: SizedBox(
-          width: 400,
-          child: Text(AppStrings.archiveConfirmMsg),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStrings.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStrings.studentArchive),
-          ),
-        ],
-      ),
-    );
-    if (!mounted) return;
-    if (confirmed != true) return;
-
-    final archiveResult = await api.archiveOrder(orderId);
-    if (!mounted) return;
-    if (archiveResult.success) {
-      await _refreshOrder();
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
-    }
-  }
-
-  Future<void> _confirmUnarchiveOrder() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.unarchiveConfirmTitle),
-        content: SizedBox(
-          width: 400,
-          child: Text(AppStrings.unarchiveConfirmMsg),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStrings.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStrings.studentUnarchive),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-
-    final orderId = int.tryParse(_order.id) ?? 0;
-    final api = AdminApiService();
-    final result = await api.unarchiveOrder(orderId);
-    if (!mounted) return;
-
-    if (!result.success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
-      return;
-    }
-
-    await _refreshOrder();
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.unarchiveSuccess),
-        backgroundColor: HelpiTheme.accent,
-      ),
-    );
   }
 
   // ---------------------------------------------------------------
