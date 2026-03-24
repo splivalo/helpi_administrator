@@ -84,6 +84,9 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
       _isLoadingData = false;
       _serverUnavailable = !dataOk;
     });
+    if (dataOk) {
+      _signalR.start(ref: ref);
+    }
   }
 
   Future<void> _handleLogout() async {

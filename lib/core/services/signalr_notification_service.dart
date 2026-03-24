@@ -33,39 +33,44 @@ class SignalRNotificationService {
   Future<void> start({WidgetRef? ref}) async {
     _stoppedManually = false;
     _ref = ref;
+    _reconnectAttempt = 0;
 
-    if (_connection == null) {
-      _connection = HubConnectionBuilder()
-          .withUrl(
-            _hubUrl,
-            options: HttpConnectionOptions(
-              accessTokenFactory: () async {
-                return await _tokenStorage.getToken() ?? '';
-              },
-              transport: HttpTransportType.WebSockets,
-            ),
-          )
-          .withAutomaticReconnect()
-          .build();
-
-      _connection!.onclose(({Exception? error}) {
-        debugPrint('[SignalR] closed: $error');
-        if (!_stoppedManually) {
-          _scheduleReconnect();
-        }
-      });
-
-      _connection!.onreconnected(({String? connectionId}) {
-        debugPrint('[SignalR] reconnected: $connectionId');
-        _reconnectAttempt = 0;
-      });
-
-      _connection!.on('ReceiveNotification', _onReceiveNotification);
+    // Tear down stale connection so we always get a fresh one
+    if (_connection != null) {
+      try {
+        _connection!.off('ReceiveNotification');
+        await _connection!.stop();
+      } catch (_) {}
+      _connection = null;
     }
 
-    if (_connection!.state == HubConnectionState.Disconnected) {
-      await _startWithRetry();
-    }
+    _connection = HubConnectionBuilder()
+        .withUrl(
+          _hubUrl,
+          options: HttpConnectionOptions(
+            accessTokenFactory: () async {
+              return await _tokenStorage.getToken() ?? '';
+            },
+          ),
+        )
+        .withAutomaticReconnect()
+        .build();
+
+    _connection!.onclose(({Exception? error}) {
+      debugPrint('[SignalR] closed: $error');
+      if (!_stoppedManually) {
+        _scheduleReconnect();
+      }
+    });
+
+    _connection!.onreconnected(({String? connectionId}) {
+      debugPrint('[SignalR] reconnected: $connectionId');
+      _reconnectAttempt = 0;
+    });
+
+    _connection!.on('ReceiveNotification', _onReceiveNotification);
+
+    await _startWithRetry();
   }
 
   Future<void> stop() async {
@@ -185,9 +190,9 @@ class SignalRNotificationService {
 
   void _scheduleReconnect() {
     if (_stoppedManually) return;
-    Future.delayed(Duration(seconds: 3 * (_reconnectAttempt + 1)), () {
+    _reconnectAttempt = 0; // reset so _startWithRetry has full budget
+    Future.delayed(const Duration(seconds: 3), () {
       if (_stoppedManually) return;
-      _reconnectAttempt++;
       _startWithRetry();
     });
   }
