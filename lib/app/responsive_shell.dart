@@ -38,8 +38,8 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     final locale = AppStrings.currentLocale;
     return <Widget>[
       DashboardScreen(key: ValueKey('dashboard_$locale')),
-      StudentsScreen(key: ValueKey('students_$locale')),
       SeniorsScreen(key: ValueKey('seniors_$locale')),
+      StudentsScreen(key: ValueKey('students_$locale')),
       ChatModScreen(key: ValueKey('chat_$locale')),
     ];
   }
@@ -112,15 +112,15 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                       ),
                       _sidebarItem(
                         1,
-                        Icons.school_outlined,
-                        Icons.school,
-                        AppStrings.navStudents,
-                      ),
-                      _sidebarItem(
-                        2,
                         Icons.elderly_outlined,
                         Icons.elderly,
                         AppStrings.navSeniors,
+                      ),
+                      _sidebarItem(
+                        2,
+                        Icons.school_outlined,
+                        Icons.school,
+                        AppStrings.navStudents,
                       ),
                       _sidebarItem(
                         3,
@@ -304,14 +304,14 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                 label: Text(AppStrings.navDashboard),
               ),
               NavigationRailDestination(
-                icon: const Icon(Icons.school_outlined),
-                selectedIcon: const Icon(Icons.school),
-                label: Text(AppStrings.navStudents),
-              ),
-              NavigationRailDestination(
                 icon: const Icon(Icons.elderly_outlined),
                 selectedIcon: const Icon(Icons.elderly),
                 label: Text(AppStrings.navSeniors),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.school_outlined),
+                selectedIcon: const Icon(Icons.school),
+                label: Text(AppStrings.navStudents),
               ),
               NavigationRailDestination(
                 icon: const Icon(Icons.chat_bubble_outline),
@@ -356,14 +356,14 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
               label: AppStrings.navDashboard,
             ),
             BottomNavigationBarItem(
-              icon: const Icon(Icons.school_outlined, size: 26),
-              activeIcon: const Icon(Icons.school, size: 26),
-              label: AppStrings.navStudents,
-            ),
-            BottomNavigationBarItem(
               icon: const Icon(Icons.elderly_outlined, size: 26),
               activeIcon: const Icon(Icons.elderly, size: 26),
               label: AppStrings.navSeniors,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.school_outlined, size: 26),
+              activeIcon: const Icon(Icons.school, size: 26),
+              label: AppStrings.navStudents,
             ),
             BottomNavigationBarItem(
               icon: const Icon(Icons.chat_bubble_outline, size: 26),

@@ -1597,11 +1597,26 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
   }
 
   Widget _buildOrdersSection() {
+    final hasMore = _orders.length > 5;
     return SectionCard(
       title: AppStrings.seniorOrders,
       icon: Icons.receipt_long,
       children: [
-        if (_orders.isNotEmpty) ..._orders.map((o) => _buildOrderRow(o)),
+        if (_orders.isNotEmpty)
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: hasMore ? 320 : double.infinity,
+            ),
+            child: hasMore
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _orders.length,
+                    itemBuilder: (_, i) => _buildOrderRow(_orders[i]),
+                  )
+                : Column(
+                    children: _orders.map((o) => _buildOrderRow(o)).toList(),
+                  ),
+          ),
         if (_orders.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
