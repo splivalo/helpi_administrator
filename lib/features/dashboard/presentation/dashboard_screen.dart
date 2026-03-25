@@ -621,30 +621,10 @@ class _ProcessingSeniorCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: HelpiTheme.statusProcessingBg,
-                    border: Border.all(
-                      color: HelpiTheme.statusProcessingText.withValues(
-                        alpha: 0.3,
-                      ),
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      HelpiTheme.statusBadgeRadius,
-                    ),
-                  ),
-                  child: Text(
-                    AppStrings.filterProcessing,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: HelpiTheme.statusProcessingText,
-                    ),
-                  ),
+                StatusBadge(
+                  textColor: HelpiTheme.statusProcessingText,
+                  bgColor: HelpiTheme.statusProcessingBg,
+                  label: AppStrings.filterProcessing,
                 ),
               ],
             ),

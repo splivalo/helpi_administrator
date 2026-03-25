@@ -659,28 +659,10 @@ class _SeniorCard extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: chipBgColor,
-                    border: Border.all(
-                      color: chipTextColor.withValues(alpha: 0.3),
-                    ),
-                    borderRadius: BorderRadius.circular(
-                      HelpiTheme.statusBadgeRadius,
-                    ),
-                  ),
-                  child: Text(
-                    chipLabel,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: chipTextColor,
-                    ),
-                  ),
+                StatusBadge(
+                  textColor: chipTextColor,
+                  bgColor: chipBgColor,
+                  label: chipLabel,
                 ),
               ],
             ),
@@ -1127,106 +1109,30 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
             ),
             const SizedBox(width: 8),
             if (_senior.isSuspended)
-              const SuspendedBadge()
+              StatusBadge.suspended()
             else if (_senior.isArchived)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: HelpiTheme.chipBg,
-                  border: Border.all(
-                    color: HelpiTheme.textSecondary.withValues(alpha: 0.3),
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    HelpiTheme.statusBadgeRadius,
-                  ),
-                ),
-                child: Text(
-                  AppStrings.statusArchived,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                ),
+              StatusBadge(
+                textColor: HelpiTheme.textSecondary,
+                bgColor: HelpiTheme.chipBg,
+                label: AppStrings.statusArchived,
               )
             else if (!_senior.isActive || _orders.isEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: HelpiTheme.statusCancelledBg,
-                  border: Border.all(
-                    color: HelpiTheme.statusCancelledText.withValues(
-                      alpha: 0.3,
-                    ),
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    HelpiTheme.statusBadgeRadius,
-                  ),
-                ),
-                child: Text(
-                  AppStrings.seniorFilterInactive,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: HelpiTheme.statusCancelledText,
-                  ),
-                ),
+              StatusBadge(
+                textColor: HelpiTheme.statusCancelledText,
+                bgColor: HelpiTheme.statusCancelledBg,
+                label: AppStrings.seniorFilterInactive,
               )
             else if (_senior.isActive && _orders.any((o) => o.student != null))
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: HelpiTheme.statusActiveBg,
-                  border: Border.all(
-                    color: HelpiTheme.statusActiveText.withValues(alpha: 0.3),
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    HelpiTheme.statusBadgeRadius,
-                  ),
-                ),
-                child: Text(
-                  AppStrings.seniorFilterActive,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: HelpiTheme.statusActiveText,
-                  ),
-                ),
+              StatusBadge(
+                textColor: HelpiTheme.statusActiveText,
+                bgColor: HelpiTheme.statusActiveBg,
+                label: AppStrings.seniorFilterActive,
               )
             else
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: HelpiTheme.statusProcessingBg,
-                  border: Border.all(
-                    color: HelpiTheme.statusProcessingText.withValues(
-                      alpha: 0.3,
-                    ),
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    HelpiTheme.statusBadgeRadius,
-                  ),
-                ),
-                child: Text(
-                  AppStrings.filterProcessing,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: HelpiTheme.statusProcessingText,
-                  ),
-                ),
+              StatusBadge(
+                textColor: HelpiTheme.statusProcessingText,
+                bgColor: HelpiTheme.statusProcessingBg,
+                label: AppStrings.filterProcessing,
               ),
           ],
         ),

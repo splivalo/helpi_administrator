@@ -194,33 +194,15 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             ),
             const SizedBox(width: 8),
             if (_student.isSuspended)
-              const SuspendedBadge()
+              StatusBadge.suspended()
             else
               StatusBadge.contract(_student.contractStatus),
             if (_student.isArchived) ...[
               const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: HelpiTheme.chipBg,
-                  border: Border.all(
-                    color: HelpiTheme.textSecondary.withValues(alpha: 0.3),
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    HelpiTheme.statusBadgeRadius,
-                  ),
-                ),
-                child: Text(
-                  AppStrings.statusArchived,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                ),
+              StatusBadge(
+                textColor: HelpiTheme.textSecondary,
+                bgColor: HelpiTheme.chipBg,
+                label: AppStrings.statusArchived,
               ),
             ],
           ],

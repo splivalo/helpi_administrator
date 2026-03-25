@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
@@ -29,7 +28,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   static const _sectionCount = 6;
 
   late OrderModel _order;
-  bool _sessionsExpanded = true;
   bool _sessionsLoading = true;
   late List<int> _sectionOrder;
 
@@ -686,63 +684,33 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InkWell(
-            borderRadius: BorderRadius.circular(8),
-            hoverColor: HelpiTheme.accent.withAlpha(10),
-            splashColor: HelpiTheme.accent.withAlpha(20),
-            mouseCursor: SystemMouseCursors.click,
-            onTap: () {
-              HapticFeedback.selectionClick();
-              setState(() => _sessionsExpanded = !_sessionsExpanded);
-            },
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calendar_month,
-                  size: 20,
-                  color: isProjected
-                      ? HelpiTheme.textSecondary
-                      : HelpiTheme.accent,
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_month,
+                size: 20,
+                color: isProjected
+                    ? HelpiTheme.textSecondary
+                    : HelpiTheme.accent,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                AppStrings.sessionsTitle,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: HelpiTheme.textPrimary,
                 ),
+              ),
+              if (isProjected) ...[
                 const SizedBox(width: 8),
-                Text(
-                  AppStrings.sessionsTitle,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: HelpiTheme.textPrimary,
-                  ),
-                ),
-                if (isProjected) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF3E0),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      AppStrings.sessionStatusPlanned,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFE65100),
-                      ),
-                    ),
-                  ),
-                ],
-                const Spacer(),
-                Icon(
-                  _sessionsExpanded
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  color: HelpiTheme.textSecondary,
+                StatusBadge(
+                  textColor: HelpiTheme.statusProcessingText,
+                  bgColor: HelpiTheme.statusProcessingBg,
+                  label: AppStrings.sessionStatusPlanned,
                 ),
               ],
-            ),
+            ],
           ),
           const SizedBox(height: 6),
           Text(
@@ -756,7 +724,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               color: HelpiTheme.textSecondary,
             ),
           ),
-          if (_sessionsExpanded && displaySessions.isNotEmpty) ...[
+          if (displaySessions.isNotEmpty) ...[
             const SizedBox(height: 16),
             ConstrainedBox(
               constraints: BoxConstraints(
@@ -1087,43 +1055,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     );
   }
 
-  Widget _sessionStatusBadge(SessionStatus status) {
-    final String label;
-    final Color textColor;
-    final Color bgColor;
-
-    switch (status) {
-      case SessionStatus.scheduled:
-        label = AppStrings.sessionStatusScheduled;
-        textColor = const Color(0xFF1976D2);
-        bgColor = const Color(0xFFE3F2FD);
-      case SessionStatus.completed:
-        label = AppStrings.sessionStatusCompleted;
-        textColor = HelpiTheme.statusActiveText;
-        bgColor = HelpiTheme.statusActiveBg;
-      case SessionStatus.cancelled:
-        label = AppStrings.sessionStatusCancelled;
-        textColor = HelpiTheme.statusCancelledText;
-        bgColor = HelpiTheme.statusCancelledBg;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border.all(color: textColor.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
-      ),
-    );
-  }
+  Widget _sessionStatusBadge(SessionStatus status) =>
+      StatusBadge.session(status);
 
   // ---------------------------------------------------------------
   //  ADMIN ACTIONS SECTION

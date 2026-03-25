@@ -25,6 +25,8 @@ class HelpiTheme {
   static const Color statusCompletedBg = Color(0xFFE8F1FB);
   static const Color statusCancelledText = Color(0xFFEF5B5B);
   static const Color statusCancelledBg = Color(0xFFFFEBEE);
+  static const Color statusScheduledText = Color(0xFF1976D2);
+  static const Color statusScheduledBg = Color(0xFFE3F2FD);
 
   // Specijalne
   static const Color starYellow = Color(0xFFFFC107);

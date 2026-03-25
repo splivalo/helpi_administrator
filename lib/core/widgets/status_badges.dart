@@ -76,13 +76,37 @@ String serviceLabel(ServiceType type) => switch (type) {
     };
 
 // ═══════════════════════════════════════════════════════════════
+//  SESSION STATUS COLORS + LABEL
+// ═══════════════════════════════════════════════════════════════
+
+/// Returns (textColor, bgColor, label) for a given [SessionStatus].
+(Color, Color, String) sessionStatusStyle(SessionStatus status) =>
+    switch (status) {
+      SessionStatus.scheduled => (
+        HelpiTheme.statusScheduledText,
+        HelpiTheme.statusScheduledBg,
+        AppStrings.sessionStatusScheduled,
+      ),
+      SessionStatus.completed => (
+        HelpiTheme.statusActiveText,
+        HelpiTheme.statusActiveBg,
+        AppStrings.sessionStatusCompleted,
+      ),
+      SessionStatus.cancelled => (
+        HelpiTheme.statusCancelledText,
+        HelpiTheme.statusCancelledBg,
+        AppStrings.sessionStatusCancelled,
+      ),
+    };
+
+// ═══════════════════════════════════════════════════════════════
 //  STATUS BADGE WIDGET
 // ═══════════════════════════════════════════════════════════════
 
 /// Renders a small rounded status badge (chip) with colored text/bg/border.
 ///
 /// [size] controls the visual density:
-/// - `StatusBadgeSize.small` → padding (10,3), fontSize 11, statusBadgeRadius
+/// - `StatusBadgeSize.small` → padding (10,4), fontSize 12, statusBadgeRadius
 /// - `StatusBadgeSize.large` → padding (14,6), fontSize 13, chipRadius
 enum StatusBadgeSize { small, large }
 
@@ -123,6 +147,32 @@ class StatusBadge extends StatelessWidget {
     );
   }
 
+  /// Creates a badge from a [SessionStatus].
+  factory StatusBadge.session(
+    SessionStatus status, {
+    StatusBadgeSize size = StatusBadgeSize.small,
+  }) {
+    final (textColor, bgColor, label) = sessionStatusStyle(status);
+    return StatusBadge(
+      textColor: textColor,
+      bgColor: bgColor,
+      label: label,
+      size: size,
+    );
+  }
+
+  /// Suspended badge (red).
+  factory StatusBadge.suspended({
+    StatusBadgeSize size = StatusBadgeSize.small,
+  }) {
+    return StatusBadge(
+      textColor: HelpiTheme.error,
+      bgColor: HelpiTheme.statusCancelledBg,
+      label: AppStrings.suspended,
+      size: size,
+    );
+  }
+
   final Color textColor;
   final Color bgColor;
   final String label;
@@ -131,24 +181,29 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSmall = size == StatusBadgeSize.small;
+    final double hPad = isSmall ? 10 : 14;
+    final double vPad = isSmall ? 4 : 6;
+    final double fs = isSmall ? 12 : 13;
+    final double radius = isSmall
+        ? HelpiTheme.statusBadgeRadius
+        : HelpiTheme.chipRadius;
+
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isSmall ? 10 : 14,
-        vertical: isSmall ? 3 : 6,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
       decoration: BoxDecoration(
         color: bgColor,
         border: Border.all(color: textColor.withValues(alpha: 0.3)),
-        borderRadius: BorderRadius.circular(
-          isSmall ? HelpiTheme.statusBadgeRadius : HelpiTheme.chipRadius,
-        ),
+        borderRadius: BorderRadius.circular(radius),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: isSmall ? 11 : 13,
+          fontSize: fs,
           fontWeight: FontWeight.w600,
           color: textColor,
+          height: 1.1,
+          leadingDistribution: TextLeadingDistribution.even,
+          inherit: false,
         ),
       ),
     );

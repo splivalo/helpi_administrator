@@ -121,24 +121,7 @@ class SuspendedBadge extends StatelessWidget {
   const SuspendedBadge({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-      decoration: BoxDecoration(
-        color: HelpiTheme.statusCancelledBg,
-        border: Border.all(color: HelpiTheme.error.withValues(alpha: 0.4)),
-        borderRadius: BorderRadius.circular(HelpiTheme.statusBadgeRadius),
-      ),
-      child: Text(
-        AppStrings.suspended,
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: HelpiTheme.error,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => StatusBadge.suspended();
 }
 
 /// Shows suspend reason input dialog. Returns the reason or null if cancelled.

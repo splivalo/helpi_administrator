@@ -10,7 +10,6 @@ import 'package:helpi_admin/core/services/excel_export_service.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
-import 'package:helpi_admin/core/widgets/suspension_widgets.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
@@ -1750,33 +1749,15 @@ class _StudentCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 if (student.isSuspended)
-                  const SuspendedBadge()
+                  StatusBadge.suspended()
                 else
                   StatusBadge.contract(student.contractStatus),
                 if (student.isArchived) ...[
                   const SizedBox(width: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: HelpiTheme.chipBg,
-                      border: Border.all(
-                        color: HelpiTheme.textSecondary.withValues(alpha: 0.3),
-                      ),
-                      borderRadius: BorderRadius.circular(
-                        HelpiTheme.statusBadgeRadius,
-                      ),
-                    ),
-                    child: Text(
-                      AppStrings.statusArchived,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                    ),
+                  StatusBadge(
+                    textColor: HelpiTheme.textSecondary,
+                    bgColor: HelpiTheme.chipBg,
+                    label: AppStrings.statusArchived,
                   ),
                 ],
               ],
