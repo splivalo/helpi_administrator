@@ -2554,32 +2554,44 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
             );
 
             final dropdownWidget = faculties.length > 1
-                ? DropdownButtonHideUnderline(
-                    child: DropdownButton<String?>(
-                      value: _selectedFaculty,
-                      isDense: true,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black87,
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.school_outlined,
+                        size: 16,
+                        color: HelpiTheme.textSecondary,
                       ),
-                      hint: Text(
-                        AppStrings.anyFaculty,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                      items: [
-                        DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text(AppStrings.anyFaculty),
-                        ),
-                        ...faculties.map(
-                          (f) => DropdownMenuItem<String?>(
-                            value: f,
-                            child: Text(f),
+                      const SizedBox(width: 4),
+                      DropdownButtonHideUnderline(
+                        child: DropdownButton<String?>(
+                          value: _selectedFaculty,
+                          isDense: true,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black87,
                           ),
+                          hint: Text(
+                            AppStrings.anyFaculty,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          items: [
+                            DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text(AppStrings.anyFaculty),
+                            ),
+                            ...faculties.map(
+                              (f) => DropdownMenuItem<String?>(
+                                value: f,
+                                child: Text(f),
+                              ),
+                            ),
+                          ],
+                          onChanged: (v) =>
+                              setState(() => _selectedFaculty = v),
                         ),
-                      ],
-                      onChanged: (v) => setState(() => _selectedFaculty = v),
-                    ),
+                      ),
+                    ],
                   )
                 : null;
 
