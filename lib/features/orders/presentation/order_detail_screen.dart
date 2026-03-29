@@ -2526,64 +2526,106 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
           builder: (context) {
             final dropdownWidget = faculties.length > 1
                 ? Expanded(
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String?>(
-                        value: _selectedFaculty,
-                        isDense: true,
-                        isExpanded: true,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black87,
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.school_outlined,
+                          size: 20,
+                          color: _selectedFaculty != null
+                              ? HelpiTheme.accent
+                              : HelpiTheme.textSecondary,
                         ),
-                        hint: Text(
-                          AppStrings.anyFaculty,
-                          style: const TextStyle(fontSize: 13),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        items: [
-                          DropdownMenuItem<String?>(
-                            value: null,
-                            child: Text(
-                              AppStrings.anyFaculty,
-                              overflow: TextOverflow.ellipsis,
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String?>(
+                              value: _selectedFaculty,
+                              isDense: true,
+                              isExpanded: true,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.black87,
+                              ),
+                              hint: Text(
+                                AppStrings.anyFaculty,
+                                style: const TextStyle(fontSize: 13),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              items: [
+                                DropdownMenuItem<String?>(
+                                  value: null,
+                                  child: Text(
+                                    AppStrings.anyFaculty,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                ...faculties.map(
+                                  (f) => DropdownMenuItem<String?>(
+                                    value: f,
+                                    child: Text(
+                                      f,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (v) =>
+                                  setState(() => _selectedFaculty = v),
                             ),
                           ),
-                          ...faculties.map(
-                            (f) => DropdownMenuItem<String?>(
-                              value: f,
-                              child: Text(f, overflow: TextOverflow.ellipsis),
-                            ),
-                          ),
-                        ],
-                        onChanged: (v) => setState(() => _selectedFaculty = v),
-                      ),
+                        ),
+                      ],
                     ),
                   )
                 : null;
 
+            final isNarrow = MediaQuery.sizeOf(context).width < 600;
+
             final historyIcon = Tooltip(
               message: AppStrings.filterBySenior,
-              child: IconButton(
-                icon: Icon(
-                  Icons.history,
-                  size: 20,
-                  color: _onlyWorkedWithSenior
-                      ? HelpiTheme.accent
-                      : HelpiTheme.textSecondary,
-                ),
-                style: _onlyWorkedWithSenior
-                    ? IconButton.styleFrom(
-                        backgroundColor: HelpiTheme.pastelTeal,
-                      )
-                    : null,
-                onPressed: () => setState(
-                  () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
-                ),
-              ),
+              child: isNarrow
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.history,
+                        size: 20,
+                        color: _onlyWorkedWithSenior
+                            ? HelpiTheme.accent
+                            : HelpiTheme.textSecondary,
+                      ),
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(6),
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        minimumSize: Size.zero,
+                        backgroundColor: _onlyWorkedWithSenior
+                            ? HelpiTheme.pastelTeal
+                            : null,
+                      ),
+                      onPressed: () => setState(
+                        () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
+                      ),
+                    )
+                  : IconButton(
+                      icon: Icon(
+                        Icons.history,
+                        size: 20,
+                        color: _onlyWorkedWithSenior
+                            ? HelpiTheme.accent
+                            : HelpiTheme.textSecondary,
+                      ),
+                      style: _onlyWorkedWithSenior
+                          ? IconButton.styleFrom(
+                              backgroundColor: HelpiTheme.pastelTeal,
+                            )
+                          : null,
+                      onPressed: () => setState(
+                        () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
+                      ),
+                    ),
             );
 
             return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 8, 4),
+              padding: EdgeInsets.fromLTRB(20, 0, isNarrow ? 16 : 8, 4),
               child: Row(
                 children: [
                   ?dropdownWidget,
