@@ -547,12 +547,14 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          ActionChipButton(
-            icon: Icons.person_add,
-            label: AppStrings.assignStudent,
-            color: HelpiTheme.accent,
-            onTap: () => _showAssignSheet(),
-          ),
+          if (_order.status == OrderStatus.processing ||
+              _order.status == OrderStatus.active)
+            ActionChipButton(
+              icon: Icons.person_add,
+              label: AppStrings.assignStudent,
+              color: HelpiTheme.accent,
+              onTap: () => _showAssignSheet(),
+            ),
         ],
       ],
     );
@@ -1641,6 +1643,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   //  ASSIGN STUDENT (single-modal flow with back navigation)
   // ---------------------------------------------------------------
   Future<void> _showAssignSheet() async {
+    // Block assignment on cancelled/completed/archived orders
+    if (_order.status == OrderStatus.cancelled ||
+        _order.status == OrderStatus.completed ||
+        _order.status == OrderStatus.archived) {
+      return;
+    }
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
     Future<void> onConfirmed(
@@ -1918,6 +1926,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   }
 
   void _assignStudent(StudentModel student, BuildContext sheetContext) {
+    // Block assignment on cancelled/completed/archived orders
+    if (_order.status == OrderStatus.cancelled ||
+        _order.status == OrderStatus.completed ||
+        _order.status == OrderStatus.archived) {
+      return;
+    }
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -2491,6 +2505,11 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
             .toList()
           ..sort();
 
+    // Auto-select if only one faculty
+    if (faculties.length == 1 && _selectedFaculty == null) {
+      _selectedFaculty = faculties.first;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2524,57 +2543,69 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
         // ── Filter bar ──
         Builder(
           builder: (context) {
-            final dropdownWidget = faculties.length > 1
-                ? Expanded(
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.school_outlined,
-                          size: 20,
-                          color: _selectedFaculty != null
-                              ? HelpiTheme.accent
-                              : HelpiTheme.textSecondary,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String?>(
-                              value: _selectedFaculty,
-                              isDense: true,
-                              isExpanded: true,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.black87,
-                              ),
-                              hint: Text(
-                                AppStrings.anyFaculty,
-                                style: const TextStyle(fontSize: 13),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              items: [
-                                DropdownMenuItem<String?>(
-                                  value: null,
-                                  child: Text(
-                                    AppStrings.anyFaculty,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+            final dropdownWidget = faculties.isNotEmpty
+                ? Flexible(
+                    child: Container(
+                      height: 30,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: HelpiTheme.border),
+                        borderRadius: BorderRadius.circular(8),
+                        color: HelpiTheme.chipBg,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String?>(
+                                value: _selectedFaculty,
+                                isDense: true,
+                                isExpanded: true,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: HelpiTheme.textSecondary,
                                 ),
-                                ...faculties.map(
-                                  (f) => DropdownMenuItem<String?>(
-                                    value: f,
+                                icon: Icon(
+                                  Icons.arrow_drop_down,
+                                  size: 16,
+                                  color: HelpiTheme.textSecondary,
+                                ),
+                                hint: Text(
+                                  AppStrings.anyFaculty,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w400,
+                                    color: HelpiTheme.textSecondary,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                items: [
+                                  DropdownMenuItem<String?>(
+                                    value: null,
                                     child: Text(
-                                      f,
+                                      AppStrings.anyFaculty,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                ),
-                              ],
-                              onChanged: (v) =>
-                                  setState(() => _selectedFaculty = v),
+                                  ...faculties.map(
+                                    (f) => DropdownMenuItem<String?>(
+                                      value: f,
+                                      child: Text(
+                                        f,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                                onChanged: (v) =>
+                                    setState(() => _selectedFaculty = v),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   )
                 : null;
@@ -2595,6 +2626,7 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                     AppStrings.knownStudents,
                     style: TextStyle(
                       fontSize: 12,
+                      fontWeight: FontWeight.w400,
                       color: _onlyWorkedWithSenior
                           ? HelpiTheme.accent
                           : HelpiTheme.textSecondary,
@@ -2604,8 +2636,12 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
               ),
               selected: _onlyWorkedWithSenior,
               showCheckmark: false,
-              backgroundColor: Colors.transparent,
-              selectedColor: HelpiTheme.pastelTeal,
+              color: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return HelpiTheme.pastelTeal;
+                }
+                return HelpiTheme.chipBg;
+              }),
               side: BorderSide(
                 color: _onlyWorkedWithSenior
                     ? HelpiTheme.accent
@@ -2619,11 +2655,11 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
             );
 
             return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
               child: Row(
                 children: [
                   ?dropdownWidget,
-                  if (dropdownWidget == null) const Spacer(),
+                  if (dropdownWidget != null) const SizedBox(width: 8),
                   knownChip,
                 ],
               ),

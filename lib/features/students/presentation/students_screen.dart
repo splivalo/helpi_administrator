@@ -1116,10 +1116,6 @@ class _FilterPanelState extends State<_FilterPanel> {
                   (null, AppStrings.allStudents),
                   (ActivityPeriod.thisMonth, AppStrings.filterPeriodThisMonth),
                   (ActivityPeriod.lastMonth, AppStrings.filterPeriodLastMonth),
-                  (
-                    ActivityPeriod.last60Days,
-                    AppStrings.filterPeriodLast60Days,
-                  ),
                   (ActivityPeriod.custom, AppStrings.filterPeriodCustom),
                 ],
                 _activityPeriod,
