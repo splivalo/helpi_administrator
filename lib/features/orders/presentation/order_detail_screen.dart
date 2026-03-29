@@ -2526,27 +2526,37 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
           builder: (context) {
             final isNarrow = MediaQuery.sizeOf(context).width < 600;
 
-            final checkboxWidget = FilterChip(
-              selected: _onlyWorkedWithSenior,
-              label: Text(AppStrings.filterBySenior),
-              labelStyle: TextStyle(
-                fontSize: 13,
-                color: _onlyWorkedWithSenior
-                    ? HelpiTheme.accent
-                    : HelpiTheme.textSecondary,
+            final pillWidget = GestureDetector(
+              onTap: () => setState(
+                () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
               ),
-              selectedColor: HelpiTheme.pastelTeal,
-              backgroundColor: Colors.white,
-              side: BorderSide(
-                color: _onlyWorkedWithSenior
-                    ? HelpiTheme.accent
-                    : HelpiTheme.border,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: _onlyWorkedWithSenior
+                      ? HelpiTheme.pastelTeal
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _onlyWorkedWithSenior
+                        ? HelpiTheme.accent
+                        : HelpiTheme.border,
+                  ),
+                ),
+                child: Text(
+                  AppStrings.filterBySenior,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: _onlyWorkedWithSenior
+                        ? HelpiTheme.accent
+                        : Colors.black87,
+                  ),
+                ),
               ),
-              checkmarkColor: HelpiTheme.accent,
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              onSelected: (v) =>
-                  setState(() => _onlyWorkedWithSenior = v),
             );
 
             final dropdownWidget = faculties.length > 1
@@ -2585,9 +2595,11 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ?dropdownWidget,
-                    const SizedBox(height: 4),
-                    checkboxWidget,
+                    if (dropdownWidget != null) ...[
+                      dropdownWidget,
+                      const SizedBox(height: 4),
+                    ],
+                    pillWidget,
                   ],
                 ),
               );
@@ -2597,10 +2609,11 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
               child: Row(
                 children: [
-                  ?dropdownWidget,
-                  if (dropdownWidget != null)
+                  if (dropdownWidget != null) ...[
+                    dropdownWidget,
                     const SizedBox(width: 16),
-                  checkboxWidget,
+                  ],
+                  pillWidget,
                 ],
               ),
             );
