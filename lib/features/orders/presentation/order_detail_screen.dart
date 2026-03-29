@@ -2177,50 +2177,8 @@ class _StudentAssignCard extends StatelessWidget {
                         ),
                       ),
                     ],
-                    if (student.faculty.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      const Icon(
-                        Icons.school,
-                        size: 13,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                      const SizedBox(width: 2),
-                      Flexible(
-                        child: Text(
-                          student.faculty,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: HelpiTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
-                if (student.previousJobsWithSenior > 0) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.history,
-                        size: 13,
-                        color: Color(0xFF1565C0),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        AppStrings.workedWithSenior(
-                          student.previousJobsWithSenior,
-                        ),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1565C0),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
                 const SizedBox(height: 5),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -2525,12 +2483,13 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
     final filtered = _filteredClassified;
 
     // Collect unique faculty names for dropdown
-    final faculties = widget.classified
-        .map((e) => e.$1.faculty)
-        .where((f) => f.isNotEmpty)
-        .toSet()
-        .toList()
-      ..sort();
+    final faculties =
+        widget.classified
+            .map((e) => e.$1.faculty)
+            .where((f) => f.isNotEmpty)
+            .toSet()
+            .toList()
+          ..sort();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2565,10 +2524,8 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
         // ── Filter bar ──
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: Wrap(
-            spacing: 16,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Checkbox: worked with this senior
               InkWell(
@@ -2584,9 +2541,9 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                       height: 20,
                       child: Checkbox(
                         value: _onlyWorkedWithSenior,
-                        onChanged: (v) => setState(
-                          () => _onlyWorkedWithSenior = v ?? false,
-                        ),
+                        activeColor: HelpiTheme.accent,
+                        onChanged: (v) =>
+                            setState(() => _onlyWorkedWithSenior = v ?? false),
                         visualDensity: VisualDensity.compact,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
@@ -2600,31 +2557,64 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                 ),
               ),
               // Dropdown: faculty
-              if (faculties.length > 1)
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<String?>(
-                    value: _selectedFaculty,
-                    isDense: true,
-                    style: const TextStyle(fontSize: 13, color: Colors.black87),
-                    hint: Text(
-                      AppStrings.filterByFaculty,
-                      style: const TextStyle(fontSize: 13),
+              if (faculties.length > 1) ...[
+                const SizedBox(height: 6),
+                Container(
+                  height: 34,
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _selectedFaculty != null
+                          ? HelpiTheme.accent
+                          : HelpiTheme.border,
                     ),
-                    items: [
-                      DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text(AppStrings.anyFaculty),
+                    color: _selectedFaculty != null
+                        ? HelpiTheme.pastelTeal
+                        : Colors.white,
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String?>(
+                      value: _selectedFaculty,
+                      isDense: true,
+                      isExpanded: true,
+                      icon: Icon(
+                        Icons.arrow_drop_down,
+                        color: _selectedFaculty != null
+                            ? HelpiTheme.accent
+                            : HelpiTheme.textSecondary,
+                        size: 20,
                       ),
-                      ...faculties.map(
-                        (f) => DropdownMenuItem<String?>(
-                          value: f,
-                          child: Text(f),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _selectedFaculty != null
+                            ? HelpiTheme.accent
+                            : Colors.black87,
+                      ),
+                      hint: Text(
+                        AppStrings.anyFaculty,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.textSecondary,
                         ),
                       ),
-                    ],
-                    onChanged: (v) => setState(() => _selectedFaculty = v),
+                      items: [
+                        DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text(AppStrings.anyFaculty),
+                        ),
+                        ...faculties.map(
+                          (f) => DropdownMenuItem<String?>(
+                            value: f,
+                            child: Text(f),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) => setState(() => _selectedFaculty = v),
+                    ),
                   ),
                 ),
+              ],
             ],
           ),
         ),
