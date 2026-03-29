@@ -2526,33 +2526,27 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
           builder: (context) {
             final isNarrow = MediaQuery.sizeOf(context).width < 600;
 
-            final checkboxWidget = InkWell(
-              borderRadius: BorderRadius.circular(4),
-              onTap: () => setState(
-                () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
+            final checkboxWidget = FilterChip(
+              selected: _onlyWorkedWithSenior,
+              label: Text(AppStrings.filterBySenior),
+              labelStyle: TextStyle(
+                fontSize: 13,
+                color: _onlyWorkedWithSenior
+                    ? HelpiTheme.accent
+                    : HelpiTheme.textSecondary,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: Checkbox(
-                      value: _onlyWorkedWithSenior,
-                      activeColor: HelpiTheme.accent,
-                      onChanged: (v) =>
-                          setState(() => _onlyWorkedWithSenior = v ?? false),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    AppStrings.filterBySenior,
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ],
+              selectedColor: HelpiTheme.pastelTeal,
+              backgroundColor: Colors.white,
+              side: BorderSide(
+                color: _onlyWorkedWithSenior
+                    ? HelpiTheme.accent
+                    : HelpiTheme.border,
               ),
+              checkmarkColor: HelpiTheme.accent,
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              onSelected: (v) =>
+                  setState(() => _onlyWorkedWithSenior = v),
             );
 
             final dropdownWidget = faculties.length > 1
