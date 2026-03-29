@@ -2500,7 +2500,7 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
             child: DragHandle(),
           ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
+          padding: const EdgeInsets.fromLTRB(20, 12, 8, 0),
           child: Row(
             children: [
               const Icon(Icons.people_outline, color: HelpiTheme.accent),
@@ -2524,105 +2524,71 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
         // ── Filter bar ──
         Builder(
           builder: (context) {
-            final isNarrow = MediaQuery.sizeOf(context).width < 600;
-
-            final switchWidget = Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: 24,
-                  child: FittedBox(
-                    child: Switch(
-                      value: _onlyWorkedWithSenior,
-                      activeColor: HelpiTheme.accent,
-                      onChanged: (v) =>
-                          setState(() => _onlyWorkedWithSenior = v),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  AppStrings.filterBySenior,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: _onlyWorkedWithSenior
-                        ? HelpiTheme.accent
-                        : Colors.black87,
-                  ),
-                ),
-              ],
-            );
-
             final dropdownWidget = faculties.length > 1
-                ? Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(
-                        height: 24,
-                        child: Icon(
-                          Icons.school_outlined,
-                          size: 20,
+                ? Expanded(
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String?>(
+                        value: _selectedFaculty,
+                        isDense: true,
+                        isExpanded: true,
+                        style: const TextStyle(
+                          fontSize: 13,
                           color: Colors.black87,
                         ),
-                      ),
-                      const SizedBox(width: 4),
-                      DropdownButtonHideUnderline(
-                        child: DropdownButton<String?>(
-                          value: _selectedFaculty,
-                          isDense: true,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.black87,
-                          ),
-                          hint: Text(
-                            AppStrings.anyFaculty,
-                            style: const TextStyle(fontSize: 13),
-                          ),
-                          items: [
-                            DropdownMenuItem<String?>(
-                              value: null,
-                              child: Text(AppStrings.anyFaculty),
-                            ),
-                            ...faculties.map(
-                              (f) => DropdownMenuItem<String?>(
-                                value: f,
-                                child: Text(f),
-                              ),
-                            ),
-                          ],
-                          onChanged: (v) =>
-                              setState(() => _selectedFaculty = v),
+                        hint: Text(
+                          AppStrings.anyFaculty,
+                          style: const TextStyle(fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
                         ),
+                        items: [
+                          DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text(
+                              AppStrings.anyFaculty,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          ...faculties.map(
+                            (f) => DropdownMenuItem<String?>(
+                              value: f,
+                              child: Text(f, overflow: TextOverflow.ellipsis),
+                            ),
+                          ),
+                        ],
+                        onChanged: (v) => setState(() => _selectedFaculty = v),
                       ),
-                    ],
+                    ),
                   )
                 : null;
 
-            if (isNarrow) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    switchWidget,
-                    if (dropdownWidget != null) ...[
-                      const SizedBox(height: 4),
-                      dropdownWidget,
-                    ],
-                  ],
+            final historyIcon = Tooltip(
+              message: AppStrings.filterBySenior,
+              child: IconButton(
+                icon: Icon(
+                  Icons.history,
+                  size: 20,
+                  color: _onlyWorkedWithSenior
+                      ? HelpiTheme.accent
+                      : HelpiTheme.textSecondary,
                 ),
-              );
-            }
+                style: _onlyWorkedWithSenior
+                    ? IconButton.styleFrom(
+                        backgroundColor: HelpiTheme.pastelTeal,
+                      )
+                    : null,
+                onPressed: () => setState(
+                  () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
+                ),
+              ),
+            );
 
             return Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 0, 8, 4),
               child: Row(
                 children: [
-                  switchWidget,
-                  if (dropdownWidget != null) ...[
-                    const SizedBox(width: 16),
-                    dropdownWidget,
-                  ],
+                  ?dropdownWidget,
+                  if (dropdownWidget == null) const Spacer(),
+                  historyIcon,
                 ],
               ),
             );
