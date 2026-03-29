@@ -2522,81 +2522,51 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
           ),
         ),
         // ── Filter bar ──
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Checkbox: worked with this senior
-              InkWell(
-                borderRadius: BorderRadius.circular(4),
-                onTap: () => setState(
-                  () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: Checkbox(
-                        value: _onlyWorkedWithSenior,
-                        activeColor: HelpiTheme.accent,
-                        onChanged: (v) =>
-                            setState(() => _onlyWorkedWithSenior = v ?? false),
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      AppStrings.filterBySenior,
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  ],
-                ),
+        Builder(
+          builder: (context) {
+            final isNarrow = MediaQuery.sizeOf(context).width < 600;
+
+            final checkboxWidget = InkWell(
+              borderRadius: BorderRadius.circular(4),
+              onTap: () => setState(
+                () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
               ),
-              // Dropdown: faculty
-              if (faculties.length > 1) ...[
-                const SizedBox(height: 6),
-                Container(
-                  height: 34,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _selectedFaculty != null
-                          ? HelpiTheme.accent
-                          : HelpiTheme.border,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: Checkbox(
+                      value: _onlyWorkedWithSenior,
+                      activeColor: HelpiTheme.accent,
+                      onChanged: (v) =>
+                          setState(() => _onlyWorkedWithSenior = v ?? false),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    color: _selectedFaculty != null
-                        ? HelpiTheme.pastelTeal
-                        : Colors.white,
                   ),
-                  child: DropdownButtonHideUnderline(
+                  const SizedBox(width: 6),
+                  Text(
+                    AppStrings.filterBySenior,
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            );
+
+            final dropdownWidget = faculties.length > 1
+                ? DropdownButtonHideUnderline(
                     child: DropdownButton<String?>(
                       value: _selectedFaculty,
                       isDense: true,
-                      isExpanded: true,
-                      icon: Icon(
-                        Icons.arrow_drop_down,
-                        color: _selectedFaculty != null
-                            ? HelpiTheme.accent
-                            : HelpiTheme.textSecondary,
-                        size: 20,
-                      ),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
-                        color: _selectedFaculty != null
-                            ? HelpiTheme.accent
-                            : Colors.black87,
+                        color: Colors.black87,
                       ),
                       hint: Text(
                         AppStrings.anyFaculty,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: HelpiTheme.textSecondary,
-                        ),
+                        style: const TextStyle(fontSize: 13),
                       ),
                       items: [
                         DropdownMenuItem<String?>(
@@ -2612,11 +2582,35 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                       ],
                       onChanged: (v) => setState(() => _selectedFaculty = v),
                     ),
-                  ),
+                  )
+                : null;
+
+            if (isNarrow) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ?dropdownWidget,
+                    const SizedBox(height: 4),
+                    checkboxWidget,
+                  ],
                 ),
-              ],
-            ],
-          ),
+              );
+            }
+
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Row(
+                children: [
+                  ?dropdownWidget,
+                  if (dropdownWidget != null)
+                    const SizedBox(width: 16),
+                  checkboxWidget,
+                ],
+              ),
+            );
+          },
         ),
         const Divider(height: 1),
         Expanded(
