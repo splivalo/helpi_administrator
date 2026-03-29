@@ -2526,28 +2526,22 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
           builder: (context) {
             final isNarrow = MediaQuery.sizeOf(context).width < 600;
 
-            final pillWidget = GestureDetector(
-              onTap: () => setState(
-                () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
-              ),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: _onlyWorkedWithSenior
-                      ? HelpiTheme.pastelTeal
-                      : Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: _onlyWorkedWithSenior
-                        ? HelpiTheme.accent
-                        : HelpiTheme.border,
+            final switchWidget = Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: 24,
+                  child: FittedBox(
+                    child: Switch(
+                      value: _onlyWorkedWithSenior,
+                      activeColor: HelpiTheme.accent,
+                      onChanged: (v) =>
+                          setState(() => _onlyWorkedWithSenior = v),
+                    ),
                   ),
                 ),
-                child: Text(
+                const SizedBox(width: 4),
+                Text(
                   AppStrings.filterBySenior,
                   style: TextStyle(
                     fontSize: 13,
@@ -2556,7 +2550,7 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                         : Colors.black87,
                   ),
                 ),
-              ),
+              ],
             );
 
             final dropdownWidget = faculties.length > 1
@@ -2599,7 +2593,7 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                       dropdownWidget,
                       const SizedBox(height: 4),
                     ],
-                    pillWidget,
+                    switchWidget,
                   ],
                 ),
               );
@@ -2613,7 +2607,7 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                     dropdownWidget,
                     const SizedBox(width: 16),
                   ],
-                  pillWidget,
+                  switchWidget,
                 ],
               ),
             );
