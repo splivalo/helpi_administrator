@@ -2439,6 +2439,19 @@ class _OrderAssignFlowSheet extends ConsumerStatefulWidget {
 
 class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
   StudentModel? _selectedStudent;
+  bool _onlyWorkedWithSenior = false;
+  String? _selectedFaculty;
+
+  List<(StudentModel, _StudentAvail)> get _filteredClassified {
+    var list = widget.classified;
+    if (_onlyWorkedWithSenior) {
+      list = list.where((e) => e.$1.previousJobsWithSenior > 0).toList();
+    }
+    if (_selectedFaculty != null) {
+      list = list.where((e) => e.$1.faculty == _selectedFaculty).toList();
+    }
+    return list;
+  }
 
   void _selectStudent(StudentModel student) {
     setState(() => _selectedStudent = student);
@@ -2509,6 +2522,16 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
   }
 
   Widget _buildStudentList() {
+    final filtered = _filteredClassified;
+
+    // Collect unique faculty names for dropdown
+    final faculties = widget.classified
+        .map((e) => e.$1.faculty)
+        .where((f) => f.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2525,7 +2548,7 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${AppStrings.suggestedStudents} (${widget.classified.length})',
+                  '${AppStrings.suggestedStudents} (${filtered.length})',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -2539,9 +2562,75 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
             ],
           ),
         ),
+        // ── Filter bar ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+          child: Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              // Checkbox: worked with this senior
+              InkWell(
+                borderRadius: BorderRadius.circular(4),
+                onTap: () => setState(
+                  () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Checkbox(
+                        value: _onlyWorkedWithSenior,
+                        onChanged: (v) => setState(
+                          () => _onlyWorkedWithSenior = v ?? false,
+                        ),
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      AppStrings.filterBySenior,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+              // Dropdown: faculty
+              if (faculties.length > 1)
+                DropdownButtonHideUnderline(
+                  child: DropdownButton<String?>(
+                    value: _selectedFaculty,
+                    isDense: true,
+                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    hint: Text(
+                      AppStrings.filterByFaculty,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    items: [
+                      DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text(AppStrings.anyFaculty),
+                      ),
+                      ...faculties.map(
+                        (f) => DropdownMenuItem<String?>(
+                          value: f,
+                          child: Text(f),
+                        ),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() => _selectedFaculty = v),
+                  ),
+                ),
+            ],
+          ),
+        ),
         const Divider(height: 1),
         Expanded(
-          child: widget.classified.isEmpty
+          child: filtered.isEmpty
               ? Center(
                   child: Text(
                     AppStrings.noStudentsFound,
@@ -2550,9 +2639,9 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                 )
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                  itemCount: widget.classified.length,
+                  itemCount: filtered.length,
                   itemBuilder: (_, i) {
-                    final (student, avail) = widget.classified[i];
+                    final (student, avail) = filtered[i];
                     final senLat = widget.order.senior.latitude;
                     final senLng = widget.order.senior.longitude;
                     final stuLat = student.latitude;
