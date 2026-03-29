@@ -53,6 +53,7 @@ class AdminApiService {
   Future<ApiResult<List<StudentModel>>> getStudents({
     String? searchText,
     int? facultyId,
+    Map<String, dynamic>? queryParameters,
   }) async {
     try {
       final params = <String, dynamic>{};
@@ -60,6 +61,7 @@ class AdminApiService {
         params['searchText'] = searchText;
       }
       if (facultyId != null) params['facultyId'] = facultyId;
+      if (queryParameters != null) params.addAll(queryParameters);
 
       final response = await _api.get(
         ApiEndpoints.students,

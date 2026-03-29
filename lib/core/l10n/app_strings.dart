@@ -206,6 +206,7 @@ class AppStrings {
       'filterByDay': 'Dan u tjednu',
       'filterByTimeFrom': 'Dostupan od',
       'filterByTimeTo': 'Dostupan do',
+      'excludeBusy': 'Isključi zauzete',
       'filterByRating': 'Minimalna ocjena',
       'filterByGender': 'Spol',
       'filterByFaculty': 'Fakultet',
@@ -783,6 +784,7 @@ class AppStrings {
       'filterByDay': 'Day of week',
       'filterByTimeFrom': 'Available from',
       'filterByTimeTo': 'Available to',
+      'excludeBusy': 'Exclude busy',
       'filterByRating': 'Minimum rating',
       'filterByGender': 'Gender',
       'filterByFaculty': 'Faculty',
@@ -1473,6 +1475,7 @@ class AppStrings {
   static String get filterByDay => _t('filterByDay');
   static String get filterByTimeFrom => _t('filterByTimeFrom');
   static String get filterByTimeTo => _t('filterByTimeTo');
+  static String get excludeBusy => _t('excludeBusy');
   static String get filterByRating => _t('filterByRating');
   static String get filterByGender => _t('filterByGender');
   static String get filterByFaculty => _t('filterByFaculty');

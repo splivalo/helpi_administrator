@@ -7,6 +7,7 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/faculty.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/excel_export_service.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/preferences_service.dart';
 import 'package:helpi_admin/core/services/suspension_state_manager.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
@@ -56,6 +57,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
   String? _seniorFilter;
   String? _facultyFilter;
   String? _cityFilter;
+  bool _excludeBusy = false;
+  Set<String>? _nonBusyStudentIds;
 
   static const _tabFilters = _StudentFilter.values;
 
@@ -108,6 +111,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
     if (_availableFrom != null || _availableTo != null) count++;
     if (_seniorFilter != null) count++;
     if (_facultyFilter != null) count++;
+    if (_excludeBusy) count++;
     return count;
   }
 
@@ -274,6 +278,13 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
       }).toList();
     }
 
+    // Exclude busy (server-side conflict check)
+    if (_excludeBusy && _nonBusyStudentIds != null) {
+      students = students
+          .where((s) => _nonBusyStudentIds!.contains(s.id))
+          .toList();
+    }
+
     // Faculty filter
     if (_facultyFilter != null) {
       students = students.where((s) => s.faculty == _facultyFilter).toList();
@@ -329,6 +340,38 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
     return students;
   }
 
+  Future<void> _fetchNonBusyStudentIds() async {
+    if (!_excludeBusy || _selectedDays.isEmpty) {
+      setState(() => _nonBusyStudentIds = null);
+      return;
+    }
+    final api = AdminApiService();
+    final params = <String, dynamic>{};
+    var idx = 0;
+    for (final day in _selectedDays) {
+      params['availabilityCriteria[$idx].dayOfWeek'] = day;
+      if (_availableFrom != null) {
+        final hh = _availableFrom!.hour.toString().padLeft(2, '0');
+        final mm = _availableFrom!.minute.toString().padLeft(2, '0');
+        params['availabilityCriteria[$idx].startTime'] = '$hh:$mm';
+      }
+      if (_availableTo != null) {
+        final hh = _availableTo!.hour.toString().padLeft(2, '0');
+        final mm = _availableTo!.minute.toString().padLeft(2, '0');
+        params['availabilityCriteria[$idx].endTime'] = '$hh:$mm';
+      }
+      idx++;
+    }
+    params['excludeConflicts'] = true;
+    final result = await api.getStudents(queryParameters: params);
+    if (!context.mounted) return;
+    if (result.success) {
+      setState(() {
+        _nonBusyStudentIds = result.data!.map((s) => s.id).toSet();
+      });
+    }
+  }
+
   void _resetFilters() {
     setState(() {
       _activityPeriod = null;
@@ -344,6 +387,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
       _availableTo = null;
       _seniorFilter = null;
       _facultyFilter = null;
+      _excludeBusy = false;
+      _nonBusyStudentIds = null;
     });
   }
 
@@ -757,6 +802,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                 availableTo: _availableTo,
                 seniorFilter: _seniorFilter,
                 facultyFilter: _facultyFilter,
+                excludeBusy: _excludeBusy,
                 onApply:
                     ({
                       required ActivityPeriod? activityPeriod,
@@ -772,6 +818,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                       required TimeOfDay? availableTo,
                       required String? seniorFilter,
                       required String? facultyFilter,
+                      required bool excludeBusy,
                     }) {
                       setState(() {
                         _activityPeriod = activityPeriod;
@@ -787,7 +834,9 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                         _availableTo = availableTo;
                         _seniorFilter = seniorFilter;
                         _facultyFilter = facultyFilter;
+                        _excludeBusy = excludeBusy;
                       });
+                      _fetchNonBusyStudentIds();
                       Navigator.pop(ctx);
                     },
                 onReset: () {
@@ -820,6 +869,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
             availableTo: _availableTo,
             seniorFilter: _seniorFilter,
             facultyFilter: _facultyFilter,
+            excludeBusy: _excludeBusy,
             onApply:
                 ({
                   required ActivityPeriod? activityPeriod,
@@ -835,6 +885,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                   required TimeOfDay? availableTo,
                   required String? seniorFilter,
                   required String? facultyFilter,
+                  required bool excludeBusy,
                 }) {
                   setState(() {
                     _activityPeriod = activityPeriod;
@@ -850,7 +901,9 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                     _availableTo = availableTo;
                     _seniorFilter = seniorFilter;
                     _facultyFilter = facultyFilter;
+                    _excludeBusy = excludeBusy;
                   });
+                  _fetchNonBusyStudentIds();
                   Navigator.pop(ctx);
                 },
             onReset: () {
@@ -884,6 +937,7 @@ class _FilterPanel extends StatefulWidget {
     required this.availableTo,
     required this.seniorFilter,
     required this.facultyFilter,
+    required this.excludeBusy,
     required this.onApply,
     required this.onReset,
   });
@@ -903,6 +957,7 @@ class _FilterPanel extends StatefulWidget {
   final TimeOfDay? availableTo;
   final String? seniorFilter;
   final String? facultyFilter;
+  final bool excludeBusy;
   final void Function({
     required ActivityPeriod? activityPeriod,
     required bool? activityWorked,
@@ -917,6 +972,7 @@ class _FilterPanel extends StatefulWidget {
     required TimeOfDay? availableTo,
     required String? seniorFilter,
     required String? facultyFilter,
+    required bool excludeBusy,
   })
   onApply;
   final VoidCallback onReset;
@@ -939,6 +995,7 @@ class _FilterPanelState extends State<_FilterPanel> {
   late TimeOfDay? _availableTo;
   late String? _seniorFilter;
   late String? _facultyFilter;
+  late bool _excludeBusy;
 
   final _minJobsCtrl = TextEditingController();
   final _maxJobsCtrl = TextEditingController();
@@ -959,6 +1016,7 @@ class _FilterPanelState extends State<_FilterPanel> {
     _availableTo = widget.availableTo;
     _seniorFilter = widget.seniorFilter;
     _facultyFilter = widget.facultyFilter;
+    _excludeBusy = widget.excludeBusy;
 
     _minJobsCtrl.text = _minJobs?.toString() ?? '';
     _maxJobsCtrl.text = _maxJobs?.toString() ?? '';
@@ -1367,6 +1425,26 @@ class _FilterPanelState extends State<_FilterPanel> {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+
+              // ──────────────────────────────────
+              // 7b. Exclude busy students
+              // ──────────────────────────────────
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                title: Text(
+                  AppStrings.excludeBusy,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: HelpiTheme.textPrimary,
+                  ),
+                ),
+                activeColor: HelpiTheme.accent,
+                value: _excludeBusy,
+                onChanged: (v) => setState(() => _excludeBusy = v),
+              ),
               const SizedBox(height: 20),
 
               // ──────────────────────────────────
@@ -1530,6 +1608,7 @@ class _FilterPanelState extends State<_FilterPanel> {
                       availableTo: _availableTo,
                       seniorFilter: _seniorFilter,
                       facultyFilter: _facultyFilter,
+                      excludeBusy: _excludeBusy,
                     );
                   },
                 ),
