@@ -2589,11 +2589,11 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (dropdownWidget != null) ...[
-                      dropdownWidget,
-                      const SizedBox(height: 4),
-                    ],
                     switchWidget,
+                    if (dropdownWidget != null) ...[
+                      const SizedBox(height: 4),
+                      dropdownWidget,
+                    ],
                   ],
                 ),
               );
@@ -2603,11 +2603,11 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
               child: Row(
                 children: [
-                  if (dropdownWidget != null) ...[
-                    dropdownWidget,
-                    const SizedBox(width: 16),
-                  ],
                   switchWidget,
+                  if (dropdownWidget != null) ...[
+                    const SizedBox(width: 16),
+                    dropdownWidget,
+                  ],
                 ],
               ),
             );
