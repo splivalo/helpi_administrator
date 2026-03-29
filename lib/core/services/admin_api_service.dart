@@ -1116,6 +1116,7 @@ class AdminApiService {
       hourlyRate: _cachedHourlyRate,
       sundayHourlyRate: _cachedSundayRate,
       availability: availability,
+      previousJobsWithSenior: json['previousJobsWithSenior'] as int? ?? 0,
     );
   }
 

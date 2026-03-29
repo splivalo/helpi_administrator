@@ -2177,8 +2177,50 @@ class _StudentAssignCard extends StatelessWidget {
                         ),
                       ),
                     ],
+                    if (student.faculty.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      const Icon(
+                        Icons.school,
+                        size: 13,
+                        color: HelpiTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 2),
+                      Flexible(
+                        child: Text(
+                          student.faculty,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: HelpiTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
+                if (student.previousJobsWithSenior > 0) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.history,
+                        size: 13,
+                        color: Color(0xFF1565C0),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        AppStrings.workedWithSenior(
+                          student.previousJobsWithSenior,
+                        ),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1565C0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 5),
                 Container(
                   padding: const EdgeInsets.symmetric(

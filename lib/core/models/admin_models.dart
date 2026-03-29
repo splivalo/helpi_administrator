@@ -237,6 +237,7 @@ class StudentModel {
   final List<DayAvailability> availability;
   final double hourlyRate;
   final double sundayHourlyRate;
+  final int previousJobsWithSenior;
 
   const StudentModel({
     required this.id,
@@ -268,6 +269,7 @@ class StudentModel {
     this.availability = const [],
     this.hourlyRate = 7.40,
     this.sundayHourlyRate = 11.10,
+    this.previousJobsWithSenior = 0,
   });
 
   String get fullName => '$firstName $lastName';

@@ -207,6 +207,7 @@ class AppStrings {
       'filterByTimeFrom': 'Dostupan od',
       'filterByTimeTo': 'Dostupan do',
       'excludeBusy': 'Isključi zauzete',
+      'workedWithSenior': 'Radio kod ovog seniora ({count}x)',
       'filterByRating': 'Minimalna ocjena',
       'filterByGender': 'Spol',
       'filterByFaculty': 'Fakultet',
@@ -785,6 +786,7 @@ class AppStrings {
       'filterByTimeFrom': 'Available from',
       'filterByTimeTo': 'Available to',
       'excludeBusy': 'Exclude busy',
+      'workedWithSenior': 'Worked with this senior ({count}x)',
       'filterByRating': 'Minimum rating',
       'filterByGender': 'Gender',
       'filterByFaculty': 'Faculty',
@@ -1476,6 +1478,8 @@ class AppStrings {
   static String get filterByTimeFrom => _t('filterByTimeFrom');
   static String get filterByTimeTo => _t('filterByTimeTo');
   static String get excludeBusy => _t('excludeBusy');
+  static String workedWithSenior(int count) =>
+      _t('workedWithSenior', params: {'count': '$count'});
   static String get filterByRating => _t('filterByRating');
   static String get filterByGender => _t('filterByGender');
   static String get filterByFaculty => _t('filterByFaculty');
