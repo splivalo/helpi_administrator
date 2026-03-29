@@ -2579,58 +2579,52 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                   )
                 : null;
 
-            final isNarrow = MediaQuery.sizeOf(context).width < 600;
-
-            final historyIcon = Tooltip(
-              message: AppStrings.filterBySenior,
-              child: isNarrow
-                  ? IconButton(
-                      icon: Icon(
-                        Icons.history,
-                        size: 20,
-                        color: _onlyWorkedWithSenior
-                            ? HelpiTheme.accent
-                            : HelpiTheme.textSecondary,
-                      ),
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(6),
-                      style: IconButton.styleFrom(
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        minimumSize: Size.zero,
-                        backgroundColor: _onlyWorkedWithSenior
-                            ? HelpiTheme.pastelTeal
-                            : null,
-                      ),
-                      onPressed: () => setState(
-                        () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
-                      ),
-                    )
-                  : IconButton(
-                      icon: Icon(
-                        Icons.history,
-                        size: 20,
-                        color: _onlyWorkedWithSenior
-                            ? HelpiTheme.accent
-                            : HelpiTheme.textSecondary,
-                      ),
-                      style: _onlyWorkedWithSenior
-                          ? IconButton.styleFrom(
-                              backgroundColor: HelpiTheme.pastelTeal,
-                            )
-                          : null,
-                      onPressed: () => setState(
-                        () => _onlyWorkedWithSenior = !_onlyWorkedWithSenior,
-                      ),
+            final knownChip = FilterChip(
+              label: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.history,
+                    size: 16,
+                    color: _onlyWorkedWithSenior
+                        ? HelpiTheme.accent
+                        : HelpiTheme.textSecondary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    AppStrings.knownStudents,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _onlyWorkedWithSenior
+                          ? HelpiTheme.accent
+                          : HelpiTheme.textSecondary,
                     ),
+                  ),
+                ],
+              ),
+              selected: _onlyWorkedWithSenior,
+              showCheckmark: false,
+              backgroundColor: Colors.transparent,
+              selectedColor: HelpiTheme.pastelTeal,
+              side: BorderSide(
+                color: _onlyWorkedWithSenior
+                    ? HelpiTheme.accent
+                    : HelpiTheme.border,
+              ),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+              labelPadding: EdgeInsets.zero,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              onSelected: (v) => setState(() => _onlyWorkedWithSenior = v),
             );
 
             return Padding(
-              padding: EdgeInsets.fromLTRB(20, 0, isNarrow ? 16 : 8, 4),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
               child: Row(
                 children: [
                   ?dropdownWidget,
                   if (dropdownWidget == null) const Spacer(),
-                  historyIcon,
+                  knownChip,
                 ],
               ),
             );

@@ -215,6 +215,7 @@ class AppStrings {
       'filterByCity': 'Grad',
       'anyCity': 'Svi gradovi',
       'filterBySenior': 'Radio/la kod seniora',
+      'knownStudents': 'Poznati',
       'filterApply': 'Primijeni',
       'filterReset': 'Poništi sve',
       'filterActiveCount': '{count} aktivnih filtera',
@@ -794,6 +795,7 @@ class AppStrings {
       'filterByCity': 'City',
       'anyCity': 'All cities',
       'filterBySenior': 'Worked with senior',
+      'knownStudents': 'Known',
       'filterApply': 'Apply',
       'filterReset': 'Reset all',
       'filterActiveCount': '{count} active filters',
@@ -1487,6 +1489,7 @@ class AppStrings {
   static String get filterByCity => _t('filterByCity');
   static String get anyCity => _t('anyCity');
   static String get filterBySenior => _t('filterBySenior');
+  static String get knownStudents => _t('knownStudents');
   static String get filterApply => _t('filterApply');
   static String get filterReset => _t('filterReset');
   static String filterActiveCount(int count) =>
