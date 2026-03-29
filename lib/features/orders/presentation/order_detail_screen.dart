@@ -2557,10 +2557,13 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                 ? Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
-                        Icons.school_outlined,
-                        size: 16,
-                        color: HelpiTheme.textSecondary,
+                      const SizedBox(
+                        height: 24,
+                        child: Icon(
+                          Icons.school_outlined,
+                          size: 20,
+                          color: Colors.black87,
+                        ),
                       ),
                       const SizedBox(width: 4),
                       DropdownButtonHideUnderline(
