@@ -29,7 +29,8 @@ abstract class SessionPreviewHelperBase {
   // ── Hooks (override to customise substitute filtering) ──────
 
   /// Return `false` to exclude a candidate before availability check.
-  bool isSubstituteCandidate(StudentModel s) => s.id != student.id;
+  bool isSubstituteCandidate(StudentModel s) =>
+      s.id != student.id && !s.isSuspended;
 
   /// Called when the candidate has no matching availability entry.
   /// Student-context returns `false`; order-context returns

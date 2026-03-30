@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-23
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-30
 
 ---
 
@@ -34,7 +34,7 @@ lib/
 ├── app/
 │   ├── app.dart                       # Root widget (HelpiAdminApp) — ConsumerStatefulWidget (59 linija)
 │   ├── theme.dart                     # HelpiTheme – boje, dimenzije, ThemeData (212 linija)
-│   └── responsive_shell.dart          # Responsive shell (sidebar/rail/bottomnav) (387 linija)
+│   └── responsive_shell.dart          # Responsive shell (sidebar/rail/bottomnav), ConsumerStatefulWidget, chat badge (~400 linija)
 ├── core/
 │   ├── l10n/
 │   │   ├── app_strings.dart           # i18n stringovi (HR + EN) (1417 linija)
@@ -42,11 +42,11 @@ lib/
 │   ├── models/
 │   │   └── admin_models.dart          # Svi modeli + AppData + enumi (1717 linija)
 │   ├── providers/
-│   │   └── data_providers.dart        # 6 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms)
+│   │   └── data_providers.dart        # 7 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms, unreadMessages)
 │   ├── services/
 │   │   ├── data_loader.dart           # DataLoader — API load + AppData + provider sync (ref param)
 │   │   ├── preferences_service.dart   # SharedPreferences wrapper (singleton, web-safe) (88 linija)
-│   │   └── signalr_notification_service.dart # SignalR real-time notifications (auto-reconnect, Riverpod sync) (165 linija)
+│   │   └── signalr_notification_service.dart # SignalR real-time notifications + chat messages (auto-reconnect, Riverpod sync) (~175 linija)
 │   ├── utils/
 │   │   ├── formatters.dart            # Formatiranje datuma/vremena + haversineKm (14 linija)
 │   │   └── session_preview_helper.dart # Base class za session preview helpers (allStudents/allOrders params)
@@ -98,7 +98,7 @@ lib/
 | `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                                                                                         |
 | `core/widgets/notification_bell.dart`           | NotificationBell (ConsumerWidget) + NotificationsDrawer (ConsumerStatefulWidget, markRead via provider)                                  |
 | `core/widgets/widgets.dart`                     | Barrel export svih widgeta                                                                                                               |
-| `core/providers/data_providers.dart`            | 6 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms)                                        |
+| `core/providers/data_providers.dart`            | 7 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms, unreadMessages)                        |
 | `seniors/presentation/senior_form_helpers.dart` | SeniorFormHelpers mixin (forme za add/edit senior)                                                                                       |
 
 ---
@@ -127,16 +127,17 @@ Navigacija koristi `IndexedStack` s 5 ekrana: Dashboard, Narudžbe, Studenti, Se
 
 ### Provideri (`core/providers/data_providers.dart`)
 
-6 `StateNotifierProvider`-a:
+6 `StateNotifierProvider`-a + 1 unread messages counter:
 
-| Provider                | Tip podataka              | Metode                                               |
-| ----------------------- | ------------------------- | ---------------------------------------------------- |
-| `studentsProvider`      | `List<StudentModel>`      | `setAll`, `addItem`, `updateItem`, `removeItem`      |
-| `seniorsProvider`       | `List<SeniorModel>`       | `setAll`, `addItem`, `updateItem`, `removeItem`      |
-| `ordersProvider`        | `List<OrderModel>`        | `setAll`, `addItem`, `updateItem`, `removeItem`      |
-| `reviewsProvider`       | `List<StudentReview>`     | `setAll`, `addItem`                                  |
-| `notificationsProvider` | `List<NotificationModel>` | `setAll`, `addItem`, `markRead(id)`, `markAllRead()` |
-| `chatRoomsProvider`     | `List<ChatRoom>`          | `setAll`, `addItem`                                  |
+| Provider                 | Tip podataka              | Metode                                               |
+| ------------------------ | ------------------------- | ---------------------------------------------------- |
+| `studentsProvider`       | `List<StudentModel>`      | `setAll`, `addItem`, `updateItem`, `removeItem`      |
+| `seniorsProvider`        | `List<SeniorModel>`       | `setAll`, `addItem`, `updateItem`, `removeItem`      |
+| `ordersProvider`         | `List<OrderModel>`        | `setAll`, `addItem`, `updateItem`, `removeItem`      |
+| `reviewsProvider`        | `List<StudentReview>`     | `setAll`, `addItem`                                  |
+| `notificationsProvider`  | `List<NotificationModel>` | `setAll`, `addItem`, `markRead(id)`, `markAllRead()` |
+| `chatRoomsProvider`      | `List<ChatRoom>`          | `setAll`, `addItem`                                  |
+| `unreadMessagesProvider` | `int`                     | `increment`, `reset`, `set(int)` — chat badge count  |
 
 ### Data Flow
 
@@ -157,6 +158,7 @@ DataLoader.loadAll(ref: ref)
 | Widget                     | Tip                      | Koristi                                                 |
 | -------------------------- | ------------------------ | ------------------------------------------------------- |
 | `HelpiAdminApp`            | `ConsumerStatefulWidget` | DataLoader.loadAll(ref: ref)                            |
+| `ResponsiveShell`          | `ConsumerStatefulWidget` | ref.watch(unreadMessages) for chat badge                |
 | `DashboardScreen`          | `ConsumerStatefulWidget` | ref.watch(orders/students/seniors)                      |
 | `StudentsScreen`           | `ConsumerStatefulWidget` | ref.watch/read(students/orders/seniors)                 |
 | `StudentDetailScreen`      | `ConsumerStatefulWidget` | ref.watch/read(reviews/orders/students)                 |

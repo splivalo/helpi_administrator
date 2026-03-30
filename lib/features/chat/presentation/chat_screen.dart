@@ -11,14 +11,14 @@ import 'package:helpi_admin/features/students/presentation/student_detail_screen
 // TODO: Chat backend not implemented. Need ChatController, ChatRoom/Message entities, SignalR hub for real-time messaging.
 
 /// Chat Moderation Screen — admin chat s korisnicima.
-class ChatModScreen extends StatefulWidget {
+class ChatModScreen extends ConsumerStatefulWidget {
   const ChatModScreen({super.key});
 
   @override
-  State<ChatModScreen> createState() => _ChatModScreenState();
+  ConsumerState<ChatModScreen> createState() => _ChatModScreenState();
 }
 
-class _ChatModScreenState extends State<ChatModScreen> {
+class _ChatModScreenState extends ConsumerState<ChatModScreen> {
   ChatRoom? _selectedRoom;
 
   @override
@@ -35,7 +35,12 @@ class _ChatModScreenState extends State<ChatModScreen> {
               width: 340,
               child: _ChatRoomList(
                 selectedRoomId: _selectedRoom?.id,
-                onRoomSelected: (room) => setState(() => _selectedRoom = room),
+                onRoomSelected: (room) {
+                  ref
+                      .read(unreadMessagesProvider.notifier)
+                      .markRoomRead(room.id);
+                  setState(() => _selectedRoom = room);
+                },
               ),
             ),
             const VerticalDivider(width: 1, color: HelpiTheme.border),
@@ -74,6 +79,7 @@ class _ChatModScreenState extends State<ChatModScreen> {
       body: _ChatRoomList(
         selectedRoomId: null,
         onRoomSelected: (room) {
+          ref.read(unreadMessagesProvider.notifier).markRoomRead(room.id);
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => _ChatDetailPage(room: room)),
@@ -115,6 +121,7 @@ class _ChatRoomList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rooms = ref.watch(chatRoomsProvider);
+    final unreadMap = ref.watch(unreadMessagesProvider);
 
     return ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -128,6 +135,7 @@ class _ChatRoomList extends ConsumerWidget {
       itemBuilder: (ctx, i) {
         final room = rooms[i];
         final isSelected = room.id == selectedRoomId;
+        final unread = unreadMap[room.id] ?? 0;
 
         return InkWell(
           onTap: () => onRoomSelected(room),
@@ -199,7 +207,7 @@ class _ChatRoomList extends ConsumerWidget {
                       Text(
                         room.participantName,
                         style: TextStyle(
-                          fontWeight: room.unreadCount > 0
+                          fontWeight: unread > 0
                               ? FontWeight.w700
                               : FontWeight.w500,
                           fontSize: 15,
@@ -213,7 +221,7 @@ class _ChatRoomList extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 13,
                           color: HelpiTheme.textSecondary,
-                          fontWeight: room.unreadCount > 0
+                          fontWeight: unread > 0
                               ? FontWeight.w600
                               : FontWeight.normal,
                         ),
@@ -238,7 +246,7 @@ class _ChatRoomList extends ConsumerWidget {
                         color: HelpiTheme.textSecondary,
                       ),
                     ),
-                    if (room.unreadCount > 0) ...[
+                    if (unread > 0) ...[
                       const SizedBox(height: 4),
                       Container(
                         width: 22,
@@ -249,7 +257,7 @@ class _ChatRoomList extends ConsumerWidget {
                         ),
                         child: Center(
                           child: Text(
-                            '${room.unreadCount}',
+                            '$unread',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 11,

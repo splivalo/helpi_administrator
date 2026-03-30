@@ -426,12 +426,13 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                     ),
                     const SizedBox(width: 8),
                   ],
-                  _actionBtn(
-                    Icons.person_add_alt_1,
-                    AppStrings.findSubstitute,
-                    HelpiTheme.accent,
-                    () => _toggleSubstitutePicker(index),
-                  ),
+                  if (widget.findSubstitutes(s).isNotEmpty)
+                    _actionBtn(
+                      Icons.person_add_alt_1,
+                      AppStrings.findSubstitute,
+                      HelpiTheme.accent,
+                      () => _toggleSubstitutePicker(index),
+                    ),
                 ],
               ),
               // ── Inline time picker ──

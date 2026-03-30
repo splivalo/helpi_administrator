@@ -69,6 +69,7 @@ class SignalRNotificationService {
     });
 
     _connection!.on('ReceiveNotification', _onReceiveNotification);
+    _connection!.on('ReceiveMessage', _onReceiveMessage);
 
     await _startWithRetry();
   }
@@ -83,6 +84,15 @@ class SignalRNotificationService {
       debugPrint('[SignalR] stop error: $e');
     }
     _connection = null;
+  }
+
+  void _onReceiveMessage(List<Object?>? args) {
+    if (_ref == null) return;
+    final roomId = (args != null && args.isNotEmpty)
+        ? args[0]?.toString() ?? 'unknown'
+        : 'unknown';
+    _ref!.read(unreadMessagesProvider.notifier).incrementRoom(roomId);
+    debugPrint('[SignalR] new message in room $roomId, unread incremented');
   }
 
   void _onReceiveNotification(List<Object?>? args) {

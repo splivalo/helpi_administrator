@@ -142,3 +142,33 @@ final chatRoomsProvider =
     StateNotifierProvider<ChatRoomsNotifier, List<ChatRoom>>(
       (ref) => ChatRoomsNotifier(),
     );
+
+// ═══════════════════════════════════════════════════════════════
+//  UNREAD MESSAGES COUNT
+// ═══════════════════════════════════════════════════════════════
+
+class UnreadMessagesNotifier extends StateNotifier<Map<String, int>> {
+  UnreadMessagesNotifier()
+    : super({
+        'demo-chat-1': 2, // TODO: revert to empty {} after testing
+        'demo-chat-3': 1, // TODO: revert to empty {} after testing
+      });
+
+  void incrementRoom(String roomId) {
+    final current = state[roomId] ?? 0;
+    state = {...state, roomId: current + 1};
+  }
+
+  void markRoomRead(String roomId) {
+    final updated = {...state};
+    updated.remove(roomId);
+    state = updated;
+  }
+
+  int get totalUnread => state.values.fold(0, (sum, c) => sum + c);
+}
+
+final unreadMessagesProvider =
+    StateNotifierProvider<UnreadMessagesNotifier, Map<String, int>>(
+      (ref) => UnreadMessagesNotifier(),
+    );

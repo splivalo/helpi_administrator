@@ -1,6 +1,6 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-03-23
+> Zadnja izmjena: 2026-03-30
 
 ## Ukupno stanje
 
@@ -16,14 +16,14 @@
 | Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                  | 100%       |
 | Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje, uređivanje, promo kod, udaljenost, planirani termini  | 100%       |
 | Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                   | 100%       |
-| Chat (Moderacija)     | ✅ Lista razgovora + poruke                                                                                  | 90%        |
+| Chat (Moderacija)     | ✅ Lista razgovora + poruke, unread badge na navigaciji (3 layouta)                                          | 95%        |
 | Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + 30-type enum aligned with backend + 7 icon/color mappings | 95%        |
-| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild                                                        | 100%       |
+| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild, ConsumerStatefulWidget, chat badge                    | 100%       |
 | i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                            | 100%       |
 | Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                  | 100%       |
 | Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                     | 100%       |
 | State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                         | 100%       |
-| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification handler, Riverpod sync                        | 100%       |
+| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveMessage handlers, Riverpod sync      | 100%       |
 | DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                | 100%       |
 | SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                 | 100%       |
 | UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                 | 100%       |
@@ -220,6 +220,25 @@
 - [x] **ServerUnavailableScreen compact restyle** — maxWidth 420, icon 48px, titleLarge, warm off-white bg (#FAF6F1)
 - [x] **Senior section reorder overflow fix** — SizedBox(height: \_sectionCount \* 56.0) → Flexible (fixes 16px bottom overflow)
 - [x] **Senior status logic fix** — Senior bez narudžbi sada prikazuje "Neaktivan" (ne "U obradi"). U obradi = ima narudžbe bez dodijeljenog studenta. Fix primijenjen na 3 mjesta: filter logika, \_SeniorCard badge, SeniorDetailScreen badge.
+
+### Filter & Assignment Safety (2026-03-30)
+
+- [x] **Block assignment on cancelled/completed orders** — "Dodijeli studenta" button hidden for cancelled/completed/archived orders. Guard checks in `_showAssignSheet()` and `_assignStudent()`.
+- [x] **Faculty dropdown always visible** — Changed `faculties.length > 1` to `faculties.isNotEmpty`, auto-select when only 1 faculty exists.
+- [x] **Removed 60-day filter** — `ActivityPeriod.last60Days` removed from student filter modal.
+- [x] **Neutral dropdown colors** — Faculty dropdown stays grey/neutral (no teal on selection).
+- [x] **Suspended students excluded from substitutes** — `!s.isSuspended` check added to both base and order-detail `isSubstituteCandidate`.
+- [x] **"Zamjena" button hidden when empty** — Consistent with "Pomakni": hidden when `findSubstitutes()` returns empty list.
+- [x] **Availability labels updated** — Desktop: "Dostupan sve dane" / "Djelomično dostupan". Mobile: "Dostupan" / "Djelomično".
+
+### Chat Unread Badge Infrastructure (2026-03-30)
+
+- [x] **UnreadMessagesNotifier provider** — `StateNotifier<int>` with `increment()`, `reset()`, `set(int)` methods in `data_providers.dart`.
+- [x] **SignalR ReceiveMessage listener** — `_onReceiveMessage` handler in `signalr_notification_service.dart` increments unread count on new messages.
+- [x] **ResponsiveShell → ConsumerStatefulWidget** — Converted to access Riverpod providers for badge state.
+- [x] **Badge on all 3 layouts** — Red `Badge.count` circle on chat icon: desktop sidebar (`_sidebarItem` badgeCount param), tablet NavigationRail (`_badgedIcon` wrapper), mobile BottomNav (`_badgedIcon` wrapper).
+- [x] **Reset on chat tap** — `ref.read(unreadMessagesProvider.notifier).reset()` when user taps Chat (index 3).
+- [ ] **Connect to Firebase Chat** — Currently uses test value `super(3)`. When backend ChatHub + Firebase are ready, remove test value and wire real message events.
 
 ---
 

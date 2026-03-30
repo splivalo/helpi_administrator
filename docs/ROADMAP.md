@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-23 (Admin notifications + SignalR real-time + Senior status fix + Contract renewal)
+> Zadnja izmjena: 2026-03-30 (Chat unread badge + filter/assignment safety fixes)
 
 ## 📖 Za Sidney-a — Što čitati
 
@@ -43,6 +43,8 @@
 - [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
 - [x] **Blagdani (javni praznici)** — `CroatianHolidays.cs` (backend) + `croatian_holidays.dart` (admin) — 13 fiksnih praznika + Computus algoritam za Uskrsni ponedjeljak i Tijelovo. `HangfireRecurringJobService` koristi `isOvertimeDay = Sunday || CroatianHolidays.IsPublicHoliday(date)`. Label: "Povećana satnica" (ne "Nedjeljna"). ✅ (2026-03-22, commit backend `a652bff`, admin `742ff07`)
 - [x] **Admin notifikacije (SignalR)** — 7 backend notifikacija (newStudent, newSenior, orderCancel, jobCancel, contractExpired, paymentSuccess, paymentFailed) + SignalR real-time delivery u admin app + icon/color mapping za svaki tip. NE ovisi o Firebase — koristi SignalR WebSocket. ✅ (2026-03-23, backend commit `69aec15`, admin commit `adcad0f`)
+- [x] **Filter & Assignment safety** — Block assignment on cancelled/completed orders, suspended students excluded from substitutes, "Zamjena" hidden when no subs, faculty dropdown always visible, 60-day filter removed, availability labels updated. ✅ (2026-03-30)
+- [x] **Chat unread badge infrastructure** — `unreadMessagesProvider`, SignalR `ReceiveMessage` handler, `Badge.count` on all 3 nav layouts (desktop/tablet/mobile), reset on chat tap. ✅ (2026-03-30)
 - [ ] **Push notifikacije (Firebase FCM)** — Push notifikacije za mobilne korisnike (student app, senior app). ⚠️ Ovisi o Firebase credentials.
 
 ### Chat / Poruke sustav (NIŠTA ne postoji u backendu!)
@@ -51,6 +53,7 @@
 - [ ] **Backend: ChatController + ChatService** — CRUD za chat rooms, send/receive poruke, lista razgovora. Endpoint: `api/chat`.
 - [ ] **Backend: ChatHub (SignalR)** — Real-time poruke. Trenutno postoji samo `NotificationHub` (za push). Treba ili proširiti ili napraviti zasebni `ChatHub`.
 - [ ] **Admin app: wiring** — `ChatModScreen` je UI-gotov (split-view, moderacija), ali čita iz `AppData.chatRooms` (prazan `[]`). `DataLoader` ima TODO comment. Treba: zamjena AppData → API pozivi.
+- [x] **Admin app: chat unread badge** — `UnreadMessagesNotifier` provider, SignalR `ReceiveMessage` listener, red `Badge.count` on all 3 nav layouts (sidebar/rail/bottomnav), reset on chat tap. ✅ Infrastructure ready — needs backend ChatHub + Firebase to deliver real message events. (2026-03-30)
 - [ ] **helpi_app: zamjena mock chata** — `senior_chat_list_screen.dart` i `student_chat_screen.dart` su identične kopije s hardkodiranim `_ChatMessage` listom (lokalni state, ne šalje ništa). Treba: pravi model, ChatService, SignalR konekcija.
 
 ## Dovršeno

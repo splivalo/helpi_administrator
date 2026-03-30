@@ -305,10 +305,32 @@
 
 ---
 
+## 2026-03-30 — Filter/Assignment Safety & Chat Unread Badge
+
+- **Block assignment on cancelled/completed orders** — "Dodijeli studenta" button hidden for cancelled/completed/archived orders. Guard checks in `_showAssignSheet()` and `_assignStudent()` in `order_detail_screen.dart`.
+- **Suspended students excluded from substitutes** — `!s.isSuspended` check added in both `session_preview_helper.dart` (base class) and `order_detail_screen.dart` (override) `isSubstituteCandidate`.
+- **"Zamjena" button hidden when no subs** — Consistent with "Pomakni": hidden when `findSubstitutes()` returns empty list in `session_preview_content.dart`.
+- **Faculty dropdown always visible** — Changed `faculties.length > 1` to `faculties.isNotEmpty`, auto-selects single faculty. Spacer removed when no dropdown (chip aligns left).
+- **Removed 60-day filter** — `ActivityPeriod.last60Days` removed from student page filter modal.
+- **Neutral dropdown colors** — Faculty dropdown stays grey/neutral regardless of selection (no teal).
+- **Availability labels** — Desktop: "Dostupan sve dane" / "Djelomično dostupan". Mobile: "Dostupan" / "Djelomično". Added `availableAllDaysShort` string.
+- **UnreadMessagesNotifier provider** — `StateNotifier<int>` with `increment()`, `reset()`, `set(int)` in `data_providers.dart`.
+- **SignalR ReceiveMessage listener** — `_onReceiveMessage` handler in `signalr_notification_service.dart` increments unread count.
+- **ResponsiveShell → ConsumerStatefulWidget** — Converted from `StatefulWidget` to access Riverpod providers. Added `_badgedIcon()` helper and `badgeCount` parameter to `_sidebarItem()`.
+- **Chat badge on all 3 nav layouts**:
+  - Desktop sidebar: `_sidebarItem(3, ..., badgeCount: ref.watch(unreadMessagesProvider))`
+  - Tablet NavigationRail: `_badgedIcon()` wrapper on chat destination icon
+  - Mobile BottomNav: `_badgedIcon()` wrapper on chat item icon
+- **Reset unread on chat tap** — `ref.read(unreadMessagesProvider.notifier).reset()` when index == 3.
+- **⚠️ TODO**: Currently `super(3)` for testing. Revert to `super(0)` and connect to real backend ChatHub + Firebase events.
+- **Rezultat**: 0 errors → 0 errors (flutter analyze)
+
+---
+
 ## Arhitekturalne odluke
 
 | Odluka                                         | Razlog                                                                   | Datum      |
-| ---------------------------------------------- | ------------------------------------------------------------------------ | ---------- |
+| ---------------------------------------------- | ------------------------------------------------------------------------ | ---------- | --- | ---------------------------------------- | --------------------------------------------------------------------- | ---------- |
 | Feature-based folder struktura                 | Skalabilnost, jasna separacija                                           | 2026-02    |
 | AppStrings Gemini Hybrid pattern               | Backend šalje labelKey, Flutter mapira lokalno                           | 2026-02    |
 | AppData umjesto API-ja                         | Brži frontend development bez backenda                                   | 2026-02    |
@@ -333,4 +355,6 @@
 | Haversine za km udaljenost                     | Sortiranje i prikaz koliko je student daleko od seniora                  | 2026-03-18 |
 | Projected sessions iz dayEntries               | Planirani termini vidljivi i prije dodjele studenta                      | 2026-03-20 |
 | Instant JobInstance na admin assign            | Sesije odmah vidljive nakon dodjele, ne čeka Hangfire                    | 2026-03-20 |
-| Senior status = Neaktivan bez narudžbi         | !isActive \|\| !hasOrders = Neaktivan; hasOrders && !assigned = U obradi | 2026-03-23 |
+| Senior status = Neaktivan bez narudžbi         | !isActive \|\| !hasOrders = Neaktivan; hasOrders && !assigned = U obradi | 2026-03-23 |     | Chat unread badge via Riverpod + SignalR | Real-time badge count, reset on tap, infrastructure for Firebase chat | 2026-03-30 |
+| ResponsiveShell → ConsumerStatefulWidget       | Needed ref.watch for reactive badge state across 3 nav layouts           | 2026-03-30 |
+| Block assignment on terminal order statuses    | Prevent accidental student assignment to cancelled/completed orders      | 2026-03-30 |

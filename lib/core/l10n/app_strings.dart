@@ -446,9 +446,10 @@ class AppStrings {
       'timePickerHour': 'Sat',
       'timePickerMinute': 'Min',
       'availableAllDays': 'Dostupan sve dane',
+      'availableAllDaysShort': 'Dostupan',
       'availablePartial': 'Dostupan {matched}/{total} dana',
-      'availableDifferentTimes': 'Dostupan, drugi termini',
-      'availableDifferentTimesShort': 'Dostupan',
+      'availableDifferentTimes': 'Djelomično dostupan',
+      'availableDifferentTimesShort': 'Djelomično',
       'notAvailableForOrder': 'Nedostupan za ovu narudžbu',
       'reviewSessions': 'Pregled termina',
       'reviewShort': 'Pregled',
@@ -1021,9 +1022,10 @@ class AppStrings {
       'sessionKeepCurrentStudent': 'Keep current',
       'noStudentsForSlot': 'No students available for selected time slot',
       'availableAllDays': 'Available all days',
+      'availableAllDaysShort': 'Available',
       'availablePartial': 'Available {matched}/{total} days',
-      'availableDifferentTimes': 'Available, different schedule',
-      'availableDifferentTimesShort': 'Available',
+      'availableDifferentTimes': 'Partially available',
+      'availableDifferentTimesShort': 'Partial',
       'notAvailableForOrder': 'Not available for this order',
       'reviewSessions': 'Review sessions',
       'reviewShort': 'Review',
@@ -1768,6 +1770,7 @@ class AppStrings {
   static String get hoursAgo => _t('hoursAgo');
   static String get daysAgo => _t('daysAgo');
   static String get availableAllDays => _t('availableAllDays');
+  static String get availableAllDaysShort => _t('availableAllDaysShort');
   static String availablePartial(int matched, int total) => _t(
     'availablePartial',
     params: {'matched': matched.toString(), 'total': total.toString()},

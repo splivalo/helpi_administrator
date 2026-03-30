@@ -2095,7 +2095,9 @@ class _StudentAssignCard extends StatelessWidget {
     final isNarrow = MediaQuery.sizeOf(context).width < 600;
 
     if (avail == _StudentAvail.full) {
-      availLabel = AppStrings.availableAllDays;
+      availLabel = isNarrow
+          ? AppStrings.availableAllDaysShort
+          : AppStrings.availableAllDays;
       availColor = HelpiTheme.accent;
       availIcon = Icons.check_circle_outline;
       buttonLabel = isNarrow
@@ -2724,7 +2726,8 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
   @override
   bool isSubstituteCandidate(StudentModel s) {
     if (s.id == student.id) return false;
-    if (!s.isActive || s.contractStatus != ContractStatus.active) return false;
+    if (!s.isActive || s.isSuspended) return false;
+    if (s.contractStatus != ContractStatus.active) return false;
     return true;
   }
 

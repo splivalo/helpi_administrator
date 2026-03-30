@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/features/chat/presentation/chat_screen.dart';
 import 'package:helpi_admin/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
@@ -16,7 +18,7 @@ import 'package:helpi_admin/features/students/presentation/students_screen.dart'
 /// - < 600px  → mobile (BottomNavigationBar)
 /// - 600-900  → tablet (NavigationRail, collapsed)
 /// - > 900px  → desktop (NavigationRail, extended / Sidebar)
-class ResponsiveShell extends StatefulWidget {
+class ResponsiveShell extends ConsumerStatefulWidget {
   const ResponsiveShell({
     super.key,
     required this.localeNotifier,
@@ -27,10 +29,10 @@ class ResponsiveShell extends StatefulWidget {
   final VoidCallback onLogout;
 
   @override
-  State<ResponsiveShell> createState() => _ResponsiveShellState();
+  ConsumerState<ResponsiveShell> createState() => _ResponsiveShellState();
 }
 
-class _ResponsiveShellState extends State<ResponsiveShell> {
+class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   int _currentIndex = 0;
 
   List<Widget> get _screens {
@@ -47,6 +49,13 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
   void _onItemTapped(int index) {
     HapticFeedback.selectionClick();
     setState(() => _currentIndex = index);
+  }
+
+  Widget _badgedIcon(Widget icon) {
+    final unread = ref.watch(unreadMessagesProvider);
+    final count = unread.values.fold(0, (sum, c) => sum + c);
+    if (count == 0) return icon;
+    return Badge.count(count: count, child: icon);
   }
 
   @override
@@ -127,6 +136,10 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                         Icons.chat_bubble_outline,
                         Icons.chat_bubble,
                         AppStrings.navChat,
+                        badgeCount: ref
+                            .watch(unreadMessagesProvider)
+                            .values
+                            .fold(0, (sum, c) => sum + c),
                       ),
                     ],
                   ),
@@ -217,8 +230,17 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
     IconData activeIcon,
     String label, {
     VoidCallback? onTap,
+    int badgeCount = 0,
   }) {
     final isSelected = index == _currentIndex && onTap == null;
+    Widget iconWidget = Icon(
+      isSelected ? activeIcon : icon,
+      color: isSelected ? HelpiTheme.accent : HelpiTheme.textSecondary,
+      size: 24,
+    );
+    if (badgeCount > 0) {
+      iconWidget = Badge.count(count: badgeCount, child: iconWidget);
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: Material(
@@ -231,13 +253,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                Icon(
-                  isSelected ? activeIcon : icon,
-                  color: isSelected
-                      ? HelpiTheme.accent
-                      : HelpiTheme.textSecondary,
-                  size: 24,
-                ),
+                iconWidget,
                 const SizedBox(width: 12),
                 Text(
                   label,
@@ -314,8 +330,8 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                 label: Text(AppStrings.navStudents),
               ),
               NavigationRailDestination(
-                icon: const Icon(Icons.chat_bubble_outline),
-                selectedIcon: const Icon(Icons.chat_bubble),
+                icon: _badgedIcon(const Icon(Icons.chat_bubble_outline)),
+                selectedIcon: _badgedIcon(const Icon(Icons.chat_bubble)),
                 label: Text(AppStrings.navChat),
               ),
             ],
@@ -366,8 +382,10 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
               label: AppStrings.navStudents,
             ),
             BottomNavigationBarItem(
-              icon: const Icon(Icons.chat_bubble_outline, size: 26),
-              activeIcon: const Icon(Icons.chat_bubble, size: 26),
+              icon: _badgedIcon(
+                const Icon(Icons.chat_bubble_outline, size: 26),
+              ),
+              activeIcon: _badgedIcon(const Icon(Icons.chat_bubble, size: 26)),
               label: AppStrings.navChat,
             ),
           ],
