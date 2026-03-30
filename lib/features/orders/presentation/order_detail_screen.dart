@@ -1457,11 +1457,13 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               label: AppStrings.sessionNewDate,
               value: dateLabel,
               onTap: () async {
+                final now = DateTime.now();
                 final picked = await showDatePicker(
                   context: ctx,
-                  initialDate: selectedDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                  initialDate:
+                      selectedDate.isBefore(now) ? now : selectedDate,
+                  firstDate: now,
+                  lastDate: now.add(const Duration(days: 365)),
                   confirmText: AppStrings.ok,
                   cancelText: AppStrings.cancel,
                 );

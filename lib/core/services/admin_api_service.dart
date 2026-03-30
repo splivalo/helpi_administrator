@@ -210,17 +210,34 @@ class AdminApiService {
     String? promoCode,
   ) async {
     try {
-      // PromoCodeId: 0 = remove, positive = set/change, null = no change
-      // Since we're using the general PUT endpoint, we pass promoCodeId
-      // We need to look up the promo code ID from the code string
-      // For removal (null), we send 0
-      final int promoCodeId = promoCode == null || promoCode.isEmpty ? 0 : -1;
-      // TODO: If setting a promo code, need to validate/look it up first
-      // For now, this method only supports REMOVAL (promoCode = null)
-      await _api.put(
-        ApiEndpoints.orderById(orderId),
-        data: {'promoCodeId': promoCodeId},
-      );
+      if (promoCode == null || promoCode.isEmpty) {
+        // Remove promo code: send 0
+        await _api.put(
+          ApiEndpoints.orderById(orderId),
+          data: {'promoCodeId': 0},
+        );
+      } else {
+        // Look up the promo code ID from the code string
+        final response = await _api.get(ApiEndpoints.promoCodes);
+        final codes = response.data as List<dynamic>;
+        final upperCode = promoCode.toUpperCase();
+        Map<String, dynamic>? match;
+        for (final c in codes) {
+          final entry = c as Map<String, dynamic>;
+          if (entry['code']?.toString().toUpperCase() == upperCode) {
+            match = entry;
+            break;
+          }
+        }
+        if (match == null) {
+          return ApiResult.fail('Promo code not found: $promoCode');
+        }
+        final promoCodeId = match['id'] as int;
+        await _api.put(
+          ApiEndpoints.orderById(orderId),
+          data: {'promoCodeId': promoCodeId},
+        );
+      }
       return const ApiResult._(success: true);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
