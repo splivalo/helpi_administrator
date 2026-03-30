@@ -493,7 +493,7 @@ class AppStrings {
       // ── Notifications ──
       'notifications': 'Obavijesti',
       'noNotifications': 'Nema novih obavijesti',
-      'markAllRead': 'Označi sve kao pročitano',
+      'markAllRead': 'Sve pročitano',
       'justNow': 'Upravo sad',
       'minutesAgo': 'min prije',
       'hoursAgo': 'h prije',
@@ -1072,7 +1072,7 @@ class AppStrings {
       // ── Notifications ──
       'notifications': 'Notifications',
       'noNotifications': 'No new notifications',
-      'markAllRead': 'Mark all as read',
+      'markAllRead': 'All read',
       'justNow': 'Just now',
       'minutesAgo': 'min ago',
       'hoursAgo': 'h ago',
