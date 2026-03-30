@@ -23,7 +23,8 @@ class ExcelExportService {
 
     // Header row
     final headers = [
-      AppStrings.studentName,
+      AppStrings.studentFirstName,
+      AppStrings.studentLastName,
       AppStrings.studentEmail,
       AppStrings.studentPhone,
       AppStrings.studentAddress,
@@ -62,7 +63,8 @@ class ExcelExportService {
     for (var rowIdx = 0; rowIdx < students.length; rowIdx++) {
       final s = students[rowIdx];
       final rowData = [
-        s.fullName,
+        s.firstName,
+        s.lastName,
         s.email,
         s.phone,
         s.address,
@@ -110,7 +112,8 @@ class ExcelExportService {
 
     // Header row
     final headers = [
-      AppStrings.seniorName,
+      AppStrings.seniorFirstName,
+      AppStrings.seniorLastName,
       AppStrings.seniorEmail,
       AppStrings.seniorPhone,
       AppStrings.seniorAddress,
@@ -143,7 +146,8 @@ class ExcelExportService {
     for (var rowIdx = 0; rowIdx < seniors.length; rowIdx++) {
       final s = seniors[rowIdx];
       final rowData = [
-        s.fullName,
+        s.firstName,
+        s.lastName,
         s.email,
         s.phone,
         s.address,
