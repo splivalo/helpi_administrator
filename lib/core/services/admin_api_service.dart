@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../models/admin_models.dart';
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
+import '../network/token_storage.dart';
 
 /// Unified API result wrapper.
 class ApiResult<T> {
@@ -332,10 +333,11 @@ class AdminApiService {
     String reason = 'Rescheduled by admin',
   }) async {
     try {
+      final adminUserId = await TokenStorage().getUserId() ?? 13;
       final data = <String, dynamic>{
         'reason': reason,
         'reassignStudent': preferredStudentId != null,
-        'requestedByUserId': 1, // Admin default
+        'requestedByUserId': adminUserId,
       };
       if (newDate != null) {
         data['newDate'] =

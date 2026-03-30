@@ -1307,8 +1307,40 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       final dateLabel = formatDate(selectedDate);
       final timeLabel = formatTimeOfDay(selectedTime);
 
+      // Build set of student names busy at selected date/time
+      final allOrders = ref.read(ordersProvider);
+      final sessionDuration = session.durationHours;
+      final busyStudentNames = <String>{};
+      for (final order in allOrders) {
+        for (final s in order.sessions) {
+          if (s.id == session.id) {
+            continue;
+          }
+          if (s.status == SessionStatus.cancelled) {
+            continue;
+          }
+          if (s.studentName == null) {
+            continue;
+          }
+          if (s.date.year != selectedDate.year ||
+              s.date.month != selectedDate.month ||
+              s.date.day != selectedDate.day) {
+            continue;
+          }
+          final sStartMin = s.startTime.hour * 60 + s.startTime.minute;
+          final sEndMin = sStartMin + s.durationHours * 60;
+          final selStartMin = selectedTime.hour * 60 + selectedTime.minute;
+          final selEndMin = selStartMin + sessionDuration * 60;
+          if (selStartMin < sEndMin && selEndMin > sStartMin) {
+            busyStudentNames.add(s.studentName!);
+          }
+        }
+      }
+
       // Filter students by availability for the selected day & time
       final filteredStudents = allActiveStudents.where((student) {
+        // Exclude students busy with other sessions
+        if (busyStudentNames.contains(student.fullName)) return false;
         if (student.availability.isEmpty) return true;
         final dayMatches = student.availability.where(
           (a) => a.dayOfWeek == selectedDate.weekday,
@@ -1325,6 +1357,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       // Check if current student is available for selected slot
       final currentStudentAvailable =
           session.studentName != null &&
+          !busyStudentNames.contains(session.studentName) &&
           (() {
             final current = allActiveStudents.where(
               (s) => s.fullName == session.studentName,
@@ -1460,8 +1493,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 final now = DateTime.now();
                 final picked = await showDatePicker(
                   context: ctx,
-                  initialDate:
-                      selectedDate.isBefore(now) ? now : selectedDate,
+                  initialDate: selectedDate.isBefore(now) ? now : selectedDate,
                   firstDate: now,
                   lastDate: now.add(const Duration(days: 365)),
                   confirmText: AppStrings.ok,
