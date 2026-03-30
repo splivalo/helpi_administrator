@@ -218,7 +218,6 @@ class StudentModel {
   final double? latitude;
   final double? longitude;
   final String faculty;
-  final String studentIdNumber;
   final DateTime dateOfBirth;
   final Gender gender;
   final double avgRating;
@@ -250,7 +249,6 @@ class StudentModel {
     this.latitude,
     this.longitude,
     required this.faculty,
-    required this.studentIdNumber,
     required this.dateOfBirth,
     required this.gender,
     this.avgRating = 0.0,

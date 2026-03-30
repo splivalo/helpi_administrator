@@ -117,7 +117,6 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           address: _student.address,
           city: _student.city,
           faculty: _student.faculty,
-          studentIdNumber: _student.studentIdNumber,
           dateOfBirth: _student.dateOfBirth,
           gender: _student.gender,
           avgRating: _student.avgRating,
@@ -514,10 +513,6 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
               value:
                   Faculty.byAcronym(_student.faculty)?.fullName ??
                   _student.faculty,
-            ),
-            InfoField(
-              label: AppStrings.studentIdNumber,
-              value: _student.studentIdNumber,
             ),
           ],
         ),

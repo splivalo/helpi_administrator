@@ -133,7 +133,6 @@ class AppStrings {
       'studentPhone': 'Telefon',
       'studentAddress': 'Adresa',
       'studentFaculty': 'Fakultet',
-      'studentIdNumber': 'Broj iskaznice',
       'studentRating': 'Prosječna ocjena',
       'studentTotalJobs': 'Ukupno poslova',
       'studentCompletedJobs': 'Završenih',
@@ -714,7 +713,6 @@ class AppStrings {
       'studentPhone': 'Phone',
       'studentAddress': 'Address',
       'studentFaculty': 'Faculty',
-      'studentIdNumber': 'Student ID',
       'studentRating': 'Average rating',
       'studentTotalJobs': 'Total jobs',
       'studentCompletedJobs': 'Completed',
@@ -1304,7 +1302,6 @@ class AppStrings {
   static String get studentPhone => _t('studentPhone');
   static String get studentAddress => _t('studentAddress');
   static String get studentFaculty => _t('studentFaculty');
-  static String get studentIdNumber => _t('studentIdNumber');
   static String get studentRating => _t('studentRating');
   static String get studentTotalJobs => _t('studentTotalJobs');
   static String get studentCompletedJobs => _t('studentCompletedJobs');

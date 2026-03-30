@@ -1086,7 +1086,6 @@ class AdminApiService {
       latitude: (contact?['latitude'] as num?)?.toDouble(),
       longitude: (contact?['longitude'] as num?)?.toDouble(),
       faculty: _extractFacultyName(json['faculty']),
-      studentIdNumber: json['studentNumber'] as String? ?? '',
       dateOfBirth: _parseDate(contact?['dateOfBirth']),
       gender: _mapGender(contact?['gender']),
       avgRating: _toDouble(json['averageRating']),
@@ -1224,7 +1223,6 @@ class AdminApiService {
         address: json['assignedStudentAddress'] as String? ?? '',
         city: json['assignedStudentCity'] as String? ?? '',
         faculty: '',
-        studentIdNumber: json['assignedStudentNumber'] as String? ?? '',
         dateOfBirth:
             _parseNullableDate(json['assignedStudentDateOfBirth']) ??
             DateTime(2000),
