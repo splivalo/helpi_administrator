@@ -2,7 +2,8 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   // Base
-  static const String baseUrl = 'http://localhost:5142';
+  static const String baseUrl =
+      'http://localhost:5142';
 
   // Auth
   static const String login = '/api/auth/login';

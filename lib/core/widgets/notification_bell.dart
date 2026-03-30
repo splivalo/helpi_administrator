@@ -88,7 +88,7 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
             children: [
               // ── Header ──
               Container(
-                padding: const EdgeInsets.fromLTRB(16, 48, 8, 12),
+                padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   border: Border(bottom: BorderSide(color: HelpiTheme.border)),
