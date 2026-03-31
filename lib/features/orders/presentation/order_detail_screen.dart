@@ -730,14 +730,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   color: HelpiTheme.textPrimary,
                 ),
               ),
-              if (isProjected && !isOrderCancelled) ...[
-                const SizedBox(width: 8),
-                StatusBadge(
-                  textColor: HelpiTheme.statusProcessingText,
-                  bgColor: HelpiTheme.statusProcessingBg,
-                  label: AppStrings.sessionStatusPlanned,
-                ),
-              ],
             ],
           ),
           const SizedBox(height: 6),
@@ -897,6 +889,11 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     color: HelpiTheme.textSecondary,
                   ),
                 ),
+              ),
+              StatusBadge(
+                textColor: HelpiTheme.statusProcessingText,
+                bgColor: HelpiTheme.statusProcessingBg,
+                label: AppStrings.sessionStatusPlanned,
               ),
             ],
           ),

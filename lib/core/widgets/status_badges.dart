@@ -100,6 +100,52 @@ String serviceLabel(ServiceType type) => switch (type) {
     };
 
 // ═══════════════════════════════════════════════════════════════
+//  SENIOR STATUS COLORS + LABEL (centralized)
+// ═══════════════════════════════════════════════════════════════
+
+/// Returns (textColor, bgColor, label) for a senior based on flags + live
+/// orders. [liveOrders] must already be filtered to processing/active orders
+/// for this senior.
+(Color, Color, String) seniorStatusStyle(
+  SeniorModel senior,
+  List<OrderModel> liveOrders,
+) {
+  if (senior.isSuspended) {
+    return (
+      HelpiTheme.error,
+      HelpiTheme.statusCancelledBg,
+      AppStrings.suspended,
+    );
+  }
+  if (senior.isArchived) {
+    return (
+      HelpiTheme.textSecondary,
+      HelpiTheme.chipBg,
+      AppStrings.statusArchived,
+    );
+  }
+  if (!senior.isActive || liveOrders.isEmpty) {
+    return (
+      HelpiTheme.statusCancelledText,
+      HelpiTheme.statusCancelledBg,
+      AppStrings.seniorFilterInactive,
+    );
+  }
+  if (liveOrders.any((o) => o.status == OrderStatus.processing)) {
+    return (
+      HelpiTheme.statusProcessingText,
+      HelpiTheme.statusProcessingBg,
+      AppStrings.filterProcessing,
+    );
+  }
+  return (
+    HelpiTheme.statusActiveText,
+    HelpiTheme.statusActiveBg,
+    AppStrings.seniorFilterActive,
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  STATUS BADGE WIDGET
 // ═══════════════════════════════════════════════════════════════
 
@@ -169,6 +215,24 @@ class StatusBadge extends StatelessWidget {
       textColor: HelpiTheme.error,
       bgColor: HelpiTheme.statusCancelledBg,
       label: AppStrings.suspended,
+      size: size,
+    );
+  }
+
+  /// Computes the correct senior status badge from model + live orders.
+  ///
+  /// [liveOrders] must be pre-filtered to only processing/active orders
+  /// belonging to this senior.
+  factory StatusBadge.senior(
+    SeniorModel senior, {
+    required List<OrderModel> liveOrders,
+    StatusBadgeSize size = StatusBadgeSize.small,
+  }) {
+    final (textColor, bgColor, label) = seniorStatusStyle(senior, liveOrders);
+    return StatusBadge(
+      textColor: textColor,
+      bgColor: bgColor,
+      label: label,
       size: size,
     );
   }

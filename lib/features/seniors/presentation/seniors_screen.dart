@@ -577,55 +577,15 @@ class _SeniorCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Determine status chip
-    final seniorOrders = ref
+    final liveOrders = ref
         .read(ordersProvider)
         .where(
           (o) =>
               o.senior.id == senior.id &&
               (o.status == OrderStatus.processing ||
                   o.status == OrderStatus.active),
-        );
-    final bool hasOrders = seniorOrders.isNotEmpty;
-    final bool hasProcessing = seniorOrders.any(
-      (o) => o.status == OrderStatus.processing,
-    );
-
-    final (
-      Color chipTextColor,
-      Color chipBgColor,
-      String chipLabel,
-    ) = senior.isSuspended
-        ? (HelpiTheme.error, HelpiTheme.statusCancelledBg, AppStrings.suspended)
-        : senior.isArchived
-        ? (
-            HelpiTheme.textSecondary,
-            HelpiTheme.chipBg,
-            AppStrings.statusArchived,
-          )
-        : !senior.isActive || !hasOrders
-        ? (
-            HelpiTheme.statusCancelledText,
-            HelpiTheme.statusCancelledBg,
-            AppStrings.seniorFilterInactive,
-          )
-        : hasProcessing
-        ? (
-            HelpiTheme.statusProcessingText,
-            HelpiTheme.statusProcessingBg,
-            AppStrings.filterProcessing,
-          )
-        : hasOrders
-        ? (
-            HelpiTheme.statusActiveText,
-            HelpiTheme.statusActiveBg,
-            AppStrings.seniorFilterActive,
-          )
-        : (
-            HelpiTheme.statusProcessingText,
-            HelpiTheme.statusProcessingBg,
-            AppStrings.filterProcessing,
-          );
+        )
+        .toList();
 
     return GestureDetector(
       onTap: onTap,
@@ -674,11 +634,7 @@ class _SeniorCard extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                StatusBadge(
-                  textColor: chipTextColor,
-                  bgColor: chipBgColor,
-                  label: chipLabel,
-                ),
+                StatusBadge.senior(senior, liveOrders: liveOrders),
               ],
             ),
             const SizedBox(height: 10),
@@ -814,7 +770,12 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
   void initState() {
     super.initState();
     _senior = widget.senior;
-    _orders = widget.orders;
+    _orders = widget.orders
+      ..sort((a, b) {
+        final aNum = int.tryParse(a.orderNumber) ?? 0;
+        final bNum = int.tryParse(b.orderNumber) ?? 0;
+        return bNum.compareTo(aNum);
+      });
     final saved = _prefs.getSectionOrder(_screenKey);
     if (saved != null && saved.length == _sectionCount) {
       _sectionOrder = saved;
@@ -1123,32 +1084,16 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
               child: Text(_senior.fullName, overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(width: 8),
-            if (_senior.isSuspended)
-              StatusBadge.suspended()
-            else if (_senior.isArchived)
-              StatusBadge(
-                textColor: HelpiTheme.textSecondary,
-                bgColor: HelpiTheme.chipBg,
-                label: AppStrings.statusArchived,
-              )
-            else if (!_senior.isActive || _orders.isEmpty)
-              StatusBadge(
-                textColor: HelpiTheme.statusCancelledText,
-                bgColor: HelpiTheme.statusCancelledBg,
-                label: AppStrings.seniorFilterInactive,
-              )
-            else if (_senior.isActive && _orders.any((o) => o.student != null))
-              StatusBadge(
-                textColor: HelpiTheme.statusActiveText,
-                bgColor: HelpiTheme.statusActiveBg,
-                label: AppStrings.seniorFilterActive,
-              )
-            else
-              StatusBadge(
-                textColor: HelpiTheme.statusProcessingText,
-                bgColor: HelpiTheme.statusProcessingBg,
-                label: AppStrings.filterProcessing,
-              ),
+            StatusBadge.senior(
+              _senior,
+              liveOrders: _orders
+                  .where(
+                    (o) =>
+                        o.status == OrderStatus.processing ||
+                        o.status == OrderStatus.active,
+                  )
+                  .toList(),
+            ),
           ],
         ),
         actions: [
@@ -1658,10 +1603,16 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
     final fresh = ref
         .read(seniorsProvider)
         .firstWhere((s) => s.id == _senior.id, orElse: () => _senior);
-    final freshOrders = ref
-        .read(ordersProvider)
-        .where((o) => o.senior.id == _senior.id)
-        .toList();
+    final freshOrders =
+        ref
+            .read(ordersProvider)
+            .where((o) => o.senior.id == _senior.id)
+            .toList()
+          ..sort((a, b) {
+            final aNum = int.tryParse(a.orderNumber) ?? 0;
+            final bNum = int.tryParse(b.orderNumber) ?? 0;
+            return bNum.compareTo(aNum);
+          });
     setState(() {
       _senior = fresh;
       _orders = freshOrders;
@@ -1716,10 +1667,16 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
     final fresh = ref
         .read(seniorsProvider)
         .firstWhere((s) => s.id == _senior.id, orElse: () => _senior);
-    final freshOrders = ref
-        .read(ordersProvider)
-        .where((o) => o.senior.id == _senior.id)
-        .toList();
+    final freshOrders =
+        ref
+            .read(ordersProvider)
+            .where((o) => o.senior.id == _senior.id)
+            .toList()
+          ..sort((a, b) {
+            final aNum = int.tryParse(a.orderNumber) ?? 0;
+            final bNum = int.tryParse(b.orderNumber) ?? 0;
+            return bNum.compareTo(aNum);
+          });
     setState(() {
       _senior = fresh;
       _orders = freshOrders;
