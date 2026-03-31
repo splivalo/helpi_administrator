@@ -1,20 +1,20 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-03-30
+> Zadnja izmjena: 2026-03-31
 
 ## Ukupno stanje
 
 | Modul                 | Status                                                                                                       | Dovršenost |
 | --------------------- | ------------------------------------------------------------------------------------------------------------ | ---------- |
-| Auth (Login)          | ✅ UI gotov, mock login                                                                                      | 90%        |
+| Auth (Login)          | ✅ UI gotov, mock login, server reachability detection (3-way logic)                                          | 95%        |
 | Dashboard             | ✅ KPI, narudžbe u obradi, aktivni studenti, ugovori, grid/list                                              | 100%       |
 | Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                     | 100%       |
 | Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                   | 100%       |
 | Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                        | 100%       |
-| Seniori – Detalj      | ✅ Profil, narudžbe, "Dodaj narudžbu", status logika                                                         | 100%       |
+| Seniori – Detalj      | ✅ Profil, narudžbe (sortirano najnovije), "Dodaj narudžbu", centralizirani status badge                      | 100%       |
 | Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                             | 100%       |
 | Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                  | 100%       |
-| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje, uređivanje, promo kod, udaljenost, planirani termini  | 100%       |
+| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje (3-branch), uređivanje, promo kod, udaljenost, planirani termini  | 100%       |
 | Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                   | 100%       |
 | Chat (Moderacija)     | ✅ Lista razgovora + poruke, unread badge na navigaciji (3 layouta)                                          | 95%        |
 | Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + 30-type enum aligned with backend + 7 icon/color mappings | 95%        |
@@ -230,6 +230,26 @@
 - [x] **Suspended students excluded from substitutes** — `!s.isSuspended` check added to both base and order-detail `isSubstituteCandidate`.
 - [x] **"Zamjena" button hidden when empty** — Consistent with "Pomakni": hidden when `findSubstitutes()` returns empty list.
 - [x] **Availability labels updated** — Desktop: "Dostupan sve dane" / "Djelomično dostupan". Mobile: "Dostupan" / "Djelomično".
+
+### Reschedule Flow Rewrite & Session Fixes (2026-03-31)
+
+- [x] **Reschedule 3-branch routing (backend)** — ManageJobInstance: simple reschedule (in-place), reschedule+student change (new session), reassignment only (no reschedule). HandleSimpleReschedule trusts admin's choice, no availability re-check.
+- [x] **GET /api/students/available-students (backend)** — New endpoint checks: student active + availability slots + 15-min travel buffer + no conflicting sessions. Supports `excludeJobInstanceIds` param.
+- [x] **Reschedule UI rewrite** — Uses backend available-students endpoint (async), loading spinner, selection by `studentId` (not name), sends `newEndTime` = newStart + originalDuration, only sends `preferredStudentId` when student actually changed.
+- [x] **`endTime` + `studentId` on SessionModel** — Parsed from backend response in `_mapSession`. Used for duration calculation in reschedule.
+- [x] **Lightweight _refreshOrder** — Reduced from 6 parallel API calls (DataLoader.loadAll) to 2 targeted calls (getOrder + getSessionsByOrder). Falls back to full reload on failure.
+- [x] **Student sort by distance (backend)** — Fixed `StudentRepository.FindEligibleStudentsCore`: two `OrderBy` calls (second overrode first) → `OrderByDescending(preferred) → ThenBy(distance) → ThenByDescending(rating)`.
+- [x] **Senior status centralization** — `seniorStatusStyle()` function + `StatusBadge.senior()` factory in status_badges.dart. Used by both SeniorCard and SeniorDetailScreen AppBar. Fixed bug: detail AppBar checked `o.student != null` on ALL orders instead of filtering live orders only.
+- [x] **Senior orders sorted newest first** — Descending sort by orderNumber in SeniorDetailScreen initState + both refresh methods.
+- [x] **"Planirano" badge on individual cards** — Moved from "Termini" section header to each `_buildProjectedSessionCard` (right side, like active sessions).
+
+### Server Reachability & Auth Robustness (2026-03-31)
+
+- [x] **ServerUnavailableScreen health check fix** — Changed from `/health` (doesn't exist) to `/api/students`, accepts any HTTP response (even 401/404) as proof server is up.
+- [x] **DataLoader.isServerReachable()** — Standalone Dio GET with 3s timeout. Returns true if any HTTP response, false only on connection error.
+- [x] **3-way _checkExistingSession** — Distinguishes: (1) server unreachable → ServerUnavailableScreen, (2) server reachable but data failed → force re-login (expired token), (3) data OK → proceed.
+- [x] **_handleLogin always proceeds** — Login proves server is up, so `_serverUnavailable = false` always. Partial data failure doesn't block UI.
+- [x] **_handleServerBack always recovers** — After retry, `_serverUnavailable = false` always. Prevents loop back to unavailable screen.
 
 ### Chat Unread Badge Infrastructure (2026-03-30)
 

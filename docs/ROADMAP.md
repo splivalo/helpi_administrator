@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-30 (Chat unread badge + filter/assignment safety fixes)
+> Zadnja izmjena: 2026-03-31 (Reschedule rewrite + server reachability + senior status centralization)
 
 ## 📖 Za Sidney-a — Što čitati
 
@@ -45,6 +45,9 @@
 - [x] **Admin notifikacije (SignalR)** — 7 backend notifikacija (newStudent, newSenior, orderCancel, jobCancel, contractExpired, paymentSuccess, paymentFailed) + SignalR real-time delivery u admin app + icon/color mapping za svaki tip. NE ovisi o Firebase — koristi SignalR WebSocket. ✅ (2026-03-23, backend commit `69aec15`, admin commit `adcad0f`)
 - [x] **Filter & Assignment safety** — Block assignment on cancelled/completed orders, suspended students excluded from substitutes, "Zamjena" hidden when no subs, faculty dropdown always visible, 60-day filter removed, availability labels updated. ✅ (2026-03-30)
 - [x] **Chat unread badge infrastructure** — `unreadMessagesProvider`, SignalR `ReceiveMessage` handler, `Badge.count` on all 3 nav layouts (desktop/tablet/mobile), reset on chat tap. ✅ (2026-03-30)
+- [x] **Reschedule flow rewrite (backend + frontend)** — 3-branch ManageJobInstance routing (simple/student-change/reassign), backend available-students endpoint, frontend async fetch, lightweight _refreshOrder (2→6 calls), student sort by distance fix. ✅ (2026-03-31)
+- [x] **Server reachability detection** — `DataLoader.isServerReachable()`, 3-way `_checkExistingSession` (server-down vs expired-token vs OK), `_handleLogin`/`_handleServerBack` always proceed. ✅ (2026-03-31)
+- [x] **Senior status centralization** — `seniorStatusStyle()` + `StatusBadge.senior()` factory, fixed AppBar bug (checked all orders instead of live only), orders sorted newest first, "Planirano" badge per card. ✅ (2026-03-31)
 - [ ] **Push notifikacije (Firebase FCM)** — Push notifikacije za mobilne korisnike (student app, senior app). ⚠️ Ovisi o Firebase credentials.
 
 ### Chat / Poruke sustav (NIŠTA ne postoji u backendu!)

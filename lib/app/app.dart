@@ -38,19 +38,28 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
 
   Future<void> _checkExistingSession() async {
     bool loggedIn = false;
-    bool dataOk = true;
+    bool serverDown = false;
     try {
       loggedIn = await _authService.isLoggedIn();
       if (!mounted) return;
       if (loggedIn) {
-        dataOk = await DataLoader.loadAll(ref: ref);
+        final dataOk = await DataLoader.loadAll(ref: ref);
         if (!mounted) return;
-        // If data load failed, token is likely expired — force re-login.
         if (!dataOk) {
-          await _authService.logout();
-          DataLoader.reset();
+          // Data load failed — is the server down or is the token expired?
+          final reachable = await DataLoader.isServerReachable();
           if (!mounted) return;
-          loggedIn = false;
+          if (!reachable) {
+            // Server truly unreachable — show server-unavailable screen.
+            serverDown = true;
+          } else {
+            // Server is up but data failed (token expired / partial error).
+            // Force re-login so user gets a fresh token.
+            await _authService.logout();
+            DataLoader.reset();
+            if (!mounted) return;
+            loggedIn = false;
+          }
         }
       }
     } catch (_) {
@@ -60,9 +69,9 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
     setState(() {
       _isLoggedIn = loggedIn;
       _isCheckingAuth = false;
-      _serverUnavailable = false;
+      _serverUnavailable = serverDown;
     });
-    if (loggedIn && dataOk) {
+    if (loggedIn && !serverDown) {
       _signalR.start(ref: ref);
     }
   }

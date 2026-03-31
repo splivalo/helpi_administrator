@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
@@ -346,5 +348,23 @@ class DataLoader {
   /// Reset loaded flag (e.g. on logout).
   static void reset() {
     _loaded = false;
+  }
+
+  /// Quick check: can we reach the backend at all?
+  /// Returns true if any HTTP response comes back (even 401/404).
+  static Future<bool> isServerReachable() async {
+    try {
+      final dio = Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 3),
+        receiveTimeout: const Duration(seconds: 3),
+      ));
+      await dio.get('${ApiEndpoints.baseUrl}/api/students');
+      return true;
+    } on DioException catch (e) {
+      // Any HTTP response (401, 404, 500) = server IS reachable.
+      return e.response != null;
+    } catch (_) {
+      return false;
+    }
   }
 }

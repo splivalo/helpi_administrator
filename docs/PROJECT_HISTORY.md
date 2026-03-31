@@ -327,6 +327,41 @@
 
 ---
 
+## 2026-03-31 — Reschedule Flow Rewrite & Session Management
+
+- **Reschedule 3-branch routing (backend)** — `ManageJobInstance` u `JobInstanceService` sada ima 3 grane: (1) `isReschedule && !isStudentChanging` → `HandleSimpleReschedule` (in-place update, admin trusted), (2) `isReschedule && isStudentChanging` → `HandleReschedule` (nova sesija + reassignment), (3) `!isReschedule && reassignStudent` → `HandleReassignment`.
+- **Backend: GET /api/students/available-students** — Novi endpoint koji provjerava: student aktivan, dostupnost, 15-min travel buffer, nema konfliktnih sesija. Podržava `excludeJobInstanceIds` za isključivanje sesije koja se reprogramira.
+- **Frontend: Reschedule UI kompletno prepisana** — Koristi backend `getAvailableStudents` (async fetch na promjenu datuma/vremena), loading spinner, selekcija po `studentId` (ne imenu), šalje `newEndTime` = noviStart + originalnoDuljina, šalje `preferredStudentId` samo kad se student ZAISTA mijenja.
+- **SessionModel proširenje** — Dodani `endTime` (TimeOfDay) + `studentId` (int?) u model, parsirani iz backend odgovora u `_mapSession`.
+- **Lightweight `_refreshOrder`** — Optimizacija: smanjeno sa 6 paralelnih API poziva (`DataLoader.loadAll`) na 2 ciljana poziva (`getOrder` + `getSessionsByOrder`). Fallback na puni reload ako pojedinačni fetch padne.
+- **Student sort by distance (backend fix)** — `StudentRepository.FindEligibleStudentsCore` imao dva `OrderBy` poziva (drugi pregazio prvog). Ispravljeno na: `OrderByDescending(preferred) → ThenBy(distance) → ThenByDescending(rating)`.
+- **Rezultat**: 0 errors backend, 0 errors frontend (flutter analyze)
+- **Commit (backend):** `87ccf93` | **Commit (admin):** `0fc5bf8`
+
+---
+
+## 2026-03-31 — Senior Status Centralization & UI Polish
+
+- **Centralizirani senior status badge** — Nova `seniorStatusStyle()` funkcija + `StatusBadge.senior()` factory u `status_badges.dart`. Logika: suspended → archived → inactive (no live orders) → processing (has processing order) → active. Koristi se i na SeniorCard listu i u SeniorDetailScreen AppBar.
+- **Bug fix: SeniorDetailScreen AppBar status** — Koristio `o.student != null` na SVIM narudžbama (uključujući completed) za status. Ispravljeno: filtrira samo live narudžbe (`processing` ili `active`).
+- **Senior narudžbe sortirane po broju** — Descending sort po `orderNumber` u SeniorDetailScreen initState + oba refresh metoda. Najnovije narudžbe (#15, #7, #4, #2) prikazuju se prve.
+- **"Planirano" badge premješten** — Uklonjeno iz "Termini" section headera, dodano na svaku pojedinačnu `_buildProjectedSessionCard` (desna strana, kao active sesije).
+- **Rezultat**: 0 errors → 0 errors (flutter analyze)
+- **Commit (admin):** `7006b54`
+
+---
+
+## 2026-03-31 — Server Reachability & Auth Robustness
+
+- **ServerUnavailableScreen health check fix** — Stari URL `/health` ne postoji → vraća 404 → UI nikad nije recovery-ao. Promijenjeno na `/api/students`, prihvaća bilo koji HTTP odgovor (čak 401/404) kao dokaz da je server živ.
+- **DataLoader.isServerReachable()** — Nova statična metoda: standalone Dio GET sa 3s timeout-om. Vraća true ako dobije bilo koji HTTP odgovor, false samo na connection error.
+- **3-way `_checkExistingSession`** — Nova logika razlikuje: (1) server nedostupan → ServerUnavailableScreen, (2) server dostupan ali podaci failali → force re-login (istekao token), (3) podaci OK → normalan nastavak. Riješen bug: istekao JWT → DataLoader false → zauvijek prikazivao "Server nedostupan" umjesto login ekrana.
+- **`_handleLogin` uvijek nastavlja** — Login dokazuje da je server dostupan, `_serverUnavailable = false` uvijek. Parcijalni data failure ne blokira UI (3/6 endpointa uspješno je dovoljno za rad).
+- **`_handleServerBack` uvijek oporavlja** — Nakon retry-a, `_serverUnavailable = false` uvijek. Sprječava loop natrag na unavailable screen.
+- **Rezultat**: 0 errors → 0 errors (flutter analyze)
+
+---
+
 ## Arhitekturalne odluke
 
 | Odluka                                         | Razlog                                                                   | Datum      |

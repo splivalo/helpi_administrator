@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-30
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-31
 
 ---
 
@@ -32,7 +32,7 @@
 lib/
 ├── main.dart                          # Entry point (ProviderScope, async init) (10 linija)
 ├── app/
-│   ├── app.dart                       # Root widget (HelpiAdminApp) — ConsumerStatefulWidget (59 linija)
+│   ├── app.dart                       # Root widget (HelpiAdminApp) — ConsumerStatefulWidget, 3-way server/auth/data detection (~155 linija)
 │   ├── theme.dart                     # HelpiTheme – boje, dimenzije, ThemeData (212 linija)
 │   └── responsive_shell.dart          # Responsive shell (sidebar/rail/bottomnav), ConsumerStatefulWidget, chat badge (~400 linija)
 ├── core/
@@ -44,7 +44,7 @@ lib/
 │   ├── providers/
 │   │   └── data_providers.dart        # 7 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms, unreadMessages)
 │   ├── services/
-│   │   ├── data_loader.dart           # DataLoader — API load + AppData + provider sync (ref param)
+│   │   ├── data_loader.dart           # DataLoader — API load + AppData + provider sync + isServerReachable()
 │   │   ├── preferences_service.dart   # SharedPreferences wrapper (singleton, web-safe) (88 linija)
 │   │   └── signalr_notification_service.dart # SignalR real-time notifications + chat messages (auto-reconnect, Riverpod sync) (~175 linija)
 │   ├── utils/
@@ -92,7 +92,7 @@ lib/
 | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `core/utils/formatters.dart`                    | formatDate, formatTime, formatTimeOfDay, formatDateDot                                                                                   |
 | `core/services/preferences_service.dart`        | PreferencesService singleton — grid/sort/tab per screen, web-safe fallback                                                               |
-| `core/widgets/status_badges.dart`               | StatusBadge (StatusBadgeSize enum: small/large), ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel                        |
+| `core/widgets/status_badges.dart`               | StatusBadge (StatusBadgeSize enum: small/large), StatusBadge.senior() factory, seniorStatusStyle(), ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel |
 | `core/widgets/shared_widgets.dart`              | SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (ActionChipButtonSize enum: small/medium) |
 | `core/widgets/session_preview_sheet.dart`       | SessionPreviewSheet — prikaz generiranih sesija, dodjela studenta (ConsumerStatefulWidget)                                               |
 | `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                                                                                         |
