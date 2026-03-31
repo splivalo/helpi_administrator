@@ -108,13 +108,19 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
         )
         .toList();
 
-    // Seniori koji imaju barem jednu narudžbu s dodijeljenim studentom
-    final activeIds = liveOrders
-        .where((o) => o.student != null)
+    // Seniori koji imaju barem jednu narudžbu u obradi (Processing)
+    final processingIds = liveOrders
+        .where((o) => o.status == OrderStatus.processing)
         .map((o) => o.senior.id)
         .toSet();
 
-    // Seniori koji imaju barem jednu aktivnu narudžbu
+    // Seniori koji imaju barem jednu aktivnu narudžbu (Active/FullAssigned)
+    final activeIds = liveOrders
+        .where((o) => o.status == OrderStatus.active)
+        .map((o) => o.senior.id)
+        .toSet();
+
+    // Seniori koji imaju bilo kakvu živu narudžbu
     final hasOrderIds = liveOrders.map((o) => o.senior.id).toSet();
 
     // Status filter
@@ -122,25 +128,26 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
       case _SeniorStatusFilter.all:
         break;
       case _SeniorStatusFilter.processing:
-        // U obradi = ima narudžbe, ali nijedna nije dodijeljena
+        // U obradi = ima barem jednu narudžbu sa statusom Processing
         seniors = seniors
             .where(
               (s) =>
                   s.isActive &&
                   !s.isArchived &&
                   !s.isSuspended &&
-                  hasOrderIds.contains(s.id) &&
-                  !activeIds.contains(s.id),
+                  processingIds.contains(s.id),
             )
             .toList();
       case _SeniorStatusFilter.active:
+        // Aktivan = ima aktivnu narudžbu, ALI nijednu u obradi
         seniors = seniors
             .where(
               (s) =>
                   s.isActive &&
                   !s.isArchived &&
                   !s.isSuspended &&
-                  activeIds.contains(s.id),
+                  activeIds.contains(s.id) &&
+                  !processingIds.contains(s.id),
             )
             .toList();
       case _SeniorStatusFilter.inactive:
@@ -580,7 +587,9 @@ class _SeniorCard extends ConsumerWidget {
                   o.status == OrderStatus.active),
         );
     final bool hasOrders = seniorOrders.isNotEmpty;
-    final bool hasStudentAssigned = seniorOrders.any((o) => o.student != null);
+    final bool hasProcessing = seniorOrders.any(
+      (o) => o.status == OrderStatus.processing,
+    );
 
     final (
       Color chipTextColor,
@@ -600,7 +609,13 @@ class _SeniorCard extends ConsumerWidget {
             HelpiTheme.statusCancelledBg,
             AppStrings.seniorFilterInactive,
           )
-        : hasStudentAssigned
+        : hasProcessing
+        ? (
+            HelpiTheme.statusProcessingText,
+            HelpiTheme.statusProcessingBg,
+            AppStrings.filterProcessing,
+          )
+        : hasOrders
         ? (
             HelpiTheme.statusActiveText,
             HelpiTheme.statusActiveBg,

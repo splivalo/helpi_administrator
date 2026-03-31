@@ -57,18 +57,43 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     });
   }
 
-  /// Reload order data from backend + sessions.
+  /// Lightweight reload: fetch only this order + its sessions.
+  /// Falls back to full reload if the single-order fetch fails.
   Future<void> _refreshOrder() async {
-    await DataLoader.loadAll(ref: ref);
+    final orderId = int.tryParse(_order.id);
+    if (orderId == null) return;
+
+    final api = AdminApiService();
+    final results = await Future.wait([
+      api.getOrder(orderId),
+      api.getSessionsByOrder(orderId),
+    ]);
     if (!mounted) return;
-    final refreshed = ref
-        .read(ordersProvider)
-        .where((o) => o.id == _order.id)
-        .firstOrNull;
-    if (refreshed != null) {
+
+    final orderResult = results[0] as ApiResult<OrderModel>;
+    final sessionsResult = results[1] as ApiResult<List<SessionModel>>;
+
+    if (orderResult.success && orderResult.data != null) {
+      final refreshed = sessionsResult.success && sessionsResult.data != null
+          ? orderResult.data!.copyWith(sessions: sessionsResult.data)
+          : orderResult.data!;
       setState(() => _order = refreshed);
+
+      // Keep the global provider in sync so other screens see the update.
+      ref.read(ordersProvider.notifier).updateItem(refreshed);
+    } else {
+      // Fallback: full reload (e.g. order was deleted or network hiccup).
+      await DataLoader.loadAll(ref: ref);
+      if (!mounted) return;
+      final fallback = ref
+          .read(ordersProvider)
+          .where((o) => o.id == _order.id)
+          .firstOrNull;
+      if (fallback != null) {
+        setState(() => _order = fallback);
+      }
+      await _loadSessions();
     }
-    await _loadSessions();
   }
 
   @override
@@ -668,12 +693,15 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   Widget _buildSessionsSection() {
     final hasRealSessions = _order.sessions.isNotEmpty;
     final isProjected = !hasRealSessions && _order.dayEntries.isNotEmpty;
+    final isOrderCancelled = _order.status == OrderStatus.cancelled;
     final projectedSessions = isProjected
         ? _generateProjectedSessions()
         : <SessionModel>[];
     final displaySessions = hasRealSessions
         ? _order.sessions
         : projectedSessions;
+
+    final isMuted = isProjected || isOrderCancelled;
 
     return Container(
       width: double.infinity,
@@ -691,9 +719,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               Icon(
                 Icons.calendar_month,
                 size: 20,
-                color: isProjected
-                    ? HelpiTheme.textSecondary
-                    : HelpiTheme.accent,
+                color: isMuted ? HelpiTheme.textSecondary : HelpiTheme.accent,
               ),
               const SizedBox(width: 8),
               Text(
@@ -704,7 +730,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   color: HelpiTheme.textPrimary,
                 ),
               ),
-              if (isProjected) ...[
+              if (isProjected && !isOrderCancelled) ...[
                 const SizedBox(width: 8),
                 StatusBadge(
                   textColor: HelpiTheme.statusProcessingText,
@@ -716,7 +742,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            isProjected
+            isOrderCancelled
+                ? AppStrings.sessionsCancelledSubtitle
+                : isProjected
                 ? AppStrings.sessionsPlannedSubtitle
                 : _order.frequency != FrequencyType.oneTime
                 ? AppStrings.sessionsMonthlySubtitle
@@ -743,7 +771,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                           padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
                           child: isProjected
                               ? _buildProjectedSessionCard(session)
-                              : _buildSessionCard(session),
+                              : _buildSessionCard(
+                                  session,
+                                  orderCancelled: isOrderCancelled,
+                                ),
                         );
                       },
                     )
@@ -756,7 +787,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                           padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
                           child: isProjected
                               ? _buildProjectedSessionCard(session)
-                              : _buildSessionCard(session),
+                              : _buildSessionCard(
+                                  session,
+                                  orderCancelled: isOrderCancelled,
+                                ),
                         );
                       }).toList(),
                     ),
@@ -796,6 +830,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               date: current,
               weekday: entry.dayOfWeek,
               startTime: entry.startTime,
+              endTime: TimeOfDay(
+                hour: (entry.startTime.hour + entry.durationHours) % 24,
+                minute: entry.startTime.minute,
+              ),
               durationHours: entry.durationHours,
             ),
           );
@@ -809,6 +847,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               date: current,
               weekday: entry.dayOfWeek,
               startTime: entry.startTime,
+              endTime: TimeOfDay(
+                hour: (entry.startTime.hour + entry.durationHours) % 24,
+                minute: entry.startTime.minute,
+              ),
               durationHours: entry.durationHours,
             ),
           );
@@ -884,9 +926,13 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     );
   }
 
-  Widget _buildSessionCard(SessionModel session) {
+  Widget _buildSessionCard(
+    SessionModel session, {
+    bool orderCancelled = false,
+  }) {
     final isCompleted = session.status == SessionStatus.completed;
-    final isCancelled = session.status == SessionStatus.cancelled;
+    final isCancelled =
+        session.status == SessionStatus.cancelled || orderCancelled;
 
     final useShort = MediaQuery.sizeOf(context).width < 600;
     final dateStr =
@@ -939,7 +985,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                         ),
                       ),
                     ),
-                    if (session.isModified) ...[
+                    if (session.isModified && !orderCancelled) ...[
                       const SizedBox(width: 6),
                       Tooltip(
                         message: AppStrings.sessionModified,
@@ -953,7 +999,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   ],
                 ),
               ),
-              _sessionStatusBadge(session.status),
+              if (orderCancelled)
+                StatusBadge.session(SessionStatus.cancelled)
+              else
+                _sessionStatusBadge(session.status),
             ],
           ),
           const SizedBox(height: 6),
@@ -1005,8 +1054,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
           ],
 
-          // Row 4: action buttons (only for upcoming)
-          if (session.status == SessionStatus.scheduled) ...[
+          // Row 4: action buttons (only for upcoming, NOT on cancelled orders)
+          if (session.status == SessionStatus.scheduled && !orderCancelled) ...[
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.only(left: 26),
@@ -1039,8 +1088,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
           ],
 
-          // Row 4b: reactivate button (only for cancelled)
-          if (session.status == SessionStatus.cancelled) ...[
+          // Row 4b: reactivate button (only for cancelled sessions, NOT on cancelled orders)
+          if (session.status == SessionStatus.cancelled && !orderCancelled) ...[
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.only(left: 26),
@@ -1068,6 +1117,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final isCancelled = _order.status == OrderStatus.cancelled;
     final isCompleted = _order.status == OrderStatus.completed;
     final canCancel = !isCancelled && !isCompleted;
+
+    // No actions for cancelled orders — hide entire section
+    if (isCancelled) return const SizedBox.shrink();
 
     return SectionCard(
       title: AppStrings.adminActions,
@@ -1226,76 +1278,93 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     );
   }
 
-  bool _isStudentAvailableForSession(SessionModel session) {
-    if (_order.student == null) return true;
-    final student = _order.student!;
-    if (student.availability.isEmpty) return true;
-    final dayAvail = student.availability.where(
-      (a) => a.dayOfWeek == session.weekday,
-    );
-    if (dayAvail.isEmpty || !dayAvail.first.isEnabled) return false;
-    final avail = dayAvail.first;
-    final startMin = session.startTime.hour * 60 + session.startTime.minute;
-    final fromMin = avail.from.hour * 60 + avail.from.minute;
-    final toMin = avail.to.hour * 60 + avail.to.minute;
-    return startMin >= fromMin && startMin < toMin;
-  }
-
   void _confirmReactivateSession(SessionModel session) {
-    if (!_isStudentAvailableForSession(session)) {
-      // Student not available ? open reschedule sheet directly
-      _showRescheduleSheet(session.copyWith(status: SessionStatus.scheduled));
-      return;
-    }
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.sessionReactivate),
-        content: SizedBox(
-          width: 400,
-          child: Text(AppStrings.sessionReactivateConfirm),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(AppStrings.cancel),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final sessionId = int.tryParse(session.id);
-              if (sessionId == null) return;
-              final api = AdminApiService();
-              final result = await api.reactivateSession(sessionId);
-              if (!mounted) return;
-              if (!result.success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(result.error ?? 'Error')),
-                );
-                return;
-              }
-              await _refreshOrder();
-            },
-            child: Text(AppStrings.confirm),
-          ),
-        ],
-      ),
+    // Always show modal with student picker (like reschedule)
+    _showRescheduleSheet(
+      session.copyWith(status: SessionStatus.scheduled),
+      isReactivation: true,
     );
   }
 
-  void _showRescheduleSheet(SessionModel session) {
+  void _showRescheduleSheet(
+    SessionModel session, {
+    bool isReactivation = false,
+  }) {
     DateTime selectedDate = session.date;
     // Snap to nearest 15-min interval
-    TimeOfDay selectedTime = TimeOfDay(
+    final originalSnappedTime = TimeOfDay(
       hour: session.startTime.hour,
       minute: (session.startTime.minute ~/ 15) * 15,
     );
-    String? selectedStudentName = session.studentName;
+    TimeOfDay selectedTime = originalSnappedTime;
+    int? selectedStudentId = session.studentId;
 
-    final allActiveStudents = ref
-        .read(studentsProvider)
-        .where((s) => s.isActive && s.contractStatus == ContractStatus.active)
-        .toList();
+    // Async state for backend-fetched available students
+    List<StudentModel> availableStudents = [];
+    bool isLoadingStudents = true;
+    bool needsInitialLoad = true;
+
+    // Calculate session duration in minutes from actual start/end
+    final origStartMin = session.startTime.hour * 60 + session.startTime.minute;
+    final origEndMin = session.endTime.hour * 60 + session.endTime.minute;
+    final durationMinutes = origEndMin > origStartMin
+        ? origEndMin - origStartMin
+        : 60;
+
+    // Fetch available students from backend for the selected date/time
+    Future<void> fetchStudents(StateSetter setSheetState) async {
+      setSheetState(() => isLoadingStudents = true);
+      final orderId = int.tryParse(session.orderId ?? '');
+      if (orderId == null) {
+        setSheetState(() {
+          availableStudents = [];
+          isLoadingStudents = false;
+        });
+        return;
+      }
+      final sessionIdInt = int.tryParse(session.id);
+      final selStartMin = selectedTime.hour * 60 + selectedTime.minute;
+      final selEndMin = selStartMin + durationMinutes;
+      final endTime = TimeOfDay(
+        hour: (selEndMin ~/ 60) % 24,
+        minute: selEndMin % 60,
+      );
+
+      final dateStr =
+          '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+      final startStr =
+          '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}:00';
+      final endStr =
+          '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}:00';
+
+      final result = await AdminApiService().getAvailableStudents(
+        date: dateStr,
+        startTime: startStr,
+        endTime: endStr,
+        orderId: orderId,
+        excludeJobInstanceIds: sessionIdInt != null ? [sessionIdInt] : null,
+      );
+
+      setSheetState(() {
+        availableStudents = result.success ? (result.data ?? []) : [];
+        isLoadingStudents = false;
+
+        // Check if current student is in the available list
+        final currentStillAvailable =
+            session.studentId != null &&
+            availableStudents.any(
+              (s) => int.tryParse(s.id) == session.studentId,
+            );
+        // If selected student is no longer available, reset
+        if (selectedStudentId == session.studentId && !currentStillAvailable) {
+          if (availableStudents.isNotEmpty) {
+            selectedStudentId = int.tryParse(availableStudents.first.id);
+          } else {
+            selectedStudentId = null;
+          }
+        }
+      });
+    }
 
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
@@ -1304,148 +1373,106 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       StateSetter setSheetState, [
       ScrollController? scrollCtrl,
     ]) {
+      // Trigger initial load on first build
+      if (needsInitialLoad) {
+        needsInitialLoad = false;
+        Future.microtask(() => fetchStudents(setSheetState));
+      }
+
       final dateLabel = formatDate(selectedDate);
       final timeLabel = formatTimeOfDay(selectedTime);
 
-      // Build set of student names busy at selected date/time
-      final allOrders = ref.read(ordersProvider);
-      final sessionDuration = session.durationHours;
-      final busyStudentNames = <String>{};
-      for (final order in allOrders) {
-        for (final s in order.sessions) {
-          if (s.id == session.id) {
-            continue;
-          }
-          if (s.status == SessionStatus.cancelled) {
-            continue;
-          }
-          if (s.studentName == null) {
-            continue;
-          }
-          if (s.date.year != selectedDate.year ||
-              s.date.month != selectedDate.month ||
-              s.date.day != selectedDate.day) {
-            continue;
-          }
-          final sStartMin = s.startTime.hour * 60 + s.startTime.minute;
-          final sEndMin = sStartMin + s.durationHours * 60;
-          final selStartMin = selectedTime.hour * 60 + selectedTime.minute;
-          final selEndMin = selStartMin + sessionDuration * 60;
-          if (selStartMin < sEndMin && selEndMin > sStartMin) {
-            busyStudentNames.add(s.studentName!);
-          }
-        }
-      }
+      // Check if current student is in the available list
+      final currentStillAvailable =
+          session.studentId != null &&
+          availableStudents.any((s) => int.tryParse(s.id) == session.studentId);
 
-      // Filter students by availability for the selected day & time
-      final filteredStudents = allActiveStudents.where((student) {
-        // Exclude students busy with other sessions
-        if (busyStudentNames.contains(student.fullName)) return false;
-        if (student.availability.isEmpty) return true;
-        final dayMatches = student.availability.where(
-          (a) => a.dayOfWeek == selectedDate.weekday,
-        );
-        if (dayMatches.isEmpty) return false;
-        final avail = dayMatches.first;
-        if (!avail.isEnabled) return false;
-        final selMin = selectedTime.hour * 60 + selectedTime.minute;
-        final fromMin = avail.from.hour * 60 + avail.from.minute;
-        final toMin = avail.to.hour * 60 + avail.to.minute;
-        return selMin >= fromMin && selMin < toMin;
-      }).toList();
-
-      // Check if current student is available for selected slot
-      final currentStudentAvailable =
-          session.studentName != null &&
-          !busyStudentNames.contains(session.studentName) &&
-          (() {
-            final current = allActiveStudents.where(
-              (s) => s.fullName == session.studentName,
-            );
-            if (current.isEmpty) return false;
-            final student = current.first;
-            if (student.availability.isEmpty) return true;
-            final dayMatches = student.availability.where(
-              (a) => a.dayOfWeek == selectedDate.weekday,
-            );
-            if (dayMatches.isEmpty) return false;
-            final avail = dayMatches.first;
-            if (!avail.isEnabled) return false;
-            final selMin = selectedTime.hour * 60 + selectedTime.minute;
-            final fromMin = avail.from.hour * 60 + avail.from.minute;
-            final toMin = avail.to.hour * 60 + avail.to.minute;
-            return selMin >= fromMin && selMin < toMin;
-          })();
-
-      // If current student not available, clear selection
-      if (!currentStudentAvailable &&
-          selectedStudentName == session.studentName) {
-        selectedStudentName = filteredStudents.isNotEmpty
-            ? filteredStudents
-                  .where((s) => s.fullName != session.studentName)
-                  .firstOrNull
-                  ?.fullName
-            : null;
-      }
-
+      // Build student list widgets
       final studentListChildren = <Widget>[
-        // "Keep current" option (only if available for this slot)
-        if (session.studentName != null && currentStudentAvailable)
-          _StudentRadioTile(
-            name: session.studentName!,
-            subtitle: AppStrings.sessionKeepCurrentStudent,
-            isSelected: selectedStudentName == session.studentName,
-            onTap: () {
-              setSheetState(() {
-                selectedStudentName = session.studentName;
-              });
-            },
-          ),
-        // Filtered students
-        if (filteredStudents
-                .where((s) => s.fullName != session.studentName)
-                .isEmpty &&
-            !currentStudentAvailable)
+        if (isLoadingStudents)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Text(
-              AppStrings.noStudentsForSlot,
-              style: const TextStyle(
-                color: HelpiTheme.textSecondary,
-                fontSize: 13,
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.loading,
+                    style: const TextStyle(
+                      color: HelpiTheme.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-        ...filteredStudents.where((s) => s.fullName != session.studentName).map(
-          (student) {
-            final senLat = _order.senior.latitude;
-            final senLng = _order.senior.longitude;
-            final stuLat = student.latitude;
-            final stuLng = student.longitude;
-            final distKm =
-                (senLat != null &&
-                    senLng != null &&
-                    stuLat != null &&
-                    stuLng != null)
-                ? haversineKm(senLat, senLng, stuLat, stuLng)
-                : null;
-            final distLabel = distKm != null
-                ? '${distKm.toStringAsFixed(1)} km'
-                : '';
-            final sep = distLabel.isNotEmpty ? '  ·  ' : '';
-            return _StudentRadioTile(
-              name: student.fullName,
-              subtitle:
-                  '⭐ ${student.avgRating.toStringAsFixed(1)}$sep$distLabel',
-              isSelected: selectedStudentName == student.fullName,
+          )
+        else ...[
+          // "Keep current" option (only if available for this slot)
+          if (session.studentName != null && currentStillAvailable)
+            _StudentRadioTile(
+              name: session.studentName!,
+              subtitle: AppStrings.sessionKeepCurrentStudent,
+              isSelected: selectedStudentId == session.studentId,
               onTap: () {
                 setSheetState(() {
-                  selectedStudentName = student.fullName;
+                  selectedStudentId = session.studentId;
                 });
               },
-            );
-          },
-        ),
+            ),
+          // Available students from backend (exclude current)
+          if (availableStudents
+                  .where((s) => int.tryParse(s.id) != session.studentId)
+                  .isEmpty &&
+              !currentStillAvailable)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                AppStrings.noStudentsForSlot,
+                style: const TextStyle(
+                  color: HelpiTheme.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ...availableStudents
+              .where((s) => int.tryParse(s.id) != session.studentId)
+              .map((student) {
+                final senLat = _order.senior.latitude;
+                final senLng = _order.senior.longitude;
+                final stuLat = student.latitude;
+                final stuLng = student.longitude;
+                final distKm =
+                    (senLat != null &&
+                        senLng != null &&
+                        stuLat != null &&
+                        stuLng != null)
+                    ? haversineKm(senLat, senLng, stuLat, stuLng)
+                    : null;
+                final distLabel = distKm != null
+                    ? '${distKm.toStringAsFixed(1)} km'
+                    : '';
+                final sep = distLabel.isNotEmpty ? '  ·  ' : '';
+                final stuId = int.tryParse(student.id);
+                return _StudentRadioTile(
+                  name: student.fullName,
+                  subtitle:
+                      '⭐ ${student.avgRating.toStringAsFixed(1)}$sep$distLabel',
+                  isSelected: selectedStudentId == stuId,
+                  onTap: () {
+                    setSheetState(() {
+                      selectedStudentId = stuId;
+                    });
+                  },
+                );
+              }),
+        ],
       ];
 
       return Column(
@@ -1465,7 +1492,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    AppStrings.sessionRescheduleTitle,
+                    isReactivation
+                        ? AppStrings.sessionReactivate
+                        : AppStrings.sessionRescheduleTitle,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -1499,8 +1528,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   confirmText: AppStrings.ok,
                   cancelText: AppStrings.cancel,
                 );
-                if (picked != null) {
+                if (picked != null && picked != selectedDate) {
                   setSheetState(() => selectedDate = picked);
+                  await fetchStudents(setSheetState);
                 }
               },
             ),
@@ -1520,8 +1550,11 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   initial: selectedTime,
                 );
                 if (!ctx.mounted) return;
-                if (picked != null) {
+                if (picked != null &&
+                    (picked.hour != selectedTime.hour ||
+                        picked.minute != selectedTime.minute)) {
                   setSheetState(() => selectedTime = picked);
+                  await fetchStudents(setSheetState);
                 }
               },
             ),
@@ -1577,34 +1610,91 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 color: HelpiTheme.primary,
                 size: ActionChipButtonSize.medium,
                 onTap: () async {
+                  if (isLoadingStudents) return;
                   Navigator.pop(ctx);
                   if (!mounted) return;
                   final sessionId = int.tryParse(session.id);
                   if (sessionId == null) return;
                   final api = AdminApiService();
-                  // Find student ID from name
-                  int? studentId;
-                  if (selectedStudentName != null) {
-                    final student = ref
-                        .read(studentsProvider)
-                        .where((s) => s.fullName == selectedStudentName)
-                        .firstOrNull;
-                    if (student != null) {
-                      studentId = int.tryParse(student.id);
-                    }
-                  }
-                  final result = await api.manageSession(
-                    sessionId,
-                    newDate: selectedDate,
-                    newStartTime: selectedTime,
-                    preferredStudentId: studentId,
-                  );
-                  if (!mounted) return;
-                  if (!result.success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(result.error ?? 'Error')),
+
+                  // Detect what changed
+                  final dateChanged =
+                      selectedDate.year != session.date.year ||
+                      selectedDate.month != session.date.month ||
+                      selectedDate.day != session.date.day;
+                  final timeChanged =
+                      selectedTime.hour != originalSnappedTime.hour ||
+                      selectedTime.minute != originalSnappedTime.minute;
+                  final studentChanged = selectedStudentId != session.studentId;
+
+                  // Calculate new end time when start changes
+                  TimeOfDay? newEndTime;
+                  if (timeChanged) {
+                    final newStartMin =
+                        selectedTime.hour * 60 + selectedTime.minute;
+                    final newEndMin = newStartMin + durationMinutes;
+                    newEndTime = TimeOfDay(
+                      hour: (newEndMin ~/ 60) % 24,
+                      minute: newEndMin % 60,
                     );
-                    return;
+                  }
+
+                  if (isReactivation) {
+                    // Step 1: Reactivate the session
+                    final reactivateResult = await api.reactivateSession(
+                      sessionId,
+                    );
+                    if (!mounted) return;
+                    if (!reactivateResult.success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(_localizeError(reactivateResult.error)),
+                        ),
+                      );
+                      return;
+                    }
+                    // Step 2: If anything changed, manage session
+                    if (dateChanged || timeChanged || studentChanged) {
+                      final manageResult = await api.manageSession(
+                        sessionId,
+                        newDate: dateChanged ? selectedDate : null,
+                        newStartTime: timeChanged ? selectedTime : null,
+                        newEndTime: newEndTime,
+                        preferredStudentId: studentChanged
+                            ? selectedStudentId
+                            : null,
+                      );
+                      if (!mounted) return;
+                      if (!manageResult.success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(_localizeError(manageResult.error)),
+                          ),
+                        );
+                        return;
+                      }
+                    }
+                  } else {
+                    // Reschedule: nothing changed → just close
+                    if (!dateChanged && !timeChanged && !studentChanged) {
+                      return;
+                    }
+                    final result = await api.manageSession(
+                      sessionId,
+                      newDate: dateChanged ? selectedDate : null,
+                      newStartTime: timeChanged ? selectedTime : null,
+                      newEndTime: newEndTime,
+                      preferredStudentId: studentChanged
+                          ? selectedStudentId
+                          : null,
+                    );
+                    if (!mounted) return;
+                    if (!result.success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(_localizeError(result.error))),
+                      );
+                      return;
+                    }
                   }
                   await _refreshOrder();
                 },
@@ -1666,6 +1756,23 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         },
       );
     }
+  }
+
+  // ---------------------------------------------------------------
+  //  ERROR TRANSLATION HELPER
+  // ---------------------------------------------------------------
+
+  /// Translates known backend error messages to localized strings.
+  String _localizeError(String? error) {
+    if (error == null) return AppStrings.error;
+    if (error.contains('Senior already has another session')) {
+      final dateMatch = RegExp(r'on (\S+)').firstMatch(error);
+      final timeMatch = RegExp(r'with (.+)\.$').firstMatch(error);
+      final date = dateMatch?.group(1) ?? '';
+      final time = timeMatch?.group(1) ?? '';
+      return AppStrings.seniorSessionConflict(date, time);
+    }
+    return error;
   }
 
   // ---------------------------------------------------------------

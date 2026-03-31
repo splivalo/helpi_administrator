@@ -375,7 +375,9 @@ class SessionModel {
   final DateTime date;
   final int weekday;
   final TimeOfDay startTime;
+  final TimeOfDay endTime;
   final int durationHours;
+  final int? studentId;
   final String? studentName;
   final SessionStatus status;
   final bool isModified;
@@ -386,7 +388,9 @@ class SessionModel {
     required this.date,
     required this.weekday,
     required this.startTime,
+    required this.endTime,
     required this.durationHours,
+    this.studentId,
     this.studentName,
     this.status = SessionStatus.scheduled,
     this.isModified = false,
@@ -398,7 +402,9 @@ class SessionModel {
     DateTime? date,
     int? weekday,
     TimeOfDay? startTime,
+    TimeOfDay? endTime,
     int? durationHours,
+    int? Function()? studentId,
     String? Function()? studentName,
     SessionStatus? status,
     bool? isModified,
@@ -409,7 +415,9 @@ class SessionModel {
       date: date ?? this.date,
       weekday: weekday ?? this.weekday,
       startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
       durationHours: durationHours ?? this.durationHours,
+      studentId: studentId != null ? studentId() : this.studentId,
       studentName: studentName != null ? studentName() : this.studentName,
       status: status ?? this.status,
       isModified: isModified ?? this.isModified,

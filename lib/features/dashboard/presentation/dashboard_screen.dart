@@ -77,7 +77,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       }
       final seniorOrders = liveOrders.where((o) => o.senior.id == senior.id);
       if (seniorOrders.isEmpty) return false;
-      return !seniorOrders.any((o) => o.student != null);
+      // Senior je "u obradi" ako ima barem jednu narudžbu sa statusom Processing
+      return seniorOrders.any((o) => o.status == OrderStatus.processing);
     }).toList();
 
     final activeCount = allOrders

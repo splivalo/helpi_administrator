@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import '../models/admin_models.dart';
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
-import '../network/token_storage.dart';
 
 /// Unified API result wrapper.
 class ApiResult<T> {
@@ -333,11 +332,9 @@ class AdminApiService {
     String reason = 'Rescheduled by admin',
   }) async {
     try {
-      final adminUserId = await TokenStorage().getUserId() ?? 13;
       final data = <String, dynamic>{
         'reason': reason,
         'reassignStudent': preferredStudentId != null,
-        'requestedByUserId': adminUserId,
       };
       if (newDate != null) {
         data['newDate'] =
@@ -620,6 +617,7 @@ class AdminApiService {
     required String startTime,
     required String endTime,
     int? orderId,
+    List<int>? excludeJobInstanceIds,
   }) async {
     try {
       final params = <String, dynamic>{
@@ -628,6 +626,9 @@ class AdminApiService {
         'endTime': endTime,
       };
       if (orderId != null) params['orderId'] = orderId;
+      if (excludeJobInstanceIds != null && excludeJobInstanceIds.isNotEmpty) {
+        params['excludeJobInstanceIds'] = excludeJobInstanceIds;
+      }
 
       final response = await _api.get(
         '${ApiEndpoints.students}/available-students',
@@ -1296,6 +1297,7 @@ class AdminApiService {
       dayEntries: dayEntries,
       sessions: const [],
       scheduleIds: scheduleIds,
+      promoCode: json['promoCodeCode'] as String?,
     );
   }
 
@@ -1326,13 +1328,17 @@ class AdminApiService {
     final studentContact =
         assignment?['student']?['contact'] as Map<String, dynamic>?;
 
+    final studentUserId = assignment?['studentId'] as int?;
+
     return SessionModel(
       id: '${json['id']}',
       orderId: '${json['orderId']}',
       date: _parseDate(json['scheduledDate']),
       weekday: _parseDate(json['scheduledDate']).weekday,
       startTime: _parseTimeOfDay(json['startTime']),
+      endTime: _parseTimeOfDay(json['endTime']),
       durationHours: _calcHours(json['startTime'], json['endTime']),
+      studentId: studentUserId,
       studentName: studentContact?['fullName'] as String?,
       status: _mapSessionStatus(json['status']),
       isModified: json['isRescheduleVariant'] == true,

@@ -424,6 +424,7 @@ class AppStrings {
       'sessionsTitle': 'Termini',
       'sessionsMonthlySubtitle': 'Prikazani termini za tekući mjesec.',
       'sessionsPlannedSubtitle': 'Čeka se dodjela studenta.',
+      'sessionsCancelledSubtitle': 'Narudžba je otkazana.',
       'sessionStatusPlanned': 'Planirano',
       'sessionStatusScheduled': 'Nadolazeći',
       'sessionStatusCompleted': 'Obavljen',
@@ -460,6 +461,8 @@ class AppStrings {
       'studentUnavailableForSession':
           'Student nije dostupan za ovaj termin. Promijenite studenta ili termin.',
       'sessionModified': 'Izmijenjeno',
+      'seniorSessionConflict':
+          'Senior već ima drugi termin na {date} koji se preklapa s {time}.',
 
       // ── Općenito ──────────────────────────────
       'loading': 'Učitavanje...',
@@ -1003,6 +1006,7 @@ class AppStrings {
       'sessionsTitle': 'Sessions',
       'sessionsMonthlySubtitle': 'Sessions for the current month.',
       'sessionsPlannedSubtitle': 'Awaiting student assignment.',
+      'sessionsCancelledSubtitle': 'Order has been cancelled.',
       'sessionStatusPlanned': 'Planned',
       'sessionStatusScheduled': 'Scheduled',
       'sessionStatusCompleted': 'Completed',
@@ -1038,6 +1042,8 @@ class AppStrings {
       'studentUnavailableForSession':
           'Student is not available for this session. Change the student or reschedule.',
       'sessionModified': 'Modified',
+      'seniorSessionConflict':
+          'Senior already has another session on {date} that overlaps with {time}.',
 
       // ── Općenito ──────────────────────────────
       'loading': 'Loading...',
@@ -1730,6 +1736,8 @@ class AppStrings {
   static String get sessionsTitle => _t('sessionsTitle');
   static String get sessionsMonthlySubtitle => _t('sessionsMonthlySubtitle');
   static String get sessionsPlannedSubtitle => _t('sessionsPlannedSubtitle');
+  static String get sessionsCancelledSubtitle =>
+      _t('sessionsCancelledSubtitle');
   static String get sessionStatusPlanned => _t('sessionStatusPlanned');
   static String get sessionStatusScheduled => _t('sessionStatusScheduled');
   static String get sessionStatusCompleted => _t('sessionStatusCompleted');
@@ -1755,6 +1763,8 @@ class AppStrings {
   static String get studentUnavailableForSession =>
       _t('studentUnavailableForSession');
   static String get sessionModified => _t('sessionModified');
+  static String seniorSessionConflict(String date, String time) =>
+      _t('seniorSessionConflict', params: {'date': date, 'time': time});
   static String get emailCopied => _t('emailCopied');
   static String get copyEmail => _t('copyEmail');
   static String get callPhone => _t('callPhone');
