@@ -45,6 +45,13 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
       if (loggedIn) {
         dataOk = await DataLoader.loadAll(ref: ref);
         if (!mounted) return;
+        // If data load failed, token is likely expired — force re-login.
+        if (!dataOk) {
+          await _authService.logout();
+          DataLoader.reset();
+          if (!mounted) return;
+          loggedIn = false;
+        }
       }
     } catch (_) {
       // Never block startup — fall through with whatever state we have
@@ -53,7 +60,7 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
     setState(() {
       _isLoggedIn = loggedIn;
       _isCheckingAuth = false;
-      _serverUnavailable = loggedIn && !dataOk;
+      _serverUnavailable = false;
     });
     if (loggedIn && dataOk) {
       _signalR.start(ref: ref);
@@ -65,28 +72,26 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
       _isLoggedIn = true;
       _isLoadingData = true;
     });
-    final dataOk = await DataLoader.loadAll(ref: ref);
+    // Login just succeeded so the server IS reachable.
+    // Proceed even if some data endpoints fail (partial data is fine).
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
     setState(() {
       _isLoadingData = false;
-      _serverUnavailable = !dataOk;
+      _serverUnavailable = false;
     });
-    if (dataOk) {
-      _signalR.start(ref: ref);
-    }
+    _signalR.start(ref: ref);
   }
 
   Future<void> _handleServerBack() async {
     setState(() => _isLoadingData = true);
-    final dataOk = await DataLoader.loadAll(ref: ref);
+    await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
     setState(() {
       _isLoadingData = false;
-      _serverUnavailable = !dataOk;
+      _serverUnavailable = false;
     });
-    if (dataOk) {
-      _signalR.start(ref: ref);
-    }
+    _signalR.start(ref: ref);
   }
 
   Future<void> _handleLogout() async {

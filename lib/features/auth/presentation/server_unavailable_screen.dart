@@ -54,13 +54,21 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
           receiveTimeout: const Duration(seconds: 3),
         ),
       );
-      final response = await dio.get('${ApiEndpoints.baseUrl}/health');
+      await dio.get('${ApiEndpoints.baseUrl}/api/students');
       if (!mounted) return;
-      if (response.statusCode == 200) {
+      // Any response (even 401) means the server is reachable.
+      _autoRetryTimer?.cancel();
+      widget.onServerBack();
+      return;
+    } on DioException catch (e) {
+      // HTTP error (4xx/5xx) still means server is up.
+      if (e.response != null) {
+        if (!mounted) return;
         _autoRetryTimer?.cancel();
         widget.onServerBack();
         return;
       }
+      // Connection error — server truly down.
     } catch (_) {
       // Still down
     }
