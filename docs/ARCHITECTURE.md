@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-03-31
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-04-01
 
 ---
 
@@ -146,6 +146,13 @@ DataLoader.loadAll(ref: ref)
   → API fetch → AppData.xxx = results    (intermediate store)
   → ref.read(xxxProvider.notifier).setAll(AppData.xxx)   (provider sync)
 ```
+
+### SignalR refresh pravila
+
+- `SignalRNotificationService` sluša `ReceiveNotification` i `ReceiveMessage` događaje.
+- Notification drawer se puni odmah po primitku notifikacije.
+- Puni `DataLoader.loadAll()` refresh trenutno se pokreće za data-changing tipove uključujući `jobRescheduled`, `reassignmentStarted` i `reassignmentCompleted`.
+- Ovaj pristup je namjerno grub, ali siguran dok admin još radi na full-screen dataset refresh obrascu umjesto finog per-entity patchanja.
 
 ### Korištenje u UI-ju
 

@@ -147,6 +147,8 @@ class SignalRNotificationService {
     NotificationType.contractDeleted,
     NotificationType.jobCompleted,
     NotificationType.jobCancelled,
+    NotificationType.jobRescheduled,
+    NotificationType.reassignmentStarted,
     NotificationType.reassignmentCompleted,
   };
 

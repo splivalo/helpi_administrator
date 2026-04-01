@@ -2,6 +2,14 @@
 
 > Kronologija ključnih odluka i promjena.
 
+## 2026-04-01 — Reschedule notification flow dovršen
+
+- **V2-only pristup zadržan** — reschedule/reassignment business logika nije kopirana iz live/v1 repoa; korišten je samo postojeći v2 notification transport.
+- **Backend `JobRescheduled`** — dodana tvornica notifikacije + HR/EN lokalizacija; simple reschedule šalje obavijest senioru, studentu i adminima, a full reschedule senioru i adminima.
+- **Reassignment admin lifecycle** — `ReassignmentStarted` se šalje kad zamjena ostane otvorena za admin akciju, a `ReassignmentCompleted` kad se zamjena stvarno dovrši.
+- **Admin refresh hook** — SignalR listener sad tretira `jobRescheduled` i `reassignmentStarted` kao data-changing evente i radi puni refresh podataka.
+- **Validacija** — `flutter analyze` ostao 0 issues; backend `Helpi.Application.csproj` build prošao. Cijeli solution build je blokirao aktivni `Helpi.WebApi` proces koji drži DLL lock, ne compile greška.
+
 ---
 
 ## 2026-02 — Inicijalni scaffold
