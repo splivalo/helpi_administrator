@@ -354,10 +354,12 @@ class DataLoader {
   /// Returns true if any HTTP response comes back (even 401/404).
   static Future<bool> isServerReachable() async {
     try {
-      final dio = Dio(BaseOptions(
-        connectTimeout: const Duration(seconds: 3),
-        receiveTimeout: const Duration(seconds: 3),
-      ));
+      final dio = Dio(
+        BaseOptions(
+          connectTimeout: const Duration(seconds: 3),
+          receiveTimeout: const Duration(seconds: 3),
+        ),
+      );
       await dio.get('${ApiEndpoints.baseUrl}/api/students');
       return true;
     } on DioException catch (e) {

@@ -88,18 +88,18 @@ lib/
 
 ### Shared widgeti/utilitiji (core/)
 
-| Fajl                                            | Sadržaj                                                                                                                                  |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/utils/formatters.dart`                    | formatDate, formatTime, formatTimeOfDay, formatDateDot                                                                                   |
-| `core/services/preferences_service.dart`        | PreferencesService singleton — grid/sort/tab per screen, web-safe fallback                                                               |
+| Fajl                                            | Sadržaj                                                                                                                                                              |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/utils/formatters.dart`                    | formatDate, formatTime, formatTimeOfDay, formatDateDot                                                                                                               |
+| `core/services/preferences_service.dart`        | PreferencesService singleton — grid/sort/tab per screen, web-safe fallback                                                                                           |
 | `core/widgets/status_badges.dart`               | StatusBadge (StatusBadgeSize enum: small/large), StatusBadge.senior() factory, seniorStatusStyle(), ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel |
-| `core/widgets/shared_widgets.dart`              | SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (ActionChipButtonSize enum: small/medium) |
-| `core/widgets/session_preview_sheet.dart`       | SessionPreviewSheet — prikaz generiranih sesija, dodjela studenta (ConsumerStatefulWidget)                                               |
-| `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                                                                                         |
-| `core/widgets/notification_bell.dart`           | NotificationBell (ConsumerWidget) + NotificationsDrawer (ConsumerStatefulWidget, markRead via provider)                                  |
-| `core/widgets/widgets.dart`                     | Barrel export svih widgeta                                                                                                               |
-| `core/providers/data_providers.dart`            | 7 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms, unreadMessages)                        |
-| `seniors/presentation/senior_form_helpers.dart` | SeniorFormHelpers mixin (forme za add/edit senior)                                                                                       |
+| `core/widgets/shared_widgets.dart`              | SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (ActionChipButtonSize enum: small/medium)                             |
+| `core/widgets/session_preview_sheet.dart`       | SessionPreviewSheet — prikaz generiranih sesija, dodjela studenta (ConsumerStatefulWidget)                                                                           |
+| `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                                                                                                                     |
+| `core/widgets/notification_bell.dart`           | NotificationBell (ConsumerWidget) + NotificationsDrawer (ConsumerStatefulWidget, markRead via provider)                                                              |
+| `core/widgets/widgets.dart`                     | Barrel export svih widgeta                                                                                                                                           |
+| `core/providers/data_providers.dart`            | 7 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms, unreadMessages)                                                    |
+| `seniors/presentation/senior_form_helpers.dart` | SeniorFormHelpers mixin (forme za add/edit senior)                                                                                                                   |
 
 ---
 

@@ -4,31 +4,31 @@
 
 ## Ukupno stanje
 
-| Modul                 | Status                                                                                                       | Dovršenost |
-| --------------------- | ------------------------------------------------------------------------------------------------------------ | ---------- |
-| Auth (Login)          | ✅ UI gotov, mock login, server reachability detection (3-way logic)                                          | 95%        |
-| Dashboard             | ✅ KPI, narudžbe u obradi, aktivni studenti, ugovori, grid/list                                              | 100%       |
-| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                     | 100%       |
-| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                   | 100%       |
-| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                        | 100%       |
-| Seniori – Detalj      | ✅ Profil, narudžbe (sortirano najnovije), "Dodaj narudžbu", centralizirani status badge                      | 100%       |
-| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                             | 100%       |
-| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                  | 100%       |
-| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje (3-branch), uređivanje, promo kod, udaljenost, planirani termini  | 100%       |
-| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                   | 100%       |
-| Chat (Moderacija)     | ✅ Lista razgovora + poruke, unread badge na navigaciji (3 layouta)                                          | 95%        |
-| Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + 30-type enum aligned with backend + 7 icon/color mappings | 95%        |
-| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild, ConsumerStatefulWidget, chat badge                    | 100%       |
-| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                            | 100%       |
-| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                  | 100%       |
-| Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                     | 100%       |
-| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                         | 100%       |
-| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveMessage handlers, Riverpod sync      | 100%       |
-| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                | 100%       |
-| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                 | 100%       |
-| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                 | 100%       |
-| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                        | 100%       |
-| Backend integracija   | ❌ Nije započeta                                                                                             | 0%         |
+| Modul                 | Status                                                                                                                 | Dovršenost |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Auth (Login)          | ✅ UI gotov, mock login, server reachability detection (3-way logic)                                                   | 95%        |
+| Dashboard             | ✅ KPI, narudžbe u obradi, aktivni studenti, ugovori, grid/list                                                        | 100%       |
+| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                               | 100%       |
+| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                             | 100%       |
+| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                                  | 100%       |
+| Seniori – Detalj      | ✅ Profil, narudžbe (sortirano najnovije), "Dodaj narudžbu", centralizirani status badge                               | 100%       |
+| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                                       | 100%       |
+| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                            | 100%       |
+| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje (3-branch), uređivanje, promo kod, udaljenost, planirani termini | 100%       |
+| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                             | 100%       |
+| Chat (Moderacija)     | ✅ Lista razgovora + poruke, unread badge na navigaciji (3 layouta)                                                    | 95%        |
+| Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + 30-type enum aligned with backend + 7 icon/color mappings           | 95%        |
+| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild, ConsumerStatefulWidget, chat badge                              | 100%       |
+| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                                      | 100%       |
+| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                            | 100%       |
+| Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                               | 100%       |
+| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                                   | 100%       |
+| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveMessage handlers, Riverpod sync                | 100%       |
+| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                          | 100%       |
+| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                           | 100%       |
+| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                           | 100%       |
+| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                                  | 100%       |
+| Backend integracija   | ❌ Nije započeta                                                                                                       | 0%         |
 
 **Ukupna dovršenost frontenda: ~98%**
 **28 Dart fajlova, ~18.400 linija koda**
@@ -237,7 +237,7 @@
 - [x] **GET /api/students/available-students (backend)** — New endpoint checks: student active + availability slots + 15-min travel buffer + no conflicting sessions. Supports `excludeJobInstanceIds` param.
 - [x] **Reschedule UI rewrite** — Uses backend available-students endpoint (async), loading spinner, selection by `studentId` (not name), sends `newEndTime` = newStart + originalDuration, only sends `preferredStudentId` when student actually changed.
 - [x] **`endTime` + `studentId` on SessionModel** — Parsed from backend response in `_mapSession`. Used for duration calculation in reschedule.
-- [x] **Lightweight _refreshOrder** — Reduced from 6 parallel API calls (DataLoader.loadAll) to 2 targeted calls (getOrder + getSessionsByOrder). Falls back to full reload on failure.
+- [x] **Lightweight \_refreshOrder** — Reduced from 6 parallel API calls (DataLoader.loadAll) to 2 targeted calls (getOrder + getSessionsByOrder). Falls back to full reload on failure.
 - [x] **Student sort by distance (backend)** — Fixed `StudentRepository.FindEligibleStudentsCore`: two `OrderBy` calls (second overrode first) → `OrderByDescending(preferred) → ThenBy(distance) → ThenByDescending(rating)`.
 - [x] **Senior status centralization** — `seniorStatusStyle()` function + `StatusBadge.senior()` factory in status_badges.dart. Used by both SeniorCard and SeniorDetailScreen AppBar. Fixed bug: detail AppBar checked `o.student != null` on ALL orders instead of filtering live orders only.
 - [x] **Senior orders sorted newest first** — Descending sort by orderNumber in SeniorDetailScreen initState + both refresh methods.
@@ -247,9 +247,9 @@
 
 - [x] **ServerUnavailableScreen health check fix** — Changed from `/health` (doesn't exist) to `/api/students`, accepts any HTTP response (even 401/404) as proof server is up.
 - [x] **DataLoader.isServerReachable()** — Standalone Dio GET with 3s timeout. Returns true if any HTTP response, false only on connection error.
-- [x] **3-way _checkExistingSession** — Distinguishes: (1) server unreachable → ServerUnavailableScreen, (2) server reachable but data failed → force re-login (expired token), (3) data OK → proceed.
-- [x] **_handleLogin always proceeds** — Login proves server is up, so `_serverUnavailable = false` always. Partial data failure doesn't block UI.
-- [x] **_handleServerBack always recovers** — After retry, `_serverUnavailable = false` always. Prevents loop back to unavailable screen.
+- [x] **3-way \_checkExistingSession** — Distinguishes: (1) server unreachable → ServerUnavailableScreen, (2) server reachable but data failed → force re-login (expired token), (3) data OK → proceed.
+- [x] **\_handleLogin always proceeds** — Login proves server is up, so `_serverUnavailable = false` always. Partial data failure doesn't block UI.
+- [x] **\_handleServerBack always recovers** — After retry, `_serverUnavailable = false` always. Prevents loop back to unavailable screen.
 
 ### Chat Unread Badge Infrastructure (2026-03-30)
 
