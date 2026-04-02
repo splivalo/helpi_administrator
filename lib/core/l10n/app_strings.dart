@@ -452,6 +452,8 @@ class AppStrings {
       'sessionsTitle': 'Termini',
       'sessionsMonthlySubtitle': 'Prikazani termini za tekući mjesec.',
       'sessionsPlannedSubtitle': 'Čeka se dodjela studenta.',
+      'sessionsProjectedSubtitle':
+          'Planirani termini (čekaju se podaci s poslužitelja).',
       'sessionsCancelledSubtitle': 'Narudžba je otkazana.',
       'sessionStatusPlanned': 'Planirano',
       'sessionStatusScheduled': 'Nadolazeći',
@@ -1062,6 +1064,7 @@ class AppStrings {
       'sessionsTitle': 'Sessions',
       'sessionsMonthlySubtitle': 'Sessions for the current month.',
       'sessionsPlannedSubtitle': 'Awaiting student assignment.',
+      'sessionsProjectedSubtitle': 'Projected sessions (awaiting server data).',
       'sessionsCancelledSubtitle': 'Order has been cancelled.',
       'sessionStatusPlanned': 'Planned',
       'sessionStatusScheduled': 'Scheduled',
@@ -1827,6 +1830,8 @@ class AppStrings {
   static String get sessionsTitle => _t('sessionsTitle');
   static String get sessionsMonthlySubtitle => _t('sessionsMonthlySubtitle');
   static String get sessionsPlannedSubtitle => _t('sessionsPlannedSubtitle');
+  static String get sessionsProjectedSubtitle =>
+      _t('sessionsProjectedSubtitle');
   static String get sessionsCancelledSubtitle =>
       _t('sessionsCancelledSubtitle');
   static String get sessionStatusPlanned => _t('sessionStatusPlanned');

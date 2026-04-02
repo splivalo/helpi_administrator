@@ -701,7 +701,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         ? _order.sessions
         : projectedSessions;
 
-    final isMuted = isProjected || isOrderCancelled;
+    final hasStudent = _order.student != null;
+    final isMuted = (isProjected && !hasStudent) || isOrderCancelled;
 
     return Container(
       width: double.infinity,
@@ -736,7 +737,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           Text(
             isOrderCancelled
                 ? AppStrings.sessionsCancelledSubtitle
-                : isProjected
+                : isProjected && !hasStudent
                 ? AppStrings.sessionsPlannedSubtitle
                 : _order.frequency != FrequencyType.oneTime
                 ? AppStrings.sessionsMonthlySubtitle
@@ -761,7 +762,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                         final isLast = i == displaySessions.length - 1;
                         return Padding(
                           padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                          child: isProjected
+                          child: isProjected && !hasStudent
                               ? _buildProjectedSessionCard(session)
                               : _buildSessionCard(
                                   session,
@@ -777,7 +778,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                         final session = mapEntry.value;
                         return Padding(
                           padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                          child: isProjected
+                          child: isProjected && !hasStudent
                               ? _buildProjectedSessionCard(session)
                               : _buildSessionCard(
                                   session,

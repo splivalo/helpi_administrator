@@ -308,6 +308,32 @@
 
 ---
 
+### Analitika UX & Earnings toggle (2026-04-02)
+
+- [x] **Earnings toggle redesign** — "Prihod [toggle] Zarada" klackalica dizajn, AnimatedOpacity (active=1.0, inactive=0.35), teal capsule + white knob
+- [x] **hideTitle param** — `_buildMetricChartCard()` podržava `hideTitle: true` za revenue karticu (toggle služi kao naslov)
+- [x] **Mobile responsive header** — Desktop: inline total+badge, Mobile: badge ispod totala desno poravnato
+- [x] **Shorter mobile labels** — "Usporedi prethodno"/"Zarada" na mobilnom umjesto dugačkih naziva
+- [x] **MouseRegion click cursor** — Oba togglea (comparison + earnings) imaju pointer kursor
+- [x] **i18n rename** — `analyticsHelpiNeto` → `analyticsEarnings`, `analyticsNetoShort` → `analyticsEarningsShort`
+
+### Session Preview & Order Detail fixes (2026-04-02)
+
+- [x] **Session preview gray borders** — Sve session kartice koriste `HelpiTheme.border` umjesto obojenih (crveno/zeleno)
+- [x] **Day chip colors match status badges** — Conflict dani koriste `statusCancelledBg/Text`, free dani koriste `statusActiveBg/Text`
+- [x] **Senior detail state refresh** — `await Navigator.push` + re-read orders from provider na povratku iz OrderDetail
+- [x] **Active order projected sessions** — Aktivne narudžbe sa studentom prikazuju projicirane termine kao normalne (ne muted), subtitle "Čeka se dodjela" samo kad nema studenta
+- [x] **`sessionsProjectedSubtitle`** — Novi i18n string (HR + EN)
+
+### Backend Seed realism (2026-04-02)
+
+- [x] **Admin user u seedu** — `info@helpi.social` / `H3lp!5y5t3m5` automatski seedan
+- [x] **Orders 1,3,4 → Completed** — Jednokratne narudžbe s prošlim datumima → realnije završene
+- [x] **ScheduleAssignments + JobInstances za sve FullAssigned narudžbe** — 13 dodjela, 47 sesija
+- [x] **Realne napomene** — Uklonjeno "Test differentTimes", "- zavrseno", "- otkazano"; sve napomene opisuju stvarnu uslugu
+- [x] **Cities ON CONFLICT** — `ON CONFLICT DO NOTHING` za Cities insert (ne pada ako backend već seedao)
+- [x] **Realna distribucija** — Max 1-2 aktivne usluge po senioru, više završenih nego aktivnih
+
 ## Sljedeći koraci (Next Steps)
 
 Pogledaj [ROADMAP.md](ROADMAP.md) za prioritizirane buduće zadatke.

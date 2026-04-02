@@ -1783,11 +1783,22 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
 
   Widget _buildOrderRow(OrderModel order) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        await Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order)),
         );
+        if (!context.mounted) return;
+        // Refresh local orders from provider after returning
+        final freshOrders = ref.read(ordersProvider);
+        final seniorOrders =
+            freshOrders.where((o) => o.senior.id == _senior.id).toList()
+              ..sort((a, b) {
+                final aNum = int.tryParse(a.orderNumber) ?? 0;
+                final bNum = int.tryParse(b.orderNumber) ?? 0;
+                return bNum.compareTo(aNum);
+              });
+        setState(() => _orders = seniorOrders);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
