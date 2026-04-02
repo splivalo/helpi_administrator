@@ -515,46 +515,46 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: GestureDetector(
         onTap: () => setState(() => _showComparison = !_showComparison),
         child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 36,
-            height: 20,
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: _showComparison ? HelpiTheme.accent : HelpiTheme.border,
-            ),
-            alignment: _showComparison
-                ? Alignment.centerRight
-                : Alignment.centerLeft,
-            child: Container(
-              width: 16,
-              height: 16,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 36,
+              height: 20,
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: _showComparison ? HelpiTheme.accent : HelpiTheme.border,
+              ),
+              alignment: _showComparison
+                  ? Alignment.centerRight
+                  : Alignment.centerLeft,
+              child: Container(
+                width: 16,
+                height: 16,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Builder(
-            builder: (ctx) {
-              final isWide = MediaQuery.sizeOf(ctx).width >= 600;
-              return Text(
-                isWide
-                    ? AppStrings.analyticsCompare
-                    : AppStrings.analyticsCompareShort,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: HelpiTheme.textSecondary,
-                ),
-              );
-            },
-          ),
-        ],
-      ),
+            const SizedBox(width: 8),
+            Builder(
+              builder: (ctx) {
+                final isWide = MediaQuery.sizeOf(ctx).width >= 600;
+                return Text(
+                  isWide
+                      ? AppStrings.analyticsCompare
+                      : AppStrings.analyticsCompareShort,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -569,57 +569,57 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: GestureDetector(
         onTap: () => setState(() => _showEarnings = !_showEarnings),
         child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: _showEarnings ? 0.35 : 1.0,
-            child: Text(
-              AppStrings.analyticsRevenue,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: HelpiTheme.textSecondary,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: _showEarnings ? 0.35 : 1.0,
+              child: Text(
+                AppStrings.analyticsRevenue,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: HelpiTheme.textSecondary,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 36,
-            height: 20,
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: HelpiTheme.accent,
-            ),
-            alignment: _showEarnings
-                ? Alignment.centerRight
-                : Alignment.centerLeft,
-            child: Container(
-              width: 16,
-              height: 16,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
+            const SizedBox(width: 8),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 36,
+              height: 20,
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: HelpiTheme.accent,
+              ),
+              alignment: _showEarnings
+                  ? Alignment.centerRight
+                  : Alignment.centerLeft,
+              child: Container(
+                width: 16,
+                height: 16,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: _showEarnings ? 1.0 : 0.35,
-            child: Text(
-              AppStrings.analyticsEarnings,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: HelpiTheme.textSecondary,
+            const SizedBox(width: 8),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: _showEarnings ? 1.0 : 0.35,
+              child: Text(
+                AppStrings.analyticsEarnings,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: HelpiTheme.textSecondary,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }

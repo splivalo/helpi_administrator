@@ -261,10 +261,10 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
       borderColor = HelpiTheme.border;
       bgColor = HelpiTheme.chipBg;
     } else if (isFree || isResolved) {
-      borderColor = HelpiTheme.statusActiveText.withAlpha(80);
+      borderColor = HelpiTheme.border;
       bgColor = Colors.white;
     } else {
-      borderColor = HelpiTheme.statusCancelledText.withAlpha(120);
+      borderColor = HelpiTheme.border;
       bgColor = Colors.white;
     }
 
@@ -289,8 +289,8 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: (!isFree && !isResolved && !s.isSkipped)
-                      ? HelpiTheme.statusCancelledText.withAlpha(20)
-                      : HelpiTheme.accent.withAlpha(20),
+                      ? HelpiTheme.statusCancelledBg
+                      : HelpiTheme.statusActiveBg,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -300,7 +300,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                     fontWeight: FontWeight.w700,
                     color: (!isFree && !isResolved && !s.isSkipped)
                         ? HelpiTheme.statusCancelledText
-                        : HelpiTheme.accent,
+                        : HelpiTheme.statusActiveText,
                   ),
                 ),
               ),
