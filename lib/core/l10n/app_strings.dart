@@ -66,6 +66,8 @@ class AppStrings {
       'analyticsCurrent': 'Trenutno',
       'analyticsPrevious': 'Prethodno',
       'analyticsHelpiNeto': 'Helpi neto',
+      'analyticsCompareShort': 'Usporedi prethodno',
+      'analyticsNetoShort': 'Neto',
       'analyticsExportDate': 'Datum',
       'analyticsExportStripeFee': 'Stripe naknada',
       'analyticsExportStudentPay': 'Isplata studentu',
@@ -675,6 +677,8 @@ class AppStrings {
       'analyticsCurrent': 'Current',
       'analyticsPrevious': 'Previous',
       'analyticsHelpiNeto': 'Helpi neto',
+      'analyticsCompareShort': 'Compare previous',
+      'analyticsNetoShort': 'Net',
       'analyticsExportDate': 'Date',
       'analyticsExportStripeFee': 'Stripe fee',
       'analyticsExportStudentPay': 'Student pay',
@@ -1296,6 +1300,8 @@ class AppStrings {
   static String get analyticsCurrent => _t('analyticsCurrent');
   static String get analyticsPrevious => _t('analyticsPrevious');
   static String get analyticsHelpiNeto => _t('analyticsHelpiNeto');
+  static String get analyticsCompareShort => _t('analyticsCompareShort');
+  static String get analyticsNetoShort => _t('analyticsNetoShort');
   static String get analyticsExportDate => _t('analyticsExportDate');
   static String get analyticsExportStripeFee => _t('analyticsExportStripeFee');
   static String get analyticsExportStudentPay =>

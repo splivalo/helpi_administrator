@@ -537,12 +537,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            AppStrings.analyticsCompare,
-            style: const TextStyle(
-              fontSize: 12,
-              color: HelpiTheme.textSecondary,
-            ),
+          Builder(
+            builder: (ctx) {
+              final isWide = MediaQuery.sizeOf(ctx).width >= 600;
+              return Text(
+                isWide
+                    ? AppStrings.analyticsCompare
+                    : AppStrings.analyticsCompareShort,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: HelpiTheme.textSecondary,
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -581,15 +588,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
           ),
           const SizedBox(width: 6),
-          Text(
-            AppStrings.analyticsHelpiNeto,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: _showNetRevenue ? FontWeight.w600 : FontWeight.normal,
-              color: _showNetRevenue
-                  ? HelpiTheme.accent
-                  : HelpiTheme.textSecondary,
-            ),
+          Builder(
+            builder: (ctx) {
+              final isWide = MediaQuery.sizeOf(ctx).width >= 600;
+              return Text(
+                isWide
+                    ? AppStrings.analyticsHelpiNeto
+                    : AppStrings.analyticsNetoShort,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight:
+                      _showNetRevenue ? FontWeight.w600 : FontWeight.normal,
+                  color: _showNetRevenue
+                      ? HelpiTheme.accent
+                      : HelpiTheme.textSecondary,
+                ),
+              );
+            },
           ),
         ],
       ),
