@@ -639,45 +639,65 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header: icon + title + (optional toggle) + total + % ──
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: lineColor, size: 20),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: HelpiTheme.textSecondary,
-                ),
-              ),
-              if (headerTrailing != null) ...[
-                const SizedBox(width: 10),
-                headerTrailing,
-              ],
-              const Spacer(),
-              Text(
+          // ── Header ──
+          Builder(
+            builder: (ctx) {
+              final isWide = MediaQuery.sizeOf(ctx).width >= 600;
+
+              final totalWidget = Text(
                 _fmtVal(metric, total),
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
                   color: lineColor,
                 ),
-              ),
-              if (pct != null) ...[
-                const SizedBox(width: 8),
-                _PercentBadge(pct: pct),
-              ],
-            ],
+              );
+
+              final headerRow = Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: lineColor, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: HelpiTheme.textSecondary,
+                    ),
+                  ),
+                  if (headerTrailing != null) ...[
+                    const SizedBox(width: 10),
+                    headerTrailing,
+                  ],
+                  const Spacer(),
+                  totalWidget,
+                  if (isWide && pct != null) ...[
+                    const SizedBox(width: 8),
+                    _PercentBadge(pct: pct),
+                  ],
+                ],
+              );
+
+              if (isWide || pct == null) return headerRow;
+
+              // Mobile: badge below, right-aligned
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  headerRow,
+                  const SizedBox(height: 2),
+                  _PercentBadge(pct: pct),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 16),
 
