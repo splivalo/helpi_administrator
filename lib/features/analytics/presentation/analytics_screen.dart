@@ -597,8 +597,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     : AppStrings.analyticsNetoShort,
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight:
-                      _showNetRevenue ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: _showNetRevenue
+                      ? FontWeight.w600
+                      : FontWeight.normal,
                   color: _showNetRevenue
                       ? HelpiTheme.accent
                       : HelpiTheme.textSecondary,
