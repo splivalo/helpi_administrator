@@ -66,6 +66,17 @@ class AppStrings {
       'analyticsCurrent': 'Trenutno',
       'analyticsPrevious': 'Prethodno',
       'analyticsHelpiNeto': 'Helpi neto',
+      'analyticsExportDate': 'Datum',
+      'analyticsExportStripeFee': 'Stripe naknada',
+      'analyticsExportStudentPay': 'Isplata studentu',
+      'analyticsExportStudentService': 'Studentski servis (18%)',
+      'analyticsExportGrossRevenue': 'Prihod (bruto)',
+      'analyticsExportSummarySheet': 'Usporedba',
+      'analyticsExportMetric': 'Metrika',
+      'analyticsExportCurrentPeriod': 'Trenutni period',
+      'analyticsExportPreviousPeriod': 'Prethodni period',
+      'analyticsExportChange': 'Promjena (%)',
+      'analyticsExportTotal': 'Ukupno',
 
       // ── Narudžbe ──────────────────────────────
       'ordersProcessing': 'U obradi',
@@ -664,6 +675,17 @@ class AppStrings {
       'analyticsCurrent': 'Current',
       'analyticsPrevious': 'Previous',
       'analyticsHelpiNeto': 'Helpi neto',
+      'analyticsExportDate': 'Date',
+      'analyticsExportStripeFee': 'Stripe fee',
+      'analyticsExportStudentPay': 'Student pay',
+      'analyticsExportStudentService': 'Student service (18%)',
+      'analyticsExportGrossRevenue': 'Revenue (gross)',
+      'analyticsExportSummarySheet': 'Comparison',
+      'analyticsExportMetric': 'Metric',
+      'analyticsExportCurrentPeriod': 'Current period',
+      'analyticsExportPreviousPeriod': 'Previous period',
+      'analyticsExportChange': 'Change (%)',
+      'analyticsExportTotal': 'Total',
 
       // ── Narudžbe ──────────────────────────────
       'ordersProcessing': 'Processing',
@@ -1274,6 +1296,23 @@ class AppStrings {
   static String get analyticsCurrent => _t('analyticsCurrent');
   static String get analyticsPrevious => _t('analyticsPrevious');
   static String get analyticsHelpiNeto => _t('analyticsHelpiNeto');
+  static String get analyticsExportDate => _t('analyticsExportDate');
+  static String get analyticsExportStripeFee => _t('analyticsExportStripeFee');
+  static String get analyticsExportStudentPay =>
+      _t('analyticsExportStudentPay');
+  static String get analyticsExportStudentService =>
+      _t('analyticsExportStudentService');
+  static String get analyticsExportGrossRevenue =>
+      _t('analyticsExportGrossRevenue');
+  static String get analyticsExportSummarySheet =>
+      _t('analyticsExportSummarySheet');
+  static String get analyticsExportMetric => _t('analyticsExportMetric');
+  static String get analyticsExportCurrentPeriod =>
+      _t('analyticsExportCurrentPeriod');
+  static String get analyticsExportPreviousPeriod =>
+      _t('analyticsExportPreviousPeriod');
+  static String get analyticsExportChange => _t('analyticsExportChange');
+  static String get analyticsExportTotal => _t('analyticsExportTotal');
 
   // ── Narudžbe ──
   static String get ordersProcessing => _t('ordersProcessing');

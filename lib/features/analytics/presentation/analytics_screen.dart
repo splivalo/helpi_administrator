@@ -9,6 +9,7 @@ import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
+import 'package:helpi_admin/core/services/excel_export_service.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 
 /// GA-style analytics — date-range selector, 3 stacked line charts
@@ -297,8 +298,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             const SizedBox(height: 10),
 
-            // ── Comparison toggle ──
-            _comparisonToggle(),
+            // ── Comparison toggle + Export icon ──
+            Row(
+              children: [
+                _comparisonToggle(),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => _exportToExcel(allOrders, allSeniors),
+                  icon: const Icon(Icons.download_outlined),
+                  tooltip: 'Export Excel',
+                  iconSize: 20,
+                  color: HelpiTheme.textSecondary,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
 
             // ── Orders chart ──
@@ -347,6 +365,92 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  EXCEL EXPORT
+  // ═══════════════════════════════════════════════════════════
+
+  List<AnalyticsDayRow> _buildExportRows(
+    List<OrderModel> orders,
+    DateTime from,
+    DateTime to,
+  ) {
+    final days = to.difference(from).inDays + 1;
+    final orderCounts = List.filled(days, 0.0);
+    final grossRevs = List.filled(days, 0.0);
+    final stripeFees = List.filled(days, 0.0);
+    final studentPays = List.filled(days, 0.0);
+    final studentServices = List.filled(days, 0.0);
+    final netoRevs = List.filled(days, 0.0);
+    final seniorSets = List.generate(days, (_) => <String>{});
+
+    for (final o in orders) {
+      // Orders count
+      final od = DateTime(o.createdAt.year, o.createdAt.month, o.createdAt.day);
+      final oIdx = od.difference(from).inDays;
+      if (oIdx >= 0 && oIdx < days) orderCounts[oIdx] += 1;
+
+      // Revenue + seniors
+      if (o.student == null) continue;
+      for (final s in o.sessions) {
+        if (s.status == SessionStatus.cancelled) continue;
+        final d = DateTime(s.date.year, s.date.month, s.date.day);
+        final idx = d.difference(from).inDays;
+        if (idx < 0 || idx >= days) continue;
+
+        seniorSets[idx].add(o.senior.id);
+
+        final isSunday = s.weekday == DateTime.sunday;
+        final seniorRate = isSunday ? _seniorSundayRate : _seniorWeekdayRate;
+        final gross = s.durationHours * seniorRate;
+        final stripe = gross * _stripePct + _stripeFixed;
+        final studentRate = isSunday ? _studentSundayRate : _studentWeekdayRate;
+        final sPay = s.durationHours * studentRate;
+        final sService = sPay * _studentServicePct;
+
+        grossRevs[idx] += gross;
+        stripeFees[idx] += stripe;
+        studentPays[idx] += sPay;
+        studentServices[idx] += sService;
+        netoRevs[idx] += gross - stripe - sPay - sService;
+      }
+    }
+
+    return List.generate(
+      days,
+      (i) => AnalyticsDayRow(
+        date: from.add(Duration(days: i)),
+        orders: orderCounts[i],
+        grossRevenue: grossRevs[i],
+        stripeFee: stripeFees[i],
+        studentPay: studentPays[i],
+        studentService: studentServices[i],
+        helpiNeto: netoRevs[i],
+        activeSeniors: seniorSets[i].length.toDouble(),
+      ),
+    );
+  }
+
+  Future<void> _exportToExcel(
+    List<OrderModel> orders,
+    List<SeniorModel> seniors,
+  ) async {
+    final currentRows = _buildExportRows(orders, _rangeStart, _rangeEnd);
+
+    List<AnalyticsDayRow>? compRows;
+    if (_showComparison) {
+      compRows = _buildExportRows(orders, _compStart, _compEnd);
+    }
+
+    await ExcelExportService.exportAnalytics(
+      currentData: currentRows,
+      rangeStart: _rangeStart,
+      rangeEnd: _rangeEnd,
+      compData: compRows,
+      compStart: _showComparison ? _compStart : null,
+      compEnd: _showComparison ? _compEnd : null,
     );
   }
 

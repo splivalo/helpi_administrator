@@ -189,6 +189,211 @@ class ExcelExportService {
     };
   }
 
+  /// Data class for a single day of analytics.
+  /// All 7 columns are pre-computed by the caller so the export has zero
+  /// business-logic of its own.
+  static Future<bool> exportAnalytics({
+    required List<AnalyticsDayRow> currentData,
+    required DateTime rangeStart,
+    required DateTime rangeEnd,
+    List<AnalyticsDayRow>? compData,
+    DateTime? compStart,
+    DateTime? compEnd,
+  }) async {
+    final excel = Excel.createExcel();
+    String fmtDate(DateTime d) => '${d.day}.${d.month}.${d.year}';
+
+    // ── Header style ──
+    final headerStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#4A90A4'),
+      fontColorHex: ExcelColor.white,
+      horizontalAlign: HorizontalAlign.Center,
+    );
+    final totalStyle = CellStyle(
+      bold: true,
+      backgroundColorHex: ExcelColor.fromHexString('#E8F5E9'),
+    );
+
+    List<String> dayHeaders() => [
+      AppStrings.analyticsExportDate,
+      AppStrings.analyticsOrders,
+      AppStrings.analyticsExportGrossRevenue,
+      AppStrings.analyticsExportStripeFee,
+      AppStrings.analyticsExportStudentPay,
+      AppStrings.analyticsExportStudentService,
+      AppStrings.analyticsHelpiNeto,
+      AppStrings.analyticsActiveSeniors,
+    ];
+
+    void writeDaySheet(Sheet sheet, List<AnalyticsDayRow> rows) {
+      final headers = dayHeaders();
+      for (var i = 0; i < headers.length; i++) {
+        final cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0),
+        );
+        cell.value = TextCellValue(headers[i]);
+        cell.cellStyle = headerStyle;
+      }
+
+      for (var r = 0; r < rows.length; r++) {
+        final row = rows[r];
+        final vals = [
+          fmtDate(row.date),
+          row.orders.toStringAsFixed(0),
+          '€${row.grossRevenue.toStringAsFixed(2)}',
+          '€${row.stripeFee.toStringAsFixed(2)}',
+          '€${row.studentPay.toStringAsFixed(2)}',
+          '€${row.studentService.toStringAsFixed(2)}',
+          '€${row.helpiNeto.toStringAsFixed(2)}',
+          row.activeSeniors.toStringAsFixed(0),
+        ];
+        for (var c = 0; c < vals.length; c++) {
+          sheet
+              .cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1))
+              .value = TextCellValue(
+            vals[c],
+          );
+        }
+      }
+
+      // Totals row
+      final totIdx = rows.length + 1;
+      final totals = _sumRows(rows);
+      final totVals = [
+        AppStrings.analyticsExportTotal,
+        totals.orders.toStringAsFixed(0),
+        '€${totals.grossRevenue.toStringAsFixed(2)}',
+        '€${totals.stripeFee.toStringAsFixed(2)}',
+        '€${totals.studentPay.toStringAsFixed(2)}',
+        '€${totals.studentService.toStringAsFixed(2)}',
+        '€${totals.helpiNeto.toStringAsFixed(2)}',
+        totals.activeSeniors.toStringAsFixed(0),
+      ];
+      for (var c = 0; c < totVals.length; c++) {
+        final cell = sheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: c, rowIndex: totIdx),
+        );
+        cell.value = TextCellValue(totVals[c]);
+        cell.cellStyle = totalStyle;
+      }
+
+      for (var i = 0; i < headers.length; i++) {
+        sheet.setColumnWidth(i, 20);
+      }
+    }
+
+    // ── Sheet 1: Current period ──
+    final sheetName = '${fmtDate(rangeStart)} - ${fmtDate(rangeEnd)}';
+    excel.rename('Sheet1', sheetName);
+    writeDaySheet(excel[sheetName], currentData);
+
+    // ── Sheet 2 + 3: Comparison (only if comparison is active) ──
+    if (compData != null && compStart != null && compEnd != null) {
+      final compSheetName = '${fmtDate(compStart)} - ${fmtDate(compEnd)}';
+      writeDaySheet(excel[compSheetName], compData);
+
+      // Summary sheet
+      final summarySheet = excel[AppStrings.analyticsExportSummarySheet];
+      final summaryHeaders = [
+        AppStrings.analyticsExportMetric,
+        AppStrings.analyticsExportCurrentPeriod,
+        AppStrings.analyticsExportPreviousPeriod,
+        AppStrings.analyticsExportChange,
+      ];
+      for (var i = 0; i < summaryHeaders.length; i++) {
+        final cell = summarySheet.cell(
+          CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0),
+        );
+        cell.value = TextCellValue(summaryHeaders[i]);
+        cell.cellStyle = headerStyle;
+      }
+
+      final curTot = _sumRows(currentData);
+      final prevTot = _sumRows(compData);
+
+      String pctStr(double cur, double prev) {
+        if (prev == 0 && cur == 0) return '0%';
+        if (prev == 0) return '+100%';
+        final pct = ((cur - prev) / prev) * 100;
+        return '${pct >= 0 ? '+' : ''}${pct.toStringAsFixed(1)}%';
+      }
+
+      final metrics = [
+        [
+          AppStrings.analyticsOrders,
+          curTot.orders.toStringAsFixed(0),
+          prevTot.orders.toStringAsFixed(0),
+          pctStr(curTot.orders, prevTot.orders),
+        ],
+        [
+          AppStrings.analyticsExportGrossRevenue,
+          '€${curTot.grossRevenue.toStringAsFixed(2)}',
+          '€${prevTot.grossRevenue.toStringAsFixed(2)}',
+          pctStr(curTot.grossRevenue, prevTot.grossRevenue),
+        ],
+        [
+          AppStrings.analyticsHelpiNeto,
+          '€${curTot.helpiNeto.toStringAsFixed(2)}',
+          '€${prevTot.helpiNeto.toStringAsFixed(2)}',
+          pctStr(curTot.helpiNeto, prevTot.helpiNeto),
+        ],
+        [
+          AppStrings.analyticsActiveSeniors,
+          curTot.activeSeniors.toStringAsFixed(0),
+          prevTot.activeSeniors.toStringAsFixed(0),
+          pctStr(curTot.activeSeniors, prevTot.activeSeniors),
+        ],
+      ];
+
+      for (var r = 0; r < metrics.length; r++) {
+        for (var c = 0; c < metrics[r].length; c++) {
+          summarySheet
+              .cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r + 1))
+              .value = TextCellValue(
+            metrics[r][c],
+          );
+        }
+      }
+
+      for (var i = 0; i < summaryHeaders.length; i++) {
+        summarySheet.setColumnWidth(i, 22);
+      }
+    }
+
+    final fileName = 'analitika_${fmtDate(rangeStart)}-${fmtDate(rangeEnd)}';
+    return _downloadExcel(excel, fileName);
+  }
+
+  static AnalyticsDayRow _sumRows(List<AnalyticsDayRow> rows) {
+    var orders = 0.0;
+    var gross = 0.0;
+    var stripe = 0.0;
+    var student = 0.0;
+    var service = 0.0;
+    var neto = 0.0;
+    var seniors = 0.0;
+    for (final r in rows) {
+      orders += r.orders;
+      gross += r.grossRevenue;
+      stripe += r.stripeFee;
+      student += r.studentPay;
+      service += r.studentService;
+      neto += r.helpiNeto;
+      if (r.activeSeniors > seniors) seniors = r.activeSeniors;
+    }
+    return AnalyticsDayRow(
+      date: rows.first.date,
+      orders: orders,
+      grossRevenue: gross,
+      stripeFee: stripe,
+      studentPay: student,
+      studentService: service,
+      helpiNeto: neto,
+      activeSeniors: seniors,
+    );
+  }
+
   /// Downloads Excel file. On web, file goes to browser's Downloads folder.
   /// User can configure browser to "Ask where to save" for folder picker.
   static Future<bool> _downloadExcel(Excel excel, String baseFileName) async {
@@ -223,4 +428,27 @@ class ExcelExportService {
 
     return true;
   }
+}
+
+/// Pre-computed analytics data for a single day — used by [ExcelExportService.exportAnalytics].
+class AnalyticsDayRow {
+  final DateTime date;
+  final double orders;
+  final double grossRevenue;
+  final double stripeFee;
+  final double studentPay;
+  final double studentService;
+  final double helpiNeto;
+  final double activeSeniors;
+
+  const AnalyticsDayRow({
+    required this.date,
+    required this.orders,
+    required this.grossRevenue,
+    required this.stripeFee,
+    required this.studentPay,
+    required this.studentService,
+    required this.helpiNeto,
+    required this.activeSeniors,
+  });
 }
