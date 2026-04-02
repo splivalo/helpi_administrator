@@ -296,7 +296,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               '${_fmtDate(_rangeStart)} – ${_fmtDate(_rangeEnd)}',
               style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
             ),
-            const SizedBox(height: 10),
 
             // ── Comparison toggle + Export icon ──
             Row(
@@ -317,7 +316,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
             // ── Orders chart ──
             _buildMetricChartCard(
