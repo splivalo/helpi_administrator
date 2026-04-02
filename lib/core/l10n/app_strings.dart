@@ -25,14 +25,14 @@ class AppStrings {
       'appTagline': 'Upravljanje platformom',
 
       // ── Navigacija ────────────────────────────
-      'navDashboard': 'Pregled',
+      'navDashboard': 'Analitika',
       'navStudents': 'Studenti',
       'navSeniors': 'Seniori',
       'navChat': 'Poruke',
       'navSettings': 'Jezik',
 
-      // ── Dashboard ─────────────────────────────
-      'dashboardTitle': 'Pregled',
+      // ── Analitika ─────────────────────────────
+      'dashboardTitle': 'Analitika',
       'totalOrders': 'Ukupno narudžbi',
       'processingOrders': 'Seniori u obradi',
       'activeOrders': 'Aktivne',
@@ -51,6 +51,13 @@ class AppStrings {
       'noProcessingOrders': 'Nema seniora u obradi',
       'noActiveStudentsMonth': 'Nema aktivnih studenata',
       'noExpiringContracts': 'Nema isteklih ugovora',
+      'analyticsWeeklyTitle': 'Tjedni pregled',
+      'analyticsMonthlyTitle': 'Mjesečni pregled',
+      'analyticsRatingTitle': 'Prosječna ocjena studenata',
+      'analyticsPrevPeriod': 'vs prethodni period',
+      'analyticsNoChange': 'Bez promjene',
+      'analyticsTotalHours': 'Ukupno sati: {value}',
+      'analyticsNoData': 'Nema podataka za odabrani period',
 
       // ── Narudžbe ──────────────────────────────
       'ordersProcessing': 'U obradi',
@@ -608,14 +615,14 @@ class AppStrings {
       'appTagline': 'Platform management',
 
       // ── Navigacija ────────────────────────────
-      'navDashboard': 'Dashboard',
+      'navDashboard': 'Analytics',
       'navStudents': 'Students',
       'navSeniors': 'Seniors',
       'navChat': 'Messages',
       'navSettings': 'Language',
 
-      // ── Dashboard ─────────────────────────────
-      'dashboardTitle': 'Dashboard',
+      // ── Analitika ─────────────────────────────
+      'dashboardTitle': 'Analytics',
       'totalOrders': 'Total orders',
       'processingOrders': 'Seniors in processing',
       'activeOrders': 'Active',
@@ -634,6 +641,13 @@ class AppStrings {
       'noProcessingOrders': 'No seniors in processing',
       'noActiveStudentsMonth': 'No active students',
       'noExpiringContracts': 'No expiring contracts',
+      'analyticsWeeklyTitle': 'Weekly overview',
+      'analyticsMonthlyTitle': 'Monthly overview',
+      'analyticsRatingTitle': 'Average student rating',
+      'analyticsPrevPeriod': 'vs previous period',
+      'analyticsNoChange': 'No change',
+      'analyticsTotalHours': 'Total hours: {value}',
+      'analyticsNoData': 'No data for selected period',
 
       // ── Narudžbe ──────────────────────────────
       'ordersProcessing': 'Processing',
@@ -1208,7 +1222,7 @@ class AppStrings {
   static String get navChat => _t('navChat');
   static String get navSettings => _t('navSettings');
 
-  // ── Dashboard ──
+  // ── Analitika ──
   static String get dashboardTitle => _t('dashboardTitle');
   static String get totalOrders => _t('totalOrders');
   static String get processingOrders => _t('processingOrders');
@@ -1228,6 +1242,14 @@ class AppStrings {
   static String get noProcessingOrders => _t('noProcessingOrders');
   static String get noActiveStudentsMonth => _t('noActiveStudentsMonth');
   static String get noExpiringContracts => _t('noExpiringContracts');
+  static String get analyticsWeeklyTitle => _t('analyticsWeeklyTitle');
+  static String get analyticsMonthlyTitle => _t('analyticsMonthlyTitle');
+  static String get analyticsRatingTitle => _t('analyticsRatingTitle');
+  static String get analyticsPrevPeriod => _t('analyticsPrevPeriod');
+  static String get analyticsNoChange => _t('analyticsNoChange');
+  static String analyticsTotalHours(String value) =>
+      _t('analyticsTotalHours', params: {'value': value});
+  static String get analyticsNoData => _t('analyticsNoData');
 
   // ── Narudžbe ──
   static String get ordersProcessing => _t('ordersProcessing');

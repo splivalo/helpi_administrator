@@ -154,6 +154,14 @@ DataLoader.loadAll(ref: ref)
 - Puni `DataLoader.loadAll()` refresh trenutno se pokreće za data-changing tipove uključujući `jobRescheduled`, `reassignmentStarted` i `reassignmentCompleted`.
 - Ovaj pristup je namjerno grub, ali siguran dok admin još radi na full-screen dataset refresh obrascu umjesto finog per-entity patchanja.
 
+### Notification truth model
+
+- Admin notification drawer više nema demo seed fallback; ako je prazan, to znači da backend nije spremio niti emitirao događaj za tog admina.
+- Lokalno dokazani tokovi u ovom trenutku su: dohvat `HNotifications` iz API-ja, `mark-read`, `mark-all-read`, SignalR primitak i refresh za `jobRescheduled`, `reassignmentStarted` i `reassignmentCompleted`.
+- Nedokazani end-to-end tokovi ostaju oni koji ovise o vanjskim servisima ili schedulerima koje svjesno ne palimo u v2 lokalnom radu, npr. Stripe payment notifikacije.
+- Chat ostaje odvojeni mock-preview sloj: UI je namjerno vizualno popunjen demo razgovorima, ali notification sustav više nije.
+- Admin drawer dodatno filtrira participant-only ili zastarjele v1-style tipove (`jobRequest`, payment notifovi, review request, matching/max-attempt noise) kako bi admin feed ostao actionable za v2 ručnu dodjelu.
+
 ### Korištenje u UI-ju
 
 - **`ref.watch()`** u `build()` — reaktivno, rebuild kad se podaci promijene

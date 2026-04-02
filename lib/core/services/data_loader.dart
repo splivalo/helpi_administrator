@@ -137,9 +137,9 @@ class DataLoader {
       allOk = false;
     }
 
-    // TODO: Chat backend not implemented - using demo data for development
-    // In production, chatRooms should be loaded from API like notifications
-    _seedDemoDataIfEmpty();
+    // TODO: Chat backend not implemented - using demo data for development.
+    // Notifications stay backend-only so the admin drawer reflects real events.
+    _seedDemoChatIfEmpty();
 
     // Sync Riverpod providers for reactive UI updates
     if (ref != null) {
@@ -165,55 +165,9 @@ class DataLoader {
     return allOk;
   }
 
-  /// Seeds demo data for development when API returns empty results.
-  /// TODO: Remove this method before production - all data should come from backend
-  static void _seedDemoDataIfEmpty() {
-    // Demo notifications if none from API
-    if (AppData.notifications.isEmpty) {
-      AppData.notifications.addAll([
-        NotificationModel(
-          id: 'demo-notif-1',
-          type: NotificationType.orderCancelled,
-          title: 'Nova narudžba',
-          body: 'Senior Marija Horvat je kreirao novu narudžbu #ORD-001',
-          createdAt: DateTime.now().subtract(const Duration(minutes: 15)),
-          isRead: false,
-        ),
-        NotificationModel(
-          id: 'demo-notif-2',
-          type: NotificationType.general,
-          title: 'Student dodijeljen',
-          body: 'Ana Kovač je dodijeljena narudžbi #ORD-001',
-          createdAt: DateTime.now().subtract(const Duration(hours: 1)),
-          isRead: false,
-        ),
-        NotificationModel(
-          id: 'demo-notif-3',
-          type: NotificationType.paymentSuccess,
-          title: 'Plaćanje uspješno',
-          body: 'Stripe naplata 45.00€ za narudžbu #ORD-002 je uspješna',
-          createdAt: DateTime.now().subtract(const Duration(hours: 3)),
-          isRead: true,
-        ),
-        NotificationModel(
-          id: 'demo-notif-4',
-          type: NotificationType.contractExpired,
-          title: 'Ugovor istječe',
-          body: 'Ugovor studenta Ivan Babić istječe za 5 dana',
-          createdAt: DateTime.now().subtract(const Duration(days: 1)),
-          isRead: true,
-        ),
-        NotificationModel(
-          id: 'demo-notif-5',
-          type: NotificationType.newSeniorAdded,
-          title: 'Novi korisnik',
-          body: 'Senior Petar Novak se registrirao u sustav',
-          createdAt: DateTime.now().subtract(const Duration(days: 2)),
-          isRead: true,
-        ),
-      ]);
-    }
-
+  /// Seeds only demo chat data for development until chat backend exists.
+  /// Notifications intentionally remain backend-only.
+  static void _seedDemoChatIfEmpty() {
     // Demo chat rooms if none exist - use real IDs from loaded data
     if (AppData.chatRooms.isEmpty && AppData.seniors.isNotEmpty) {
       final senior1 = AppData.seniors.isNotEmpty ? AppData.seniors[0] : null;

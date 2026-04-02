@@ -1,34 +1,34 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-04-01
+> Zadnja izmjena: 2026-04-02
 
 ## Ukupno stanje
 
-| Modul                 | Status                                                                                                                       | Dovršenost |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| Auth (Login)          | ✅ UI gotov, mock login, server reachability detection (3-way logic)                                                         | 95%        |
-| Dashboard             | ✅ KPI, narudžbe u obradi, aktivni studenti, ugovori, grid/list                                                              | 100%       |
-| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                                     | 100%       |
-| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                                   | 100%       |
-| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                                        | 100%       |
-| Seniori – Detalj      | ✅ Profil, narudžbe (sortirano najnovije), "Dodaj narudžbu", centralizirani status badge                                     | 100%       |
-| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                                             | 100%       |
-| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                                  | 100%       |
-| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje (3-branch), uređivanje, promo kod, udaljenost, planirani termini       | 100%       |
-| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                                   | 100%       |
-| Chat (Moderacija)     | ✅ Lista razgovora + poruke, unread badge na navigaciji (3 layouta)                                                          | 95%        |
-| Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + 30-type enum aligned with backend + reschedule/reassignment refresh hooks | 100%       |
-| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild, ConsumerStatefulWidget, chat badge                                    | 100%       |
-| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                                            | 100%       |
-| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                                  | 100%       |
-| Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                                     | 100%       |
-| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                                         | 100%       |
-| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveMessage handlers, Riverpod sync                      | 100%       |
-| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                                | 100%       |
-| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                                 | 100%       |
-| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                                 | 100%       |
-| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                                        | 100%       |
-| Backend integracija   | ❌ Nije započeta                                                                                                             | 0%         |
+| Modul                 | Status                                                                                                                         | Dovršenost |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| Auth (Login)          | ✅ UI gotov, mock login, server reachability detection (3-way logic)                                                           | 95%        |
+| Analitika             | ✅ KPI kartice, tjedni/mjesečni bar chart s navigacijom i usporedbom, prosječna ocjena — pomaknuto na zadnju nav poziciju        | 90%        |
+| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                                       | 100%       |
+| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                                     | 100%       |
+| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                                          | 100%       |
+| Seniori – Detalj      | ✅ Profil, narudžbe (sortirano najnovije), "Dodaj narudžbu", centralizirani status badge                                       | 100%       |
+| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                                               | 100%       |
+| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                                    | 100%       |
+| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje (3-branch), uređivanje, promo kod, udaljenost, planirani termini         | 100%       |
+| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                                     | 100%       |
+| Chat (Moderacija)     | ✅ Mock preview razgovora + poruke + unread badge na navigaciji (3 layouta), spremno za budući backend                         | 95%        |
+| Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + backend-only feed bez demo seedanja + reschedule/reassignment refresh hooks | 100%       |
+| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild, ConsumerStatefulWidget, chat badge                                      | 100%       |
+| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                                              | 100%       |
+| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                                    | 100%       |
+| Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                                       | 100%       |
+| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                                           | 100%       |
+| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveMessage handlers, Riverpod sync                        | 100%       |
+| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                                  | 100%       |
+| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                                   | 100%       |
+| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                                   | 100%       |
+| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                                          | 100%       |
+| Backend integracija   | ❌ Nije započeta                                                                                                               | 0%         |
 
 **Ukupna dovršenost frontenda: ~98%**
 **28 Dart fajlova, ~18.400 linija koda**
@@ -222,6 +222,29 @@
 - [x] Backend emitira `ReassignmentStarted` / `ReassignmentCompleted` admin notifikacije kroz postojeći SignalR + storage pipeline
 - [x] Dodani backend lokalizacijski ključevi `Notifications.JobRescheduled` (HR + EN)
 - [x] Verifikacija: `flutter analyze` = 0 issues, `Helpi.Application.csproj` build prolazi
+
+### Dashboard → Analitika transformacija (2026-04-02)
+
+- [x] Prepisana `dashboard_screen.dart` iz redundantnog dashboarda u analytics ekran (1074→727 linija)
+- [x] 4 KPI kartice (responsive: 2x2 na mobitelu, 4x1 na desktopu)
+- [x] Tjedni bar chart (7 dana) s prev/next navigacijom + % usporedba s prethodnim tjednom
+- [x] Mjesečni bar chart (tjedni u mjesecu) s prev/next + % usporedba s prethodnim mjesecom
+- [x] Prosječna ocjena studenata sa zvjezdicama (za ukloniti u sljedećoj iteraciji)
+- [x] 11 mrtvih `dashboardTile*` GPT artefakt ključeva uklonjeno iz AppStrings (HR, EN, getteri)
+- [x] Navigacija: Analitika prebačena na zadnju poziciju (Seniori → Studenti → Chat → Analitika)
+- [x] Ikona promjenjena: `Icons.dashboard` → `Icons.analytics`
+- [x] Dodano 7 novih analytics i18n ključeva (HR + EN)
+- [x] Verifikacija: `flutter analyze` = 0 issues
+- [ ] TODO: Preraditi u Google Analytics stil (date range picker, line/area chart, detaljnija usporedba perioda)
+
+### Notification Evidence Cleanup (2026-04-01)
+
+- [x] Demo notifikacije uklonjene iz admin `DataLoader` fallbacka; notification drawer sada prikazuje samo stvarne backend događaje
+- [x] Uklonjen lažni demo scenarij "Student dodijeljen" koji je izgledao kao automatska v1 dodjela
+- [x] Chat mock preview ostavljen namjerno kako bi se UI mogao pregledavati i prije pravog chat backenda
+- [x] Zapisano što je lokalno dokazano: učitavanje postojećih `HNotifications`, `mark-read`, `mark-all-read`, SignalR primitak i refresh za `jobRescheduled`, `reassignmentStarted`, `reassignmentCompleted`
+- [x] Zapisano što nije end-to-end potvrđeno bez live integracija: Stripe payment notifovi (`paymentSuccess`, `paymentFailed`, `paymentRefunded`) i bilo koji tok koji ovisi o vanjskim servisima ili schedulerima koje trenutno ne palimo
+- [x] Admin UI feed dodatno filtriran na v2-smislene tipove; participant-only ili v1-style noise (`jobRequest`, payment notifovi, review request, matching noise) više se ne prikazuje adminu
 
 ### Error Handling & UX (2026-03-23)
 

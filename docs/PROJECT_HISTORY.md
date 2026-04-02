@@ -2,6 +2,14 @@
 
 > Kronologija ključnih odluka i promjena.
 
+## 2026-04-02 — Dashboard → Analitika transformacija
+
+- **Redundantni dashboard uklonjen** — stari Dashboard (seniori u obradi, aktivni studenti, istekli ugovori) duplicirao podatke koji su već na Seniori i Studenti stranicama; zamijenjen analytics ekranom.
+- **Analitika v1** — 4 KPI kartice + tjedni bar chart (7 dana) + mjesečni bar chart (tjedni u mjesecu) + prosječna ocjena studenata. Prev/next navigacija s % usporedbom prethodnog perioda.
+- **Nav reorder** — Analitika prebačena na zadnju poziciju (Seniori → Studenti → Chat → Analitika) sa `Icons.analytics` ikonom.
+- **GPT artefakti očišćeni** — 11 mrtvih `dashboardTile*` ključeva uklonjeno iz i18n mape.
+- **TODO** — Preraditi u Google Analytics stil: date range picker, linijski graf, detaljnija usporedba, maknuti prosječnu ocjenu.
+
 ## 2026-04-01 — Reschedule notification flow dovršen
 
 - **V2-only pristup zadržan** — reschedule/reassignment business logika nije kopirana iz live/v1 repoa; korišten je samo postojeći v2 notification transport.
@@ -9,6 +17,17 @@
 - **Reassignment admin lifecycle** — `ReassignmentStarted` se šalje kad zamjena ostane otvorena za admin akciju, a `ReassignmentCompleted` kad se zamjena stvarno dovrši.
 - **Admin refresh hook** — SignalR listener sad tretira `jobRescheduled` i `reassignmentStarted` kao data-changing evente i radi puni refresh podataka.
 - **Validacija** — `flutter analyze` ostao 0 issues; backend `Helpi.Application.csproj` build prošao. Cijeli solution build je blokirao aktivni `Helpi.WebApi` proces koji drži DLL lock, ne compile greška.
+
+## 2026-04-01 — Admin notifications očišćene od demo fallbacka
+
+- **Demo notifikacije uklonjene** — admin drawer više ne seed-a lažne `Nova narudžba`, `Student dodijeljen` ili Stripe poruke kad je backend prazan.
+- **V2 semantika pojašnjena** — uklonjen je zbunjujući demo dojam automatske dodjele studenta; admin notifikacije sad ostaju samo ono što backend stvarno spremi ili emitira.
+- **Chat ostavljen mock** — chat preview ostaje namjerno popunjen demo razgovorima kako bi UI bio pregledljiv dok pravi chat backend još ne postoji.
+- **Dokazni status zapisan** — u dokumentaciji su odvojeni lokalno potvrđeni notification tokovi od onih koje još ne možemo probati bez vanjskih servisa poput Stripea.
+
+## 2026-04-01 — Admin notification feed usklađen s v2 backendom
+
+- **Notification feed filtriran za admin** — participant-only i v1-style noise tipovi više se ne prikazuju adminu; ostavljeni su samo actionable ili administrativno relevantni događaji.
 
 ---
 

@@ -10,7 +10,32 @@ import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
-// TODO: Notifications are loaded from API but table is empty. Backend needs to create notifications when actions occur (order created, student assigned, etc.)
+// Notifications shown here come only from persisted backend events and SignalR.
+// Empty state is expected until the backend actually emits or stores an event.
+
+const _hiddenAdminNotificationTypes = {
+  NotificationType.paymentSuccess,
+  NotificationType.paymentFailed,
+  NotificationType.paymentRefunded,
+  NotificationType.jobRequest,
+  NotificationType.jobStartReminder,
+  NotificationType.jobInProgress,
+  NotificationType.jobCompleted,
+  NotificationType.allEligibleStudentsNotified,
+  NotificationType.matchingMaxAttemptsReached,
+  NotificationType.reviewRequest,
+};
+
+List<NotificationModel> _visibleAdminNotifications(
+  Iterable<NotificationModel> notifications,
+) {
+  return notifications
+      .where(
+        (notification) =>
+            !_hiddenAdminNotificationTypes.contains(notification.type),
+      )
+      .toList();
+}
 
 /// Bell icon with unread-count badge. Opens [NotificationsDrawer].
 class NotificationBell extends ConsumerWidget {
@@ -18,10 +43,9 @@ class NotificationBell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unread = ref
-        .watch(notificationsProvider)
-        .where((n) => !n.isRead)
-        .length;
+    final unread = _visibleAdminNotifications(
+      ref.watch(notificationsProvider),
+    ).where((n) => !n.isRead).length;
     return IconButton(
       icon: Badge(
         isLabelVisible: unread > 0,
@@ -73,7 +97,9 @@ class _NotificationsDrawer extends ConsumerStatefulWidget {
 class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
   @override
   Widget build(BuildContext context) {
-    final notifications = ref.watch(notificationsProvider);
+    final notifications = _visibleAdminNotifications(
+      ref.watch(notificationsProvider),
+    );
     final unreadCount = notifications.where((n) => !n.isRead).length;
 
     return Align(
@@ -251,9 +277,13 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
     if (n.orderId != null &&
         (type == NotificationType.newOrderAdded ||
             type == NotificationType.orderCancelled ||
-            type == NotificationType.paymentSuccess ||
-            type == NotificationType.paymentFailed ||
-            type == NotificationType.paymentRefunded)) {
+            type == NotificationType.orderScheduleCancelled ||
+            type == NotificationType.scheduleAssignmentCancelled ||
+            type == NotificationType.jobCancelled ||
+            type == NotificationType.jobRescheduled ||
+            type == NotificationType.noEligibleStudents ||
+            type == NotificationType.reassignmentStarted ||
+            type == NotificationType.reassignmentCompleted)) {
       final order = ref
           .read(ordersProvider)
           .where((o) => o.id == '${n.orderId}')
@@ -377,10 +407,22 @@ class _NotificationTile extends StatelessWidget {
       NotificationType.newSeniorAdded => Icons.person_add_outlined,
       NotificationType.newOrderAdded => Icons.shopping_bag_outlined,
       NotificationType.orderCancelled => Icons.shopping_bag_outlined,
+      NotificationType.orderScheduleCancelled => Icons.event_busy_outlined,
+      NotificationType.scheduleAssignmentCancelled =>
+        Icons.person_remove_alt_1_outlined,
       NotificationType.jobCancelled => Icons.event_busy_outlined,
+      NotificationType.jobRescheduled => Icons.event_repeat_outlined,
+      NotificationType.noEligibleStudents => Icons.person_search_outlined,
+      NotificationType.reassignmentStarted => Icons.swap_horiz_outlined,
+      NotificationType.reassignmentCompleted =>
+        Icons.swap_horizontal_circle_outlined,
+      NotificationType.contractAdded => Icons.description_outlined,
+      NotificationType.contractUpdated => Icons.edit_document,
       NotificationType.contractExpired => Icons.warning_amber_rounded,
-      NotificationType.paymentSuccess => Icons.payment_outlined,
-      NotificationType.paymentFailed => Icons.money_off_outlined,
+      NotificationType.contractDeleted => Icons.delete_outline,
+      NotificationType.contractAboutToExpire => Icons.schedule_outlined,
+      NotificationType.customerDeleted => Icons.person_remove_outlined,
+      NotificationType.adminDeleted => Icons.admin_panel_settings_outlined,
       _ => Icons.info_outline,
     };
   }
@@ -391,10 +433,20 @@ class _NotificationTile extends StatelessWidget {
       NotificationType.newSeniorAdded => HelpiTheme.accent,
       NotificationType.newOrderAdded => HelpiTheme.accent,
       NotificationType.orderCancelled => HelpiTheme.statusCancelledText,
+      NotificationType.orderScheduleCancelled => HelpiTheme.statusCancelledText,
+      NotificationType.scheduleAssignmentCancelled => HelpiTheme.primary,
       NotificationType.jobCancelled => HelpiTheme.statusCancelledText,
+      NotificationType.jobRescheduled => HelpiTheme.accent,
+      NotificationType.noEligibleStudents => HelpiTheme.primary,
+      NotificationType.reassignmentStarted => HelpiTheme.primary,
+      NotificationType.reassignmentCompleted => const Color(0xFF2E7D32),
+      NotificationType.contractAdded => HelpiTheme.accent,
+      NotificationType.contractUpdated => HelpiTheme.accent,
       NotificationType.contractExpired => const Color(0xFFE65100),
-      NotificationType.paymentSuccess => Colors.green,
-      NotificationType.paymentFailed => Colors.red,
+      NotificationType.contractDeleted => HelpiTheme.statusCancelledText,
+      NotificationType.contractAboutToExpire => const Color(0xFFE65100),
+      NotificationType.customerDeleted => HelpiTheme.statusCancelledText,
+      NotificationType.adminDeleted => HelpiTheme.statusCancelledText,
       _ => HelpiTheme.textSecondary,
     };
   }
@@ -405,10 +457,25 @@ class _NotificationTile extends StatelessWidget {
       NotificationType.newSeniorAdded => HelpiTheme.pastelTeal,
       NotificationType.newOrderAdded => HelpiTheme.pastelTeal,
       NotificationType.orderCancelled => HelpiTheme.statusCancelledBg,
+      NotificationType.orderScheduleCancelled => HelpiTheme.statusCancelledBg,
+      NotificationType.scheduleAssignmentCancelled =>
+        HelpiTheme.primary.withValues(alpha: 0.12),
       NotificationType.jobCancelled => HelpiTheme.statusCancelledBg,
+      NotificationType.jobRescheduled => HelpiTheme.pastelTeal,
+      NotificationType.noEligibleStudents => HelpiTheme.primary.withValues(
+        alpha: 0.12,
+      ),
+      NotificationType.reassignmentStarted => HelpiTheme.primary.withValues(
+        alpha: 0.12,
+      ),
+      NotificationType.reassignmentCompleted => const Color(0xFFE8F5E9),
+      NotificationType.contractAdded => HelpiTheme.pastelTeal,
+      NotificationType.contractUpdated => HelpiTheme.pastelTeal,
       NotificationType.contractExpired => const Color(0xFFFFF3E0),
-      NotificationType.paymentSuccess => const Color(0xFFE8F5E9),
-      NotificationType.paymentFailed => const Color(0xFFFFEBEE),
+      NotificationType.contractDeleted => HelpiTheme.statusCancelledBg,
+      NotificationType.contractAboutToExpire => const Color(0xFFFFF3E0),
+      NotificationType.customerDeleted => HelpiTheme.statusCancelledBg,
+      NotificationType.adminDeleted => HelpiTheme.statusCancelledBg,
       _ => const Color(0xFFF5F5F5),
     };
   }

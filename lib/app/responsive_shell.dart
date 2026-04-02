@@ -39,10 +39,10 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     // Use locale-based key so screens rebuild on language change
     final locale = AppStrings.currentLocale;
     return <Widget>[
-      DashboardScreen(key: ValueKey('dashboard_$locale')),
       SeniorsScreen(key: ValueKey('seniors_$locale')),
       StudentsScreen(key: ValueKey('students_$locale')),
       ChatModScreen(key: ValueKey('chat_$locale')),
+      DashboardScreen(key: ValueKey('analytics_$locale')),
     ];
   }
 
@@ -115,24 +115,18 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                     children: [
                       _sidebarItem(
                         0,
-                        Icons.dashboard_outlined,
-                        Icons.dashboard,
-                        AppStrings.navDashboard,
-                      ),
-                      _sidebarItem(
-                        1,
                         Icons.elderly_outlined,
                         Icons.elderly,
                         AppStrings.navSeniors,
                       ),
                       _sidebarItem(
-                        2,
+                        1,
                         Icons.school_outlined,
                         Icons.school,
                         AppStrings.navStudents,
                       ),
                       _sidebarItem(
-                        3,
+                        2,
                         Icons.chat_bubble_outline,
                         Icons.chat_bubble,
                         AppStrings.navChat,
@@ -140,6 +134,12 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                             .watch(unreadMessagesProvider)
                             .values
                             .fold(0, (sum, c) => sum + c),
+                      ),
+                      _sidebarItem(
+                        3,
+                        Icons.analytics_outlined,
+                        Icons.analytics,
+                        AppStrings.navDashboard,
                       ),
                     ],
                   ),
@@ -315,11 +315,6 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             ),
             destinations: [
               NavigationRailDestination(
-                icon: const Icon(Icons.dashboard_outlined),
-                selectedIcon: const Icon(Icons.dashboard),
-                label: Text(AppStrings.navDashboard),
-              ),
-              NavigationRailDestination(
                 icon: const Icon(Icons.elderly_outlined),
                 selectedIcon: const Icon(Icons.elderly),
                 label: Text(AppStrings.navSeniors),
@@ -333,6 +328,11 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 icon: _badgedIcon(const Icon(Icons.chat_bubble_outline)),
                 selectedIcon: _badgedIcon(const Icon(Icons.chat_bubble)),
                 label: Text(AppStrings.navChat),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.analytics_outlined),
+                selectedIcon: const Icon(Icons.analytics),
+                label: Text(AppStrings.navDashboard),
               ),
             ],
           ),
@@ -367,11 +367,6 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           onTap: _onItemTapped,
           items: [
             BottomNavigationBarItem(
-              icon: const Icon(Icons.dashboard_outlined, size: 26),
-              activeIcon: const Icon(Icons.dashboard, size: 26),
-              label: AppStrings.navDashboard,
-            ),
-            BottomNavigationBarItem(
               icon: const Icon(Icons.elderly_outlined, size: 26),
               activeIcon: const Icon(Icons.elderly, size: 26),
               label: AppStrings.navSeniors,
@@ -387,6 +382,11 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
               ),
               activeIcon: _badgedIcon(const Icon(Icons.chat_bubble, size: 26)),
               label: AppStrings.navChat,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.analytics_outlined, size: 26),
+              activeIcon: const Icon(Icons.analytics, size: 26),
+              label: AppStrings.navDashboard,
             ),
           ],
         ),
