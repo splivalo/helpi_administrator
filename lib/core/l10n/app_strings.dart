@@ -65,6 +65,7 @@ class AppStrings {
       'analyticsNoData': 'Nema podataka za odabrani period',
       'analyticsCurrent': 'Trenutno',
       'analyticsPrevious': 'Prethodno',
+      'analyticsHelpiNeto': 'Helpi neto',
 
       // ── Narudžbe ──────────────────────────────
       'ordersProcessing': 'U obradi',
@@ -662,6 +663,7 @@ class AppStrings {
       'analyticsNoData': 'No data for selected period',
       'analyticsCurrent': 'Current',
       'analyticsPrevious': 'Previous',
+      'analyticsHelpiNeto': 'Helpi neto',
 
       // ── Narudžbe ──────────────────────────────
       'ordersProcessing': 'Processing',
@@ -1271,6 +1273,7 @@ class AppStrings {
   static String get analyticsNoData => _t('analyticsNoData');
   static String get analyticsCurrent => _t('analyticsCurrent');
   static String get analyticsPrevious => _t('analyticsPrevious');
+  static String get analyticsHelpiNeto => _t('analyticsHelpiNeto');
 
   // ── Narudžbe ──
   static String get ordersProcessing => _t('ordersProcessing');

@@ -39,6 +39,16 @@
 
 ### Admin app & infrastruktura
 
+### Stripe egzaktni fee za Helpi neto
+
+- [ ] **Stripe fee iz webhoooka (backend + frontend)** — Trenutno admin analytics "Helpi neto" koristi formulu `1.5% + €0.25` (EEA standard). Za non-EEA kartice (Revolut UK i sl.) Stripe uzima 3.25% + €0.25, pa formula podcjenjuje fee za te transakcije. **Plan**:
+  1. Backend: dodati `StripeFee` (decimal) kolonu u `PaymentTransaction` entitet + migracija
+  2. Backend: u `StripeWebhookController` dodati handler za `charge.succeeded` event — iz `Charge.BalanceTransaction.Fee` izvući egzaktni fee i spremiti ga
+  3. API: u session/payment DTO vratiti `stripeFee` polje
+  4. Frontend: čitati stvarni fee iz API-ja umjesto formule u `analytics_screen.dart` (vidjeti `TODO(neto-egzaktno)` komentar)
+  - **Referenca**: Order #30 (€42) i Order #24 (€56) u Stripe dashboardu imaju veći fee → non-EEA kartice
+  - **Utjecaj**: Razlika je minimalna (~€0.74 po non-EEA transakciji), ali za 100% točnost treba ovo
+
 - [ ] **Backend integracija** — Zamjena AppData s REST API pozivima. Definiranje API endpointova, autentifikacija (JWT), error handling. Ovo je GLAVNI preostali zadatak.
 - [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
 - [x] **Blagdani (javni praznici)** — `CroatianHolidays.cs` (backend) + `croatian_holidays.dart` (admin) — 13 fiksnih praznika + Computus algoritam za Uskrsni ponedjeljak i Tijelovo. `HangfireRecurringJobService` koristi `isOvertimeDay = Sunday || CroatianHolidays.IsPublicHoliday(date)`. Label: "Povećana satnica" (ne "Nedjeljna"). ✅ (2026-03-22, commit backend `a652bff`, admin `742ff07`)

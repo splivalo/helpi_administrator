@@ -29,8 +29,30 @@ enum _Metric { orders, revenue, activeSeniors }
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   _RangePreset _preset = _RangePreset.last7;
   bool _showComparison = false;
+  bool _showNetRevenue = false;
   late DateTime _rangeStart;
   late DateTime _rangeEnd;
+
+  // ── Pricing constants (source of truth) ──
+  // Senior pays:
+  static const double _seniorWeekdayRate = 14.0;
+  static const double _seniorSundayRate = 16.0;
+  // Student receives:
+  static const double _studentWeekdayRate = 7.40;
+  static const double _studentSundayRate = 11.10;
+  // Costs:
+  static const double _studentServicePct = 0.18; // 18% student service fee
+  // TODO(neto-exact): Stripe fee is currently estimated using the formula
+  // 1.5% + €0.25 (EEA standard rate). For exact figures:
+  //   1. Backend: add a StripeFee decimal column to PaymentTransaction
+  //   2. Backend: handle "charge.succeeded" in StripeWebhookController,
+  //      retrieve BalanceTransaction and persist its fee field
+  //   3. API: return stripeFee in the session/payment DTO
+  //   4. Frontend: read the actual fee from the API instead of this formula
+  // Non-EEA cards are charged 3.25% + €0.25, so the formula underestimates
+  // the fee for ~18% of transactions (see Stripe dashboard — Order #30, #24).
+  static const double _stripePct = 0.015; // 1.5%
+  static const double _stripeFixed = 0.25; // €0.25 per charge (per session)
 
   @override
   void initState() {
@@ -98,17 +120,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         }
       case _Metric.revenue:
         for (final o in orders) {
-          final student = o.student;
-          if (student == null) continue;
+          if (o.student == null) continue;
           for (final s in o.sessions) {
             if (s.status == SessionStatus.cancelled) continue;
             final d = DateTime(s.date.year, s.date.month, s.date.day);
             final idx = d.difference(from).inDays;
             if (idx >= 0 && idx < days) {
-              final rate = s.weekday == 7
-                  ? student.sundayHourlyRate
-                  : student.hourlyRate;
-              result[idx] += s.durationHours * rate;
+              final isSunday = s.weekday == DateTime.sunday;
+              final seniorRate = isSunday
+                  ? _seniorSundayRate
+                  : _seniorWeekdayRate;
+              final gross = s.durationHours * seniorRate;
+
+              if (_showNetRevenue) {
+                // Exact per-session neto:
+                // gross − Stripe fee − student pay − studentski servis (18%)
+                final stripeFee = gross * _stripePct + _stripeFixed;
+                final studentRate = isSunday
+                    ? _studentSundayRate
+                    : _studentWeekdayRate;
+                final studentPay = s.durationHours * studentRate;
+                final studentService = studentPay * _studentServicePct;
+                result[idx] += gross - stripeFee - studentPay - studentService;
+              } else {
+                result[idx] += gross;
+              }
             }
           }
         }
@@ -283,13 +319,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             _buildMetricChartCard(
               theme: theme,
               metric: _Metric.revenue,
-              title: AppStrings.analyticsRevenue,
+              title: _showNetRevenue
+                  ? AppStrings.analyticsHelpiNeto
+                  : AppStrings.analyticsRevenue,
               icon: Icons.euro_outlined,
               lineColor: HelpiTheme.statusActiveText,
               bgColor: HelpiTheme.statusActiveBg,
               currentValues: revenueData,
               compValues: revenueComp,
               pct: pctRevenue,
+              headerTrailing: _netoToggle(),
             ),
             const SizedBox(height: 16),
 
@@ -407,6 +446,53 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   // ═══════════════════════════════════════════════════════════
+  //  NETO TOGGLE (inside Revenue card header)
+  // ═══════════════════════════════════════════════════════════
+
+  Widget _netoToggle() {
+    return GestureDetector(
+      onTap: () => setState(() => _showNetRevenue = !_showNetRevenue),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 36,
+            height: 20,
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: _showNetRevenue ? HelpiTheme.accent : HelpiTheme.border,
+            ),
+            alignment: _showNetRevenue
+                ? Alignment.centerRight
+                : Alignment.centerLeft,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            AppStrings.analyticsHelpiNeto,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: _showNetRevenue ? FontWeight.w600 : FontWeight.normal,
+              color: _showNetRevenue
+                  ? HelpiTheme.accent
+                  : HelpiTheme.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
   //  METRIC CHART CARD
   // ═══════════════════════════════════════════════════════════
 
@@ -420,6 +506,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required List<double> currentValues,
     required List<double> compValues,
     required double? pct,
+    Widget? headerTrailing,
   }) {
     final total = currentValues.fold(0.0, (a, b) => a + b);
 
@@ -433,7 +520,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header: icon + title + total + % ──
+          // ── Header: icon + title + (optional toggle) + total + % ──
           Row(
             children: [
               Container(
@@ -454,6 +541,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   color: HelpiTheme.textSecondary,
                 ),
               ),
+              if (headerTrailing != null) ...[
+                const SizedBox(width: 10),
+                headerTrailing,
+              ],
               const Spacer(),
               Text(
                 _fmtVal(metric, total),
@@ -650,6 +741,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ),
         lineTouchData: LineTouchData(
+          getTouchedSpotIndicator: (barData, spotIndexes) {
+            return spotIndexes.map((i) {
+              return TouchedSpotIndicatorData(
+                FlLine(
+                  color: HelpiTheme.border.withValues(alpha: 0.5),
+                  strokeWidth: 1,
+                ),
+                FlDotData(
+                  show: true,
+                  getDotPainter: (spot, pct, bar, idx) => FlDotCirclePainter(
+                    radius: 4,
+                    color: lineColor,
+                    strokeWidth: 2,
+                    strokeColor: Colors.white,
+                  ),
+                ),
+              );
+            }).toList();
+          },
           touchTooltipData: LineTouchTooltipData(
             getTooltipColor: (_) => const Color(0xEE333333),
             tooltipPadding: const EdgeInsets.symmetric(
