@@ -510,9 +510,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // ═══════════════════════════════════════════════════════════
 
   Widget _comparisonToggle() {
-    return GestureDetector(
-      onTap: () => setState(() => _showComparison = !_showComparison),
-      child: Row(
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => setState(() => _showComparison = !_showComparison),
+        child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedContainer(
@@ -553,17 +555,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ],
       ),
+      ),
     );
   }
 
   // ═══════════════════════════════════════════════════════════
-  //  NETO TOGGLE (inside Revenue card header)
+  //  EARNINGS TOGGLE (inside Revenue card header)
   // ═══════════════════════════════════════════════════════════
 
   Widget _earningsToggle() {
-    return GestureDetector(
-      onTap: () => setState(() => _showEarnings = !_showEarnings),
-      child: Row(
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => setState(() => _showEarnings = !_showEarnings),
+        child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           AnimatedOpacity(
@@ -614,6 +619,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
