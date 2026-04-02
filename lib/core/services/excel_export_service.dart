@@ -222,7 +222,7 @@ class ExcelExportService {
       AppStrings.analyticsExportStripeFee,
       AppStrings.analyticsExportStudentPay,
       AppStrings.analyticsExportStudentService,
-      AppStrings.analyticsHelpiNeto,
+      AppStrings.analyticsEarnings,
       AppStrings.analyticsActiveSeniors,
     ];
 
@@ -333,7 +333,7 @@ class ExcelExportService {
           pctStr(curTot.grossRevenue, prevTot.grossRevenue),
         ],
         [
-          AppStrings.analyticsHelpiNeto,
+          AppStrings.analyticsEarnings,
           '€${curTot.helpiNeto.toStringAsFixed(2)}',
           '€${prevTot.helpiNeto.toStringAsFixed(2)}',
           pctStr(curTot.helpiNeto, prevTot.helpiNeto),

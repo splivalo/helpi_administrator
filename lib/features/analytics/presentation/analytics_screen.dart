@@ -30,7 +30,7 @@ enum _Metric { orders, revenue, activeSeniors }
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   _RangePreset _preset = _RangePreset.last7;
   bool _showComparison = false;
-  bool _showNetRevenue = false;
+  bool _showEarnings = false;
   late DateTime _rangeStart;
   late DateTime _rangeEnd;
 
@@ -133,7 +133,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   : _seniorWeekdayRate;
               final gross = s.durationHours * seniorRate;
 
-              if (_showNetRevenue) {
+              if (_showEarnings) {
                 // Exact per-session neto:
                 // gross − Stripe fee − student pay − studentski servis (18%)
                 final stripeFee = gross * _stripePct + _stripeFixed;
@@ -336,8 +336,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             _buildMetricChartCard(
               theme: theme,
               metric: _Metric.revenue,
-              title: _showNetRevenue
-                  ? AppStrings.analyticsHelpiNeto
+              title: _showEarnings
+                  ? AppStrings.analyticsEarnings
                   : AppStrings.analyticsRevenue,
               icon: Icons.euro_outlined,
               lineColor: HelpiTheme.statusActiveText,
@@ -345,7 +345,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               currentValues: revenueData,
               compValues: revenueComp,
               pct: pctRevenue,
-              headerTrailing: _netoToggle(),
+              headerTrailing: _earningsToggle(),
+              hideTitle: true,
             ),
             const SizedBox(height: 16),
 
@@ -559,12 +560,25 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   //  NETO TOGGLE (inside Revenue card header)
   // ═══════════════════════════════════════════════════════════
 
-  Widget _netoToggle() {
+  Widget _earningsToggle() {
     return GestureDetector(
-      onTap: () => setState(() => _showNetRevenue = !_showNetRevenue),
+      onTap: () => setState(() => _showEarnings = !_showEarnings),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: _showEarnings ? 0.35 : 1.0,
+            child: Text(
+              AppStrings.analyticsRevenue,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: HelpiTheme.textSecondary,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             width: 36,
@@ -572,9 +586,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: _showNetRevenue ? HelpiTheme.accent : HelpiTheme.border,
+              color: HelpiTheme.accent,
             ),
-            alignment: _showNetRevenue
+            alignment: _showEarnings
                 ? Alignment.centerRight
                 : Alignment.centerLeft,
             child: Container(
@@ -586,25 +600,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 6),
-          Builder(
-            builder: (ctx) {
-              final isWide = MediaQuery.sizeOf(ctx).width >= 600;
-              return Text(
-                isWide
-                    ? AppStrings.analyticsHelpiNeto
-                    : AppStrings.analyticsNetoShort,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: _showNetRevenue
-                      ? FontWeight.w600
-                      : FontWeight.normal,
-                  color: _showNetRevenue
-                      ? HelpiTheme.accent
-                      : HelpiTheme.textSecondary,
-                ),
-              );
-            },
+          const SizedBox(width: 8),
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: _showEarnings ? 1.0 : 0.35,
+            child: Text(
+              AppStrings.analyticsEarnings,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: HelpiTheme.textSecondary,
+              ),
+            ),
           ),
         ],
       ),
@@ -626,6 +633,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required List<double> compValues,
     required double? pct,
     Widget? headerTrailing,
+    bool hideTitle = false,
   }) {
     final total = currentValues.fold(0.0, (a, b) => a + b);
 
@@ -665,18 +673,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     child: Icon(icon, color: lineColor, size: 20),
                   ),
                   const SizedBox(width: 10),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: HelpiTheme.textSecondary,
+                  if (!hideTitle)
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: HelpiTheme.textSecondary,
+                      ),
                     ),
-                  ),
-                  if (headerTrailing != null) ...[
+                  if (!hideTitle && headerTrailing != null)
                     const SizedBox(width: 10),
-                    headerTrailing,
-                  ],
+                  ?headerTrailing,
                   const Spacer(),
                   totalWidget,
                   if (isWide && pct != null) ...[
