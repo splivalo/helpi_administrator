@@ -4,31 +4,31 @@
 
 ## Ukupno stanje
 
-| Modul                 | Status                                                                                                                         | Dovršenost |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------- |
-| Auth (Login)          | ✅ UI gotov, mock login, server reachability detection (3-way logic)                                                           | 95%        |
-| Analitika             | ✅ KPI kartice, tjedni/mjesečni bar chart s navigacijom i usporedbom, prosječna ocjena — pomaknuto na zadnju nav poziciju        | 90%        |
-| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                                       | 100%       |
-| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                                     | 100%       |
-| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                                          | 100%       |
-| Seniori – Detalj      | ✅ Profil, narudžbe (sortirano najnovije), "Dodaj narudžbu", centralizirani status badge                                       | 100%       |
-| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                                               | 100%       |
-| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                                    | 100%       |
-| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje (3-branch), uređivanje, promo kod, udaljenost, planirani termini         | 100%       |
-| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                                     | 100%       |
-| Chat (Moderacija)     | ✅ Mock preview razgovora + poruke + unread badge na navigaciji (3 layouta), spremno za budući backend                         | 95%        |
-| Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + backend-only feed bez demo seedanja + reschedule/reassignment refresh hooks | 100%       |
-| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild, ConsumerStatefulWidget, chat badge                                      | 100%       |
-| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                                              | 100%       |
-| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                                    | 100%       |
-| Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                                       | 100%       |
-| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                                           | 100%       |
-| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveMessage handlers, Riverpod sync                        | 100%       |
-| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                                  | 100%       |
-| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                                   | 100%       |
-| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                                   | 100%       |
-| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                                          | 100%       |
-| Backend integracija   | ❌ Nije započeta                                                                                                               | 0%         |
+| Modul                 | Status                                                                                                                                        | Dovršenost |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Auth (Login)          | ✅ UI gotov, mock login, server reachability detection (3-way logic)                                                                          | 95%        |
+| Analitika             | ✅ GA-style: line chart (fl_chart), date range picker (7d/mjesec/custom), 3 metrike (narudžbe/prihod/seniori), usporedba perioda, KPI kartice | 100%       |
+| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                                                      | 100%       |
+| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                                                    | 100%       |
+| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                                                         | 100%       |
+| Seniori – Detalj      | ✅ Profil, narudžbe (sortirano najnovije), "Dodaj narudžbu", centralizirani status badge                                                      | 100%       |
+| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                                                              | 100%       |
+| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                                                   | 100%       |
+| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje (3-branch), uređivanje, promo kod, udaljenost, planirani termini                        | 100%       |
+| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                                                    | 100%       |
+| Chat (Moderacija)     | ✅ Mock preview razgovora + poruke + unread badge na navigaciji (3 layouta), spremno za budući backend                                        | 95%        |
+| Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + backend-only feed bez demo seedanja + reschedule/reassignment refresh hooks                | 100%       |
+| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild, ConsumerStatefulWidget, chat badge                                                     | 100%       |
+| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                                                             | 100%       |
+| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                                                   | 100%       |
+| Mock Data             | ✅ Kompletni mock podaci (6 seniora, studenti, narudžbe)                                                                                      | 100%       |
+| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                                                          | 100%       |
+| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveMessage handlers, Riverpod sync                                       | 100%       |
+| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                                                 | 100%       |
+| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                                                  | 100%       |
+| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                                                  | 100%       |
+| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                                                         | 100%       |
+| Backend integracija   | ❌ Nije započeta                                                                                                                              | 0%         |
 
 **Ukupna dovršenost frontenda: ~98%**
 **28 Dart fajlova, ~18.400 linija koda**
@@ -235,7 +235,21 @@
 - [x] Ikona promjenjena: `Icons.dashboard` → `Icons.analytics`
 - [x] Dodano 7 novih analytics i18n ključeva (HR + EN)
 - [x] Verifikacija: `flutter analyze` = 0 issues
-- [ ] TODO: Preraditi u Google Analytics stil (date range picker, line/area chart, detaljnija usporedba perioda)
+- [x] TODO: Preraditi u Google Analytics stil (date range picker, line/area chart, detaljnija usporedba perioda)
+
+### GA-style Analitika redesign (2026-04-02)
+
+- [x] Kompletni rewrite `dashboard_screen.dart` — Google Analytics stil
+- [x] `fl_chart: ^1.2.0` dodan za LineChart renderiranje
+- [x] 4 date range preseta: Zadnjih 7 dana, Ovaj mjesec, Prošli mjesec, Prilagođeno (DateRangePicker)
+- [x] 3 metrike: Narudžbe (count), Prihod (€ iz session×hourlyRate), Aktivni seniori (unique po danu)
+- [x] Line chart s comparison overlay (solid teal vs dashed siva) za usporedbu s prethodnim periodom
+- [x] Comparison toggle (Switch) — uključi/isključi usporedbu
+- [x] Tooltip na dotik (datum + vrijednost)
+- [x] 3 KPI kartice (responsive: column na mobitelu, row na desktopu) s % promjenom
+- [x] Zamijenjeno 14 starih analytics i18n ključeva s novim GA-style ključevima (HR + EN)
+- [x] Uklonjen bar chart, tjedna/mjesečna navigacija, prosječna ocjena studenata
+- [x] Verifikacija: `flutter analyze` = 0 issues
 
 ### Notification Evidence Cleanup (2026-04-01)
 

@@ -51,13 +51,20 @@ class AppStrings {
       'noProcessingOrders': 'Nema seniora u obradi',
       'noActiveStudentsMonth': 'Nema aktivnih studenata',
       'noExpiringContracts': 'Nema isteklih ugovora',
-      'analyticsWeeklyTitle': 'Tjedni pregled',
-      'analyticsMonthlyTitle': 'Mjesečni pregled',
-      'analyticsRatingTitle': 'Prosječna ocjena studenata',
+      'analyticsLast7Days': 'Zadnjih 7 dana',
+      'analyticsThisMonth': 'Ovaj mjesec',
+      'analyticsLastMonth': 'Prošli mjesec',
+      'analyticsCustomRange': 'Prilagođeno',
+      'analyticsOrders': 'Narudžbe',
+      'analyticsRevenue': 'Prihod',
+      'analyticsActiveSeniors': 'Aktivni seniori',
+      'analyticsCompare': 'Usporedi s prethodnim periodom',
       'analyticsPrevPeriod': 'vs prethodni period',
       'analyticsNoChange': 'Bez promjene',
-      'analyticsTotalHours': 'Ukupno sati: {value}',
+      'analyticsTotal': 'Ukupno: {value}',
       'analyticsNoData': 'Nema podataka za odabrani period',
+      'analyticsCurrent': 'Trenutno',
+      'analyticsPrevious': 'Prethodno',
 
       // ── Narudžbe ──────────────────────────────
       'ordersProcessing': 'U obradi',
@@ -641,13 +648,20 @@ class AppStrings {
       'noProcessingOrders': 'No seniors in processing',
       'noActiveStudentsMonth': 'No active students',
       'noExpiringContracts': 'No expiring contracts',
-      'analyticsWeeklyTitle': 'Weekly overview',
-      'analyticsMonthlyTitle': 'Monthly overview',
-      'analyticsRatingTitle': 'Average student rating',
+      'analyticsLast7Days': 'Last 7 days',
+      'analyticsThisMonth': 'This month',
+      'analyticsLastMonth': 'Last month',
+      'analyticsCustomRange': 'Custom range',
+      'analyticsOrders': 'Orders',
+      'analyticsRevenue': 'Revenue',
+      'analyticsActiveSeniors': 'Active seniors',
+      'analyticsCompare': 'Compare with previous period',
       'analyticsPrevPeriod': 'vs previous period',
       'analyticsNoChange': 'No change',
-      'analyticsTotalHours': 'Total hours: {value}',
+      'analyticsTotal': 'Total: {value}',
       'analyticsNoData': 'No data for selected period',
+      'analyticsCurrent': 'Current',
+      'analyticsPrevious': 'Previous',
 
       // ── Narudžbe ──────────────────────────────
       'ordersProcessing': 'Processing',
@@ -1242,14 +1256,21 @@ class AppStrings {
   static String get noProcessingOrders => _t('noProcessingOrders');
   static String get noActiveStudentsMonth => _t('noActiveStudentsMonth');
   static String get noExpiringContracts => _t('noExpiringContracts');
-  static String get analyticsWeeklyTitle => _t('analyticsWeeklyTitle');
-  static String get analyticsMonthlyTitle => _t('analyticsMonthlyTitle');
-  static String get analyticsRatingTitle => _t('analyticsRatingTitle');
+  static String get analyticsLast7Days => _t('analyticsLast7Days');
+  static String get analyticsThisMonth => _t('analyticsThisMonth');
+  static String get analyticsLastMonth => _t('analyticsLastMonth');
+  static String get analyticsCustomRange => _t('analyticsCustomRange');
+  static String get analyticsOrders => _t('analyticsOrders');
+  static String get analyticsRevenue => _t('analyticsRevenue');
+  static String get analyticsActiveSeniors => _t('analyticsActiveSeniors');
+  static String get analyticsCompare => _t('analyticsCompare');
   static String get analyticsPrevPeriod => _t('analyticsPrevPeriod');
   static String get analyticsNoChange => _t('analyticsNoChange');
-  static String analyticsTotalHours(String value) =>
-      _t('analyticsTotalHours', params: {'value': value});
+  static String analyticsTotal(String value) =>
+      _t('analyticsTotal', params: {'value': value});
   static String get analyticsNoData => _t('analyticsNoData');
+  static String get analyticsCurrent => _t('analyticsCurrent');
+  static String get analyticsPrevious => _t('analyticsPrevious');
 
   // ── Narudžbe ──
   static String get ordersProcessing => _t('ordersProcessing');

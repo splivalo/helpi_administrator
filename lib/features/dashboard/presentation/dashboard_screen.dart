@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +11,8 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 
-/// Admin Analytics — KPI overview + weekly/monthly charts + avg rating.
+/// GA-style analytics — date-range selector, line chart with comparison,
+/// metric chips (orders / revenue / active seniors), and KPI cards.
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
@@ -16,75 +20,117 @@ class DashboardScreen extends ConsumerStatefulWidget {
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
+// ── Date range presets ──
+enum _RangePreset { last7, thisMonth, lastMonth, custom }
+
+// ── Metric selector ──
+enum _Metric { orders, revenue, activeSeniors }
+
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  late DateTime _currentWeekStart;
-  late DateTime _currentMonthStart;
+  _RangePreset _preset = _RangePreset.last7;
+  _Metric _metric = _Metric.orders;
+  bool _showComparison = false;
+  late DateTime _rangeStart;
+  late DateTime _rangeEnd;
 
   @override
   void initState() {
     super.initState();
+    _applyPreset(_RangePreset.last7);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  RANGE HELPERS
+  // ═══════════════════════════════════════════════════════════
+
+  void _applyPreset(_RangePreset p) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    _currentWeekStart = today.subtract(Duration(days: today.weekday - 1));
-    _currentMonthStart = DateTime(now.year, now.month);
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  //  DATA HELPERS
-  // ═══════════════════════════════════════════════════════════
-
-  double _hoursInRange(List<OrderModel> orders, DateTime from, DateTime to) {
-    double sum = 0;
-    for (final order in orders) {
-      for (final s in order.sessions) {
-        if (s.status == SessionStatus.cancelled) continue;
-        final d = DateTime(s.date.year, s.date.month, s.date.day);
-        if (!d.isBefore(from) && d.isBefore(to)) {
-          sum += s.durationHours;
-        }
-      }
+    switch (p) {
+      case _RangePreset.last7:
+        _rangeStart = today.subtract(const Duration(days: 6));
+        _rangeEnd = today;
+      case _RangePreset.thisMonth:
+        _rangeStart = DateTime(now.year, now.month);
+        _rangeEnd = today;
+      case _RangePreset.lastMonth:
+        final m = now.month == 1 ? 12 : now.month - 1;
+        final y = now.month == 1 ? now.year - 1 : now.year;
+        _rangeStart = DateTime(y, m);
+        _rangeEnd = DateTime(
+          now.year,
+          now.month,
+        ).subtract(const Duration(days: 1));
+      case _RangePreset.custom:
+        return; // keep current range
     }
-    return sum;
+    _preset = p;
   }
 
-  List<double> _weeklyHours(List<OrderModel> orders, DateTime weekStart) {
-    final result = List.filled(7, 0.0);
-    final weekEnd = weekStart.add(const Duration(days: 7));
-    for (final order in orders) {
-      for (final s in order.sessions) {
-        if (s.status == SessionStatus.cancelled) continue;
-        final d = DateTime(s.date.year, s.date.month, s.date.day);
-        if (!d.isBefore(weekStart) && d.isBefore(weekEnd)) {
-          final dayIndex = d.difference(weekStart).inDays;
-          if (dayIndex >= 0 && dayIndex < 7) {
-            result[dayIndex] += s.durationHours;
+  int get _rangeDays => _rangeEnd.difference(_rangeStart).inDays + 1;
+
+  DateTime get _compStart => _rangeStart.subtract(Duration(days: _rangeDays));
+  DateTime get _compEnd => _rangeStart.subtract(const Duration(days: 1));
+
+  // ═══════════════════════════════════════════════════════════
+  //  DATA EXTRACTION
+  // ═══════════════════════════════════════════════════════════
+
+  /// Returns a value per day in [from..to] (inclusive) for the active metric.
+  List<double> _dailyValues(
+    List<OrderModel> orders,
+    List<SeniorModel> seniors,
+    DateTime from,
+    DateTime to,
+  ) {
+    final days = to.difference(from).inDays + 1;
+    final result = List.filled(days, 0.0);
+
+    switch (_metric) {
+      case _Metric.orders:
+        for (final o in orders) {
+          final d = DateTime(
+            o.createdAt.year,
+            o.createdAt.month,
+            o.createdAt.day,
+          );
+          final idx = d.difference(from).inDays;
+          if (idx >= 0 && idx < days) result[idx] += 1;
+        }
+      case _Metric.revenue:
+        for (final o in orders) {
+          final student = o.student;
+          if (student == null) continue;
+          for (final s in o.sessions) {
+            if (s.status == SessionStatus.cancelled) continue;
+            final d = DateTime(s.date.year, s.date.month, s.date.day);
+            final idx = d.difference(from).inDays;
+            if (idx >= 0 && idx < days) {
+              final rate = s.weekday == 7
+                  ? student.sundayHourlyRate
+                  : student.hourlyRate;
+              result[idx] += s.durationHours * rate;
+            }
           }
         }
-      }
+      case _Metric.activeSeniors:
+        // Unique seniors who had a non-cancelled session on that day
+        final daySets = List.generate(days, (_) => <String>{});
+        for (final o in orders) {
+          for (final s in o.sessions) {
+            if (s.status == SessionStatus.cancelled) continue;
+            final d = DateTime(s.date.year, s.date.month, s.date.day);
+            final idx = d.difference(from).inDays;
+            if (idx >= 0 && idx < days) {
+              daySets[idx].add(o.senior.id);
+            }
+          }
+        }
+        for (var i = 0; i < days; i++) {
+          result[i] = daySets[i].length.toDouble();
+        }
     }
     return result;
-  }
-
-  List<_WeekRange> _monthlyWeeks(List<OrderModel> orders, DateTime monthStart) {
-    final weeks = <_WeekRange>[];
-    var ws = monthStart.subtract(Duration(days: monthStart.weekday - 1));
-    final nextMonth = (monthStart.month == 12)
-        ? DateTime(monthStart.year + 1, 1)
-        : DateTime(monthStart.year, monthStart.month + 1);
-
-    while (ws.isBefore(nextMonth)) {
-      final we = ws.add(const Duration(days: 7));
-      final hours = _hoursInRange(orders, ws, we);
-      weeks.add(_WeekRange(from: ws, to: we, hours: hours));
-      ws = we;
-    }
-    return weeks;
-  }
-
-  double _avgStudentRating(List<StudentModel> students) {
-    final rated = students.where((s) => s.avgRating > 0).toList();
-    if (rated.isEmpty) return 0;
-    return rated.fold(0.0, (sum, s) => sum + s.avgRating) / rated.length;
   }
 
   double _pctChange(double current, double prev) {
@@ -93,39 +139,33 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return ((current - prev) / prev) * 100;
   }
 
-  void _prevWeek() {
-    HapticFeedback.selectionClick();
-    setState(() {
-      _currentWeekStart = _currentWeekStart.subtract(const Duration(days: 7));
-    });
+  String _fmtVal(double v) {
+    if (_metric == _Metric.revenue) return '€${v.toStringAsFixed(2)}';
+    return v.toStringAsFixed(0);
   }
 
-  void _nextWeek() {
-    HapticFeedback.selectionClick();
-    setState(() {
-      _currentWeekStart = _currentWeekStart.add(const Duration(days: 7));
-    });
+  String _fmtDate(DateTime d) => '${d.day}.${d.month}.${d.year}';
+
+  Future<void> _pickCustomRange(BuildContext context) async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2024),
+      lastDate: DateTime.now(),
+      initialDateRange: DateTimeRange(start: _rangeStart, end: _rangeEnd),
+    );
+    if (!context.mounted) return;
+    if (picked != null) {
+      setState(() {
+        _rangeStart = picked.start;
+        _rangeEnd = picked.end;
+        _preset = _RangePreset.custom;
+      });
+    }
   }
 
-  void _prevMonth() {
-    HapticFeedback.selectionClick();
-    setState(() {
-      final m = _currentMonthStart.month;
-      final y = _currentMonthStart.year;
-      _currentMonthStart = m == 1 ? DateTime(y - 1, 12) : DateTime(y, m - 1);
-    });
-  }
-
-  void _nextMonth() {
-    HapticFeedback.selectionClick();
-    setState(() {
-      final m = _currentMonthStart.month;
-      final y = _currentMonthStart.year;
-      _currentMonthStart = m == 12 ? DateTime(y + 1, 1) : DateTime(y, m + 1);
-    });
-  }
-
-  String _fmtDateCompact(DateTime d) => '${d.day}.${d.month}.';
+  // ═══════════════════════════════════════════════════════════
+  //  BUILD
+  // ═══════════════════════════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
@@ -134,15 +174,45 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final isWide = screenWidth >= 900;
 
     final allOrders = ref.watch(ordersProvider);
-    final allStudents = ref.watch(studentsProvider);
     final allSeniors = ref.watch(seniorsProvider);
 
-    final processingCount = allOrders
-        .where((o) => o.status == OrderStatus.processing)
-        .length;
-    final activeCount = allOrders
-        .where((o) => o.status == OrderStatus.active)
-        .length;
+    final currentValues = _dailyValues(
+      allOrders,
+      allSeniors,
+      _rangeStart,
+      _rangeEnd,
+    );
+    final currentTotal = currentValues.fold(0.0, (a, b) => a + b);
+
+    final compValues = _showComparison
+        ? _dailyValues(allOrders, allSeniors, _compStart, _compEnd)
+        : <double>[];
+    final compTotal = compValues.fold(0.0, (a, b) => a + b);
+    final pct = _showComparison ? _pctChange(currentTotal, compTotal) : 0.0;
+
+    // KPI cards data
+    final ordersInRange = allOrders.where((o) {
+      final d = DateTime(o.createdAt.year, o.createdAt.month, o.createdAt.day);
+      return !d.isBefore(_rangeStart) && !d.isAfter(_rangeEnd);
+    }).length;
+
+    double revenueInRange = 0;
+    final seniorIds = <String>{};
+    for (final o in allOrders) {
+      for (final s in o.sessions) {
+        if (s.status == SessionStatus.cancelled) continue;
+        final d = DateTime(s.date.year, s.date.month, s.date.day);
+        if (!d.isBefore(_rangeStart) && !d.isAfter(_rangeEnd)) {
+          seniorIds.add(o.senior.id);
+          if (o.student != null) {
+            final rate = s.weekday == 7
+                ? o.student!.sundayHourlyRate
+                : o.student!.hourlyRate;
+            revenueInRange += s.durationHours * rate;
+          }
+        }
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -154,37 +224,390 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── KPI kartice ──
-            _buildKpiRow(
-              isWide: isWide,
-              processingCount: processingCount,
-              activeCount: activeCount,
-              studentCount: allStudents.length,
-              seniorCount: allSeniors.length,
+            // ── Date range preset chips ──
+            _buildRangeChips(context),
+            const SizedBox(height: 4),
+            Text(
+              '${_fmtDate(_rangeStart)} – ${_fmtDate(_rangeEnd)}',
+              style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
+            ),
+            const SizedBox(height: 16),
+
+            // ── Line chart card ──
+            _buildChartCard(
+              theme,
+              currentValues,
+              compValues,
+              currentTotal,
+              pct,
             ),
             const SizedBox(height: 24),
 
-            // ── Charts ──
-            if (isWide)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: _buildWeeklyChart(theme, allOrders)),
-                  const SizedBox(width: 16),
-                  Expanded(child: _buildMonthlyChart(theme, allOrders)),
-                ],
-              )
-            else ...[
-              _buildWeeklyChart(theme, allOrders),
-              const SizedBox(height: 16),
-              _buildMonthlyChart(theme, allOrders),
-            ],
-
-            const SizedBox(height: 24),
-
-            // ── Average student rating ──
-            _buildRatingSection(theme, allStudents),
+            // ── KPI cards ──
+            _buildKpiRow(
+              isWide: isWide,
+              ordersInRange: ordersInRange,
+              revenueInRange: revenueInRange,
+              activeSeniorsInRange: seniorIds.length,
+              pctOrders: _showComparison
+                  ? _pctChange(
+                      ordersInRange.toDouble(),
+                      allOrders
+                          .where((o) {
+                            final d = DateTime(
+                              o.createdAt.year,
+                              o.createdAt.month,
+                              o.createdAt.day,
+                            );
+                            return !d.isBefore(_compStart) &&
+                                !d.isAfter(_compEnd);
+                          })
+                          .length
+                          .toDouble(),
+                    )
+                  : null,
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  DATE RANGE CHIPS
+  // ═══════════════════════════════════════════════════════════
+
+  Widget _buildRangeChips(BuildContext context) {
+    Widget chip(String label, _RangePreset p, {bool isCustom = false}) {
+      final selected = _preset == p;
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: ChoiceChip(
+          label: Text(label),
+          selected: selected,
+          selectedColor: HelpiTheme.accent,
+          labelStyle: TextStyle(
+            color: selected ? Colors.white : HelpiTheme.textPrimary,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            fontSize: 13,
+          ),
+          side: BorderSide(
+            color: selected ? HelpiTheme.accent : HelpiTheme.border,
+          ),
+          onSelected: (_) {
+            HapticFeedback.selectionClick();
+            if (isCustom) {
+              _pickCustomRange(context);
+            } else {
+              setState(() => _applyPreset(p));
+            }
+          },
+        ),
+      );
+    }
+
+    return Wrap(
+      children: [
+        chip(AppStrings.analyticsLast7Days, _RangePreset.last7),
+        chip(AppStrings.analyticsThisMonth, _RangePreset.thisMonth),
+        chip(AppStrings.analyticsLastMonth, _RangePreset.lastMonth),
+        chip(
+          AppStrings.analyticsCustomRange,
+          _RangePreset.custom,
+          isCustom: true,
+        ),
+      ],
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  CHART CARD (metric chips + comparison toggle + line chart)
+  // ═══════════════════════════════════════════════════════════
+
+  Widget _buildChartCard(
+    ThemeData theme,
+    List<double> currentValues,
+    List<double> compValues,
+    double currentTotal,
+    double pct,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+        border: Border.all(color: HelpiTheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Metric selector chips ──
+          Wrap(
+            spacing: 8,
+            children: [
+              _metricChip(AppStrings.analyticsOrders, _Metric.orders),
+              _metricChip(AppStrings.analyticsRevenue, _Metric.revenue),
+              _metricChip(
+                AppStrings.analyticsActiveSeniors,
+                _Metric.activeSeniors,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // ── Comparison toggle ──
+          Row(
+            children: [
+              SizedBox(
+                height: 24,
+                width: 40,
+                child: Switch(
+                  value: _showComparison,
+                  onChanged: (v) => setState(() => _showComparison = v),
+                  activeColor: HelpiTheme.accent,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                AppStrings.analyticsCompare,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: HelpiTheme.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // ── Total + % ──
+          Row(
+            children: [
+              Text(
+                _fmtVal(currentTotal),
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: HelpiTheme.textPrimary,
+                ),
+              ),
+              if (_showComparison) ...[
+                const SizedBox(width: 12),
+                _PercentBadge(pct: pct),
+              ],
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // ── Line chart ──
+          SizedBox(
+            height: 220,
+            child: _buildLineChart(currentValues, compValues),
+          ),
+
+          // ── Legend ──
+          if (_showComparison) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _LegendDot(
+                  color: HelpiTheme.accent,
+                  label: AppStrings.analyticsCurrent,
+                ),
+                const SizedBox(width: 20),
+                _LegendDot(
+                  color: HelpiTheme.border,
+                  label: AppStrings.analyticsPrevious,
+                  isDashed: true,
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _metricChip(String label, _Metric m) {
+    final selected = _metric == m;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      selectedColor: HelpiTheme.pastelTeal,
+      labelStyle: TextStyle(
+        color: selected ? HelpiTheme.accent : HelpiTheme.textSecondary,
+        fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+        fontSize: 13,
+      ),
+      side: BorderSide(color: selected ? HelpiTheme.accent : HelpiTheme.border),
+      onSelected: (_) {
+        HapticFeedback.selectionClick();
+        setState(() => _metric = m);
+      },
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  FL_CHART LINE CHART
+  // ═══════════════════════════════════════════════════════════
+
+  Widget _buildLineChart(List<double> current, List<double> comp) {
+    if (current.isEmpty) {
+      return Center(
+        child: Text(
+          AppStrings.analyticsNoData,
+          style: const TextStyle(color: HelpiTheme.textSecondary),
+        ),
+      );
+    }
+
+    final allValues = [...current, ...comp];
+    final maxY = allValues.isEmpty
+        ? 10.0
+        : (allValues.reduce(math.max) * 1.15).clamp(1.0, double.infinity);
+
+    final currentSpots = current
+        .asMap()
+        .entries
+        .map((e) => FlSpot(e.key.toDouble(), e.value))
+        .toList();
+
+    final lines = <LineChartBarData>[
+      // Main line
+      LineChartBarData(
+        spots: currentSpots,
+        isCurved: true,
+        curveSmoothness: 0.25,
+        color: HelpiTheme.accent,
+        barWidth: 3,
+        isStrokeCapRound: true,
+        dotData: FlDotData(
+          show: current.length <= 31,
+          getDotPainter: (spot, pct, bar, idx) => FlDotCirclePainter(
+            radius: 3,
+            color: Colors.white,
+            strokeWidth: 2,
+            strokeColor: HelpiTheme.accent,
+          ),
+        ),
+        belowBarData: BarAreaData(
+          show: true,
+          color: HelpiTheme.accent.withValues(alpha: 0.08),
+        ),
+      ),
+    ];
+
+    // Comparison line (dashed)
+    if (_showComparison && comp.isNotEmpty) {
+      final compSpots = comp
+          .asMap()
+          .entries
+          .map((e) => FlSpot(e.key.toDouble(), e.value))
+          .toList();
+      lines.add(
+        LineChartBarData(
+          spots: compSpots,
+          isCurved: true,
+          curveSmoothness: 0.25,
+          color: HelpiTheme.border,
+          barWidth: 2,
+          isStrokeCapRound: true,
+          dashArray: [6, 4],
+          dotData: const FlDotData(show: false),
+          belowBarData: BarAreaData(show: false),
+        ),
+      );
+    }
+
+    final days = current.length;
+    // Show ~5-7 labels on X axis
+    final step = (days / 6).ceil().clamp(1, days);
+
+    return LineChart(
+      LineChartData(
+        minY: 0,
+        maxY: maxY,
+        lineBarsData: lines,
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: maxY / 4,
+          getDrawingHorizontalLine: (v) => FlLine(
+            color: HelpiTheme.border.withValues(alpha: 0.5),
+            strokeWidth: 1,
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        titlesData: FlTitlesData(
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 48,
+              interval: maxY / 4,
+              getTitlesWidget: (value, meta) {
+                if (value == maxY) return const SizedBox.shrink();
+                return Text(
+                  _metric == _Metric.revenue
+                      ? '€${value.toStringAsFixed(0)}'
+                      : value.toStringAsFixed(0),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: HelpiTheme.textSecondary,
+                  ),
+                );
+              },
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: step.toDouble(),
+              reservedSize: 28,
+              getTitlesWidget: (value, meta) {
+                final i = value.toInt();
+                if (i < 0 || i >= days) return const SizedBox.shrink();
+                final d = _rangeStart.add(Duration(days: i));
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    '${d.day}.${d.month}.',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: HelpiTheme.textSecondary,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipItems: (spots) {
+              return spots.map((s) {
+                final isComp = s.barIndex == 1;
+                final d = (isComp ? _compStart : _rangeStart).add(
+                  Duration(days: s.x.toInt()),
+                );
+                return LineTooltipItem(
+                  '${d.day}.${d.month}.\n${_fmtVal(s.y)}',
+                  TextStyle(
+                    color: isComp
+                        ? HelpiTheme.textSecondary
+                        : HelpiTheme.accent,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                );
+              }).toList();
+            },
+          ),
         ),
       ),
     );
@@ -196,37 +619,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Widget _buildKpiRow({
     required bool isWide,
-    required int processingCount,
-    required int activeCount,
-    required int studentCount,
-    required int seniorCount,
+    required int ordersInRange,
+    required double revenueInRange,
+    required int activeSeniorsInRange,
+    required double? pctOrders,
   }) {
     final cards = [
       _KpiCard(
-        icon: Icons.hourglass_top,
-        label: AppStrings.ordersProcessing,
-        value: '$processingCount',
+        icon: Icons.receipt_long_outlined,
+        label: AppStrings.analyticsOrders,
+        value: '$ordersInRange',
         color: HelpiTheme.statusProcessingText,
         bgColor: HelpiTheme.statusProcessingBg,
+        pct: pctOrders,
       ),
       _KpiCard(
-        icon: Icons.play_circle_outline,
-        label: AppStrings.activeOrders,
-        value: '$activeCount',
+        icon: Icons.euro_outlined,
+        label: AppStrings.analyticsRevenue,
+        value: '€${revenueInRange.toStringAsFixed(2)}',
         color: HelpiTheme.statusActiveText,
         bgColor: HelpiTheme.statusActiveBg,
       ),
       _KpiCard(
-        icon: Icons.school_outlined,
-        label: AppStrings.totalStudents,
-        value: '$studentCount',
-        color: HelpiTheme.accent,
-        bgColor: HelpiTheme.pastelTeal,
-      ),
-      _KpiCard(
         icon: Icons.elderly_outlined,
-        label: AppStrings.totalSeniors,
-        value: '$seniorCount',
+        label: AppStrings.analyticsActiveSeniors,
+        value: '$activeSeniorsInRange',
         color: HelpiTheme.accent,
         bgColor: HelpiTheme.pastelTeal,
       ),
@@ -243,285 +660,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       );
     }
     return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(child: cards[0]),
-            const SizedBox(width: 12),
-            Expanded(child: cards[1]),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: cards[2]),
-            const SizedBox(width: 12),
-            Expanded(child: cards[3]),
-          ],
-        ),
-      ],
+      children: cards
+          .map(
+            (c) =>
+                Padding(padding: const EdgeInsets.only(bottom: 12), child: c),
+          )
+          .toList(),
     );
   }
-
-  // ═══════════════════════════════════════════════════════════
-  //  WEEKLY BAR CHART
-  // ═══════════════════════════════════════════════════════════
-
-  Widget _buildWeeklyChart(ThemeData theme, List<OrderModel> orders) {
-    final weekEnd = _currentWeekStart.add(const Duration(days: 6));
-    final dailyHours = _weeklyHours(orders, _currentWeekStart);
-    final totalHours = dailyHours.fold(0.0, (a, b) => a + b);
-    final maxH = dailyHours.reduce((a, b) => a > b ? a : b);
-
-    final prevStart = _currentWeekStart.subtract(const Duration(days: 7));
-    final prevHours = _weeklyHours(orders, prevStart);
-    final prevTotal = prevHours.fold(0.0, (a, b) => a + b);
-    final pct = _pctChange(totalHours, prevTotal);
-
-    final dayLabels = ['P', 'U', 'S', 'Č', 'P', 'S', 'N'];
-
-    return _ChartCard(
-      title: AppStrings.analyticsWeeklyTitle,
-      periodLabel:
-          '${_fmtDateCompact(_currentWeekStart)} – ${_fmtDateCompact(weekEnd)}',
-      onPrev: _prevWeek,
-      onNext: _nextWeek,
-      child: Column(
-        children: [
-          SizedBox(
-            height: 140,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: List.generate(7, (i) {
-                final h = dailyHours[i];
-                final barRatio = maxH > 0 ? h / maxH : 0.0;
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (h > 0)
-                          Text(
-                            '${h.toStringAsFixed(0)}h',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: HelpiTheme.textSecondary,
-                            ),
-                          ),
-                        const SizedBox(height: 4),
-                        Container(
-                          height: maxH > 0 ? 100 * barRatio : 0,
-                          constraints: const BoxConstraints(minHeight: 4),
-                          decoration: BoxDecoration(
-                            color: h > 0
-                                ? HelpiTheme.accent
-                                : HelpiTheme.border,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          dayLabels[i],
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: HelpiTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _ComparisonRow(pct: pct),
-          const SizedBox(height: 8),
-          _TotalRow(
-            label: AppStrings.analyticsTotalHours(
-              totalHours.toStringAsFixed(1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  //  MONTHLY BAR CHART
-  // ═══════════════════════════════════════════════════════════
-
-  Widget _buildMonthlyChart(ThemeData theme, List<OrderModel> orders) {
-    final weeks = _monthlyWeeks(orders, _currentMonthStart);
-    final totalHours = weeks.fold(0.0, (s, w) => s + w.hours);
-    final maxH = weeks.isEmpty
-        ? 1.0
-        : weeks.map((w) => w.hours).reduce((a, b) => a > b ? a : b);
-
-    final prevMonth = _currentMonthStart.month == 1
-        ? DateTime(_currentMonthStart.year - 1, 12)
-        : DateTime(_currentMonthStart.year, _currentMonthStart.month - 1);
-    final prevWeeks = _monthlyWeeks(orders, prevMonth);
-    final prevTotal = prevWeeks.fold(0.0, (s, w) => s + w.hours);
-    final pct = _pctChange(totalHours, prevTotal);
-
-    final monthLabel =
-        '${AppStrings.monthName(_currentMonthStart.month)} ${_currentMonthStart.year}';
-
-    return _ChartCard(
-      title: AppStrings.analyticsMonthlyTitle,
-      periodLabel: monthLabel,
-      onPrev: _prevMonth,
-      onNext: _nextMonth,
-      child: Column(
-        children: [
-          SizedBox(
-            height: 140,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: weeks.asMap().entries.map((entry) {
-                final w = entry.value;
-                final barRatio = maxH > 0 ? w.hours / maxH : 0.0;
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        if (w.hours > 0)
-                          Flexible(
-                            child: Text(
-                              '${w.hours.toStringAsFixed(0)}h',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: HelpiTheme.textSecondary,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        const SizedBox(height: 4),
-                        Container(
-                          height: maxH > 0 ? 100 * barRatio : 0,
-                          constraints: const BoxConstraints(minHeight: 4),
-                          decoration: BoxDecoration(
-                            color: w.hours > 0
-                                ? HelpiTheme.accent
-                                : HelpiTheme.border,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          _fmtDateCompact(w.from),
-                          style: const TextStyle(
-                            fontSize: 9,
-                            color: HelpiTheme.textSecondary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          _ComparisonRow(pct: pct),
-          const SizedBox(height: 8),
-          _TotalRow(
-            label: AppStrings.analyticsTotalHours(
-              totalHours.toStringAsFixed(1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  //  AVERAGE RATING SECTION
-  // ═══════════════════════════════════════════════════════════
-
-  Widget _buildRatingSection(ThemeData theme, List<StudentModel> students) {
-    final avg = _avgStudentRating(students);
-    final ratedCount = students.where((s) => s.avgRating > 0).length;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
-      ),
-      child: Column(
-        children: [
-          Text(
-            AppStrings.analyticsRatingTitle,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                avg > 0 ? avg.toStringAsFixed(1) : '-',
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.w800,
-                  color: avg > 0 ? HelpiTheme.starYellow : HelpiTheme.border,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: List.generate(5, (i) {
-                      final fill = avg - i;
-                      return Icon(
-                        fill >= 1
-                            ? Icons.star
-                            : (fill >= 0.5
-                                  ? Icons.star_half
-                                  : Icons.star_border),
-                        size: 22,
-                        color: HelpiTheme.starYellow,
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$ratedCount ${AppStrings.totalStudents.toLowerCase()}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: HelpiTheme.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  DATA MODEL
-// ═══════════════════════════════════════════════════════════════
-
-class _WeekRange {
-  const _WeekRange({required this.from, required this.to, required this.hours});
-  final DateTime from;
-  final DateTime to;
-  final double hours;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -535,6 +681,7 @@ class _KpiCard extends StatelessWidget {
     required this.value,
     required this.color,
     required this.bgColor,
+    this.pct,
   });
 
   final IconData icon;
@@ -542,6 +689,7 @@ class _KpiCard extends StatelessWidget {
   final String value;
   final Color color;
   final Color bgColor;
+  final double? pct;
 
   @override
   Widget build(BuildContext context) {
@@ -567,14 +715,18 @@ class _KpiCard extends StatelessWidget {
                 child: Icon(icon, color: color, size: 20),
               ),
               const SizedBox(width: 10),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: color,
+              Expanded(
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              if (pct != null) _PercentBadge(pct: pct!),
             ],
           ),
           const SizedBox(height: 6),
@@ -592,67 +744,51 @@ class _KpiCard extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  CHART CARD
+//  PERCENT BADGE
 // ═══════════════════════════════════════════════════════════════
 
-class _ChartCard extends StatelessWidget {
-  const _ChartCard({
-    required this.title,
-    required this.periodLabel,
-    required this.onPrev,
-    required this.onNext,
-    required this.child,
-  });
-
-  final String title;
-  final String periodLabel;
-  final VoidCallback onPrev;
-  final VoidCallback onNext;
-  final Widget child;
+class _PercentBadge extends StatelessWidget {
+  const _PercentBadge({required this.pct});
+  final double pct;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isUp = pct > 0;
+    final isDown = pct < 0;
+    final color = isUp
+        ? const Color(0xFF2E7D32)
+        : (isDown ? HelpiTheme.statusCancelledText : HelpiTheme.textSecondary);
+    final bg = isUp
+        ? const Color(0xFFE8F5E9)
+        : (isDown
+              ? HelpiTheme.statusCancelledBg
+              : HelpiTheme.border.withValues(alpha: 0.3));
+    final icon = isUp
+        ? Icons.trending_up
+        : (isDown ? Icons.trending_down : Icons.trending_flat);
+    final label = pct.abs() < 0.1
+        ? '0%'
+        : '${isUp ? '+' : ''}${pct.toStringAsFixed(0)}%';
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
           Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.chevron_left,
-                  color: HelpiTheme.textSecondary,
-                ),
-                onPressed: onPrev,
-                splashRadius: 20,
-              ),
-              Text(periodLabel, style: theme.textTheme.bodyMedium),
-              IconButton(
-                icon: const Icon(
-                  Icons.chevron_right,
-                  color: HelpiTheme.textSecondary,
-                ),
-                onPressed: onNext,
-                splashRadius: 20,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          child,
         ],
       ),
     );
@@ -660,69 +796,47 @@ class _ChartCard extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//  COMPARISON ROW
+//  LEGEND DOT
 // ═══════════════════════════════════════════════════════════════
 
-class _ComparisonRow extends StatelessWidget {
-  const _ComparisonRow({required this.pct});
-  final double pct;
+class _LegendDot extends StatelessWidget {
+  const _LegendDot({
+    required this.color,
+    required this.label,
+    this.isDashed = false,
+  });
+  final Color color;
+  final String label;
+  final bool isDashed;
 
   @override
   Widget build(BuildContext context) {
-    final isUp = pct > 0;
-    final isDown = pct < 0;
-    final icon = isUp
-        ? Icons.trending_up
-        : (isDown ? Icons.trending_down : Icons.trending_flat);
-    final color = isUp
-        ? const Color(0xFF2E7D32)
-        : (isDown ? HelpiTheme.statusCancelledText : HelpiTheme.textSecondary);
-    final label = pct.abs() < 0.1
-        ? AppStrings.analyticsNoChange
-        : '${isUp ? '+' : ''}${pct.toStringAsFixed(0)}% ${AppStrings.analyticsPrevPeriod}';
-
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: color),
+        Container(
+          width: 20,
+          height: 3,
+          decoration: BoxDecoration(
+            color: isDashed ? Colors.transparent : color,
+            border: isDashed
+                ? Border(
+                    bottom: BorderSide(
+                      color: color,
+                      width: 2,
+                      style: BorderStyle.solid,
+                    ),
+                  )
+                : null,
+            borderRadius: isDashed ? null : BorderRadius.circular(2),
+          ),
+        ),
         const SizedBox(width: 6),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: color,
-          ),
+          style: const TextStyle(fontSize: 12, color: HelpiTheme.textSecondary),
         ),
       ],
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  TOTAL ROW
-// ═══════════════════════════════════════════════════════════════
-
-class _TotalRow extends StatelessWidget {
-  const _TotalRow({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      decoration: BoxDecoration(
-        color: HelpiTheme.border.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(
-          context,
-        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-        textAlign: TextAlign.center,
-      ),
     );
   }
 }

@@ -2,6 +2,17 @@
 
 > Kronologija ključnih odluka i promjena.
 
+## 2026-04-02 — GA-style Analitika redesign
+
+- **Kompletni rewrite** — `dashboard_screen.dart` prepisana iz bar-chart v1 stila u Google Analytics stil s fl_chart LineChart.
+- **fl_chart ^1.2.0** — Nova dependency za linijske grafove s tooltip podrškom.
+- **Date range picker** — 4 preseta (Zadnjih 7 dana, Ovaj mjesec, Prošli mjesec, Prilagođeno) s ChoiceChip komponentama.
+- **3 metrike** — Narudžbe (count po danu), Prihod (€ iz session × hourlyRate), Aktivni seniori (unique po danu).
+- **Comparison overlay** — Toggle prekidač uključuje drugu (dashed) liniju za prethodni ekvivalentni period.
+- **KPI kartice** — 3 kartice (responsive layout) s % promjenom prema prethodnom periodu.
+- **Uklonjen stari UI** — Bar chartovi, tjedna/mjesečna navigacija, prosječna ocjena studenata.
+- **i18n** — 14 novih GA-style ključeva zamijenilo starih 7 (HR + EN).
+
 ## 2026-04-02 — Dashboard → Analitika transformacija
 
 - **Redundantni dashboard uklonjen** — stari Dashboard (seniori u obradi, aktivni studenti, istekli ugovori) duplicirao podatke koji su već na Seniori i Studenti stranicama; zamijenjen analytics ekranom.
