@@ -8,7 +8,7 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/features/chat/presentation/chat_screen.dart';
-import 'package:helpi_admin/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:helpi_admin/features/analytics/presentation/analytics_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 import 'package:helpi_admin/features/students/presentation/students_screen.dart';
 

@@ -254,7 +254,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             // ── Date range preset chips ──
             _buildRangeChips(context),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
               '${_fmtDate(_rangeStart)} – ${_fmtDate(_rangeEnd)}',
               style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
@@ -372,16 +372,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Transform.scale(
-            scale: 0.75,
-            child: Switch(
-              value: _showComparison,
-              onChanged: (v) => setState(() => _showComparison = v),
-              activeColor: HelpiTheme.accent,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 36,
+            height: 20,
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: _showComparison ? HelpiTheme.accent : HelpiTheme.border,
+            ),
+            alignment: _showComparison
+                ? Alignment.centerRight
+                : Alignment.centerLeft,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+              ),
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
           Text(
             AppStrings.analyticsCompare,
             style: const TextStyle(
