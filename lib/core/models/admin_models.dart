@@ -69,6 +69,8 @@ enum NotificationType {
   customerDeleted, // 28
   adminDeleted, // 29
   newOrderAdded, // 30
+  availabilityChanged, // 31
+  orderBackToProcessing, // 32
 }
 
 // ═══════════════════════════════════════════════════════════════

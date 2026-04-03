@@ -150,6 +150,8 @@ class SignalRNotificationService {
     NotificationType.jobRescheduled,
     NotificationType.reassignmentStarted,
     NotificationType.reassignmentCompleted,
+    NotificationType.availabilityChanged,
+    NotificationType.orderBackToProcessing,
   };
 
   bool _isDataChangingType(NotificationType type) =>

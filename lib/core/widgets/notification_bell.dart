@@ -423,6 +423,8 @@ class _NotificationTile extends StatelessWidget {
       NotificationType.contractAboutToExpire => Icons.schedule_outlined,
       NotificationType.customerDeleted => Icons.person_remove_outlined,
       NotificationType.adminDeleted => Icons.admin_panel_settings_outlined,
+      NotificationType.availabilityChanged => Icons.schedule_outlined,
+      NotificationType.orderBackToProcessing => Icons.pending_actions_outlined,
       _ => Icons.info_outline,
     };
   }
@@ -447,6 +449,8 @@ class _NotificationTile extends StatelessWidget {
       NotificationType.contractAboutToExpire => const Color(0xFFE65100),
       NotificationType.customerDeleted => HelpiTheme.statusCancelledText,
       NotificationType.adminDeleted => HelpiTheme.statusCancelledText,
+      NotificationType.availabilityChanged => const Color(0xFFE65100),
+      NotificationType.orderBackToProcessing => HelpiTheme.primary,
       _ => HelpiTheme.textSecondary,
     };
   }
