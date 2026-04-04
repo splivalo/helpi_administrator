@@ -46,12 +46,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   // ── Earnings ──
   final _intermediaryPctCtrl = TextEditingController();
-  bool _vatEnabled = false;
   final _vatCtrl = TextEditingController();
 
   // Snapshot for cancel/revert
   Map<String, String> _snapshot = {};
-  bool _vatEnabledSnapshot = false;
 
   int _lastPricingVersion = 0;
 
@@ -89,7 +87,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       'intermediaryPct': _intermediaryPctCtrl.text,
       'vat': _vatCtrl.text,
     };
-    _vatEnabledSnapshot = _vatEnabled;
   }
 
   void _restoreSnapshot() {
@@ -103,7 +100,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _studentSundayRateCtrl.text = _snapshot['studentSundayRate'] ?? '';
     _intermediaryPctCtrl.text = _snapshot['intermediaryPct'] ?? '';
     _vatCtrl.text = _snapshot['vat'] ?? '';
-    _vatEnabled = _vatEnabledSnapshot;
   }
 
   Future<void> _loadSettings() async {
@@ -129,7 +125,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           cfg['studentSundayHourlyRate'] ?? 11.10,
         );
         _intermediaryPctCtrl.text = _fmt(cfg['intermediaryPercentage'] ?? 18);
-        _vatEnabled = cfg['vatEnabled'] == true;
         _vatCtrl.text = _fmt(cfg['vatPercentage']);
       }
     } catch (_) {
@@ -205,7 +200,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               double.tryParse(_studentSundayRateCtrl.text) ?? 11.10,
           'intermediaryPercentage':
               double.tryParse(_intermediaryPctCtrl.text) ?? 18,
-          'vatEnabled': _vatEnabled,
+          'vatEnabled': (double.tryParse(_vatCtrl.text) ?? 0) > 0,
           'vatPercentage': double.tryParse(_vatCtrl.text) ?? 0,
         },
         queryParameters: {'reason': 'Admin settings update'},
@@ -393,34 +388,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: SwitchListTile(
-                                title: Text(
-                                  _vatEnabled
-                                      ? AppStrings.vatEnabled
-                                      : AppStrings.vatDisabled,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                                value: _vatEnabled,
-                                activeColor: HelpiTheme.accent,
-                                onChanged: _editing
-                                    ? (v) => setState(() => _vatEnabled = v)
-                                    : null,
-                                contentPadding: EdgeInsets.zero,
-                                dense: true,
+                              child: _numField(
+                                _vatCtrl,
+                                AppStrings.vatPercentage,
+                                suffix: '%',
+                                decimal: true,
                               ),
                             ),
-                            if (_vatEnabled) ...[
-                              const SizedBox(width: 16),
-                              SizedBox(
-                                width: 160,
-                                child: _numField(
-                                  _vatCtrl,
-                                  AppStrings.vatPercentage,
-                                  suffix: '%',
-                                  decimal: true,
-                                ),
-                              ),
-                            ],
                           ],
                         )
                       else ...[
@@ -431,30 +405,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           decimal: true,
                         ),
                         const SizedBox(height: 12),
-                        SwitchListTile(
-                          title: Text(
-                            _vatEnabled
-                                ? AppStrings.vatEnabled
-                                : AppStrings.vatDisabled,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                          value: _vatEnabled,
-                          activeColor: HelpiTheme.accent,
-                          onChanged: _editing
-                              ? (v) => setState(() => _vatEnabled = v)
-                              : null,
-                          contentPadding: EdgeInsets.zero,
-                          dense: true,
+                        _numField(
+                          _vatCtrl,
+                          AppStrings.vatPercentage,
+                          suffix: '%',
+                          decimal: true,
                         ),
-                        if (_vatEnabled) ...[
-                          const SizedBox(height: 12),
-                          _numField(
-                            _vatCtrl,
-                            AppStrings.vatPercentage,
-                            suffix: '%',
-                            decimal: true,
-                          ),
-                        ],
                       ],
                     ],
                   ),
@@ -465,39 +421,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     icon: Icons.language,
                     title: AppStrings.settingsLanguage,
                     children: [
-                      SizedBox(
-                        height: HelpiTheme.inputFieldHeight,
-                        child: DropdownButtonFormField<String>(
-                          value: AppStrings.currentLocale,
-                          isExpanded: true,
-                          isDense: true,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: HelpiTheme.textPrimary,
-                          ),
-                          decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                            border: OutlineInputBorder(),
-                          ),
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'hr',
-                              child: Text('Hrvatski'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'en',
-                              child: Text('English'),
-                            ),
-                          ],
-                          onChanged: (v) {
-                            if (v != null) {
-                              widget.localeNotifier.setLocale(v);
-                            }
-                          },
+                      DropdownButtonFormField<String>(
+                        value: AppStrings.currentLocale,
+                        isExpanded: true,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: HelpiTheme.textPrimary,
                         ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'hr',
+                            child: Text('Hrvatski'),
+                          ),
+                          DropdownMenuItem(value: 'en', child: Text('English')),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) {
+                            widget.localeNotifier.setLocale(v);
+                          }
+                        },
                       ),
                     ],
                   ),
