@@ -29,7 +29,7 @@
 | SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                                                                                                     | 100%       |
 | UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                                                                                                     | 100%       |
 | Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                                                                                                            | 100%       |
-| Backend integracija   | ✅ Core admin backend integracija spojena: auth, students, seniors, orders, reviews, notifications, sessions, settings, assign/reschedule i cities API; izuzeti vanjski provideri i chat backend | 85%        |
+| Backend integracija   | ✅ Kompletna admin backend integracija: auth, students, seniors, orders, reviews, notifications, sessions, settings, assign/reschedule, cities, dashboard API; jedino chat čeka backend | 95%        |
 
 **Ukupna dovršenost frontenda: ~98%**
 **28 Dart fajlova, ~18.400 linija koda**
