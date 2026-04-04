@@ -172,3 +172,9 @@ final unreadMessagesProvider =
     StateNotifierProvider<UnreadMessagesNotifier, Map<String, int>>(
       (ref) => UnreadMessagesNotifier(),
     );
+
+// ═══════════════════════════════════════════════════════════════
+//  PRICING VERSION (incremented on SettingsChanged)
+// ═══════════════════════════════════════════════════════════════
+
+final pricingVersionProvider = StateProvider<int>((ref) => 0);

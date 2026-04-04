@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-04-01
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-04-04
 
 ---
 
@@ -63,7 +63,13 @@ lib/
     │       └── login_screen.dart       # Login ekran (160 linija)
     ├── dashboard/
     │   └── presentation/
-    │       └── dashboard_screen.dart   # Dashboard s KPI karticama (888 linija)
+    │       └── dashboard_screen.dart   # DELETED — replaced by analytics_screen.dart
+    ├── analytics/
+    │   └── presentation/
+    │       └── analytics_screen.dart   # GA-style analytics with line charts, earnings toggle, Excel export (~1090 linija)
+    ├── settings/
+    │   └── presentation/
+    │       └── settings_screen.dart    # Admin settings — 6 sections, API CRUD, SignalR reactive (~530 linija)
     ├── students/
     │   └── presentation/
     │       ├── students_screen.dart    # Lista studenata (1571 linija)
@@ -113,7 +119,7 @@ Tri breakpointa definirana u `ResponsiveShell`:
 | 600–900px  | Tablet  | NavigationRail (collapsed, ikone)                                  |
 | ≥ 900px    | Desktop | Extended Sidebar (260px, SVG logo, labele, jezični toggle, logout) |
 
-Navigacija koristi `IndexedStack` s 5 ekrana: Dashboard, Narudžbe, Studenti, Seniori, Chat.
+Navigacija koristi `IndexedStack` s 5 ekrana: Narudžbe, Seniori, Studenti, Analitika, Postavke. Chat je dostupan kao 6. tab na mobilnom layoutu.
 
 **Locale-aware rebuild:** `_screens` je getter (ne `late final`) koji koristi `ValueKey('screenName_$locale')`. Kad se promijeni jezik, `IndexedStack` tretira ekrane kao nove widgete i rebuilda ih sa svježim stringovima.
 
@@ -149,8 +155,9 @@ DataLoader.loadAll(ref: ref)
 
 ### SignalR refresh pravila
 
-- `SignalRNotificationService` sluša `ReceiveNotification` i `ReceiveMessage` događaje.
+- `SignalRNotificationService` sluša `ReceiveNotification`, `ReceiveMessage` i `SettingsChanged` događaje.
 - Notification drawer se puni odmah po primitku notifikacije.
+- `SettingsChanged` event inkrementira `pricingVersionProvider` → analytics i settings ekrani automatski re-loadaju podatke iz API-ja.
 - Puni `DataLoader.loadAll()` refresh trenutno se pokreće za data-changing tipove uključujući `jobRescheduled`, `reassignmentStarted` i `reassignmentCompleted`.
 - Ovaj pristup je namjerno grub, ali siguran dok admin još radi na full-screen dataset refresh obrascu umjesto finog per-entity patchanja.
 

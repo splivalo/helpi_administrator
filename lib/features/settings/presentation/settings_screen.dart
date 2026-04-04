@@ -1,34 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/network/api_endpoints.dart';
+import 'package:helpi_admin/core/providers/data_providers.dart';
+import 'package:helpi_admin/core/widgets/notification_bell.dart';
 
 /// Admin Settings screen — pricing, cancel rules, operational, tax, language.
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key, required this.localeNotifier});
 
   final LocaleNotifier localeNotifier;
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _api = ApiClient();
 
   bool _loading = true;
   bool _saving = false;
+  bool _editing = false;
   int _configId = 1;
 
   // ── Pricing ──
   final _weekdayRateCtrl = TextEditingController();
   final _sundayRateCtrl = TextEditingController();
-  final _companyPctCtrl = TextEditingController();
-  final _studentPctCtrl = TextEditingController();
 
   // ── Cancel rules ──
   final _studentCutoffCtrl = TextEditingController();
@@ -38,9 +40,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _travelBufferCtrl = TextEditingController();
   final _paymentTimingCtrl = TextEditingController();
 
-  // ── Tax ──
+  // ── Student rates ──
+  final _studentRateCtrl = TextEditingController();
+  final _studentSundayRateCtrl = TextEditingController();
+
+  // ── Earnings ──
+  final _intermediaryPctCtrl = TextEditingController();
   bool _vatEnabled = false;
   final _vatCtrl = TextEditingController();
+
+  // Snapshot for cancel/revert
+  Map<String, String> _snapshot = {};
+  bool _vatEnabledSnapshot = false;
+
+  int _lastPricingVersion = 0;
 
   @override
   void initState() {
@@ -52,14 +65,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void dispose() {
     _weekdayRateCtrl.dispose();
     _sundayRateCtrl.dispose();
-    _companyPctCtrl.dispose();
-    _studentPctCtrl.dispose();
     _studentCutoffCtrl.dispose();
     _seniorCutoffCtrl.dispose();
     _travelBufferCtrl.dispose();
     _paymentTimingCtrl.dispose();
+    _studentRateCtrl.dispose();
+    _studentSundayRateCtrl.dispose();
+    _intermediaryPctCtrl.dispose();
     _vatCtrl.dispose();
     super.dispose();
+  }
+
+  void _takeSnapshot() {
+    _snapshot = {
+      'weekday': _weekdayRateCtrl.text,
+      'sunday': _sundayRateCtrl.text,
+      'studentCutoff': _studentCutoffCtrl.text,
+      'seniorCutoff': _seniorCutoffCtrl.text,
+      'travelBuffer': _travelBufferCtrl.text,
+      'paymentTiming': _paymentTimingCtrl.text,
+      'studentRate': _studentRateCtrl.text,
+      'studentSundayRate': _studentSundayRateCtrl.text,
+      'intermediaryPct': _intermediaryPctCtrl.text,
+      'vat': _vatCtrl.text,
+    };
+    _vatEnabledSnapshot = _vatEnabled;
+  }
+
+  void _restoreSnapshot() {
+    _weekdayRateCtrl.text = _snapshot['weekday'] ?? '';
+    _sundayRateCtrl.text = _snapshot['sunday'] ?? '';
+    _studentCutoffCtrl.text = _snapshot['studentCutoff'] ?? '';
+    _seniorCutoffCtrl.text = _snapshot['seniorCutoff'] ?? '';
+    _travelBufferCtrl.text = _snapshot['travelBuffer'] ?? '';
+    _paymentTimingCtrl.text = _snapshot['paymentTiming'] ?? '';
+    _studentRateCtrl.text = _snapshot['studentRate'] ?? '';
+    _studentSundayRateCtrl.text = _snapshot['studentSundayRate'] ?? '';
+    _intermediaryPctCtrl.text = _snapshot['intermediaryPct'] ?? '';
+    _vatCtrl.text = _snapshot['vat'] ?? '';
+    _vatEnabled = _vatEnabledSnapshot;
   }
 
   Future<void> _loadSettings() async {
@@ -72,8 +116,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _configId = (cfg['id'] as num?)?.toInt() ?? 1;
         _weekdayRateCtrl.text = _fmt(cfg['jobHourlyRate']);
         _sundayRateCtrl.text = _fmt(cfg['sundayHourlyRate']);
-        _companyPctCtrl.text = _fmt(cfg['companyPercentage']);
-        _studentPctCtrl.text = _fmt(cfg['serviceProviderPercentage']);
         _studentCutoffCtrl.text =
             '${(cfg['studentCancelCutoffHours'] as num?) ?? 6}';
         _seniorCutoffCtrl.text =
@@ -82,6 +124,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             '${(cfg['travelBufferMinutes'] as num?) ?? 15}';
         _paymentTimingCtrl.text =
             '${(cfg['paymentTimingMinutes'] as num?) ?? 30}';
+        _studentRateCtrl.text = _fmt(cfg['studentHourlyRate'] ?? 7.40);
+        _studentSundayRateCtrl.text = _fmt(
+          cfg['studentSundayHourlyRate'] ?? 11.10,
+        );
+        _intermediaryPctCtrl.text = _fmt(cfg['intermediaryPercentage'] ?? 18);
         _vatEnabled = cfg['vatEnabled'] == true;
         _vatCtrl.text = _fmt(cfg['vatPercentage']);
       }
@@ -108,15 +155,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return d == d.truncateToDouble() ? d.toInt().toString() : d.toString();
   }
 
-  Future<void> _saveSettings() async {
-    // Validate company + student = 100
-    final companyPct = double.tryParse(_companyPctCtrl.text) ?? 0;
-    final studentPct = double.tryParse(_studentPctCtrl.text) ?? 0;
-    if ((companyPct + studentPct - 100).abs() > 0.01) {
-      _showSnack(AppStrings.settingsPercentageError, isError: true);
-      return;
-    }
+  void _startEditing() {
+    _takeSnapshot();
+    setState(() => _editing = true);
+  }
 
+  void _cancelEditing() {
+    _restoreSnapshot();
+    setState(() => _editing = false);
+  }
+
+  void _increment(
+    TextEditingController ctrl, {
+    double step = 1,
+    bool decimal = false,
+  }) {
+    final current = double.tryParse(ctrl.text) ?? 0;
+    final next = current + step;
+    ctrl.text = decimal ? _fmt(next) : next.toInt().toString();
+  }
+
+  void _decrement(
+    TextEditingController ctrl, {
+    double step = 1,
+    bool decimal = false,
+  }) {
+    final current = double.tryParse(ctrl.text) ?? 0;
+    final next = current - step;
+    if (next < 0) return;
+    ctrl.text = decimal ? _fmt(next) : next.toInt().toString();
+  }
+
+  Future<void> _saveSettings() async {
     setState(() => _saving = true);
     try {
       await _api.put(
@@ -125,19 +195,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'id': _configId,
           'jobHourlyRate': double.tryParse(_weekdayRateCtrl.text) ?? 0,
           'sundayHourlyRate': double.tryParse(_sundayRateCtrl.text) ?? 0,
-          'companyPercentage': companyPct,
-          'serviceProviderPercentage': studentPct,
           'studentCancelCutoffHours':
               int.tryParse(_studentCutoffCtrl.text) ?? 6,
           'seniorCancelCutoffHours': int.tryParse(_seniorCutoffCtrl.text) ?? 1,
           'travelBufferMinutes': int.tryParse(_travelBufferCtrl.text) ?? 15,
           'paymentTimingMinutes': int.tryParse(_paymentTimingCtrl.text) ?? 30,
+          'studentHourlyRate': double.tryParse(_studentRateCtrl.text) ?? 7.40,
+          'studentSundayHourlyRate':
+              double.tryParse(_studentSundayRateCtrl.text) ?? 11.10,
+          'intermediaryPercentage':
+              double.tryParse(_intermediaryPctCtrl.text) ?? 18,
           'vatEnabled': _vatEnabled,
           'vatPercentage': double.tryParse(_vatCtrl.text) ?? 0,
         },
         queryParameters: {'reason': 'Admin settings update'},
       );
       if (!mounted) return;
+      ref.read(pricingVersionProvider.notifier).state++;
+      setState(() => _editing = false);
       _showSnack(AppStrings.settingsSaved);
     } catch (_) {
       if (!mounted) return;
@@ -149,6 +224,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Reload pricing when SettingsChanged fires (only if not editing)
+    final pv = ref.watch(pricingVersionProvider);
+    if (pv != _lastPricingVersion) {
+      _lastPricingVersion = pv;
+      if (pv > 0 && !_editing) _loadSettings();
+    }
+
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -157,225 +239,346 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         title: Text(AppStrings.settingsTitle),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: FilledButton.icon(
-              onPressed: _saving ? null : _saveSettings,
-              icon: _saving
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.save, size: 20),
-              label: Text(AppStrings.save),
+          if (_editing) ...[
+            TextButton(
+              onPressed: _saving ? null : _cancelEditing,
+              child: Text(AppStrings.cancel),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                icon: _saving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(
+                        Icons.save,
+                        size: 22,
+                        color: HelpiTheme.accent,
+                      ),
+                tooltip: AppStrings.save,
+                onPressed: _saving ? null : _saveSettings,
+              ),
+            ),
+          ] else ...[
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                icon: const Icon(Icons.edit, size: 22),
+                tooltip: AppStrings.edit,
+                onPressed: _startEditing,
+              ),
+            ),
+          ],
+          const NotificationBell(),
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final wide = constraints.maxWidth >= 600;
+              return ListView(
                 children: [
                   // ── Pricing ──
                   _sectionCard(
                     icon: Icons.euro,
                     title: AppStrings.settingsPricing,
                     children: [
-                      _numField(
-                        _weekdayRateCtrl,
-                        AppStrings.weekdayRate,
-                        suffix: '€',
-                        decimal: true,
-                      ),
-                      const SizedBox(height: 16),
-                      _numField(
-                        _sundayRateCtrl,
-                        AppStrings.sundayRate,
-                        suffix: '€',
-                        decimal: true,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _numField(
-                              _companyPctCtrl,
-                              AppStrings.companyPercentage,
-                              suffix: '%',
-                              decimal: true,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _numField(
-                              _studentPctCtrl,
-                              AppStrings.studentPercentage,
-                              suffix: '%',
-                              decimal: true,
-                            ),
-                          ),
-                        ],
+                      _fieldPair(
+                        wide: wide,
+                        first: _numField(
+                          _weekdayRateCtrl,
+                          AppStrings.weekdayRate,
+                          suffix: '€',
+                          decimal: true,
+                        ),
+                        second: _numField(
+                          _sundayRateCtrl,
+                          AppStrings.sundayRate,
+                          suffix: '€',
+                          decimal: true,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
+
+                  // ── Student rates ──
+                  _sectionCard(
+                    icon: Icons.school_outlined,
+                    title: AppStrings.settingsStudentRates,
+                    children: [
+                      _fieldPair(
+                        wide: wide,
+                        first: _numField(
+                          _studentRateCtrl,
+                          AppStrings.studentHourlyRate,
+                          suffix: '€',
+                          decimal: true,
+                        ),
+                        second: _numField(
+                          _studentSundayRateCtrl,
+                          AppStrings.studentSundayRate,
+                          suffix: '€',
+                          decimal: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
 
                   // ── Cancel rules ──
                   _sectionCard(
                     icon: Icons.timer_off,
                     title: AppStrings.settingsCancelRules,
                     children: [
-                      _numField(
-                        _studentCutoffCtrl,
-                        AppStrings.studentCancelCutoff,
-                        suffix: 'h',
-                      ),
-                      const SizedBox(height: 16),
-                      _numField(
-                        _seniorCutoffCtrl,
-                        AppStrings.seniorCancelCutoff,
-                        suffix: 'h',
+                      _fieldPair(
+                        wide: wide,
+                        first: _numField(
+                          _studentCutoffCtrl,
+                          AppStrings.studentCancelCutoff,
+                          suffix: 'h',
+                        ),
+                        second: _numField(
+                          _seniorCutoffCtrl,
+                          AppStrings.seniorCancelCutoff,
+                          suffix: 'h',
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   // ── Operational ──
                   _sectionCard(
-                    icon: Icons.settings,
+                    icon: Icons.tune,
                     title: AppStrings.settingsOperational,
                     children: [
-                      _numField(
-                        _travelBufferCtrl,
-                        AppStrings.travelBuffer,
-                        suffix: 'min',
-                      ),
-                      const SizedBox(height: 16),
-                      _numField(
-                        _paymentTimingCtrl,
-                        AppStrings.paymentTiming,
-                        suffix: 'min',
+                      _fieldPair(
+                        wide: wide,
+                        first: _numField(
+                          _travelBufferCtrl,
+                          AppStrings.travelBuffer,
+                          suffix: 'min',
+                        ),
+                        second: _numField(
+                          _paymentTimingCtrl,
+                          AppStrings.paymentTiming,
+                          suffix: 'min',
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                  // ── Tax ──
+                  // ── Earnings (margin + VAT) ──
                   _sectionCard(
-                    icon: Icons.receipt_long,
-                    title: AppStrings.settingsTax,
+                    icon: Icons.calculate_outlined,
+                    title: AppStrings.settingsEarnings,
                     children: [
-                      SwitchListTile(
-                        title: Text(AppStrings.vatEnabled),
-                        value: _vatEnabled,
-                        onChanged: (v) => setState(() => _vatEnabled = v),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      if (_vatEnabled) ...[
-                        const SizedBox(height: 8),
+                      if (wide)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _numField(
+                                _intermediaryPctCtrl,
+                                AppStrings.intermediaryPercentage,
+                                suffix: '%',
+                                decimal: true,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: SwitchListTile(
+                                title: Text(
+                                  _vatEnabled
+                                      ? AppStrings.vatEnabled
+                                      : AppStrings.vatDisabled,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                value: _vatEnabled,
+                                activeColor: HelpiTheme.accent,
+                                onChanged: _editing
+                                    ? (v) => setState(() => _vatEnabled = v)
+                                    : null,
+                                contentPadding: EdgeInsets.zero,
+                                dense: true,
+                              ),
+                            ),
+                            if (_vatEnabled) ...[
+                              const SizedBox(width: 16),
+                              SizedBox(
+                                width: 160,
+                                child: _numField(
+                                  _vatCtrl,
+                                  AppStrings.vatPercentage,
+                                  suffix: '%',
+                                  decimal: true,
+                                ),
+                              ),
+                            ],
+                          ],
+                        )
+                      else ...[
                         _numField(
-                          _vatCtrl,
-                          AppStrings.vatPercentage,
+                          _intermediaryPctCtrl,
+                          AppStrings.intermediaryPercentage,
                           suffix: '%',
                           decimal: true,
                         ),
+                        const SizedBox(height: 12),
+                        SwitchListTile(
+                          title: Text(
+                            _vatEnabled
+                                ? AppStrings.vatEnabled
+                                : AppStrings.vatDisabled,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          value: _vatEnabled,
+                          activeColor: HelpiTheme.accent,
+                          onChanged: _editing
+                              ? (v) => setState(() => _vatEnabled = v)
+                              : null,
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
+                        if (_vatEnabled) ...[
+                          const SizedBox(height: 12),
+                          _numField(
+                            _vatCtrl,
+                            AppStrings.vatPercentage,
+                            suffix: '%',
+                            decimal: true,
+                          ),
+                        ],
                       ],
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
                   // ── Language ──
                   _sectionCard(
                     icon: Icons.language,
                     title: AppStrings.settingsLanguage,
                     children: [
-                      SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(
-                            value: 'hr',
-                            label: Text('Hrvatski'),
-                            icon: Icon(Icons.flag),
+                      SizedBox(
+                        height: HelpiTheme.inputFieldHeight,
+                        child: DropdownButtonFormField<String>(
+                          value: AppStrings.currentLocale,
+                          isExpanded: true,
+                          isDense: true,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: HelpiTheme.textPrimary,
                           ),
-                          ButtonSegment(
-                            value: 'en',
-                            label: Text('English'),
-                            icon: Icon(Icons.flag_outlined),
+                          decoration: const InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            border: OutlineInputBorder(),
                           ),
-                        ],
-                        selected: {AppStrings.currentLocale},
-                        onSelectionChanged: (sel) {
-                          widget.localeNotifier.setLocale(sel.first);
-                        },
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'hr',
+                              child: Text('Hrvatski'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'en',
+                              child: Text('English'),
+                            ),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) {
+                              widget.localeNotifier.setLocale(v);
+                            }
+                          },
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 16),
                 ],
-              ),
-            ),
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  // ── Section card with icon + title ──
+  // ── Responsive field pair: Row on wide, Column on narrow ──
+  Widget _fieldPair({
+    required bool wide,
+    required Widget first,
+    required Widget second,
+  }) {
+    if (wide) {
+      return Row(
+        children: [
+          Expanded(child: first),
+          const SizedBox(width: 16),
+          Expanded(child: second),
+        ],
+      );
+    }
+    return Column(children: [first, const SizedBox(height: 12), second]);
+  }
+
+  // ── Section card with icon + title (matches analytics Container pattern) ──
   Widget _sectionCard({
     required IconData icon,
     required String title,
     required List<Widget> children,
   }) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        side: BorderSide(color: HelpiTheme.border),
+        border: Border.all(color: HelpiTheme.border),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 22, color: HelpiTheme.primary),
-                const SizedBox(width: 10),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: HelpiTheme.textPrimary,
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 22, color: HelpiTheme.accent),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: HelpiTheme.textPrimary,
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...children,
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...children,
+        ],
       ),
     );
   }
 
-  // ── Numeric text field ──
+  // ── Numeric text field with stepper arrows ──
+  // Inherits theme InputDecorationTheme (same as login page).
   Widget _numField(
     TextEditingController ctrl,
     String label, {
     String? suffix,
     bool decimal = false,
+    double step = 1,
   }) {
     return TextField(
       controller: ctrl,
+      readOnly: !_editing,
+      enabled: _editing,
       keyboardType: TextInputType.numberWithOptions(decimal: decimal),
       inputFormatters: [
         if (decimal)
@@ -385,9 +588,77 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ],
       decoration: InputDecoration(
         labelText: label,
-        suffixText: suffix,
-        border: const OutlineInputBorder(),
-        isDense: true,
+        fillColor: _editing ? null : HelpiTheme.chipBg,
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          borderSide: const BorderSide(color: HelpiTheme.border),
+        ),
+        suffixIcon: (suffix != null || _editing)
+            ? Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (suffix != null)
+                      Text(
+                        suffix,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: HelpiTheme.textSecondary,
+                        ),
+                      ),
+                    if (_editing) ...[
+                      const SizedBox(width: 4),
+                      SizedBox(
+                        width: 24,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              height: 20,
+                              width: 24,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                iconSize: 20,
+                                icon: const Icon(
+                                  Icons.arrow_drop_up,
+                                  color: HelpiTheme.textSecondary,
+                                ),
+                                onPressed: () => _increment(
+                                  ctrl,
+                                  step: step,
+                                  decimal: decimal,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 20,
+                              width: 24,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                iconSize: 20,
+                                icon: const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: HelpiTheme.textSecondary,
+                                ),
+                                onPressed: () => _decrement(
+                                  ctrl,
+                                  step: step,
+                                  decimal: decimal,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              )
+            : null,
+        suffixIconConstraints: const BoxConstraints(minHeight: 0, minWidth: 0),
       ),
     );
   }

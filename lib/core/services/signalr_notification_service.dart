@@ -101,6 +101,7 @@ class SignalRNotificationService {
     debugPrint('[SignalR] SettingsChanged — refreshing all data');
     AdminApiService.invalidatePricingCache();
     if (_ref != null) {
+      _ref!.read(pricingVersionProvider.notifier).state++;
       DataLoader.loadAll(ref: _ref!);
     }
   }

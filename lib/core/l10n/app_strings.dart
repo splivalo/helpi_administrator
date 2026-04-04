@@ -33,25 +33,27 @@ class AppStrings {
 
       // ── Postavke ──────────────────────────────
       'settingsTitle': 'Postavke',
-      'settingsPricing': 'Cijena',
+      'settingsPricing': 'Cijena usluge',
       'settingsCancelRules': 'Pravila otkazivanja',
       'settingsOperational': 'Operativno',
-      'settingsTax': 'Porez',
+      'settingsStudentRates': 'Studentska satnica',
+      'settingsEarnings': 'Zarada',
       'settingsLanguage': 'Jezik',
       'weekdayRate': 'Cijena po satu (radni dan)',
-      'sundayRate': 'Cijena po satu (nedjelja)',
-      'companyPercentage': 'Postotak tvrtke',
-      'studentPercentage': 'Postotak studenta',
-      'studentCancelCutoff': 'Student ne može otkazati prije (sati)',
-      'seniorCancelCutoff': 'Senior ne može otkazati prije (sati)',
-      'travelBuffer': 'Buffer za putovanje (min)',
-      'paymentTiming': 'Naplata prije usluge (min)',
+      'sundayRate': 'Povećana satnica (nedjelje i blagdani)',
+      'studentHourlyRate': 'Student satnica (radni dan)',
+      'studentSundayRate': 'Student satnica (nedjelja/blagdani)',
+      'studentCancelCutoff': 'Student može otkazati prije',
+      'seniorCancelCutoff': 'Senior može otkazati prije',
+      'travelBuffer': 'Buffer za putovanje',
+      'paymentTiming': 'Naplata prije usluge',
       'vatEnabled': 'PDV uključen',
+      'vatDisabled': 'PDV isključen',
       'vatPercentage': 'PDV (%)',
+      'intermediaryPercentage': 'Marža posrednika',
       'settingsSaved': 'Postavke uspješno spremljene',
       'settingsSaveFailed': 'Spremanje postavki nije uspjelo',
       'settingsLoadFailed': 'Učitavanje postavki nije uspjelo',
-      'settingsPercentageError': 'Postotak tvrtke + studenta mora biti 100%',
 
       // ── Analitika ─────────────────────────────
       'dashboardTitle': 'Analitika',
@@ -668,25 +670,27 @@ class AppStrings {
 
       // ── Settings ──────────────────────────────
       'settingsTitle': 'Settings',
-      'settingsPricing': 'Pricing',
+      'settingsPricing': 'Service pricing',
       'settingsCancelRules': 'Cancel rules',
       'settingsOperational': 'Operational',
-      'settingsTax': 'Tax',
+      'settingsStudentRates': 'Student rates',
+      'settingsEarnings': 'Earnings',
       'settingsLanguage': 'Language',
       'weekdayRate': 'Hourly rate (weekday)',
-      'sundayRate': 'Hourly rate (Sunday)',
-      'companyPercentage': 'Company percentage',
-      'studentPercentage': 'Student percentage',
-      'studentCancelCutoff': 'Student cancel cutoff (hours)',
-      'seniorCancelCutoff': 'Senior cancel cutoff (hours)',
-      'travelBuffer': 'Travel buffer (min)',
-      'paymentTiming': 'Payment before service (min)',
+      'sundayRate': 'Overtime rate (Sundays & holidays)',
+      'studentHourlyRate': 'Student rate (weekday)',
+      'studentSundayRate': 'Student rate (Sunday/holiday)',
+      'studentCancelCutoff': 'Student can cancel before',
+      'seniorCancelCutoff': 'Senior can cancel before',
+      'travelBuffer': 'Travel buffer',
+      'paymentTiming': 'Payment before service',
       'vatEnabled': 'VAT enabled',
+      'vatDisabled': 'VAT disabled',
       'vatPercentage': 'VAT (%)',
+      'intermediaryPercentage': 'Intermediary margin',
       'settingsSaved': 'Settings saved successfully',
       'settingsSaveFailed': 'Failed to save settings',
       'settingsLoadFailed': 'Failed to load settings',
-      'settingsPercentageError': 'Company + student percentage must equal 100%',
 
       // ── Analitika ─────────────────────────────
       'dashboardTitle': 'Analytics',
@@ -1973,20 +1977,22 @@ class AppStrings {
   static String get settingsPricing => _t('settingsPricing');
   static String get settingsCancelRules => _t('settingsCancelRules');
   static String get settingsOperational => _t('settingsOperational');
-  static String get settingsTax => _t('settingsTax');
+  static String get settingsStudentRates => _t('settingsStudentRates');
+  static String get settingsEarnings => _t('settingsEarnings');
   static String get settingsLanguage => _t('settingsLanguage');
   static String get weekdayRate => _t('weekdayRate');
   static String get sundayRate => _t('sundayRate');
-  static String get companyPercentage => _t('companyPercentage');
-  static String get studentPercentage => _t('studentPercentage');
   static String get studentCancelCutoff => _t('studentCancelCutoff');
   static String get seniorCancelCutoff => _t('seniorCancelCutoff');
   static String get travelBuffer => _t('travelBuffer');
   static String get paymentTiming => _t('paymentTiming');
   static String get vatEnabled => _t('vatEnabled');
+  static String get vatDisabled => _t('vatDisabled');
   static String get vatPercentage => _t('vatPercentage');
+  static String get intermediaryPercentage => _t('intermediaryPercentage');
+  static String get studentHourlyRate => _t('studentHourlyRate');
+  static String get studentSundayRate => _t('studentSundayRate');
   static String get settingsSaved => _t('settingsSaved');
   static String get settingsSaveFailed => _t('settingsSaveFailed');
   static String get settingsLoadFailed => _t('settingsLoadFailed');
-  static String get settingsPercentageError => _t('settingsPercentageError');
 }

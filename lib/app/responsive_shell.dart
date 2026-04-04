@@ -43,7 +43,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       SeniorsScreen(key: ValueKey('seniors_$locale')),
       StudentsScreen(key: ValueKey('students_$locale')),
       ChatModScreen(key: ValueKey('chat_$locale')),
-      DashboardScreen(key: ValueKey('analytics_$locale')),
+      AnalyticsScreen(key: ValueKey('analytics_$locale')),
       SettingsScreen(
         key: ValueKey('settings_$locale'),
         localeNotifier: widget.localeNotifier,

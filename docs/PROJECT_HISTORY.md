@@ -2,6 +2,17 @@
 
 > Kronologija ključnih odluka i promjena.
 
+## 2026-04-04 — Settings Screen + Dynamic Pricing + Student Rates
+
+- **Settings screen kreiran** — 6 sekcija u `settings_screen.dart`: Cijena usluge (senior satnice), Studentska satnica (fiksni iznosi), Pravila otkazivanja, Operativno (buffer/naplata), Zarada (marža posrednika + PDV), Jezik.
+- **Backend proširenje** — `PricingConfiguration` entity dobio nova polja: `StudentHourlyRate` (7.40€), `StudentSundayHourlyRate` (11.10€). DTO, validator, service, seeder, migracije — sve napravljeno.
+- **IntermediaryPercentage** — Marža posrednika (studentservis cut, default 18%) dodana u backend i frontend. U settings screenu dijeli red s PDV switchem.
+- **Analytics formula ispravljena** — `neto = gross - PDV - Stripe(1.5%+€0.25) - studentPay(fiksni) - intermediaryFee(%) `. Student rate se čita direktno iz API-ja, više se NE računa iz marže.
+- **Excel export bug fix** — Neto u exportu nije uključivao PDV odbitak — sada uključuje.
+- **SignalR reaktivnost** — `pricingVersionProvider` (StateProvider<int>) u data_providers.dart. Backend `BroadcastSettingsChangedAsync()` na svaki PUT pricing → SignalR `SettingsChanged` event → inkrement providera → analytics + settings auto-reload (ako settings nije u edit modu).
+- **DashboardScreen → AnalyticsScreen** — Klasa preimenovana, dead `features/dashboard/` folder obrisan. Navigacija već bila na "Analitika".
+- **Ključna odluka:** Student satnice su FIKSNI iznosi (ne postotak senior satnice). Studentservis (posrednik) uzima % od gross-a, odvojeno.
+
 ## 2026-04-02 — GA-style Analitika redesign
 
 - **Kompletni rewrite** — `dashboard_screen.dart` prepisana iz bar-chart v1 stila u Google Analytics stil s fl_chart LineChart.

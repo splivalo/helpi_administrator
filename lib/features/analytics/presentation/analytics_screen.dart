@@ -16,11 +16,11 @@ import 'package:helpi_admin/core/widgets/widgets.dart';
 
 /// GA-style analytics — date-range selector, 3 stacked line charts
 /// (orders / revenue / active seniors) with comparison overlay.
-class DashboardScreen extends ConsumerStatefulWidget {
-  const DashboardScreen({super.key});
+class AnalyticsScreen extends ConsumerStatefulWidget {
+  const AnalyticsScreen({super.key});
 
   @override
-  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+  ConsumerState<AnalyticsScreen> createState() => _AnalyticsScreenState();
 }
 
 // ── Date range presets ──
@@ -29,7 +29,7 @@ enum _RangePreset { last7, thisMonth, lastMonth, custom }
 // ── Metric types ──
 enum _Metric { orders, revenue, activeSeniors }
 
-class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
   _RangePreset _preset = _RangePreset.last7;
   bool _showComparison = false;
   bool _showEarnings = false;
@@ -42,14 +42,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // Senior pays:
   double _seniorWeekdayRate = 14.0;
   double _seniorSundayRate = 21.0;
-  // Student receives (computed: seniorRate * studentPct):
-  double _studentWeekdayRate = 8.40;
-  double _studentSundayRate = 12.60;
+  // Student receives fixed rates (editable in Settings)
+  double _studentWeekdayRate = 7.40;
+  double _studentSundayRate = 11.10;
   // VAT:
   bool _vatEnabled = false;
   double _vatPercentage = 0;
-  // Costs:
-  static const double _studentServicePct = 0.18; // 18% student service fee
+  // Intermediary margin (studentservis cut):
+  double _intermediaryPct = 0.18; // 18% default
   // TODO(neto-exact): Stripe fee is currently estimated using the formula
   // 1.5% + €0.25 (EEA standard rate). For exact figures:
   //   1. Backend: add a StripeFee decimal column to PaymentTransaction
@@ -61,6 +61,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // the fee for ~18% of transactions (see Stripe dashboard — Order #30, #24).
   static const double _stripePct = 0.015; // 1.5%
   static const double _stripeFixed = 0.25; // €0.25 per charge (per session)
+
+  int _lastPricingVersion = 0;
 
   @override
   void initState() {
@@ -78,15 +80,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (!mounted) return;
       final seniorW = (cfg['jobHourlyRate'] as num?)?.toDouble() ?? 14.0;
       final seniorS = (cfg['sundayHourlyRate'] as num?)?.toDouble() ?? 21.0;
-      final studentPct =
-          ((cfg['serviceProviderPercentage'] as num?)?.toDouble() ?? 60) / 100;
+      final stuW = (cfg['studentHourlyRate'] as num?)?.toDouble() ?? 7.40;
+      final stuS =
+          (cfg['studentSundayHourlyRate'] as num?)?.toDouble() ?? 11.10;
       setState(() {
         _seniorWeekdayRate = seniorW;
         _seniorSundayRate = seniorS;
-        _studentWeekdayRate = seniorW * studentPct;
-        _studentSundayRate = seniorS * studentPct;
+        _studentWeekdayRate = stuW;
+        _studentSundayRate = stuS;
         _vatEnabled = cfg['vatEnabled'] == true;
         _vatPercentage = (cfg['vatPercentage'] as num?)?.toDouble() ?? 0;
+        _intermediaryPct =
+            ((cfg['intermediaryPercentage'] as num?)?.toDouble() ?? 18) / 100;
       });
     } catch (_) {
       // keep defaults
@@ -167,7 +172,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
               if (_showEarnings) {
                 // Exact per-session neto:
-                // gross − VAT − Stripe fee − student pay − studentski servis (18%)
+                // gross − VAT − Stripe fee − student pay
                 final vatDeduction = _vatEnabled
                     ? gross * (_vatPercentage / (100 + _vatPercentage))
                     : 0.0;
@@ -176,9 +181,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ? _studentSundayRate
                     : _studentWeekdayRate;
                 final studentPay = s.durationHours * studentRate;
-                final studentService = studentPay * _studentServicePct;
+                final intermediaryFee = gross * _intermediaryPct;
                 result[idx] +=
-                    gross - vatDeduction - stripeFee - studentPay - studentService;
+                    gross -
+                    vatDeduction -
+                    stripeFee -
+                    studentPay -
+                    intermediaryFee;
               } else {
                 result[idx] += gross;
               }
@@ -243,6 +252,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final theme = Theme.of(context);
     final allOrders = ref.watch(ordersProvider);
     final allSeniors = ref.watch(seniorsProvider);
+
+    // Reload pricing when SettingsChanged fires (via SignalR)
+    final pv = ref.watch(pricingVersionProvider);
+    if (pv != _lastPricingVersion) {
+      _lastPricingVersion = pv;
+      if (pv > 0) _loadPricing();
+    }
 
     // Current period data
     final ordersData = _dailyValues(
@@ -418,7 +434,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final grossRevs = List.filled(days, 0.0);
     final stripeFees = List.filled(days, 0.0);
     final studentPays = List.filled(days, 0.0);
-    final studentServices = List.filled(days, 0.0);
     final netoRevs = List.filled(days, 0.0);
     final seniorSets = List.generate(days, (_) => <String>{});
 
@@ -444,13 +459,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         final stripe = gross * _stripePct + _stripeFixed;
         final studentRate = isSunday ? _studentSundayRate : _studentWeekdayRate;
         final sPay = s.durationHours * studentRate;
-        final sService = sPay * _studentServicePct;
 
+        final vatDed = _vatEnabled
+            ? gross * (_vatPercentage / (100 + _vatPercentage))
+            : 0.0;
         grossRevs[idx] += gross;
         stripeFees[idx] += stripe;
         studentPays[idx] += sPay;
-        studentServices[idx] += sService;
-        netoRevs[idx] += gross - stripe - sPay - sService;
+        final intermediaryFee = gross * _intermediaryPct;
+        netoRevs[idx] += gross - vatDed - stripe - sPay - intermediaryFee;
       }
     }
 
@@ -462,7 +479,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         grossRevenue: grossRevs[i],
         stripeFee: stripeFees[i],
         studentPay: studentPays[i],
-        studentService: studentServices[i],
+        studentService: 0,
         helpiNeto: netoRevs[i],
         activeSeniors: seniorSets[i].length.toDouble(),
       ),
