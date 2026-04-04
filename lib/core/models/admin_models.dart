@@ -379,6 +379,9 @@ class SessionModel {
   final TimeOfDay startTime;
   final TimeOfDay endTime;
   final int durationHours;
+  final double hourlyRate;
+  final double studentHourlyRate;
+  final double companyAmount;
   final int? studentId;
   final String? studentName;
   final SessionStatus status;
@@ -392,6 +395,9 @@ class SessionModel {
     required this.startTime,
     required this.endTime,
     required this.durationHours,
+    this.hourlyRate = 0,
+    this.studentHourlyRate = 0,
+    this.companyAmount = 0,
     this.studentId,
     this.studentName,
     this.status = SessionStatus.scheduled,
@@ -406,6 +412,9 @@ class SessionModel {
     TimeOfDay? startTime,
     TimeOfDay? endTime,
     int? durationHours,
+    double? hourlyRate,
+    double? studentHourlyRate,
+    double? companyAmount,
     int? Function()? studentId,
     String? Function()? studentName,
     SessionStatus? status,
@@ -419,6 +428,9 @@ class SessionModel {
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
       durationHours: durationHours ?? this.durationHours,
+      hourlyRate: hourlyRate ?? this.hourlyRate,
+      studentHourlyRate: studentHourlyRate ?? this.studentHourlyRate,
+      companyAmount: companyAmount ?? this.companyAmount,
       studentId: studentId != null ? studentId() : this.studentId,
       studentName: studentName != null ? studentName() : this.studentName,
       status: status ?? this.status,

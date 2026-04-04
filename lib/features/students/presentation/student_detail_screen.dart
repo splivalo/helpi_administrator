@@ -1371,59 +1371,53 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     return (completed, cancelled);
   }
 
-  /// Counts (regular, overtime) occurrences of [dayOfWeek] in [start]..[end].
-  /// Overtime = Sunday OR Croatian public holiday.
-  (int, int) _splitOccurrences(DateTime start, DateTime end, int dayOfWeek) {
-    int regular = 0;
-    int overtime = 0;
-    for (var d = start; !d.isAfter(end); d = d.add(const Duration(days: 1))) {
-      if (d.weekday != dayOfWeek) continue;
-      if (CroatianHolidays.isOvertimeDay(d)) {
-        overtime++;
-      } else {
-        regular++;
+  List<SessionModel> _rangeSessions() {
+    final studentOrders = ref
+        .read(ordersProvider)
+        .where((o) => o.student?.id == _student.id);
+
+    return studentOrders.expand((order) => order.sessions).where((session) {
+      if (session.status == SessionStatus.cancelled) {
+        return false;
       }
+
+      final sessionDate = DateTime(
+        session.date.year,
+        session.date.month,
+        session.date.day,
+      );
+
+      return !sessionDate.isBefore(_summaryStart) &&
+          !sessionDate.isAfter(_summaryEnd);
+    }).toList();
+  }
+
+  double? _singleStudentRate(Iterable<SessionModel> sessions) {
+    final rates = sessions
+        .map((session) => session.studentHourlyRate)
+        .where((rate) => rate > 0)
+        .toSet();
+
+    if (rates.length != 1) {
+      return null;
     }
-    return (regular, overtime);
+
+    return rates.first;
   }
 
   /// Calculates (regularHours, overtimeHours) within [_summaryStart]..[_summaryEnd].
   (double, double) _rangeHours() {
-    final studentOrders = ref
-        .read(ordersProvider)
-        .where(
-          (o) =>
-              o.student?.id == _student.id &&
-              (o.status == OrderStatus.active ||
-                  o.status == OrderStatus.completed),
-        );
+    final rangedSessions = _rangeSessions();
 
     double regular = 0;
     double overtime = 0;
 
-    for (final order in studentOrders) {
-      if (order.dayEntries.isNotEmpty) {
-        // Recurring: split each day’s occurrences into regular vs overtime
-        for (final entry in order.dayEntries) {
-          final (reg, ovt) = _splitOccurrences(
-            _summaryStart,
-            _summaryEnd,
-            entry.dayOfWeek,
-          );
-          regular += entry.durationHours.toDouble() * reg;
-          overtime += entry.durationHours.toDouble() * ovt;
-        }
+    for (final session in rangedSessions) {
+      final hours = session.durationHours.toDouble();
+      if (CroatianHolidays.isOvertimeDay(session.date)) {
+        overtime += hours;
       } else {
-        // One-time: only if scheduledDate falls within range
-        if (!order.scheduledDate.isBefore(_summaryStart) &&
-            !order.scheduledDate.isAfter(_summaryEnd)) {
-          final hours = order.durationHours.toDouble();
-          if (CroatianHolidays.isOvertimeDay(order.scheduledDate)) {
-            overtime += hours;
-          } else {
-            regular += hours;
-          }
-        }
+        regular += hours;
       }
     }
     return (regular, overtime);
@@ -1475,11 +1469,26 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
   }
 
   Widget _buildWorkSummarySection() {
+    final rangedSessions = _rangeSessions();
+    final regularSessions = rangedSessions
+        .where((session) => !CroatianHolidays.isOvertimeDay(session.date))
+        .toList();
+    final overtimeSessions = rangedSessions
+        .where((session) => CroatianHolidays.isOvertimeDay(session.date))
+        .toList();
     final (regularHrs, overtimeHrs) = _rangeHours();
     final totalHrs = regularHrs + overtimeHrs;
-    final regularPay = regularHrs * _student.hourlyRate;
-    final overtimePay = overtimeHrs * _student.sundayHourlyRate;
+    final regularPay = regularSessions.fold<double>(
+      0,
+      (sum, session) => sum + session.durationHours * session.studentHourlyRate,
+    );
+    final overtimePay = overtimeSessions.fold<double>(
+      0,
+      (sum, session) => sum + session.durationHours * session.studentHourlyRate,
+    );
     final totalPay = regularPay + overtimePay;
+    final regularRate = _singleStudentRate(regularSessions);
+    final overtimeRate = _singleStudentRate(overtimeSessions);
 
     final (completedCount, cancelledCount) = _rangeJobCounts();
 
@@ -1671,11 +1680,15 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
               ),
               InfoField(
                 label: AppStrings.workHourlyRate,
-                value: '${_student.hourlyRate.toStringAsFixed(2)} €',
+                value: regularRate != null
+                    ? '${regularRate.toStringAsFixed(2)} €'
+                    : '-',
               ),
               InfoField(
                 label: AppStrings.workSundayRate,
-                value: '${_student.sundayHourlyRate.toStringAsFixed(2)} €',
+                value: overtimeRate != null
+                    ? '${overtimeRate.toStringAsFixed(2)} €'
+                    : '-',
               ),
             ],
           ),
@@ -1701,17 +1714,18 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             ],
           ),
           // Breakdown detail
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              '${regularHrs.toStringAsFixed(0)}h × ${_student.hourlyRate.toStringAsFixed(2)}€ = ${regularPay.toStringAsFixed(2)}€'
-              '${overtimeHrs > 0 ? '  +  ${overtimeHrs.toStringAsFixed(0)}h × ${_student.sundayHourlyRate.toStringAsFixed(2)}€ = ${overtimePay.toStringAsFixed(2)}€' : ''}',
-              style: const TextStyle(
-                fontSize: 11,
-                color: HelpiTheme.textSecondary,
+          if (regularRate != null || (overtimeHrs > 0 && overtimeRate != null))
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                '${regularRate != null ? '${regularHrs.toStringAsFixed(0)}h × ${regularRate.toStringAsFixed(2)}€ = ${regularPay.toStringAsFixed(2)}€' : ''}'
+                '${overtimeHrs > 0 && overtimeRate != null ? '  +  ${overtimeHrs.toStringAsFixed(0)}h × ${overtimeRate.toStringAsFixed(2)}€ = ${overtimePay.toStringAsFixed(2)}€' : ''}',
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: HelpiTheme.textSecondary,
+                ),
               ),
             ),
-          ),
         ],
       ],
     );

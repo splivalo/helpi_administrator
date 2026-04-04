@@ -6,21 +6,21 @@
 
 ## Tech Stack
 
-| Komponenta      | Tehnologija                     | Verzija     |
-| --------------- | ------------------------------- | ----------- |
-| Framework       | Flutter                         | SDK ≥3.10.7 |
-| Jezik           | Dart                            | ≥3.10.7     |
-| Dizajn sustav   | Material 3                      | —           |
-| SVG rendering   | flutter_svg                     | ^2.0.17     |
-| File picker     | file_selector                   | ^1.1.0      |
-| URL launcher    | url_launcher                    | ^6.3.1      |
-| Lokalna pohrana | shared_preferences              | ^2.5.4      |
-| Lokalizacija    | flutter_localizations           | SDK         |
-| Ikone           | cupertino_icons                 | ^1.0.8      |
-| State mgmt      | **Riverpod** (flutter_riverpod) | ^2.6.1      |
-| Real-time       | **SignalR** (signalr_netcore)   | ^1.4.4      |
-| Backend         | ❌ AppData (in-memory store)    | —           |
-| Deploy          | Flutter Web                     | Chrome      |
+| Komponenta      | Tehnologija                                                                         | Verzija     |
+| --------------- | ----------------------------------------------------------------------------------- | ----------- |
+| Framework       | Flutter                                                                             | SDK ≥3.10.7 |
+| Jezik           | Dart                                                                                | ≥3.10.7     |
+| Dizajn sustav   | Material 3                                                                          | —           |
+| SVG rendering   | flutter_svg                                                                         | ^2.0.17     |
+| File picker     | file_selector                                                                       | ^1.1.0      |
+| URL launcher    | url_launcher                                                                        | ^6.3.1      |
+| Lokalna pohrana | shared_preferences                                                                  | ^2.5.4      |
+| Lokalizacija    | flutter_localizations                                                               | SDK         |
+| Ikone           | cupertino_icons                                                                     | ^1.0.8      |
+| State mgmt      | **Riverpod** (flutter_riverpod)                                                     | ^2.6.1      |
+| Real-time       | **SignalR** (signalr_netcore)                                                       | ^1.4.4      |
+| Backend         | ASP.NET Core API via Dio + AdminApiService, uz AppData compatibility cache/fallback | —           |
+| Deploy          | Flutter Web                                                                         | Chrome      |
 
 **Deploy URL:** `https://kungfu.digital/helpi/index.html` (build: `flutter build web --base-href /helpi/`)
 
@@ -153,6 +153,9 @@ DataLoader.loadAll(ref: ref)
   → ref.read(xxxProvider.notifier).setAll(AppData.xxx)   (provider sync)
 ```
 
+- Admin više nije AppData-only aplikacija: `DataLoader` puni core entitete iz backend API-ja, a `AppData` ostaje compatibility cache i fallback za razvoj/offline scenarije.
+- Vanjski provideri (`Stripe`, `Minimax`, `Mailgun`, `MailerLite`, `Firebase`) svjesno su izvan ovog admin scopea dok ih zasebni developer ne spoji na live credentials i end-to-end tokove.
+
 ### SignalR refresh pravila
 
 - `SignalRNotificationService` sluša `ReceiveNotification`, `ReceiveMessage` i `SettingsChanged` događaje.
@@ -161,6 +164,15 @@ DataLoader.loadAll(ref: ref)
 - Puni `DataLoader.loadAll()` refresh trenutno se pokreće za data-changing tipove uključujući `jobRescheduled`, `reassignmentStarted` i `reassignmentCompleted`.
 - Ovaj pristup je namjerno grub, ali siguran dok admin još radi na full-screen dataset refresh obrascu umjesto finog per-entity patchanja.
 
+### Pricing truth model
+
+- `PricingConfiguration` je jedini runtime source of truth za travel buffer, senior rate, student weekday/sunday rate, PDV i intermediary margin.
+- Admin assign i reschedule dostupnost moraju pratiti backend buffer iz baze; hardkodirani 15-minutni buffer više nije prihvatljiv.
+- Kad se `TravelBufferMinutes` poveća, backend pokreće reconciliation nad budućim accepted dodjelama i po potrebi otvara reassignment za kasniji konfliktni assignment.
+- Povijesni novčani izračuni ne smiju ovisiti o trenutnom settings screenu: `SessionModel.hourlyRate` i `SessionModel.studentHourlyRate` nose snapshot vrijednosti koje je backend spremio na `JobInstance`.
+- Legacy seed sesije bez kompletnog pricing snapshota ne smiju miješati stari `hourlyRate` s novim student pricingom; u tom slučaju analytics pada natrag na trenutni `PricingConfiguration` za oba ratea.
+- Analytics zarada u v2 ne koristi stari v1 `40/60` split niti `companyPercentage` fallback, nego formulu: senior uplata (`SessionModel.hourlyRate`) minus Stripe, minus studentska isplata (`SessionModel.studentHourlyRate`), minus studentservis postotak na studentsku isplatu, te minus PDV kad je uključen.
+
 ### Notification truth model
 
 - Admin notification drawer više nema demo seed fallback; ako je prazan, to znači da backend nije spremio niti emitirao događaj za tog admina.
@@ -168,6 +180,11 @@ DataLoader.loadAll(ref: ref)
 - Nedokazani end-to-end tokovi ostaju oni koji ovise o vanjskim servisima ili schedulerima koje svjesno ne palimo u v2 lokalnom radu, npr. Stripe payment notifikacije.
 - Chat ostaje odvojeni mock-preview sloj: UI je namjerno vizualno popunjen demo razgovorima, ali notification sustav više nije.
 - Admin drawer dodatno filtrira participant-only ili zastarjele v1-style tipove (`jobRequest`, payment notifovi, review request, matching/max-attempt noise) kako bi admin feed ostao actionable za v2 ručnu dodjelu.
+
+### Scope granica
+
+- U ovom admin repou core backend integracija se smatra odrađenom za auth, datasets, orders flow, settings, notifications i analytics pricing inputs.
+- Izvan ovog scopea ostaju samo vanjski provideri (`Stripe`, `Minimax`, `Mailgun`, `MailerLite`, `Firebase`) i zaseban chat backend koji još ne postoji u v2.
 
 ### Korištenje u UI-ju
 

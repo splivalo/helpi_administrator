@@ -6,6 +6,7 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/suspension_models.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
+import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
@@ -43,6 +44,7 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
     with SingleTickerProviderStateMixin {
   static const _screenKey = 'seniors';
   final _prefs = PreferencesService.instance;
+  final _cityApi = ApiClient();
 
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
@@ -50,6 +52,7 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
   late final TabController _tabCtrl;
   bool _isGridView = false;
   String? _cityFilter;
+  List<String> _cityOptions = const [];
 
   static const _tabFilters = _SeniorStatusFilter.values;
 
@@ -57,6 +60,7 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
   void initState() {
     super.initState();
     SuspensionStateManager.instance.addListener(_onSuspensionChanged);
+    _loadCityOptions();
 
     // Restore saved preferences
     _isGridView = _prefs.getGridView(_screenKey);
@@ -92,6 +96,33 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
 
   void _onSuspensionChanged() {
     if (mounted) setState(() {});
+  }
+
+  Future<void> _loadCityOptions() async {
+    try {
+      final response = await _cityApi.get(ApiEndpoints.cities);
+      final options =
+          (response.data as List<dynamic>)
+              .map((entry) => (entry as Map<String, dynamic>)['name'])
+              .map((name) => name?.toString().trim() ?? '')
+              .where((name) => name.isNotEmpty)
+              .toSet()
+              .toList()
+            ..sort();
+
+      if (!mounted) return;
+      setState(() {
+        _cityOptions = options;
+        if (_cityFilter != null && !_cityOptions.contains(_cityFilter)) {
+          _cityFilter = null;
+        }
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _cityOptions = const [];
+      });
+    }
   }
 
   List<SeniorModel> _filteredSeniors(_SeniorStatusFilter filter) {
@@ -234,14 +265,15 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final cities =
-                    ref
-                        .read(seniorsProvider)
-                        .map((s) => s.city)
-                        .where((c) => c.isNotEmpty)
-                        .toSet()
-                        .toList()
-                      ..sort();
+                final cities = _cityOptions.isNotEmpty
+                    ? _cityOptions
+                    : (ref
+                          .read(seniorsProvider)
+                          .map((s) => s.city)
+                          .where((c) => c.isNotEmpty)
+                          .toSet()
+                          .toList()
+                        ..sort());
                 final searchField = TextField(
                   controller: _searchCtrl,
                   onChanged: (v) => setState(() => _searchQuery = v),

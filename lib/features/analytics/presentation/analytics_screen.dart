@@ -131,6 +131,36 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
   DateTime get _compStart => _rangeStart.subtract(Duration(days: _rangeDays));
   DateTime get _compEnd => _rangeStart.subtract(const Duration(days: 1));
 
+  bool _hasCompleteSessionPricingSnapshot(SessionModel session) {
+    return session.hourlyRate > 0 && session.studentHourlyRate > 0;
+  }
+
+  double _resolveSeniorRate(SessionModel session) {
+    if (_hasCompleteSessionPricingSnapshot(session)) return session.hourlyRate;
+    final isSunday = session.weekday == DateTime.sunday;
+    return isSunday ? _seniorSundayRate : _seniorWeekdayRate;
+  }
+
+  double _resolveStudentRate(SessionModel session) {
+    if (_hasCompleteSessionPricingSnapshot(session)) {
+      return session.studentHourlyRate;
+    }
+    final isSunday = session.weekday == DateTime.sunday;
+    return isSunday ? _studentSundayRate : _studentWeekdayRate;
+  }
+
+  double _resolveCompanyEarnings(SessionModel session) {
+    final gross = session.durationHours * _resolveSeniorRate(session);
+    final vatDeduction = _vatEnabled
+        ? gross * (_vatPercentage / (100 + _vatPercentage))
+        : 0.0;
+    final stripeFee = gross * _stripePct + _stripeFixed;
+    final studentPay = session.durationHours * _resolveStudentRate(session);
+    final intermediaryFee = studentPay * _intermediaryPct;
+
+    return gross - vatDeduction - stripeFee - studentPay - intermediaryFee;
+  }
+
   // ═══════════════════════════════════════════════════════════
   //  DATA EXTRACTION
   // ═══════════════════════════════════════════════════════════
@@ -164,30 +194,11 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             final d = DateTime(s.date.year, s.date.month, s.date.day);
             final idx = d.difference(from).inDays;
             if (idx >= 0 && idx < days) {
-              final isSunday = s.weekday == DateTime.sunday;
-              final seniorRate = isSunday
-                  ? _seniorSundayRate
-                  : _seniorWeekdayRate;
+              final seniorRate = _resolveSeniorRate(s);
               final gross = s.durationHours * seniorRate;
 
               if (_showEarnings) {
-                // Exact per-session neto:
-                // gross − VAT − Stripe fee − student pay
-                final vatDeduction = _vatEnabled
-                    ? gross * (_vatPercentage / (100 + _vatPercentage))
-                    : 0.0;
-                final stripeFee = gross * _stripePct + _stripeFixed;
-                final studentRate = isSunday
-                    ? _studentSundayRate
-                    : _studentWeekdayRate;
-                final studentPay = s.durationHours * studentRate;
-                final intermediaryFee = gross * _intermediaryPct;
-                result[idx] +=
-                    gross -
-                    vatDeduction -
-                    stripeFee -
-                    studentPay -
-                    intermediaryFee;
+                result[idx] += _resolveCompanyEarnings(s);
               } else {
                 result[idx] += gross;
               }
@@ -453,11 +464,10 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
 
         seniorSets[idx].add(o.senior.id);
 
-        final isSunday = s.weekday == DateTime.sunday;
-        final seniorRate = isSunday ? _seniorSundayRate : _seniorWeekdayRate;
+        final seniorRate = _resolveSeniorRate(s);
         final gross = s.durationHours * seniorRate;
         final stripe = gross * _stripePct + _stripeFixed;
-        final studentRate = isSunday ? _studentSundayRate : _studentWeekdayRate;
+        final studentRate = _resolveStudentRate(s);
         final sPay = s.durationHours * studentRate;
 
         final vatDed = _vatEnabled
@@ -466,8 +476,8 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
         grossRevs[idx] += gross;
         stripeFees[idx] += stripe;
         studentPays[idx] += sPay;
-        final intermediaryFee = gross * _intermediaryPct;
-        netoRevs[idx] += gross - vatDed - stripe - sPay - intermediaryFee;
+        netoRevs[idx] +=
+            gross - vatDed - stripe - sPay - (sPay * _intermediaryPct);
       }
     }
 

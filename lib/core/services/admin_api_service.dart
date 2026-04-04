@@ -25,8 +25,8 @@ class AdminApiService {
   AdminApiService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
   // Cached pricing config
-  static double _cachedHourlyRate = 14.0;
-  static double _cachedSundayRate = 21.0;
+  static double _cachedStudentHourlyRate = 7.40;
+  static double _cachedStudentSundayRate = 11.10;
   static bool _pricingLoaded = false;
 
   /// Force reload pricing from API (call on SettingsChanged).
@@ -39,9 +39,10 @@ class AdminApiService {
       final list = response.data as List<dynamic>;
       if (list.isNotEmpty) {
         final cfg = list.first as Map<String, dynamic>;
-        _cachedHourlyRate = (cfg['jobHourlyRate'] as num?)?.toDouble() ?? 14.0;
-        _cachedSundayRate =
-            (cfg['sundayHourlyRate'] as num?)?.toDouble() ?? 21.0;
+        _cachedStudentHourlyRate =
+            (cfg['studentHourlyRate'] as num?)?.toDouble() ?? 7.40;
+        _cachedStudentSundayRate =
+            (cfg['studentSundayHourlyRate'] as num?)?.toDouble() ?? 11.10;
       }
       _pricingLoaded = true;
     } catch (_) {
@@ -1135,8 +1136,8 @@ class AdminApiService {
               Duration(days: (json['daysToContractExpire'] as num).toInt()),
             )
           : null,
-      hourlyRate: _cachedHourlyRate,
-      sundayHourlyRate: _cachedSundayRate,
+      hourlyRate: _cachedStudentHourlyRate,
+      sundayHourlyRate: _cachedStudentSundayRate,
       availability: availability,
       previousJobsWithSenior: json['previousJobsWithSenior'] as int? ?? 0,
     );
@@ -1272,8 +1273,8 @@ class AdminApiService {
                 ),
               )
             : null,
-        hourlyRate: _cachedHourlyRate,
-        sundayHourlyRate: _cachedSundayRate,
+        hourlyRate: _cachedStudentHourlyRate,
+        sundayHourlyRate: _cachedStudentSundayRate,
       );
     }
 
@@ -1332,6 +1333,7 @@ class AdminApiService {
         assignment?['student']?['contact'] as Map<String, dynamic>?;
 
     final studentUserId = assignment?['studentId'] as int?;
+    final companyAmount = (json['companyAmount'] as num?)?.toDouble();
 
     return SessionModel(
       id: '${json['id']}',
@@ -1341,6 +1343,9 @@ class AdminApiService {
       startTime: _parseTimeOfDay(json['startTime']),
       endTime: _parseTimeOfDay(json['endTime']),
       durationHours: _calcHours(json['startTime'], json['endTime']),
+      hourlyRate: (json['hourlyRate'] as num?)?.toDouble() ?? 0,
+      studentHourlyRate: (json['studentHourlyRate'] as num?)?.toDouble() ?? 0,
+      companyAmount: companyAmount ?? 0,
       studentId: studentUserId,
       studentName: studentContact?['fullName'] as String?,
       status: _mapSessionStatus(json['status']),

@@ -7,11 +7,22 @@
 - **Settings screen kreiran** — 6 sekcija u `settings_screen.dart`: Cijena usluge (senior satnice), Studentska satnica (fiksni iznosi), Pravila otkazivanja, Operativno (buffer/naplata), Zarada (marža posrednika + PDV), Jezik.
 - **Backend proširenje** — `PricingConfiguration` entity dobio nova polja: `StudentHourlyRate` (7.40€), `StudentSundayHourlyRate` (11.10€). DTO, validator, service, seeder, migracije — sve napravljeno.
 - **IntermediaryPercentage** — Marža posrednika (studentservis cut, default 18%) dodana u backend i frontend. U settings screenu dijeli red s PDV switchem.
-- **Analytics formula ispravljena** — `neto = gross - PDV - Stripe(1.5%+€0.25) - studentPay(fiksni) - intermediaryFee(%) `. Student rate se čita direktno iz API-ja, više se NE računa iz marže.
+- **Analytics formula ispravljena** — `neto = gross - PDV - Stripe(1.5%+€0.25) - studentPay(fiksni) - studentservis% na studentPay`. Student rate se čita direktno iz API-ja, više se NE računa iz marže.
 - **Excel export bug fix** — Neto u exportu nije uključivao PDV odbitak — sada uključuje.
 - **SignalR reaktivnost** — `pricingVersionProvider` (StateProvider<int>) u data_providers.dart. Backend `BroadcastSettingsChangedAsync()` na svaki PUT pricing → SignalR `SettingsChanged` event → inkrement providera → analytics + settings auto-reload (ako settings nije u edit modu).
 - **DashboardScreen → AnalyticsScreen** — Klasa preimenovana, dead `features/dashboard/` folder obrisan. Navigacija već bila na "Analitika".
-- **Ključna odluka:** Student satnice su FIKSNI iznosi (ne postotak senior satnice). Studentservis (posrednik) uzima % od gross-a, odvojeno.
+- **Ključna odluka:** Student satnice su FIKSNI iznosi (ne postotak senior satnice). Studentservis se u admin analyticsu računa kao % na studentsku isplatu, odvojeno od senior cijene usluge.
+
+## 2026-04-04 — Travel buffer reconciliation + historical payout snapshot
+
+- **Dokumentacija usklađena sa stvarnim scopeom** — admin više nije opisan kao mock/AppData-only frontend; core backend auth i dataset integracija tretiraju se kao odrađeni, dok vanjski provideri (`Stripe`, `Minimax`, `Mailgun`, `MailerLite`, `Firebase`) ostaju svjesno izdvojeni za zasebno live spajanje.
+- **Student rate mapping bug fix** — admin `StudentModel.hourlyRate` i `sundayHourlyRate` su prije krivo uzimali senior `jobHourlyRate` / `sundayHourlyRate`; sada mapiraju `studentHourlyRate` / `studentSundayHourlyRate` iz pricing konfiguracije.
+- **Dynamic travel buffer in admin assign** — `ScheduleAssignmentService.AdminDirectAssignAsync()` više ne koristi hardkodirani `15`, nego čita `TravelBufferMinutes` iz aktivne `PricingConfiguration`.
+- **Retroactive buffer reconciliation** — novi backend servis `TravelBufferReconciliationService` nakon spremanja postavki pregledava buduće `Upcoming` sesije i za kasniju konfliktu accepted dodjelu pokreće postojeći reassignment flow ako je buffer povećan.
+- **Historical student payout snapshot** — `JobInstance` sada sprema `StudentHourlyRate` pri generiranju i pri reschedule clone-u, tako da kasnija promjena settingsa ne mijenja povijesne obračune.
+- **Admin analytics and student detail switched to session snapshots** — studentski obračun više se ne računa iz trenutne globalne konfiguracije nego iz snapshot vrijednosti po sesiji, a analytics zarada sada prati v2 formulu `gross - Stripe - studentPay - studentservis% na studentPay - PDV`, bez oslanjanja na stari v1 `40/60` split.
+- **Live proof against local DB** — potvrđen konkretan slučaj za studenta Luku Perića 2026-04-10: slot 11:15-12:15 je validan s bufferom 15, a postaje konfliktan s bufferom 20.
+- **Migration generated** — EF migracija `AddStudentHourlyRateSnapshotToJobInstances` dodana za novu snapshot kolonu na `JobInstances`.
 
 ## 2026-04-02 — GA-style Analitika redesign
 
