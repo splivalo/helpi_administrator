@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../l10n/app_strings.dart';
 import '../models/admin_models.dart';
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
@@ -701,7 +702,10 @@ class AdminApiService {
     int userId,
   ) async {
     try {
-      final response = await _api.get(ApiEndpoints.notificationsByUser(userId));
+      final response = await _api.get(
+        ApiEndpoints.notificationsByUser(userId),
+        queryParameters: {'languageCode': AppStrings.currentLocale},
+      );
       final list = (response.data as List<dynamic>)
           .map((e) => _mapNotification(e as Map<String, dynamic>))
           .toList();
@@ -726,6 +730,19 @@ class AdminApiService {
     try {
       await _api.put(ApiEndpoints.notificationMarkAllRead(userId));
       return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<int>> archiveReadNotifications(int userId) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.notificationArchive(userId),
+        queryParameters: {'languageCode': 'hr'},
+      );
+      final data = response.data as Map<String, dynamic>;
+      return ApiResult.ok(data['archivedCount'] as int? ?? 0);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
     }

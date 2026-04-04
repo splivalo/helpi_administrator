@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-04-04
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-04-05
 
 ---
 
@@ -56,7 +56,7 @@ lib/
 │       ├── shared_widgets.dart        # SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (size enum), show15MinTimePicker (459 linija)
 │       ├── session_preview_sheet.dart # SessionPreviewSheet — prikaz sesija, dodjela studenta (ConsumerStatefulWidget) (851 linija)
 │       ├── contact_actions.dart       # PhoneCallButton, EmailCopyButton (45 linija)
-│       └── notification_bell.dart     # NotificationBell (ConsumerWidget) + NotificationsDrawer (ConsumerStatefulWidget) (283 linija)
+│       └── notification_bell.dart     # NotificationBell + NotificationsDrawer + archive pill + hover animation (655 linija)
 └── features/
     ├── auth/
     │   └── presentation/
@@ -94,18 +94,18 @@ lib/
 
 ### Shared widgeti/utilitiji (core/)
 
-| Fajl                                            | Sadržaj                                                                                                                                                              |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core/utils/formatters.dart`                    | formatDate, formatTime, formatTimeOfDay, formatDateDot                                                                                                               |
-| `core/services/preferences_service.dart`        | PreferencesService singleton — grid/sort/tab per screen, web-safe fallback                                                                                           |
-| `core/widgets/status_badges.dart`               | StatusBadge (StatusBadgeSize enum: small/large), StatusBadge.senior() factory, seniorStatusStyle(), ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel |
-| `core/widgets/shared_widgets.dart`              | SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (ActionChipButtonSize enum: small/medium)                             |
-| `core/widgets/session_preview_sheet.dart`       | SessionPreviewSheet — prikaz generiranih sesija, dodjela studenta (ConsumerStatefulWidget)                                                                           |
-| `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                                                                                                                     |
-| `core/widgets/notification_bell.dart`           | NotificationBell (ConsumerWidget) + NotificationsDrawer (ConsumerStatefulWidget, markRead via provider)                                                              |
-| `core/widgets/widgets.dart`                     | Barrel export svih widgeta                                                                                                                                           |
-| `core/providers/data_providers.dart`            | 7 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms, unreadMessages)                                                    |
-| `seniors/presentation/senior_form_helpers.dart` | SeniorFormHelpers mixin (forme za add/edit senior)                                                                                                                   |
+| Fajl                                            | Sadržaj                                                                                                                                                                                           |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core/utils/formatters.dart`                    | formatDate, formatTime, formatTimeOfDay, formatDateDot                                                                                                                                            |
+| `core/services/preferences_service.dart`        | PreferencesService singleton — grid/sort/tab per screen, web-safe fallback                                                                                                                        |
+| `core/widgets/status_badges.dart`               | StatusBadge (StatusBadgeSize enum: small/large), StatusBadge.senior() factory, seniorStatusStyle(), ServiceChip, orderStatusStyle, contractStatusStyle, serviceLabel                              |
+| `core/widgets/shared_widgets.dart`              | SectionCard, InfoRow, DragHandle, EmptyState, ResultCountRow, HelpiSearchBar, ActionChipButton (ActionChipButtonSize enum: small/medium)                                                          |
+| `core/widgets/session_preview_sheet.dart`       | SessionPreviewSheet — prikaz generiranih sesija, dodjela studenta (ConsumerStatefulWidget)                                                                                                        |
+| `core/widgets/contact_actions.dart`             | PhoneCallButton, EmailCopyButton                                                                                                                                                                  |
+| `core/widgets/notification_bell.dart`           | NotificationBell (ConsumerWidget) + NotificationsDrawer (ConsumerStatefulWidget) + archive to Google Drive (single CSV) + hover pill animation + tile interaction split (tap=read, icon=navigate) |
+| `core/widgets/widgets.dart`                     | Barrel export svih widgeta                                                                                                                                                                        |
+| `core/providers/data_providers.dart`            | 7 StateNotifier Riverpod providera (students, seniors, orders, reviews, notifications, chatRooms, unreadMessages)                                                                                 |
+| `seniors/presentation/senior_form_helpers.dart` | SeniorFormHelpers mixin (forme za add/edit senior)                                                                                                                                                |
 
 ---
 

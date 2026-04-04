@@ -424,32 +424,75 @@
 
 ## Arhitekturalne odluke
 
-| Odluka                                         | Razlog                                                                   | Datum      |
-| ---------------------------------------------- | ------------------------------------------------------------------------ | ---------- | --- | ---------------------------------------- | --------------------------------------------------------------------- | ---------- |
-| Feature-based folder struktura                 | Skalabilnost, jasna separacija                                           | 2026-02    |
-| AppStrings Gemini Hybrid pattern               | Backend šalje labelKey, Flutter mapira lokalno                           | 2026-02    |
-| AppData umjesto API-ja                         | Brži frontend development bez backenda                                   | 2026-02    |
-| Dva showDatePicker umjesto showDateRangePicker | Performanse — DateRangePicker preopterećen                               | 2026-03-04 |
-| LayoutBuilder za responsive gumbe              | Inline responsive bez globalnog breakpointa                              | 2026-03-04 |
-| ~~Nema state management libraryja~~            | ~~Mock faza, lokalni state dovoljan~~ → **Riverpod** (2026-03-22)        | 2026-02    |
-| **Riverpod state management**                  | Reaktivni UI, konzistentnost s helpi_app, zero AppData u UI              | 2026-03-22 |
-| DRY refactor — shared widgeti + mixin          | Eliminacija ~1000+ linija duplikata                                      | 2026-03-04 |
-| GestureDetector umjesto IconButton za contact  | Material 3 min tap target 48px blokira 20px                              | 2026-03-04 |
-| InfoRow Flexible trailing                      | Ikona uz tekst, ne na rubu                                               | 2026-03-04 |
-| SharedPreferences za UI preferencije           | Pamti korisničke UI odabire između sesija                                | 2026-03-04 |
-| Web-safe PreferencesService s fallback         | Sprječava crash na web hot-restart                                       | 2026-03-04 |
-| bodyLarge 16px globalno                        | Konzistentna veličina teksta u svim inputima                             | 2026-03-04 |
-| CreateOrderScreen single-page forma            | Sve na jednom ekranu, auto-scroll UX                                     | 2026-03-04 |
-| Senior status → hasStudentAssigned logika      | Automatski "U obradi" / "Aktivan" po podacima                            | 2026-03-04 |
-| SessionPreviewSheet kao shared widget          | Reusable između create i assign flowova                                  | 2026-03-05 |
-| ActionChipButtonSize enum (small/medium)       | Konzistentni gumbi — mali za kartice, srednji za modale                  | 2026-03-05 |
-| DatePicker theme globalno u ThemeData          | Jedan izvor istine za boje/font/shape svuda                              | 2026-03-05 |
-| confirmText/cancelText na showDatePicker       | "U redu" umjesto "U REDU" caps lock                                      | 2026-03-05 |
-| ValueKey locale rebuild u IndexedStack         | Force rebuild ekrana pri promjeni jezika                                 | 2026-03-05 |
-| ClipRRect na assign flow step 2                | Content clipping za zaobljene rubove                                     | 2026-03-05 |
-| Haversine za km udaljenost                     | Sortiranje i prikaz koliko je student daleko od seniora                  | 2026-03-18 |
-| Projected sessions iz dayEntries               | Planirani termini vidljivi i prije dodjele studenta                      | 2026-03-20 |
-| Instant JobInstance na admin assign            | Sesije odmah vidljive nakon dodjele, ne čeka Hangfire                    | 2026-03-20 |
-| Senior status = Neaktivan bez narudžbi         | !isActive \|\| !hasOrders = Neaktivan; hasOrders && !assigned = U obradi | 2026-03-23 |     | Chat unread badge via Riverpod + SignalR | Real-time badge count, reset on tap, infrastructure for Firebase chat | 2026-03-30 |
-| ResponsiveShell → ConsumerStatefulWidget       | Needed ref.watch for reactive badge state across 3 nav layouts           | 2026-03-30 |
-| Block assignment on terminal order statuses    | Prevent accidental student assignment to cancelled/completed orders      | 2026-03-30 |
+| Odluka                                         | Razlog                                                                     | Datum      |
+| ---------------------------------------------- | -------------------------------------------------------------------------- | ---------- | --- | ---------------------------------------- | --------------------------------------------------------------------- | ---------- |
+| Feature-based folder struktura                 | Skalabilnost, jasna separacija                                             | 2026-02    |
+| AppStrings Gemini Hybrid pattern               | Backend šalje labelKey, Flutter mapira lokalno                             | 2026-02    |
+| AppData umjesto API-ja                         | Brži frontend development bez backenda                                     | 2026-02    |
+| Dva showDatePicker umjesto showDateRangePicker | Performanse — DateRangePicker preopterećen                                 | 2026-03-04 |
+| LayoutBuilder za responsive gumbe              | Inline responsive bez globalnog breakpointa                                | 2026-03-04 |
+| ~~Nema state management libraryja~~            | ~~Mock faza, lokalni state dovoljan~~ → **Riverpod** (2026-03-22)          | 2026-02    |
+| **Riverpod state management**                  | Reaktivni UI, konzistentnost s helpi_app, zero AppData u UI                | 2026-03-22 |
+| DRY refactor — shared widgeti + mixin          | Eliminacija ~1000+ linija duplikata                                        | 2026-03-04 |
+| GestureDetector umjesto IconButton za contact  | Material 3 min tap target 48px blokira 20px                                | 2026-03-04 |
+| InfoRow Flexible trailing                      | Ikona uz tekst, ne na rubu                                                 | 2026-03-04 |
+| SharedPreferences za UI preferencije           | Pamti korisničke UI odabire između sesija                                  | 2026-03-04 |
+| Web-safe PreferencesService s fallback         | Sprječava crash na web hot-restart                                         | 2026-03-04 |
+| bodyLarge 16px globalno                        | Konzistentna veličina teksta u svim inputima                               | 2026-03-04 |
+| CreateOrderScreen single-page forma            | Sve na jednom ekranu, auto-scroll UX                                       | 2026-03-04 |
+| Senior status → hasStudentAssigned logika      | Automatski "U obradi" / "Aktivan" po podacima                              | 2026-03-04 |
+| SessionPreviewSheet kao shared widget          | Reusable između create i assign flowova                                    | 2026-03-05 |
+| ActionChipButtonSize enum (small/medium)       | Konzistentni gumbi — mali za kartice, srednji za modale                    | 2026-03-05 |
+| DatePicker theme globalno u ThemeData          | Jedan izvor istine za boje/font/shape svuda                                | 2026-03-05 |
+| confirmText/cancelText na showDatePicker       | "U redu" umjesto "U REDU" caps lock                                        | 2026-03-05 |
+| ValueKey locale rebuild u IndexedStack         | Force rebuild ekrana pri promjeni jezika                                   | 2026-03-05 |
+| ClipRRect na assign flow step 2                | Content clipping za zaobljene rubove                                       | 2026-03-05 |
+| Haversine za km udaljenost                     | Sortiranje i prikaz koliko je student daleko od seniora                    | 2026-03-18 |
+| Projected sessions iz dayEntries               | Planirani termini vidljivi i prije dodjele studenta                        | 2026-03-20 |
+| Instant JobInstance na admin assign            | Sesije odmah vidljive nakon dodjele, ne čeka Hangfire                      | 2026-03-20 |
+| Senior status = Neaktivan bez narudžbi         | !isActive \|\| !hasOrders = Neaktivan; hasOrders && !assigned = U obradi   | 2026-03-23 |     | Chat unread badge via Riverpod + SignalR | Real-time badge count, reset on tap, infrastructure for Firebase chat | 2026-03-30 |
+| ResponsiveShell → ConsumerStatefulWidget       | Needed ref.watch for reactive badge state across 3 nav layouts             | 2026-03-30 |
+| Block assignment on terminal order statuses    | Prevent accidental student assignment to cancelled/completed orders        | 2026-03-30 |
+| Single master CSV archive on Google Drive      | Append-only, find/download/update flow; no file proliferation              | 2026-04-05 |
+| Pill hover animation (Stack+AnimatedSlide)     | Non-intrusive floating UI, visible only on hover or during action          | 2026-04-05 |
+| Tile interaction split (tap=read, icon=nav)    | Separate concerns: reading notification vs navigating to related entity    | 2026-04-05 |
+| FormatSafe helper in localization              | Prevents String.Format crash when translation has placeholders but no args | 2026-04-05 |
+
+---
+
+## 2026-04-05 — Notification System Overhaul (Backend + Admin)
+
+### Backend: Notification Content & Archive
+
+- **FormatSafe fix** — `JsonLocalizationService.GetString` crashao na `String.Format` kad translation ima `{0}` ali nema argumenata. Dodan `FormatSafe()` helper: vraća template kad args prazni, try/catch wrapper. Riješen 500 error.
+- **TranslateNotifications refaktoriran** — Specijalizirane grane umjesto monolitnog else-if:
+  - `seniorAndOrderList` (JobCancelled, OrderCancelled, OrderScheduleCancelled, NewOrderAdded) → body `"{seniorName}, Narudžba #{orderId}"`
+  - `reassignmentList` (ReassignmentStarted, ReassignmentCompleted) → isti format
+  - `descList` (NoEligibleStudents, AllEligibleStudentNotified) → GetEntityDescription
+  - `userDeletedList` → parse Payload JSON za podatke o obrisanom korisniku
+  - `NewStudentAdded` / `NewSeniorAdded` → pravo ime iz dto kontakta
+- **NewOrderAdded lokalizacija** — hr.json: Title "Nova narudžba", Body "{0}, Narudžba #{1}". en.json: "New Order", "{0}, Order #{1}".
+- **NotificationsFactory fix** — `JobCancelledNotification` dodano `OrderId` za body format
+- **Translation key fix** — Seeded notifications imale `TranslationKey = 'NewStudent'` umjesto flattened `Notifications.NewStudent.Title` → ispravljen SQL seed data
+- **Single master CSV archive** — `HNotificationsController.Archive` refaktoriran:
+  - Traži postojeći `notifications-archive.csv` na Google Drive (`FindFileInFolderAsync`)
+  - Ako postoji: download → strip BOM → append novi redovi → update istog fajla
+  - Ako ne postoji: create novi fajl s headerom + podacima
+  - CSV format: `Datum,Naslov,Poruka` (uklonjen Type stupac)
+  - 3 nove metode na `IGoogleDriveService` / `GoogleDriveService`: `FindFileInFolderAsync`, `DownloadFileAsync`, `UpdateFileAsync`
+- **DependencyInjection.cs** — Dodano mapiranje `NotificationsArchiveFolderId` iz konfiguracije
+- **Backend: 13 modified files, 0 errors, 0 new warnings**
+
+### Admin: Notification UI Redesign
+
+- **notification_bell.dart** (283 → 655 linija) — Kompletni rewrite:
+  - **Layout**: Column → Stack sa Positioned pill overlay
+  - **Hover animacija**: MouseRegion na cijelom draweru, `AnimatedSlide` (Offset(0,2) → zero) + `AnimatedOpacity`, 200-250ms, Curves.easeOut. Pill ostaje vidljiv za vrijeme archiving procesa.
+  - **Unified pill**: `_PillIconButton` (✓✓ done_all, left borderRadius) | 1px grey divider | `_PillTextButton` (☁ cloud_upload + text, right borderRadius)
+  - **Tile interaction split**: `_NotificationTile.onTap` = markRead only, `_NotificationTile.onNavigate` = navigation via icon. GestureDetector + MouseRegion(pointer) na ikoni.
+  - **ListView bottom padding**: `EdgeInsets.only(bottom: 64)` sprječava pill da prekrije zadnju notifikaciju
+- **data_providers.dart** — `removeRead()` na `NotificationsNotifier` za lokalno uklanjanje pročitanih
+- **admin_api_service.dart** — `archiveReadNotifications(userId)` + `languageCode` param na `getNotifications()`
+- **api_endpoints.dart** — `notificationArchive(userId)` endpoint
+- **app_strings.dart** — 5 novih archive i18n ključeva (HR + EN): notifArchiveSuccess, notifArchiveFailed, notifArchiveEmpty, notifArchiving, archiveNotifications
+- **Admin: 5 modified files, 0 errors (flutter analyze)**

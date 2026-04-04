@@ -91,6 +91,8 @@ class ApiEndpoints {
       '/api/HNotifications/$id/mark-read';
   static String notificationMarkAllRead(int userId) =>
       '/api/HNotifications/user/$userId/mark-all-read';
+  static String notificationArchive(int userId) =>
+      '/api/HNotifications/user/$userId/archive';
 
   // Cities
   static const String cities = '/api/cities';

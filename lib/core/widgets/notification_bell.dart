@@ -95,133 +95,237 @@ class _NotificationsDrawer extends ConsumerStatefulWidget {
 }
 
 class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
+  bool _archiving = false;
+  bool _pillVisible = false;
+
   @override
   Widget build(BuildContext context) {
     final notifications = _visibleAdminNotifications(
       ref.watch(notificationsProvider),
     );
     final unreadCount = notifications.where((n) => !n.isRead).length;
+    final readCount = notifications.where((n) => n.isRead).length;
 
     return Align(
       alignment: Alignment.centerRight,
-      child: Material(
-        elevation: 8,
-        child: Container(
-          width: 360,
-          height: double.infinity,
-          color: HelpiTheme.background,
-          child: Column(
-            children: [
-              // ── Header ──
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  border: Border(bottom: BorderSide(color: HelpiTheme.border)),
-                ),
-                child: Row(
+      child: MouseRegion(
+        onEnter: (_) {
+          if (!_pillVisible) setState(() => _pillVisible = true);
+        },
+        onExit: (_) {
+          if (_pillVisible && !_archiving) {
+            setState(() => _pillVisible = false);
+          }
+        },
+        child: Material(
+          elevation: 8,
+          child: Container(
+            width: 360,
+            height: double.infinity,
+            color: HelpiTheme.background,
+            child: Stack(
+              children: [
+                Column(
                   children: [
-                    const Icon(
-                      Icons.notifications_outlined,
-                      color: HelpiTheme.accent,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        AppStrings.notifications,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: HelpiTheme.textPrimary,
+                    // ── Header ──
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        border: Border(
+                          bottom: BorderSide(color: HelpiTheme.border),
                         ),
                       ),
-                    ),
-                    if (unreadCount > 0)
-                      TextButton(
-                        onPressed: () async {
-                          ref
-                              .read(notificationsProvider.notifier)
-                              .markAllRead();
-                          final userId = await TokenStorage().getUserId() ?? 0;
-                          if (!context.mounted) return;
-                          AdminApiService().markAllNotificationsRead(userId);
-                        },
-                        child: Text(
-                          AppStrings.markAllRead,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      )
-                    else
-                      TextButton(
-                        onPressed: null,
-                        child: Text(
-                          AppStrings.markAllRead,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: HelpiTheme.textSecondary.withAlpha(100),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.notifications_outlined,
+                            color: HelpiTheme.accent,
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              AppStrings.notifications,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: HelpiTheme.textPrimary,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ],
                       ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+
+                    // ── List ──
+                    Expanded(
+                      child: notifications.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.notifications_off_outlined,
+                                    size: 48,
+                                    color: HelpiTheme.border,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    AppStrings.noNotifications,
+                                    style: const TextStyle(
+                                      color: HelpiTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.separated(
+                              padding: const EdgeInsets.only(
+                                top: 8,
+                                bottom: 64,
+                              ),
+                              itemCount: notifications.length,
+                              separatorBuilder: (context, i) => const Divider(
+                                height: 1,
+                                indent: 16,
+                                endIndent: 16,
+                              ),
+                              itemBuilder: (context, index) {
+                                final n = notifications[index];
+                                return _NotificationTile(
+                                  notification: n,
+                                  onTap: () {
+                                    if (!n.isRead) {
+                                      ref
+                                          .read(notificationsProvider.notifier)
+                                          .markRead(n.id);
+                                      final nId = int.tryParse(n.id) ?? 0;
+                                      if (nId > 0) {
+                                        AdminApiService().markNotificationRead(
+                                          nId,
+                                        );
+                                      }
+                                    }
+                                  },
+                                  onNavigate: () => _navigateToEntity(n),
+                                );
+                              },
+                            ),
                     ),
                   ],
                 ),
-              ),
 
-              // ── List ──
-              Expanded(
-                child: notifications.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.notifications_off_outlined,
-                              size: 48,
-                              color: HelpiTheme.border,
+                // ── Floating pill bar (slides up on hover) ──
+                if (notifications.isNotEmpty)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 20,
+                    child: AnimatedSlide(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
+                      offset: _pillVisible ? Offset.zero : const Offset(0, 2),
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: _pillVisible ? 1.0 : 0.0,
+                        child: Center(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(100),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(20),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              AppStrings.noNotifications,
-                              style: const TextStyle(
-                                color: HelpiTheme.textSecondary,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // ── ✓✓ Mark all read (icon only) ──
+                                _PillIconButton(
+                                  icon: Icons.done_all,
+                                  enabled: unreadCount > 0,
+                                  onPressed: () async {
+                                    ref
+                                        .read(notificationsProvider.notifier)
+                                        .markAllRead();
+                                    final userId =
+                                        await TokenStorage().getUserId() ?? 0;
+                                    if (!mounted) return;
+                                    AdminApiService().markAllNotificationsRead(
+                                      userId,
+                                    );
+                                  },
+                                ),
+                                // ── Divider ──
+                                Container(
+                                  width: 1,
+                                  height: 24,
+                                  color: Colors.grey.shade300,
+                                ),
+                                // ── ☁ Arhiviraj (icon + text) ──
+                                _PillTextButton(
+                                  icon: Icons.cloud_upload_outlined,
+                                  label: _archiving
+                                      ? AppStrings.notifArchiving
+                                      : AppStrings.archiveNotifications,
+                                  enabled: readCount > 0 && !_archiving,
+                                  onPressed: () => _archiveNotifications(),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: notifications.length,
-                        separatorBuilder: (context, i) =>
-                            const Divider(height: 1, indent: 16, endIndent: 16),
-                        itemBuilder: (context, index) {
-                          final n = notifications[index];
-                          return _NotificationTile(
-                            notification: n,
-                            onTap: () {
-                              if (!n.isRead) {
-                                ref
-                                    .read(notificationsProvider.notifier)
-                                    .markRead(n.id);
-                                final nId = int.tryParse(n.id) ?? 0;
-                                if (nId > 0) {
-                                  AdminApiService().markNotificationRead(nId);
-                                }
-                              }
-                              _navigateToEntity(n);
-                            },
-                          );
-                        },
                       ),
-              ),
-            ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _archiveNotifications() async {
+    setState(() => _archiving = true);
+    final userId = await TokenStorage().getUserId() ?? 0;
+    if (!mounted) return;
+    final result = await AdminApiService().archiveReadNotifications(userId);
+    if (!mounted) return;
+    setState(() => _archiving = false);
+
+    if (result.success) {
+      final count = result.data ?? 0;
+      if (count > 0) {
+        // Remove archived (read) from local state
+        ref.read(notificationsProvider.notifier).removeRead();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${AppStrings.archiveSuccess}: $count'),
+            backgroundColor: HelpiTheme.accent,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(AppStrings.notifArchiveEmpty)));
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.notifArchiveFailed),
+          backgroundColor: HelpiTheme.error,
+        ),
+      );
+    }
   }
 
   void _navigateToEntity(NotificationModel n) {
@@ -314,10 +418,15 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
 //  Single notification tile
 // ─────────────────────────────────────────────────────────────
 class _NotificationTile extends StatelessWidget {
-  const _NotificationTile({required this.notification, required this.onTap});
+  const _NotificationTile({
+    required this.notification,
+    required this.onTap,
+    required this.onNavigate,
+  });
 
   final NotificationModel notification;
   final VoidCallback onTap;
+  final VoidCallback onNavigate;
 
   @override
   Widget build(BuildContext context) {
@@ -329,18 +438,25 @@ class _NotificationTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Icon ──
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: _iconBg(notification.type),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                _icon(notification.type),
-                size: 18,
-                color: _iconColor(notification.type),
+            // ── Icon (tap to navigate) ──
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onNavigate,
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: _iconBg(notification.type),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    _icon(notification.type),
+                    size: 18,
+                    color: _iconColor(notification.type),
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -492,5 +608,80 @@ class _NotificationTile extends StatelessWidget {
     }
     if (diff.inHours < 24) return '${diff.inHours} ${AppStrings.hoursAgo}';
     return '${diff.inDays} ${AppStrings.daysAgo}';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Icon-only pill segment (left half — mark all read)
+// ─────────────────────────────────────────────────────────────
+class _PillIconButton extends StatelessWidget {
+  const _PillIconButton({
+    required this.icon,
+    required this.onPressed,
+    this.enabled = true,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: const BorderRadius.horizontal(left: Radius.circular(100)),
+      onTap: enabled ? onPressed : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Icon(
+          icon,
+          size: 20,
+          color: enabled ? HelpiTheme.accent : HelpiTheme.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Icon + text pill segment (right half — archive)
+// ─────────────────────────────────────────────────────────────
+class _PillTextButton extends StatelessWidget {
+  const _PillTextButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+    this.enabled = true,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = enabled ? HelpiTheme.accent : HelpiTheme.textSecondary;
+    return InkWell(
+      borderRadius: const BorderRadius.horizontal(right: Radius.circular(100)),
+      onTap: enabled ? onPressed : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

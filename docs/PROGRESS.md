@@ -381,12 +381,40 @@
 - [x] **Migration generated** — dodana EF migracija `AddStudentHourlyRateSnapshotToJobInstances`
 - [x] **Validation** — `flutter analyze` ostao 0 issues, backend full solution build prošao bez novih errora (80 postojećih warninga)
 
+### Notification Overhaul — Content, Archive & UI (2026-04-05)
+
+- [x] **FormatSafe fix** — `JsonLocalizationService.GetString` crashao jer `String.Format` dobivao `{0}` placeholder bez argumenata → dodan `FormatSafe` helper (try/catch, vraća template kad args prazni). Riješen 500 error na notification endpointu.
+- [x] **Notification body improvements** — `TranslateNotifications` u `HNotificationService` refaktoriran sa specijaliziranim granama:
+  - `seniorAndOrderList`: JobCancelled, OrderCancelled, OrderScheduleCancelled, NewOrderAdded → body format `"{seniorName}, Narudžba #{orderId}"`
+  - `reassignmentList`: ReassignmentStarted, ReassignmentCompleted → isti format
+  - `descList`: NoEligibleStudents, AllEligibleStudentNotified → GetEntityDescription
+  - `userDeletedList`: parse Payload JSON za deletedUserName/deletedUserId
+  - `NewStudentAdded` / `NewSeniorAdded`: pravo ime iz dto kontakta
+- [x] **NewOrderAdded lokalizacija** — Dodano u hr.json/en.json: Title "Nova narudžba"/"New Order", Body "{0}, Narudžba #{1}"/"{0}, Order #{1}"
+- [x] **NotificationsFactory fix** — `JobCancelledNotification` sada uključuje `OrderId` za body format
+- [x] **Translation key fix u bazi** — Seeded notifikacije imale `TranslationKey = 'NewStudent'` umjesto `Notifications.NewStudent.Title` → ispravljeno u DB-u
+- [x] **Single master CSV archive** — Archive endpoint refaktoriran za jednu `notifications-archive.csv` datoteku na Google Drive:
+  - `FindFileInFolderAsync(folderId, fileName)` → traži postojeći fajl
+  - `DownloadFileAsync(fileId)` → skida sadržaj
+  - `UpdateFileAsync(fileId, data, mimeType)` → uploadira novu verziju
+  - Ako fajl postoji: download → strip BOM → append novi redovi → update. Ako ne: create s headerom.
+  - CSV format: `Datum,Naslov,Poruka` (bez Type stupca)
+  - Testirano: prvi poziv kreira, drugi poziv appendira na isti file ID
+- [x] **DependencyInjection.cs fix** — `NotificationsArchiveFolderId` nije bio bindiran iz konfiguracije → dodano mapiranje
+- [x] **Pill bar redesign** — Unified pill: `_PillIconButton` (✓✓ done_all) | 1px grey divider | `_PillTextButton` (☁ cloud_upload + "Arhiviraj")
+- [x] **Pill hover animation** — Layout promijenjen iz Column u Stack. Pill je `Positioned` overlay s `AnimatedSlide(offset: visible ? Offset.zero : Offset(0, 2))` + `AnimatedOpacity` (200-250ms, Curves.easeOut). Prikazuje se na `MouseRegion` hover ili tijekom archiving procesa.
+- [x] **Tile interaction split** — Klik na tekst = označi pročitano (onTap). Klik na ikonu = navigacija (onNavigate). Ikona wrappana u `GestureDetector` s `MouseRegion(cursor: SystemMouseCursors.click)`.
+- [x] **ListView bottom padding** — Dodan `EdgeInsets.only(bottom: 64)` da pill ne prekriva zadnju notifikaciju
+- [x] **AppStrings archive ključevi** — notifArchiveSuccess, notifArchiveFailed, notifArchiveEmpty, notifArchiving, archiveNotifications (HR + EN)
+- [x] **data_providers.dart** — `removeRead()` na `NotificationsNotifier` za lokalno uklanjanje pročitanih nakon archive-a
+- [x] **admin_api_service.dart** — `archiveReadNotifications(userId)` + `languageCode` param na `getNotifications()`
+- [x] **api_endpoints.dart** — `notificationArchive(userId)` endpoint
+- [x] Verifikacija: `flutter analyze` = 0 issues, backend build = 0 errors
+
 ## Sljedeći koraci (Next Steps)
 
-1. Ručno potvrditi da povećanje `TravelBufferMinutes` makne konfliktnog studenta iz assign/reschedule liste i po potrebi otvori reassignment za već buduće accepted dodjele.
-2. Ručno potvrditi da promjena studentske satnice utječe samo na nove sesije, dok analytics i student obračun za stare sesije ostaju isti.
-3. Zadržati vanjske providere (`Stripe`, `Minimax`, `Mailgun`, `MailerLite`, `Firebase`) izvan ovog scopea dok ih zasebni developer ne spoji na live credentials i end-to-end tokove.
-4. Nakon potvrde nastaviti sa sljedećim prioritetom iz [ROADMAP.md](ROADMAP.md).
+1. Zadržati vanjske providere (`Stripe`, `Minimax`, `Mailgun`, `MailerLite`, `Firebase`) izvan scopea dok ih developer ne spoji na live credentials.
+2. Nakon potvrde nastaviti sa sljedećim prioritetom iz [ROADMAP.md](ROADMAP.md).
 
 ---
 

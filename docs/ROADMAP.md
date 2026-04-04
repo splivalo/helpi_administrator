@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-03-31 (Reschedule rewrite + server reachability + senior status centralization)
+> Zadnja izmjena: 2026-04-05 (Notification overhaul + archive to Google Drive + pill hover animation)
 
 ## 📖 Za Sidney-a — Što čitati
 
@@ -119,6 +119,9 @@
 - [x] **Order Details cleanup** — Uklonjene redundantne sekcije (vrijeme, trajanje, raspored, adresa) iz detalja narudžbe (2026-03-21)
 - [x] **Riverpod state management** — flutter_riverpod ^2.6.1, 6 StateNotifier providera, 17 widgeta migrirano, reaktivni UI bez manual refresha, 0 AppData referenci u UI sloju (2026-03-22)
 - [x] **Admin notifikacije + SignalR real-time** — signalr_netcore ^1.4.4, NotificationType enum 30 tipova, SignalRNotificationService s auto-reconnect, 7 icon/color mappinga, notification parser fix (2026-03-23)
+- [x] **Notification overhaul** — Backend FormatSafe fix, TranslateNotifications refactor (specijalizirane grane za svaki tip), NewOrderAdded lokalizacija, NotificationsFactory OrderId fix, translation key fix u bazi (2026-04-05)
+- [x] **Notification archive to Google Drive** — Single master `notifications-archive.csv`, find/download/append/update flow, 3 nove GoogleDriveService metode, DI binding fix, CSV format Datum/Naslov/Poruka (2026-04-05)
+- [x] **Notification pill bar redesign** — Unified pill (✓✓|☁ Arhiviraj), hover animation (AnimatedSlide+AnimatedOpacity), tile interaction split (tap=read, icon=navigate), ListView bottom padding (2026-04-05)
 
 ---
 

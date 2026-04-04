@@ -552,6 +552,11 @@ class AppStrings {
       'notifications': 'Obavijesti',
       'noNotifications': 'Nema novih obavijesti',
       'markAllRead': 'Sve pročitano',
+      'archiveNotifications': 'Arhiviraj',
+      'notifArchiveSuccess': 'Arhivirano obavijesti',
+      'notifArchiveFailed': 'Arhiviranje nije uspjelo',
+      'notifArchiveEmpty': 'Nema pročitanih obavijesti za arhiviranje',
+      'notifArchiving': 'Arhiviranje...',
       'justNow': 'Upravo sad',
       'minutesAgo': 'min prije',
       'hoursAgo': 'h prije',
@@ -1188,6 +1193,11 @@ class AppStrings {
       'notifications': 'Notifications',
       'noNotifications': 'No new notifications',
       'markAllRead': 'All read',
+      'archiveNotifications': 'Archive',
+      'notifArchiveSuccess': 'Notifications archived',
+      'notifArchiveFailed': 'Archive failed',
+      'notifArchiveEmpty': 'No read notifications to archive',
+      'notifArchiving': 'Archiving...',
       'justNow': 'Just now',
       'minutesAgo': 'min ago',
       'hoursAgo': 'h ago',
@@ -1922,6 +1932,11 @@ class AppStrings {
   static String get notifications => _t('notifications');
   static String get noNotifications => _t('noNotifications');
   static String get markAllRead => _t('markAllRead');
+  static String get archiveNotifications => _t('archiveNotifications');
+  static String get notifArchiveSuccess => _t('notifArchiveSuccess');
+  static String get notifArchiveFailed => _t('notifArchiveFailed');
+  static String get notifArchiveEmpty => _t('notifArchiveEmpty');
+  static String get notifArchiving => _t('notifArchiving');
   static String get justNow => _t('justNow');
   static String get minutesAgo => _t('minutesAgo');
   static String get hoursAgo => _t('hoursAgo');
