@@ -9,6 +9,7 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
 
 /// SignalR service for real-time admin notifications.
@@ -70,6 +71,7 @@ class SignalRNotificationService {
 
     _connection!.on('ReceiveNotification', _onReceiveNotification);
     _connection!.on('ReceiveMessage', _onReceiveMessage);
+    _connection!.on('SettingsChanged', _onSettingsChanged);
 
     await _startWithRetry();
   }
@@ -93,6 +95,14 @@ class SignalRNotificationService {
         : 'unknown';
     _ref!.read(unreadMessagesProvider.notifier).incrementRoom(roomId);
     debugPrint('[SignalR] new message in room $roomId, unread incremented');
+  }
+
+  void _onSettingsChanged(List<Object?>? args) {
+    debugPrint('[SignalR] SettingsChanged — refreshing all data');
+    AdminApiService.invalidatePricingCache();
+    if (_ref != null) {
+      DataLoader.loadAll(ref: _ref!);
+    }
   }
 
   void _onReceiveNotification(List<Object?>? args) {

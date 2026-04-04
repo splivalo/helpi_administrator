@@ -10,6 +10,7 @@ import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/features/chat/presentation/chat_screen.dart';
 import 'package:helpi_admin/features/analytics/presentation/analytics_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
+import 'package:helpi_admin/features/settings/presentation/settings_screen.dart';
 import 'package:helpi_admin/features/students/presentation/students_screen.dart';
 
 /// Responsivni shell — sidebar na desktopu, bottom nav na mobitelu.
@@ -43,6 +44,10 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       StudentsScreen(key: ValueKey('students_$locale')),
       ChatModScreen(key: ValueKey('chat_$locale')),
       DashboardScreen(key: ValueKey('analytics_$locale')),
+      SettingsScreen(
+        key: ValueKey('settings_$locale'),
+        localeNotifier: widget.localeNotifier,
+      ),
     ];
   }
 
@@ -141,68 +146,18 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                         Icons.analytics,
                         AppStrings.navDashboard,
                       ),
+                      _sidebarItem(
+                        4,
+                        Icons.settings_outlined,
+                        Icons.settings,
+                        AppStrings.navSettings,
+                      ),
                     ],
                   ),
                 ),
 
                 // ── Bottom actions ──
                 const Divider(height: 1),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 2,
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.language,
-                            color: HelpiTheme.textSecondary,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                value: AppStrings.currentLocale,
-                                isExpanded: true,
-                                isDense: true,
-                                focusColor: Colors.transparent,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w400,
-                                  color: HelpiTheme.textPrimary,
-                                ),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: 'hr',
-                                    child: Text('Hrvatski'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: 'en',
-                                    child: Text('English'),
-                                  ),
-                                ],
-                                onChanged: (val) {
-                                  if (val != null) {
-                                    widget.localeNotifier.setLocale(val);
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
                 _sidebarItem(
                   -2,
                   Icons.logout,
@@ -293,18 +248,6 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
-                    onPressed: _showSettingsSheet,
-                    icon: Text(
-                      AppStrings.currentLocale.toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: HelpiTheme.textSecondary,
-                      ),
-                    ),
-                    tooltip: AppStrings.navSettings,
-                  ),
-                  IconButton(
                     onPressed: widget.onLogout,
                     icon: const Icon(Icons.logout),
                     color: HelpiTheme.textSecondary,
@@ -333,6 +276,11 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 icon: const Icon(Icons.analytics_outlined),
                 selectedIcon: const Icon(Icons.analytics),
                 label: Text(AppStrings.navDashboard),
+              ),
+              NavigationRailDestination(
+                icon: const Icon(Icons.settings_outlined),
+                selectedIcon: const Icon(Icons.settings),
+                label: Text(AppStrings.navSettings),
               ),
             ],
           ),
@@ -388,18 +336,14 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
               activeIcon: const Icon(Icons.analytics, size: 26),
               label: AppStrings.navDashboard,
             ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.settings_outlined, size: 26),
+              activeIcon: const Icon(Icons.settings, size: 26),
+              label: AppStrings.navSettings,
+            ),
           ],
         ),
       ),
     );
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  //  LANGUAGE TOGGLE
-  // ═══════════════════════════════════════════════════════════════
-  void _showSettingsSheet() {
-    final currentLang = AppStrings.currentLocale;
-    final newLang = currentLang == 'hr' ? 'en' : 'hr';
-    widget.localeNotifier.setLocale(newLang);
   }
 }

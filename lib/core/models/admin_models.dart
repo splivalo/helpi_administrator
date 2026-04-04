@@ -267,8 +267,8 @@ class StudentModel {
     this.contractStartDate,
     this.contractExpiryDate,
     this.availability = const [],
-    this.hourlyRate = 7.40,
-    this.sundayHourlyRate = 11.10,
+    this.hourlyRate = 14.0,
+    this.sundayHourlyRate = 21.0,
     this.previousJobsWithSenior = 0,
   });
 

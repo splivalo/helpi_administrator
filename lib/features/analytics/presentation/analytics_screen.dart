@@ -10,6 +10,8 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/excel_export_service.dart';
+import 'package:helpi_admin/core/network/api_client.dart';
+import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 
 /// GA-style analytics — date-range selector, 3 stacked line charts
@@ -34,13 +36,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   late DateTime _rangeStart;
   late DateTime _rangeEnd;
 
-  // ── Pricing constants (source of truth) ──
+  final _api = ApiClient();
+
+  // ── Pricing (loaded from API, defaults match backend seed) ──
   // Senior pays:
-  static const double _seniorWeekdayRate = 14.0;
-  static const double _seniorSundayRate = 16.0;
-  // Student receives:
-  static const double _studentWeekdayRate = 7.40;
-  static const double _studentSundayRate = 11.10;
+  double _seniorWeekdayRate = 14.0;
+  double _seniorSundayRate = 21.0;
+  // Student receives (computed: seniorRate * studentPct):
+  double _studentWeekdayRate = 8.40;
+  double _studentSundayRate = 12.60;
+  // VAT:
+  bool _vatEnabled = false;
+  double _vatPercentage = 0;
   // Costs:
   static const double _studentServicePct = 0.18; // 18% student service fee
   // TODO(neto-exact): Stripe fee is currently estimated using the formula
@@ -58,7 +65,32 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _loadPricing();
     _applyPreset(_RangePreset.last7);
+  }
+
+  Future<void> _loadPricing() async {
+    try {
+      final response = await _api.get(ApiEndpoints.pricingConfigurations);
+      final list = response.data as List<dynamic>;
+      if (list.isEmpty) return;
+      final cfg = list.first as Map<String, dynamic>;
+      if (!mounted) return;
+      final seniorW = (cfg['jobHourlyRate'] as num?)?.toDouble() ?? 14.0;
+      final seniorS = (cfg['sundayHourlyRate'] as num?)?.toDouble() ?? 21.0;
+      final studentPct =
+          ((cfg['serviceProviderPercentage'] as num?)?.toDouble() ?? 60) / 100;
+      setState(() {
+        _seniorWeekdayRate = seniorW;
+        _seniorSundayRate = seniorS;
+        _studentWeekdayRate = seniorW * studentPct;
+        _studentSundayRate = seniorS * studentPct;
+        _vatEnabled = cfg['vatEnabled'] == true;
+        _vatPercentage = (cfg['vatPercentage'] as num?)?.toDouble() ?? 0;
+      });
+    } catch (_) {
+      // keep defaults
+    }
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -135,14 +167,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
               if (_showEarnings) {
                 // Exact per-session neto:
-                // gross − Stripe fee − student pay − studentski servis (18%)
+                // gross − VAT − Stripe fee − student pay − studentski servis (18%)
+                final vatDeduction = _vatEnabled
+                    ? gross * (_vatPercentage / (100 + _vatPercentage))
+                    : 0.0;
                 final stripeFee = gross * _stripePct + _stripeFixed;
                 final studentRate = isSunday
                     ? _studentSundayRate
                     : _studentWeekdayRate;
                 final studentPay = s.durationHours * studentRate;
                 final studentService = studentPay * _studentServicePct;
-                result[idx] += gross - stripeFee - studentPay - studentService;
+                result[idx] +=
+                    gross - vatDeduction - stripeFee - studentPay - studentService;
               } else {
                 result[idx] += gross;
               }

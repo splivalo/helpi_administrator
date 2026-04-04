@@ -29,7 +29,29 @@ class AppStrings {
       'navStudents': 'Studenti',
       'navSeniors': 'Seniori',
       'navChat': 'Poruke',
-      'navSettings': 'Jezik',
+      'navSettings': 'Postavke',
+
+      // ── Postavke ──────────────────────────────
+      'settingsTitle': 'Postavke',
+      'settingsPricing': 'Cijena',
+      'settingsCancelRules': 'Pravila otkazivanja',
+      'settingsOperational': 'Operativno',
+      'settingsTax': 'Porez',
+      'settingsLanguage': 'Jezik',
+      'weekdayRate': 'Cijena po satu (radni dan)',
+      'sundayRate': 'Cijena po satu (nedjelja)',
+      'companyPercentage': 'Postotak tvrtke',
+      'studentPercentage': 'Postotak studenta',
+      'studentCancelCutoff': 'Student ne može otkazati prije (sati)',
+      'seniorCancelCutoff': 'Senior ne može otkazati prije (sati)',
+      'travelBuffer': 'Buffer za putovanje (min)',
+      'paymentTiming': 'Naplata prije usluge (min)',
+      'vatEnabled': 'PDV uključen',
+      'vatPercentage': 'PDV (%)',
+      'settingsSaved': 'Postavke uspješno spremljene',
+      'settingsSaveFailed': 'Spremanje postavki nije uspjelo',
+      'settingsLoadFailed': 'Učitavanje postavki nije uspjelo',
+      'settingsPercentageError': 'Postotak tvrtke + studenta mora biti 100%',
 
       // ── Analitika ─────────────────────────────
       'dashboardTitle': 'Analitika',
@@ -642,7 +664,29 @@ class AppStrings {
       'navStudents': 'Students',
       'navSeniors': 'Seniors',
       'navChat': 'Messages',
-      'navSettings': 'Language',
+      'navSettings': 'Settings',
+
+      // ── Settings ──────────────────────────────
+      'settingsTitle': 'Settings',
+      'settingsPricing': 'Pricing',
+      'settingsCancelRules': 'Cancel rules',
+      'settingsOperational': 'Operational',
+      'settingsTax': 'Tax',
+      'settingsLanguage': 'Language',
+      'weekdayRate': 'Hourly rate (weekday)',
+      'sundayRate': 'Hourly rate (Sunday)',
+      'companyPercentage': 'Company percentage',
+      'studentPercentage': 'Student percentage',
+      'studentCancelCutoff': 'Student cancel cutoff (hours)',
+      'seniorCancelCutoff': 'Senior cancel cutoff (hours)',
+      'travelBuffer': 'Travel buffer (min)',
+      'paymentTiming': 'Payment before service (min)',
+      'vatEnabled': 'VAT enabled',
+      'vatPercentage': 'VAT (%)',
+      'settingsSaved': 'Settings saved successfully',
+      'settingsSaveFailed': 'Failed to save settings',
+      'settingsLoadFailed': 'Failed to load settings',
+      'settingsPercentageError': 'Company + student percentage must equal 100%',
 
       // ── Analitika ─────────────────────────────
       'dashboardTitle': 'Analytics',
@@ -1923,4 +1967,26 @@ class AppStrings {
   static String get serverUnavailableRetrying =>
       _t('serverUnavailableRetrying');
   static String get serverUnavailableRetry => _t('serverUnavailableRetry');
+
+  // ── Postavke ──
+  static String get settingsTitle => _t('settingsTitle');
+  static String get settingsPricing => _t('settingsPricing');
+  static String get settingsCancelRules => _t('settingsCancelRules');
+  static String get settingsOperational => _t('settingsOperational');
+  static String get settingsTax => _t('settingsTax');
+  static String get settingsLanguage => _t('settingsLanguage');
+  static String get weekdayRate => _t('weekdayRate');
+  static String get sundayRate => _t('sundayRate');
+  static String get companyPercentage => _t('companyPercentage');
+  static String get studentPercentage => _t('studentPercentage');
+  static String get studentCancelCutoff => _t('studentCancelCutoff');
+  static String get seniorCancelCutoff => _t('seniorCancelCutoff');
+  static String get travelBuffer => _t('travelBuffer');
+  static String get paymentTiming => _t('paymentTiming');
+  static String get vatEnabled => _t('vatEnabled');
+  static String get vatPercentage => _t('vatPercentage');
+  static String get settingsSaved => _t('settingsSaved');
+  static String get settingsSaveFailed => _t('settingsSaveFailed');
+  static String get settingsLoadFailed => _t('settingsLoadFailed');
+  static String get settingsPercentageError => _t('settingsPercentageError');
 }

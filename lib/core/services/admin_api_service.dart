@@ -25,9 +25,12 @@ class AdminApiService {
   AdminApiService({ApiClient? apiClient}) : _api = apiClient ?? ApiClient();
 
   // Cached pricing config
-  static double _cachedHourlyRate = 7.40;
-  static double _cachedSundayRate = 11.10;
+  static double _cachedHourlyRate = 14.0;
+  static double _cachedSundayRate = 21.0;
   static bool _pricingLoaded = false;
+
+  /// Force reload pricing from API (call on SettingsChanged).
+  static void invalidatePricingCache() => _pricingLoaded = false;
 
   Future<void> _ensurePricingLoaded() async {
     if (_pricingLoaded) return;
@@ -36,9 +39,9 @@ class AdminApiService {
       final list = response.data as List<dynamic>;
       if (list.isNotEmpty) {
         final cfg = list.first as Map<String, dynamic>;
-        _cachedHourlyRate = (cfg['jobHourlyRate'] as num?)?.toDouble() ?? 7.40;
+        _cachedHourlyRate = (cfg['jobHourlyRate'] as num?)?.toDouble() ?? 14.0;
         _cachedSundayRate =
-            (cfg['sundayHourlyRate'] as num?)?.toDouble() ?? 11.10;
+            (cfg['sundayHourlyRate'] as num?)?.toDouble() ?? 21.0;
       }
       _pricingLoaded = true;
     } catch (_) {
