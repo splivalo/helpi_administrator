@@ -963,6 +963,49 @@ class AdminApiService {
     );
   }
 
+  /// Bulk update student availability slots.
+  Future<ApiResult<void>> updateStudentAvailability({
+    required int studentId,
+    required List<DayAvailability> slots,
+  }) async {
+    try {
+      final payload = slots
+          .where((s) => s.isEnabled)
+          .map(
+            (s) => {
+              'studentId': studentId,
+              'dayOfWeek': s.dayOfWeek,
+              'startTime': _fmtTime(s.from),
+              'endTime': _fmtTime(s.to),
+            },
+          )
+          .toList();
+      await _api.put(ApiEndpoints.availabilityBulk, data: payload);
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  String _fmtTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}:00';
+
+  /// Update student's faculty via PUT /api/students/{id}.
+  Future<ApiResult<void>> updateStudentFaculty({
+    required int studentId,
+    required int facultyId,
+  }) async {
+    try {
+      await _api.put(
+        '${ApiEndpoints.students}/$studentId',
+        data: {'facultyId': facultyId},
+      );
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   TimeOfDay _parseTimeOnly(dynamic value) {
     if (value is String && value.isNotEmpty) {
       final parts = value.split(':');
@@ -1101,6 +1144,8 @@ class AdminApiService {
 
     return StudentModel(
       id: '${json['userId']}',
+      contactId: contact?['id'] as int?,
+      facultyId: json['facultyId'] as int?,
       firstName: firstName,
       lastName: lastName,
       email: contact?['email'] as String? ?? '',

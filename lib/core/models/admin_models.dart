@@ -211,6 +211,8 @@ class SeniorModel {
 
 class StudentModel {
   final String id;
+  final int? contactId;
+  final int? facultyId;
   final String firstName;
   final String lastName;
   final String email;
@@ -242,6 +244,8 @@ class StudentModel {
 
   const StudentModel({
     required this.id,
+    this.contactId,
+    this.facultyId,
     required this.firstName,
     required this.lastName,
     required this.email,

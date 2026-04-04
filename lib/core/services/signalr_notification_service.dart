@@ -72,6 +72,7 @@ class SignalRNotificationService {
     _connection!.on('ReceiveNotification', _onReceiveNotification);
     _connection!.on('ReceiveMessage', _onReceiveMessage);
     _connection!.on('SettingsChanged', _onSettingsChanged);
+    _connection!.on('EntityChanged', _onEntityChanged);
 
     await _startWithRetry();
   }
@@ -102,6 +103,16 @@ class SignalRNotificationService {
     AdminApiService.invalidatePricingCache();
     if (_ref != null) {
       _ref!.read(pricingVersionProvider.notifier).state++;
+      DataLoader.loadAll(ref: _ref!);
+    }
+  }
+
+  void _onEntityChanged(List<Object?>? args) {
+    final entityType = (args != null && args.isNotEmpty)
+        ? args[0]?.toString() ?? 'unknown'
+        : 'unknown';
+    debugPrint('[SignalR] EntityChanged ($entityType) — refreshing all data');
+    if (_ref != null) {
       DataLoader.loadAll(ref: _ref!);
     }
   }

@@ -19,6 +19,7 @@ import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:flutter/services.dart';
 import 'package:helpi_admin/features/orders/presentation/order_detail_screen.dart';
+import 'package:helpi_admin/features/students/presentation/edit_student_screen.dart';
 
 /// Student Detail Screen — profil studenta, ugovor, dostupnost, recenzije.
 class StudentDetailScreen extends ConsumerStatefulWidget {
@@ -207,6 +208,11 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, size: 22),
+            tooltip: AppStrings.editStudentTitle,
+            onPressed: _openEditStudent,
+          ),
           IconButton(
             icon: const Icon(Icons.dashboard_customize, size: 22),
             tooltip: AppStrings.editLayout,
@@ -518,6 +524,59 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
         ),
       ],
     );
+  }
+
+  void _openEditStudent() {
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    final formWidget = EditStudentScreen(
+      student: _student,
+      availability: _availability,
+      isModal: true,
+    );
+
+    if (isWide) {
+      showDialog<StudentModel>(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620, maxHeight: 800),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+              child: formWidget,
+            ),
+          ),
+        ),
+      ).then((result) {
+        if (!mounted) return;
+        if (result != null) {
+          setState(() => _student = result);
+          _loadAvailability();
+        }
+      });
+    } else {
+      showModalBottomSheet<StudentModel>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(HelpiTheme.bottomSheetRadius),
+          ),
+        ),
+        builder: (ctx) =>
+            FractionallySizedBox(heightFactor: 0.92, child: formWidget),
+      ).then((result) {
+        if (!mounted) return;
+        if (result != null) {
+          setState(() => _student = result);
+          _loadAvailability();
+        }
+      });
+    }
   }
 
   // ─────────────────────────────────────────────────────────

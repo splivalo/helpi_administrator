@@ -34,17 +34,17 @@ class AppStrings {
       // ── Postavke ──────────────────────────────
       'settingsTitle': 'Postavke',
       'settingsPricing': 'Cijena usluge',
-      'settingsCancelRules': 'Pravila otkazivanja',
+      'settingsCancelRules': 'Pravila promjena',
       'settingsOperational': 'Operativno',
       'settingsStudentRates': 'Studentska satnica',
       'settingsEarnings': 'Zarada',
       'settingsLanguage': 'Jezik',
-      'weekdayRate': 'Cijena po satu (radni dan)',
-      'sundayRate': 'Povećana satnica (nedjelje i blagdani)',
-      'studentHourlyRate': 'Student satnica (radni dan)',
-      'studentSundayRate': 'Student satnica (nedjelja/blagdani)',
-      'studentCancelCutoff': 'Student može otkazati prije',
-      'seniorCancelCutoff': 'Senior može otkazati prije',
+      'weekdayRate': 'Radni dan',
+      'sundayRate': 'Nedjelje i blagdani',
+      'studentHourlyRate': 'Radni dan',
+      'studentSundayRate': 'Nedjelje i blagdani',
+      'studentCancelCutoff': 'Student min.',
+      'seniorCancelCutoff': 'Senior min.',
       'travelBuffer': 'Buffer za putovanje',
       'paymentTiming': 'Naplata prije usluge',
       'vatEnabled': 'PDV uključen',
@@ -409,6 +409,8 @@ class AppStrings {
       'addSeniorSuccess': 'Senior uspješno dodan',
       'editSeniorTitle': 'Uredi seniora',
       'editSeniorSuccess': 'Podaci uspješno ažurirani',
+      'editStudentTitle': 'Uredi studenta',
+      'editStudentSuccess': 'Podaci studenta uspješno ažurirani',
       'addSeniorHasOrderer': 'Ima naručitelja',
       'fieldRequired': 'Obavezno polje',
       'selectDate': 'Odaberi datum',
@@ -671,17 +673,17 @@ class AppStrings {
       // ── Settings ──────────────────────────────
       'settingsTitle': 'Settings',
       'settingsPricing': 'Service pricing',
-      'settingsCancelRules': 'Cancel rules',
+      'settingsCancelRules': 'Change rules',
       'settingsOperational': 'Operational',
       'settingsStudentRates': 'Student rates',
       'settingsEarnings': 'Earnings',
       'settingsLanguage': 'Language',
-      'weekdayRate': 'Hourly rate (weekday)',
-      'sundayRate': 'Overtime rate (Sundays & holidays)',
-      'studentHourlyRate': 'Student rate (weekday)',
-      'studentSundayRate': 'Student rate (Sunday/holiday)',
-      'studentCancelCutoff': 'Student can cancel before',
-      'seniorCancelCutoff': 'Senior can cancel before',
+      'weekdayRate': 'Weekday',
+      'sundayRate': 'Sundays & holidays',
+      'studentHourlyRate': 'Weekday',
+      'studentSundayRate': 'Sundays & holidays',
+      'studentCancelCutoff': 'Student min.',
+      'seniorCancelCutoff': 'Senior min.',
       'travelBuffer': 'Travel buffer',
       'paymentTiming': 'Payment before service',
       'vatEnabled': 'VAT enabled',
@@ -1045,6 +1047,8 @@ class AppStrings {
       'addSeniorSuccess': 'Senior added successfully',
       'editSeniorTitle': 'Edit senior',
       'editSeniorSuccess': 'Data updated successfully',
+      'editStudentTitle': 'Edit student',
+      'editStudentSuccess': 'Student data updated successfully',
       'addSeniorHasOrderer': 'Has orderer',
       'fieldRequired': 'Required field',
       'selectDate': 'Select date',
@@ -1700,6 +1704,8 @@ class AppStrings {
   static String get addSeniorSuccess => _t('addSeniorSuccess');
   static String get editSeniorTitle => _t('editSeniorTitle');
   static String get editSeniorSuccess => _t('editSeniorSuccess');
+  static String get editStudentTitle => _t('editStudentTitle');
+  static String get editStudentSuccess => _t('editStudentSuccess');
   static String get addSeniorHasOrderer => _t('addSeniorHasOrderer');
   static String get fieldRequired => _t('fieldRequired');
   static String get selectDate => _t('selectDate');

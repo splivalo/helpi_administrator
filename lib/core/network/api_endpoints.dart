@@ -58,6 +58,7 @@ class ApiEndpoints {
   // Student Availability
   static String availabilityByStudent(int studentId) =>
       '/api/student-availability-slots/student/$studentId';
+  static const String availabilityBulk = '/api/student-availability-slots/bulk';
 
   // Schedule Assignments
   static const String scheduleAssignments = '/api/schedule-assignments';
