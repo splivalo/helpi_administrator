@@ -170,8 +170,6 @@ class SignalRNotificationService {
     NotificationType.jobCompleted,
     NotificationType.jobCancelled,
     NotificationType.jobRescheduled,
-    NotificationType.reassignmentStarted,
-    NotificationType.reassignmentCompleted,
     NotificationType.availabilityChanged,
     NotificationType.orderBackToProcessing,
   };

@@ -22,8 +22,19 @@ const _hiddenAdminNotificationTypes = {
   NotificationType.jobInProgress,
   NotificationType.jobCompleted,
   NotificationType.allEligibleStudentsNotified,
+  NotificationType.noEligibleStudents,
   NotificationType.matchingMaxAttemptsReached,
   NotificationType.reviewRequest,
+  NotificationType.contractAdded,
+  NotificationType.contractUpdated,
+  NotificationType.contractExpired,
+  NotificationType.contractDeleted,
+  NotificationType.contractAboutToExpire,
+  NotificationType.orderScheduleCancelled,
+  NotificationType.orderBackToProcessing,
+  NotificationType.customerDeleted, // v1 artefakt: Customer → Senior u v2
+  NotificationType.adminDeleted, // admin ne briše sam sebe
+  NotificationType.jobRescheduled, // admin sam mijenja termin
 };
 
 List<NotificationModel> _visibleAdminNotifications(
@@ -384,10 +395,7 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
             type == NotificationType.orderScheduleCancelled ||
             type == NotificationType.scheduleAssignmentCancelled ||
             type == NotificationType.jobCancelled ||
-            type == NotificationType.jobRescheduled ||
-            type == NotificationType.noEligibleStudents ||
-            type == NotificationType.reassignmentStarted ||
-            type == NotificationType.reassignmentCompleted)) {
+            type == NotificationType.jobRescheduled)) {
       final order = ref
           .read(ordersProvider)
           .where((o) => o.id == '${n.orderId}')
@@ -524,19 +532,16 @@ class _NotificationTile extends StatelessWidget {
       NotificationType.newOrderAdded => Icons.shopping_bag_outlined,
       NotificationType.orderCancelled => Icons.shopping_bag_outlined,
       NotificationType.orderScheduleCancelled => Icons.event_busy_outlined,
-      NotificationType.scheduleAssignmentCancelled =>
-        Icons.person_remove_alt_1_outlined,
+      NotificationType.scheduleAssignmentCancelled => Icons.event_busy_outlined,
       NotificationType.jobCancelled => Icons.event_busy_outlined,
       NotificationType.jobRescheduled => Icons.event_repeat_outlined,
-      NotificationType.noEligibleStudents => Icons.person_search_outlined,
-      NotificationType.reassignmentStarted => Icons.swap_horiz_outlined,
-      NotificationType.reassignmentCompleted =>
-        Icons.swap_horizontal_circle_outlined,
       NotificationType.contractAdded => Icons.description_outlined,
       NotificationType.contractUpdated => Icons.edit_document,
       NotificationType.contractExpired => Icons.warning_amber_rounded,
       NotificationType.contractDeleted => Icons.delete_outline,
       NotificationType.contractAboutToExpire => Icons.schedule_outlined,
+      NotificationType.studentDeleted => Icons.person_remove_outlined,
+      NotificationType.seniorDeleted => Icons.person_remove_outlined,
       NotificationType.customerDeleted => Icons.person_remove_outlined,
       NotificationType.adminDeleted => Icons.admin_panel_settings_outlined,
       NotificationType.availabilityChanged => Icons.schedule_outlined,
@@ -547,25 +552,29 @@ class _NotificationTile extends StatelessWidget {
 
   static Color _iconColor(NotificationType type) {
     return switch (type) {
-      NotificationType.newStudentAdded => HelpiTheme.accent,
-      NotificationType.newSeniorAdded => HelpiTheme.accent,
-      NotificationType.newOrderAdded => HelpiTheme.accent,
+      // Added (green)
+      NotificationType.newStudentAdded => HelpiTheme.statusActiveText,
+      NotificationType.newSeniorAdded => HelpiTheme.statusActiveText,
+      NotificationType.newOrderAdded => HelpiTheme.statusActiveText,
+      NotificationType.contractAdded => HelpiTheme.statusActiveText,
+      NotificationType.contractUpdated => HelpiTheme.statusActiveText,
+      // Cancelled / deleted (red)
       NotificationType.orderCancelled => HelpiTheme.statusCancelledText,
       NotificationType.orderScheduleCancelled => HelpiTheme.statusCancelledText,
-      NotificationType.scheduleAssignmentCancelled => HelpiTheme.primary,
+      NotificationType.scheduleAssignmentCancelled =>
+        HelpiTheme.statusCancelledText,
       NotificationType.jobCancelled => HelpiTheme.statusCancelledText,
-      NotificationType.jobRescheduled => HelpiTheme.accent,
-      NotificationType.noEligibleStudents => HelpiTheme.primary,
-      NotificationType.reassignmentStarted => HelpiTheme.primary,
-      NotificationType.reassignmentCompleted => const Color(0xFF2E7D32),
-      NotificationType.contractAdded => HelpiTheme.accent,
-      NotificationType.contractUpdated => HelpiTheme.accent,
-      NotificationType.contractExpired => const Color(0xFFE65100),
       NotificationType.contractDeleted => HelpiTheme.statusCancelledText,
-      NotificationType.contractAboutToExpire => const Color(0xFFE65100),
+      NotificationType.studentDeleted => HelpiTheme.statusCancelledText,
+      NotificationType.seniorDeleted => HelpiTheme.statusCancelledText,
       NotificationType.customerDeleted => HelpiTheme.statusCancelledText,
       NotificationType.adminDeleted => HelpiTheme.statusCancelledText,
+      // Warning / changes (orange)
+      NotificationType.contractExpired => const Color(0xFFE65100),
+      NotificationType.contractAboutToExpire => const Color(0xFFE65100),
       NotificationType.availabilityChanged => const Color(0xFFE65100),
+      NotificationType.jobRescheduled => const Color(0xFFE65100),
+      // Info
       NotificationType.orderBackToProcessing => HelpiTheme.primary,
       _ => HelpiTheme.textSecondary,
     };
@@ -573,29 +582,30 @@ class _NotificationTile extends StatelessWidget {
 
   static Color _iconBg(NotificationType type) {
     return switch (type) {
-      NotificationType.newStudentAdded => HelpiTheme.pastelTeal,
-      NotificationType.newSeniorAdded => HelpiTheme.pastelTeal,
-      NotificationType.newOrderAdded => HelpiTheme.pastelTeal,
+      // Added (green bg)
+      NotificationType.newStudentAdded => HelpiTheme.statusActiveBg,
+      NotificationType.newSeniorAdded => HelpiTheme.statusActiveBg,
+      NotificationType.newOrderAdded => HelpiTheme.statusActiveBg,
+      NotificationType.contractAdded => HelpiTheme.statusActiveBg,
+      NotificationType.contractUpdated => HelpiTheme.statusActiveBg,
+      // Cancelled / deleted (red bg)
       NotificationType.orderCancelled => HelpiTheme.statusCancelledBg,
       NotificationType.orderScheduleCancelled => HelpiTheme.statusCancelledBg,
       NotificationType.scheduleAssignmentCancelled =>
-        HelpiTheme.primary.withValues(alpha: 0.12),
+        HelpiTheme.statusCancelledBg,
       NotificationType.jobCancelled => HelpiTheme.statusCancelledBg,
-      NotificationType.jobRescheduled => HelpiTheme.pastelTeal,
-      NotificationType.noEligibleStudents => HelpiTheme.primary.withValues(
-        alpha: 0.12,
-      ),
-      NotificationType.reassignmentStarted => HelpiTheme.primary.withValues(
-        alpha: 0.12,
-      ),
-      NotificationType.reassignmentCompleted => const Color(0xFFE8F5E9),
-      NotificationType.contractAdded => HelpiTheme.pastelTeal,
-      NotificationType.contractUpdated => HelpiTheme.pastelTeal,
-      NotificationType.contractExpired => const Color(0xFFFFF3E0),
       NotificationType.contractDeleted => HelpiTheme.statusCancelledBg,
-      NotificationType.contractAboutToExpire => const Color(0xFFFFF3E0),
+      NotificationType.studentDeleted => HelpiTheme.statusCancelledBg,
+      NotificationType.seniorDeleted => HelpiTheme.statusCancelledBg,
       NotificationType.customerDeleted => HelpiTheme.statusCancelledBg,
       NotificationType.adminDeleted => HelpiTheme.statusCancelledBg,
+      // Warning / changes (orange bg)
+      NotificationType.contractExpired => const Color(0xFFFFF3E0),
+      NotificationType.contractAboutToExpire => const Color(0xFFFFF3E0),
+      NotificationType.availabilityChanged => const Color(0xFFFFF3E0),
+      NotificationType.jobRescheduled => const Color(0xFFFFF3E0),
+      // Info (light blue bg)
+      NotificationType.orderBackToProcessing => const Color(0xFFE3F2FD),
       _ => const Color(0xFFF5F5F5),
     };
   }
