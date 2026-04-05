@@ -342,10 +342,14 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
   void _navigateToEntity(NotificationModel n) {
     final type = n.type;
 
+    // Deleted users — info only, no navigation (entity no longer exists)
+    if (type == NotificationType.studentDeleted ||
+        type == NotificationType.seniorDeleted) {
+      return;
+    }
+
     // Senior-related notifications
-    if (n.seniorId != null &&
-        (type == NotificationType.newSeniorAdded ||
-            type == NotificationType.seniorDeleted)) {
+    if (n.seniorId != null && type == NotificationType.newSeniorAdded) {
       final senior = ref
           .read(seniorsProvider)
           .where((s) => s.id == '${n.seniorId}')
@@ -365,10 +369,10 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
       return;
     }
 
-    // Student-related notifications
+    // Student-related notifications (including availabilityChanged)
     if (n.studentId != null &&
         (type == NotificationType.newStudentAdded ||
-            type == NotificationType.studentDeleted ||
+            type == NotificationType.availabilityChanged ||
             type == NotificationType.contractExpired ||
             type == NotificationType.contractAboutToExpire ||
             type == NotificationType.contractAdded ||
