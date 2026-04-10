@@ -8,11 +8,16 @@ import 'package:helpi_admin/app/theme.dart';
 /// - Bottom divider (1px, aligned with sidebar)
 /// - Right padding (8px) on the last action
 class HelpiAppBar extends AppBar {
+  /// Spacing between back arrow and title on inner (pushed) screens.
+  /// Change this single value to adjust all inner screens at once.
+  static const double innerTitleSpacing = 4.5;
+
   HelpiAppBar({
     super.key,
     super.title,
     super.leading,
     super.automaticallyImplyLeading,
+    super.titleSpacing,
     List<Widget>? actions,
   }) : super(
          actions: _padActions(actions),

@@ -101,7 +101,10 @@ class _ChatDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: HelpiAppBar(title: Text(room.participantName)),
+      appBar: HelpiAppBar(
+        title: Text(room.participantName),
+        titleSpacing: HelpiAppBar.innerTitleSpacing,
+      ),
       body: _ChatView(room: room),
     );
   }

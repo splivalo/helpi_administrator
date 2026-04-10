@@ -216,6 +216,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
 
     return Scaffold(
       appBar: HelpiAppBar(
+        titleSpacing: HelpiAppBar.innerTitleSpacing,
         title: Text(
           _isEditMode ? AppStrings.editOrderTitle : AppStrings.createOrder,
         ),

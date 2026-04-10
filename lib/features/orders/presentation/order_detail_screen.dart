@@ -100,6 +100,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: HelpiAppBar(
+        titleSpacing: HelpiAppBar.innerTitleSpacing,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

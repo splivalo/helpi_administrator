@@ -1095,6 +1095,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: HelpiAppBar(
+        titleSpacing: HelpiAppBar.innerTitleSpacing,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -248,7 +248,10 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
 
     if (!widget.isModal) {
       return Scaffold(
-        appBar: HelpiAppBar(title: Text(AppStrings.editSeniorTitle)),
+        appBar: HelpiAppBar(
+          title: Text(AppStrings.editSeniorTitle),
+          titleSpacing: HelpiAppBar.innerTitleSpacing,
+        ),
         body: formBody,
       );
     }

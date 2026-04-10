@@ -272,7 +272,10 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
 
     if (!widget.isModal) {
       return Scaffold(
-        appBar: HelpiAppBar(title: Text(AppStrings.editStudentTitle)),
+        appBar: HelpiAppBar(
+          title: Text(AppStrings.editStudentTitle),
+          titleSpacing: HelpiAppBar.innerTitleSpacing,
+        ),
         body: formBody,
       );
     }

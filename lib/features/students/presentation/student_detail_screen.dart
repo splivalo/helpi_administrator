@@ -186,6 +186,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
 
     return Scaffold(
       appBar: HelpiAppBar(
+        titleSpacing: HelpiAppBar.innerTitleSpacing,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

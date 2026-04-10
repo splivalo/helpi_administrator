@@ -247,11 +247,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Icon(
-                      Icons.save,
-                      size: 22,
-                      color: HelpiTheme.accent,
-                    ),
+                  : const Icon(Icons.save, size: 22, color: HelpiTheme.accent),
               tooltip: AppStrings.save,
               onPressed: _saving ? null : _saveSettings,
             ),
