@@ -140,13 +140,9 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                   children: [
                     // ── Header ──
                     Container(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        border: Border(
-                          bottom: BorderSide(color: HelpiTheme.border),
-                        ),
-                      ),
+                      height: kToolbarHeight,
+                      padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
+                      color: Colors.white,
                       child: Row(
                         children: [
                           const Icon(
@@ -170,6 +166,11 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                           ),
                         ],
                       ),
+                    ),
+                    const Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: HelpiTheme.border,
                     ),
 
                     // ── List ──

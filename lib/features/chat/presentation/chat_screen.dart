@@ -28,7 +28,13 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
     if (isWide) {
       // ── Desktop: split view ──
       return Scaffold(
-        appBar: AppBar(title: Text(AppStrings.chatTitle)),
+        appBar: AppBar(
+          title: Text(AppStrings.chatTitle),
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
+          ),
+        ),
         body: Row(
           children: [
             SizedBox(
@@ -75,7 +81,13 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
 
     // ── Mobile: room list only, tap opens chat ──
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.chatTitle)),
+      appBar: AppBar(
+        title: Text(AppStrings.chatTitle),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
+        ),
+      ),
       body: _ChatRoomList(
         selectedRoomId: null,
         onRoomSelected: (room) {

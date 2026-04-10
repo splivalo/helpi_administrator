@@ -345,6 +345,10 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(AppStrings.dashboardTitle),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
+        ),
         actions: const [NotificationBell()],
       ),
       body: SingleChildScrollView(

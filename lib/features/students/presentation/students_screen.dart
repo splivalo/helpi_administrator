@@ -401,6 +401,10 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(AppStrings.studentsTitle),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
+        ),
         actions: [
           if (MediaQuery.sizeOf(context).width >= 900)
             IconButton(
@@ -417,7 +421,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
         children: [
           // ── Search bar + City filter ──
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final cities =

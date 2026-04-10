@@ -66,7 +66,7 @@ class HelpiTheme {
     ),
     scaffoldBackgroundColor: background,
     appBarTheme: const AppBarTheme(
-      backgroundColor: background,
+      backgroundColor: surface,
       foregroundColor: textPrimary,
       elevation: 0,
       scrolledUnderElevation: 0,

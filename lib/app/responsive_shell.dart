@@ -97,26 +97,31 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             ),
             child: Column(
               children: [
-                // ── Logo ──
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 16,
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: SvgPicture.asset(
-                      'assets/images/logo.svg',
-                      height: 36,
+                // ── Logo (height matches kToolbarHeight so divider
+                //    aligns with AppBar bottom border) ──
+                SizedBox(
+                  height: kToolbarHeight,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Align(
+                      alignment: const Alignment(-1.0, 0.25),
+                      child: SvgPicture.asset(
+                        'assets/images/logo.svg',
+                        height: 28,
+                      ),
                     ),
                   ),
                 ),
-                const Divider(height: 1),
+                const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: HelpiTheme.border,
+                ),
 
                 // ── Nav items ──
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     children: [
                       _sidebarItem(
                         0,
