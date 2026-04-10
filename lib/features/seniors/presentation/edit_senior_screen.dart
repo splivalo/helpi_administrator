@@ -248,7 +248,13 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
 
     if (!widget.isModal) {
       return Scaffold(
-        appBar: AppBar(title: Text(AppStrings.editSeniorTitle)),
+        appBar: AppBar(
+          title: Text(AppStrings.editSeniorTitle),
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
+          ),
+        ),
         body: formBody,
       );
     }

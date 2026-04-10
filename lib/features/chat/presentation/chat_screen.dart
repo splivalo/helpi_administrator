@@ -112,7 +112,13 @@ class _ChatDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(room.participantName)),
+      appBar: AppBar(
+        title: Text(room.participantName),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
+        ),
+      ),
       body: _ChatView(room: room),
     );
   }

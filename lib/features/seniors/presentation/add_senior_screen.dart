@@ -69,7 +69,13 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
     if (widget.isModal) return formBody;
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppStrings.addSeniorTitle)),
+      appBar: AppBar(
+        title: Text(AppStrings.addSeniorTitle),
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
+        ),
+      ),
       body: formBody,
     );
   }
