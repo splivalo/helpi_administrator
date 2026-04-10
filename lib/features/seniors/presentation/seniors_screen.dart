@@ -238,12 +238,8 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: HelpiAppBar(
         title: Text(AppStrings.seniorsTitle),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
-        ),
         actions: [
           if (MediaQuery.sizeOf(context).width >= 900)
             IconButton(
@@ -1098,11 +1094,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
-        ),
+      appBar: HelpiAppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

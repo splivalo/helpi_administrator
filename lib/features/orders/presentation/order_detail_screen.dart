@@ -99,11 +99,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
-        ),
+      appBar: HelpiAppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

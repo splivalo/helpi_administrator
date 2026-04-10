@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
+import 'package:helpi_admin/core/widgets/helpi_app_bar.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
@@ -28,13 +29,7 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
     if (isWide) {
       // ── Desktop: split view ──
       return Scaffold(
-        appBar: AppBar(
-          title: Text(AppStrings.chatTitle),
-          bottom: const PreferredSize(
-            preferredSize: Size.fromHeight(1),
-            child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
-          ),
-        ),
+        appBar: HelpiAppBar(title: Text(AppStrings.chatTitle)),
         body: Row(
           children: [
             SizedBox(
@@ -81,13 +76,7 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
 
     // ── Mobile: room list only, tap opens chat ──
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppStrings.chatTitle),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
-        ),
-      ),
+      appBar: HelpiAppBar(title: Text(AppStrings.chatTitle)),
       body: _ChatRoomList(
         selectedRoomId: null,
         onRoomSelected: (room) {
@@ -112,13 +101,7 @@ class _ChatDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(room.participantName),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
-        ),
-      ),
+      appBar: HelpiAppBar(title: Text(room.participantName)),
       body: _ChatView(room: room),
     );
   }

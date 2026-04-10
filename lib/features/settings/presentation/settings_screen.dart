@@ -9,6 +9,7 @@ import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/widgets/notification_bell.dart';
+import 'package:helpi_admin/core/widgets/helpi_app_bar.dart';
 
 /// Admin Settings screen — pricing, cancel rules, operational, tax, language.
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -231,44 +232,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: HelpiAppBar(
         title: Text(AppStrings.settingsTitle),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
-        ),
         actions: [
           if (_editing) ...[
             TextButton(
               onPressed: _saving ? null : _cancelEditing,
               child: Text(AppStrings.cancel),
             ),
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                icon: _saving
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(
-                        Icons.save,
-                        size: 22,
-                        color: HelpiTheme.accent,
-                      ),
-                tooltip: AppStrings.save,
-                onPressed: _saving ? null : _saveSettings,
-              ),
+            IconButton(
+              icon: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(
+                      Icons.save,
+                      size: 22,
+                      color: HelpiTheme.accent,
+                    ),
+              tooltip: AppStrings.save,
+              onPressed: _saving ? null : _saveSettings,
             ),
           ] else ...[
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: IconButton(
-                icon: const Icon(Icons.edit, size: 22),
-                tooltip: AppStrings.edit,
-                onPressed: _startEditing,
-              ),
+            IconButton(
+              icon: const Icon(Icons.edit, size: 22),
+              tooltip: AppStrings.edit,
+              onPressed: _startEditing,
             ),
           ],
           const NotificationBell(),

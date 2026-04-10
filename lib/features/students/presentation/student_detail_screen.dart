@@ -185,11 +185,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return Scaffold(
-      appBar: AppBar(
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
-        ),
+      appBar: HelpiAppBar(
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

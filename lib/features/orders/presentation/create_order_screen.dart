@@ -215,13 +215,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     if (widget.isModal) return formBody;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: HelpiAppBar(
         title: Text(
           _isEditMode ? AppStrings.editOrderTitle : AppStrings.createOrder,
-        ),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
         ),
       ),
       body: formBody,
