@@ -245,7 +245,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             onDestinationSelected: _onItemTapped,
             labelType: NavigationRailLabelType.all,
             leading: Padding(
-              padding: const EdgeInsets.only(bottom: 32, top: 6),
+              padding: const EdgeInsets.only(bottom: 24, top: 6),
               child: SvgPicture.asset('assets/images/h_logo.svg', height: 26),
             ),
             trailing: Expanded(
