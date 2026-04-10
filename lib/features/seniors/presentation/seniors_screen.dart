@@ -857,22 +857,8 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
           title: Text(AppStrings.archiveBlockedTitle),
           content: SizedBox(
             width: 400,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(AppStrings.archiveBlockedMsg),
-                const SizedBox(height: 16),
-                if (check.activeOrdersCount > 0)
-                  Text('• ${check.activeOrdersCount} aktivnih narudžbi'),
-                if (check.upcomingSessionsCount > 0)
-                  Text('• ${check.upcomingSessionsCount} nadolazećih termina'),
-                const SizedBox(height: 16),
-                Text(
-                  AppStrings.archiveForceWarning,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
+            child: Text(
+              AppStrings.archiveWarningOrders(check.activeOrdersCount),
             ),
           ),
           actions: [

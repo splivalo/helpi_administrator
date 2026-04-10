@@ -926,22 +926,10 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           title: Text(AppStrings.archiveBlockedTitle),
           content: SizedBox(
             width: 400,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(AppStrings.archiveBlockedMsg),
-                const SizedBox(height: 16),
-                if (check.activeAssignmentsCount > 0)
-                  Text('• ${check.activeAssignmentsCount} aktivnih dodjela'),
-                if (check.upcomingSessionsCount > 0)
-                  Text('• ${check.upcomingSessionsCount} nadolazećih termina'),
-                const SizedBox(height: 16),
-                Text(
-                  AppStrings.archiveForceWarning,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              ],
+            child: Text(
+              AppStrings.archiveWarningAssignments(
+                check.activeAssignmentsCount,
+              ),
             ),
           ),
           actions: [
@@ -1114,15 +1102,11 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(AppStrings.contractDeleteConfirm),
-                const SizedBox(height: 16),
-                if (check.activeAssignmentsCount > 0)
-                  Text('• ${check.activeAssignmentsCount} aktivnih dodjela'),
-                if (check.upcomingSessionsCount > 0)
-                  Text('• ${check.upcomingSessionsCount} nadolazećih termina'),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Text(
-                  AppStrings.archiveForceWarning,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  AppStrings.archiveWarningAssignments(
+                    check.activeAssignmentsCount,
+                  ),
                 ),
               ],
             ),
