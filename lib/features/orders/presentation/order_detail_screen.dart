@@ -135,7 +135,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           final allSections = _buildAllSections();
           final sections = <Widget>[
             for (final idx in _sectionOrder) allSections[idx],
-          ];
+          ]..removeWhere((w) => w is SizedBox && w.child == null);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
