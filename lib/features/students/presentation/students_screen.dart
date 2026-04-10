@@ -22,7 +22,7 @@ enum ActivityPeriod { thisMonth, lastMonth, last60Days, custom }
 /// Sort options for the student list.
 enum StudentSort { az, za, newest, oldest, ratingHigh, ratingLow }
 
-enum _StudentFilter { all, active, expired, noContract, suspended, archived }
+enum _StudentFilter { all, active, noContract, expired, suspended, archived }
 
 class StudentsScreen extends ConsumerStatefulWidget {
   const StudentsScreen({super.key});
