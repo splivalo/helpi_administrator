@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:helpi_admin/app/theme.dart';
-
 /// Standard AppBar for all admin screens.
 ///
 /// Automatically includes:
-/// - Bottom divider (1px, aligned with sidebar)
+/// - Bottom divider (1px, uses theme divider color)
 /// - Right padding (8px) on the last action
 class HelpiAppBar extends AppBar {
   /// Spacing between back arrow and title on inner (pushed) screens.
@@ -23,7 +21,7 @@ class HelpiAppBar extends AppBar {
          actions: _padActions(actions),
          bottom: const PreferredSize(
            preferredSize: Size.fromHeight(1),
-           child: Divider(height: 1, thickness: 1, color: HelpiTheme.border),
+           child: Divider(height: 1, thickness: 1),
          ),
        );
 

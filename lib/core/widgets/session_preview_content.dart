@@ -166,9 +166,9 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                 '#${widget.order.orderNumber} '
                 '${widget.order.senior.fullName}  →  '
                 '${widget.student.fullName}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -214,18 +214,20 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
         _statChip(
           Icons.event_note,
           AppStrings.sessionCountChip(_sessions.length),
-          HelpiTheme.chipBg,
-          HelpiTheme.textSecondary,
+          HelpiColors.of(context).chipBg,
+          HelpiColors.of(context).textSecondary,
         ),
       ],
     );
   }
 
   Widget _statChip(IconData icon, String text, Color bg, Color fg) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveBg = isDark ? fg.withValues(alpha: 0.15) : bg;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: bg,
+        color: effectiveBg,
         border: Border.all(color: fg.withAlpha(50)),
         borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
       ),
@@ -258,14 +260,14 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
     Color borderColor;
     Color bgColor;
     if (s.isSkipped) {
-      borderColor = HelpiTheme.border;
-      bgColor = HelpiTheme.chipBg;
+      borderColor = HelpiColors.of(context).border;
+      bgColor = HelpiColors.of(context).chipBg;
     } else if (isFree || isResolved) {
-      borderColor = HelpiTheme.border;
-      bgColor = Colors.white;
+      borderColor = HelpiColors.of(context).border;
+      bgColor = HelpiColors.of(context).surface;
     } else {
-      borderColor = HelpiTheme.border;
-      bgColor = Colors.white;
+      borderColor = HelpiColors.of(context).border;
+      bgColor = HelpiColors.of(context).surface;
     }
 
     final displayStart = s.rescheduledStart ?? s.startTime;
@@ -285,24 +287,37 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
           // Row 1: Date + Status
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: (!isFree && !isResolved && !s.isSkipped)
-                      ? HelpiTheme.statusCancelledBg
-                      : HelpiTheme.statusActiveBg,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  _dayLabelsShort[s.weekday - 1],
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: (!isFree && !isResolved && !s.isSkipped)
-                        ? HelpiTheme.statusCancelledText
-                        : HelpiTheme.statusActiveText,
-                  ),
-                ),
+              Builder(
+                builder: (ctx) {
+                  final isBusy = !isFree && !isResolved && !s.isSkipped;
+                  final dayTextColor = isBusy
+                      ? HelpiTheme.statusCancelledText
+                      : HelpiTheme.statusActiveText;
+                  final isDark = Theme.of(ctx).brightness == Brightness.dark;
+                  final dayBg = isDark
+                      ? dayTextColor.withValues(alpha: 0.15)
+                      : (isBusy
+                            ? HelpiTheme.statusCancelledBg
+                            : HelpiTheme.statusActiveBg);
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: dayBg,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      _dayLabelsShort[s.weekday - 1],
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: dayTextColor,
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 8),
               Text(
@@ -311,7 +326,9 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   decoration: s.isSkipped ? TextDecoration.lineThrough : null,
-                  color: s.isSkipped ? HelpiTheme.textSecondary : null,
+                  color: s.isSkipped
+                      ? HelpiColors.of(context).textSecondary
+                      : null,
                 ),
               ),
               const SizedBox(width: 8),
@@ -319,7 +336,9 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                 '${formatTimeOfDay(displayStart)} – ${formatTimeOfDay(endTime)}',
                 style: TextStyle(
                   fontSize: 13,
-                  color: s.isSkipped ? HelpiTheme.textSecondary : null,
+                  color: s.isSkipped
+                      ? HelpiColors.of(context).textSecondary
+                      : null,
                   decoration: s.isSkipped ? TextDecoration.lineThrough : null,
                 ),
               ),
@@ -413,7 +432,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                   _actionBtn(
                     Icons.skip_next,
                     AppStrings.skipSession,
-                    HelpiTheme.textSecondary,
+                    HelpiColors.of(context).textSecondary,
                     () => _skipSession(index),
                   ),
                   const SizedBox(width: 8),
@@ -448,17 +467,17 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
             const SizedBox(height: 6),
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.skip_next,
                   size: 14,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   AppStrings.sessionSkipped,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -482,8 +501,8 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
     Color fg;
     if (s.isSkipped) {
       label = AppStrings.sessionSkipped;
-      bg = HelpiTheme.chipBg;
-      fg = HelpiTheme.textSecondary;
+      bg = HelpiColors.of(context).chipBg;
+      fg = HelpiColors.of(context).textSecondary;
     } else if (s.rescheduledStart != null) {
       final isNarrow = MediaQuery.sizeOf(context).width < 600;
       label = isNarrow
@@ -504,10 +523,12 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
       bg = HelpiTheme.statusCancelledBg;
       fg = HelpiTheme.statusCancelledText;
     }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveBg = isDark ? fg.withValues(alpha: 0.15) : bg;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: bg,
+        color: effectiveBg,
         border: Border.all(color: fg.withAlpha(50)),
         borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
       ),
@@ -536,10 +557,10 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
         children: [
           Text(
             AppStrings.selectNewTime,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: HelpiTheme.textSecondary,
+              color: HelpiColors.of(context).textSecondary,
             ),
           ),
           const SizedBox(height: 6),
@@ -620,10 +641,10 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
         children: [
           Text(
             AppStrings.selectSubstitute,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: HelpiTheme.textSecondary,
+              color: HelpiColors.of(context).textSecondary,
             ),
           ),
           const SizedBox(height: 6),
@@ -631,7 +652,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
             (sub) => Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Material(
-                color: Colors.white,
+                color: HelpiColors.of(context).surface,
                 borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
@@ -716,7 +737,9 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: HelpiTheme.statusCancelledBg,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? HelpiTheme.statusCancelledText.withValues(alpha: 0.15)
+              : HelpiTheme.statusCancelledBg,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: HelpiTheme.statusCancelledText.withAlpha(40),
@@ -792,9 +815,9 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
         20,
         12 + MediaQuery.of(context).padding.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: HelpiTheme.border)),
+      decoration: BoxDecoration(
+        color: HelpiColors.of(context).surface,
+        border: Border(top: BorderSide(color: HelpiColors.of(context).border)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -825,7 +848,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
               icon: Icons.check_circle,
               label: AppStrings.confirmAssign,
               color: hasUnresolved
-                  ? HelpiTheme.textSecondary
+                  ? HelpiColors.of(context).textSecondary
                   : HelpiTheme.accent,
               size: ActionChipButtonSize.medium,
               onTap: _confirmAssign,

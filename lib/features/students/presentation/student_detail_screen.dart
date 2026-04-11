@@ -201,8 +201,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             if (_student.isArchived) ...[
               const SizedBox(width: 6),
               StatusBadge(
-                textColor: HelpiTheme.textSecondary,
-                bgColor: HelpiTheme.chipBg,
+                textColor: HelpiColors.of(context).textSecondary,
+                bgColor: HelpiColors.of(context).chipBg,
                 label: AppStrings.statusArchived,
               ),
             ],
@@ -331,7 +331,10 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               AppStrings.sectionLayoutHint,
-              style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
+              style: TextStyle(
+                fontSize: 13,
+                color: HelpiColors.of(context).textSecondary,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -346,8 +349,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                     IconButton(
                       icon: const Icon(Icons.arrow_upward, size: 18),
                       color: i == 0
-                          ? HelpiTheme.border
-                          : HelpiTheme.textSecondary,
+                          ? HelpiColors.of(context).border
+                          : HelpiColors.of(context).textSecondary,
                       onPressed: i == 0
                           ? null
                           : () => setSheetState(() {
@@ -361,8 +364,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                     IconButton(
                       icon: const Icon(Icons.arrow_downward, size: 18),
                       color: i == tempOrder.length - 1
-                          ? HelpiTheme.border
-                          : HelpiTheme.textSecondary,
+                          ? HelpiColors.of(context).border
+                          : HelpiColors.of(context).textSecondary,
                       onPressed: i == tempOrder.length - 1
                           ? null
                           : () => setSheetState(() {
@@ -604,7 +607,9 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                     _isContractDeleting
                         ? AppStrings.contractDeleting
                         : AppStrings.contractLoading,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -626,15 +631,17 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             child: Center(
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.description_outlined,
                     size: 36,
-                    color: HelpiTheme.border,
+                    color: HelpiColors.of(context).border,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.contractNone,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -664,10 +671,10 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
               label: AppStrings.studentContractStatus,
               valueWidget: Text(
                 contractStatusStyle(_student.contractStatus).$3,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: HelpiTheme.textPrimary,
+                  color: HelpiColors.of(context).textPrimary,
                 ),
               ),
             ),
@@ -756,7 +763,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
               : AppStrings.studentArchive,
           color: _student.isArchived
               ? HelpiTheme.accent
-              : HelpiTheme.textSecondary,
+              : HelpiColors.of(context).textSecondary,
           onTap: () =>
               _student.isArchived ? _confirmUnarchive() : _confirmArchive(),
         ),
@@ -995,6 +1002,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: HelpiTheme.error),
             child: Text(AppStrings.studentArchive),
           ),
         ],
@@ -1190,6 +1198,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: HelpiTheme.error),
             child: Text(AppStrings.delete),
           ),
         ],
@@ -1355,7 +1364,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             child: Center(
               child: Text(
                 AppStrings.noAvailability,
-                style: const TextStyle(color: HelpiTheme.textSecondary),
+                style: TextStyle(color: HelpiColors.of(context).textSecondary),
               ),
             ),
           ),
@@ -1371,10 +1380,10 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                   label: label,
                   valueWidget: Text(
                     '${formatTimeOfDay(day.from)} – ${formatTimeOfDay(day.to)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: HelpiTheme.textPrimary,
+                      color: HelpiColors.of(context).textPrimary,
                     ),
                   ),
                 );
@@ -1545,7 +1554,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: HelpiTheme.scaffold,
+            color: HelpiColors.of(context).scaffold,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Column(
@@ -1563,10 +1572,10 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                       _isCustomRange
                           ? AppStrings.workCustomPeriod
                           : AppStrings.workContractPeriod,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: HelpiTheme.textPrimary,
+                        color: HelpiColors.of(context).textPrimary,
                       ),
                     ),
                   ),
@@ -1603,9 +1612,11 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: HelpiColors.of(context).surface,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: HelpiTheme.border),
+                          border: Border.all(
+                            color: HelpiColors.of(context).border,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -1634,11 +1645,13 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                     ),
                   ),
                   if (MediaQuery.sizeOf(context).width >= 600)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Text(
                         '→',
-                        style: TextStyle(color: HelpiTheme.textSecondary),
+                        style: TextStyle(
+                          color: HelpiColors.of(context).textSecondary,
+                        ),
                       ),
                     )
                   else
@@ -1652,9 +1665,11 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: HelpiColors.of(context).surface,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: HelpiTheme.border),
+                          border: Border.all(
+                            color: HelpiColors.of(context).border,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -1696,15 +1711,17 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             child: Center(
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.work_off_outlined,
                     size: 36,
-                    color: HelpiTheme.border,
+                    color: HelpiColors.of(context).border,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.workNoOrders,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -1764,9 +1781,9 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
               child: Text(
                 '${regularRate != null ? '${regularHrs.toStringAsFixed(0)}h × ${regularRate.toStringAsFixed(2)}€ = ${regularPay.toStringAsFixed(2)}€' : ''}'
                 '${overtimeHrs > 0 && overtimeRate != null ? '  +  ${overtimeHrs.toStringAsFixed(0)}h × ${overtimeRate.toStringAsFixed(2)}€ = ${overtimePay.toStringAsFixed(2)}€' : ''}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ),
             ),
@@ -1792,15 +1809,17 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             child: Center(
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.inbox_outlined,
                     size: 36,
-                    color: HelpiTheme.border,
+                    color: HelpiColors.of(context).border,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.noOrdersFound,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -1842,7 +1861,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: HelpiTheme.scaffold,
+          color: HelpiColors.of(context).scaffold,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -1861,9 +1880,9 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                   const SizedBox(height: 2),
                   Text(
                     o.senior.fullName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: HelpiTheme.textSecondary,
+                      color: HelpiColors.of(context).textSecondary,
                     ),
                   ),
                 ],
@@ -1871,10 +1890,10 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             ),
             StatusBadge.order(o.status),
             const SizedBox(width: 4),
-            const Icon(
+            Icon(
               Icons.chevron_right,
               size: 20,
-              color: HelpiTheme.textSecondary,
+              color: HelpiColors.of(context).textSecondary,
             ),
           ],
         ),

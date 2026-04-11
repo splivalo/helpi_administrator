@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: HelpiTheme.background,
+      backgroundColor: HelpiColors.of(context).background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -139,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 _obscurePassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: HelpiTheme.textSecondary,
+                                color: HelpiColors.of(context).textSecondary,
                               ),
                             ),
                           ),
@@ -390,7 +390,10 @@ class _ForgotPasswordDialogState extends State<_ForgotPasswordDialog> {
           children: [
             Text(
               AppStrings.forgotPasswordSubtitle,
-              style: TextStyle(color: HelpiTheme.textSecondary, fontSize: 14),
+              style: TextStyle(
+                color: HelpiColors.of(context).textSecondary,
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 16),
 

@@ -35,6 +35,23 @@ class PreferencesService {
   static const _keySort = 'sort_';
   static const _keyTab = 'tab_';
   static const _keySectionOrder = 'sectionOrder_';
+  static const _keyThemeMode = 'themeMode';
+
+  // ─── Theme Mode ────────────────────────────────────────────
+
+  String getThemeMode() {
+    return (_prefs?.getString(_keyThemeMode) ??
+            _fallback[_keyThemeMode] as String?) ??
+        'system';
+  }
+
+  Future<void> setThemeMode(String mode) async {
+    if (_prefs != null) {
+      await _prefs!.setString(_keyThemeMode, mode);
+    } else {
+      _fallback[_keyThemeMode] = mode;
+    }
+  }
 
   // ─── Grid / List ───────────────────────────────────────────
 

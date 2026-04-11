@@ -44,7 +44,9 @@ class ReviewsSection extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.seniorNoReviews,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -94,8 +96,8 @@ class ReviewsSection extends StatelessWidget {
             const SizedBox(width: 16),
             Text(
               '${AppStrings.studentTotalRatings}: ${reviews.length}',
-              style: const TextStyle(
-                color: HelpiTheme.textSecondary,
+              style: TextStyle(
+                color: HelpiColors.of(context).textSecondary,
                 fontSize: 14,
               ),
             ),
@@ -107,7 +109,7 @@ class ReviewsSection extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: HelpiTheme.scaffold,
+              color: HelpiColors.of(context).scaffold,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -126,10 +128,10 @@ class ReviewsSection extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       reviewerName(r),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: HelpiTheme.textSecondary,
+                        color: HelpiColors.of(context).textSecondary,
                       ),
                     ),
                   ],

@@ -252,10 +252,13 @@ class StatusBadge extends StatelessWidget {
         ? HelpiTheme.statusBadgeRadius
         : HelpiTheme.chipRadius;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveBg = isDark ? textColor.withValues(alpha: 0.15) : bgColor;
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: effectiveBg,
         border: Border.all(color: textColor.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(radius),
       ),

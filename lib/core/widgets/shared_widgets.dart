@@ -28,9 +28,9 @@ class SectionCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: HelpiColors.of(context).surface,
         borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
+        border: Border.all(color: HelpiColors.of(context).border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,10 +43,10 @@ class SectionCard extends StatelessWidget {
               ],
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: HelpiTheme.textPrimary,
+                  color: HelpiColors.of(context).textPrimary,
                 ),
               ),
               if (trailing != null) ...[const Spacer(), trailing!],
@@ -105,9 +105,9 @@ class InfoRow extends StatelessWidget {
             width: 140,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: HelpiTheme.textSecondary,
+                color: HelpiColors.of(context).textSecondary,
               ),
             ),
           ),
@@ -176,9 +176,9 @@ class InfoField extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: HelpiTheme.textSecondary,
+              color: HelpiColors.of(context).textSecondary,
             ),
           ),
           const SizedBox(height: 2),
@@ -302,6 +302,43 @@ class ResponsiveButton extends StatelessWidget {
 /// - `medium` → icon 18, font 14, padding ~14×8  (modal primary actions)
 enum ActionChipButtonSize { small, medium }
 
+/// Custom animated toggle switch matching analytics comparison toggle style.
+class HelpiSwitch extends StatelessWidget {
+  const HelpiSwitch({super.key, required this.value, required this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => onChanged(!value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 36,
+          height: 20,
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: value ? HelpiTheme.accent : HelpiColors.of(context).border,
+          ),
+          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+          child: Container(
+            width: 16,
+            height: 16,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Compact chip-style action button: tinted background, small icon + label.
 class ActionChipButton extends StatelessWidget {
   const ActionChipButton({
@@ -324,7 +361,7 @@ class ActionChipButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMedium = size == ActionChipButtonSize.medium;
-    final bgColor = outlined ? Colors.white : color;
+    final bgColor = outlined ? HelpiColors.of(context).surface : color;
     final fgColor = outlined ? color : Colors.white;
     final radius = isMedium ? 10.0 : 8.0;
     final iconSize = isMedium ? 18.0 : 14.0;
@@ -388,7 +425,7 @@ class DragHandle extends StatelessWidget {
         width: 40,
         height: 4,
         decoration: BoxDecoration(
-          color: HelpiTheme.border,
+          color: HelpiColors.of(context).border,
           borderRadius: BorderRadius.circular(2),
         ),
       ),
@@ -412,13 +449,13 @@ class EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: HelpiTheme.border),
+          Icon(icon, size: 64, color: HelpiColors.of(context).border),
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: HelpiTheme.textSecondary,
+              color: HelpiColors.of(context).textSecondary,
             ),
           ),
         ],
@@ -445,9 +482,9 @@ class ResultCountRow extends StatelessWidget {
         children: [
           Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: HelpiTheme.textSecondary,
+              color: HelpiColors.of(context).textSecondary,
             ),
           ),
           const Spacer(),
@@ -490,9 +527,9 @@ Future<TimeOfDay?> show15MinTimePicker(
                   children: [
                     Text(
                       AppStrings.timePickerHour,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: HelpiTheme.textSecondary,
+                        color: HelpiColors.of(ctx).textSecondary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -542,9 +579,9 @@ Future<TimeOfDay?> show15MinTimePicker(
                   children: [
                     Text(
                       AppStrings.timePickerMinute,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: HelpiTheme.textSecondary,
+                        color: HelpiColors.of(ctx).textSecondary,
                       ),
                     ),
                     const SizedBox(height: 4),

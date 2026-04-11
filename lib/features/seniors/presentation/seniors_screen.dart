@@ -306,9 +306,9 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
                     initialValue: _cityFilter,
                     isExpanded: true,
                     isDense: true,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: HelpiTheme.textPrimary,
+                      color: HelpiColors.of(context).textPrimary,
                     ),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
@@ -361,7 +361,7 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             labelColor: HelpiTheme.accent,
-            unselectedLabelColor: HelpiTheme.textSecondary,
+            unselectedLabelColor: HelpiColors.of(context).textSecondary,
             labelStyle: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -373,7 +373,7 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
             indicatorColor: HelpiTheme.accent,
             indicatorWeight: 2.5,
             dividerHeight: 0.5,
-            dividerColor: HelpiTheme.border,
+            dividerColor: HelpiColors.of(context).border,
             padding: const EdgeInsets.only(left: 4),
             labelPadding: const EdgeInsets.symmetric(horizontal: 12),
             tabs: _tabFilters.map((f) {
@@ -402,10 +402,10 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.download_outlined,
                         size: 20,
-                        color: HelpiTheme.textSecondary,
+                        color: HelpiColors.of(context).textSecondary,
                       ),
                       onPressed: () async {
                         final messenger = ScaffoldMessenger.of(context);
@@ -432,10 +432,10 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
                     ),
                     const SizedBox(width: 4),
                     PopupMenuButton<SeniorSort>(
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.sort,
                         size: 20,
-                        color: HelpiTheme.textSecondary,
+                        color: HelpiColors.of(context).textSecondary,
                       ),
                       padding: EdgeInsets.zero,
                       tooltip: AppStrings.sortBy,
@@ -590,7 +590,9 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
             style: TextStyle(
               fontSize: 14,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              color: selected ? HelpiTheme.accent : HelpiTheme.textPrimary,
+              color: selected
+                  ? HelpiTheme.accent
+                  : HelpiColors.of(context).textPrimary,
             ),
           ),
         ],
@@ -625,9 +627,9 @@ class _SeniorCard extends ConsumerWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: HelpiColors.of(context).surface,
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          border: Border.all(color: HelpiTheme.border),
+          border: Border.all(color: HelpiColors.of(context).border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -638,8 +640,8 @@ class _SeniorCard extends ConsumerWidget {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: const BoxDecoration(
-                    color: HelpiTheme.pastelTeal,
+                  decoration: BoxDecoration(
+                    color: HelpiColors.of(context).pastelTeal,
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -683,18 +685,18 @@ class _SeniorCard extends ConsumerWidget {
                       // ── Phone ──
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.phone_outlined,
                             size: 14,
-                            color: HelpiTheme.textSecondary,
+                            color: HelpiColors.of(context).textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               senior.contactPhone,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: HelpiTheme.textSecondary,
+                                color: HelpiColors.of(context).textSecondary,
                               ),
                             ),
                           ),
@@ -707,18 +709,18 @@ class _SeniorCard extends ConsumerWidget {
                       // ── Email ──
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.email_outlined,
                             size: 14,
-                            color: HelpiTheme.textSecondary,
+                            color: HelpiColors.of(context).textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               senior.contactEmail,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: HelpiTheme.textSecondary,
+                                color: HelpiColors.of(context).textSecondary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -733,18 +735,18 @@ class _SeniorCard extends ConsumerWidget {
                       // ── Address (always senior's — service location) ──
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.location_on_outlined,
                             size: 14,
-                            color: HelpiTheme.textSecondary,
+                            color: HelpiColors.of(context).textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               senior.address,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: HelpiTheme.textSecondary,
+                                color: HelpiColors.of(context).textSecondary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -757,9 +759,9 @@ class _SeniorCard extends ConsumerWidget {
                 ),
 
                 // ── Chevron ──
-                const Icon(
+                Icon(
                   Icons.chevron_right,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ],
             ),
@@ -921,6 +923,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: HelpiTheme.error),
             child: Text(AppStrings.studentArchive),
           ),
         ],
@@ -1233,7 +1236,10 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               AppStrings.sectionLayoutHint,
-              style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
+              style: TextStyle(
+                fontSize: 13,
+                color: HelpiColors.of(context).textSecondary,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -1460,15 +1466,17 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
                 child: Center(
                   child: Column(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.credit_card_off,
                         size: 36,
-                        color: HelpiTheme.border,
+                        color: HelpiColors.of(context).border,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         AppStrings.seniorNoCards,
-                        style: const TextStyle(color: HelpiTheme.textSecondary),
+                        style: TextStyle(
+                          color: HelpiColors.of(context).textSecondary,
+                        ),
                       ),
                     ],
                   ),
@@ -1508,15 +1516,17 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
             child: Center(
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.inbox_outlined,
                     size: 36,
-                    color: HelpiTheme.border,
+                    color: HelpiColors.of(context).border,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.noOrdersFound,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -1724,7 +1734,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
               : AppStrings.studentArchive,
           color: _senior.isArchived
               ? HelpiTheme.accent
-              : HelpiTheme.textSecondary,
+              : HelpiColors.of(context).textSecondary,
           onTap: () =>
               _senior.isArchived ? _confirmUnarchive() : _confirmArchive(),
         ),
@@ -1755,7 +1765,9 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: expired ? HelpiTheme.statusCancelledBg : HelpiTheme.scaffold,
+        color: expired
+            ? HelpiTheme.statusCancelledBg
+            : HelpiColors.of(context).scaffold,
         borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
       ),
       child: Row(
@@ -1771,7 +1783,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
                     fontWeight: FontWeight.w600,
                     color: expired
                         ? HelpiTheme.statusCancelledText
-                        : HelpiTheme.textPrimary,
+                        : HelpiColors.of(context).textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -1783,7 +1795,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
                     fontSize: 12,
                     color: expired
                         ? HelpiTheme.statusCancelledText
-                        : HelpiTheme.textSecondary,
+                        : HelpiColors.of(context).textSecondary,
                   ),
                 ),
               ],
@@ -1823,7 +1835,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: HelpiTheme.scaffold,
+          color: HelpiColors.of(context).scaffold,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -1842,9 +1854,9 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
                   const SizedBox(height: 2),
                   Text(
                     order.services.map((s) => serviceLabel(s)).join(', '),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: HelpiTheme.textSecondary,
+                      color: HelpiColors.of(context).textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

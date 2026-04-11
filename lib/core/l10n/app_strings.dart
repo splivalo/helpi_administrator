@@ -35,6 +35,10 @@ class AppStrings {
       'settingsStudentRates': 'Studentska satnica',
       'settingsEarnings': 'Zarada',
       'settingsLanguage': 'Jezik',
+      'settingsTheme': 'Tema',
+      'themeLight': 'Svijetla',
+      'themeDark': 'Tamna',
+      'themeSystem': 'Sistemska',
       'weekdayRate': 'Radni dan',
       'sundayRate': 'Nedjelje i blagdani',
       'studentHourlyRate': 'Radni dan',
@@ -80,7 +84,7 @@ class AppStrings {
       'cancelOrderConfirmTitle': 'Otkaži narudžbu',
       'cancelOrderConfirmMsg':
           'Jeste li sigurni da želite otkazati ovu narudžbu? Svi nadolazeći termini će biti otkazani.',
-      'cancelOrderBtn': 'Otkaži narudžbu',
+      'cancelOrderBtn': 'Otkaži',
       'editOrderTitle': 'Uredi narudžbu',
       'editOrderSuccess': 'Narudžba uspješno ažurirana',
       'orderNumber': 'Narudžba #{number}',
@@ -529,6 +533,10 @@ class AppStrings {
       'settingsStudentRates': 'Student rates',
       'settingsEarnings': 'Earnings',
       'settingsLanguage': 'Language',
+      'settingsTheme': 'Theme',
+      'themeLight': 'Light',
+      'themeDark': 'Dark',
+      'themeSystem': 'System',
       'weekdayRate': 'Weekday',
       'sundayRate': 'Sundays & holidays',
       'studentHourlyRate': 'Weekday',
@@ -574,7 +582,7 @@ class AppStrings {
       'cancelOrderConfirmTitle': 'Cancel order',
       'cancelOrderConfirmMsg':
           'Are you sure you want to cancel this order? All upcoming sessions will be cancelled.',
-      'cancelOrderBtn': 'Cancel order',
+      'cancelOrderBtn': 'Cancel',
       'editOrderTitle': 'Edit order',
       'editOrderSuccess': 'Order updated successfully',
       'orderNumber': 'Order #{number}',
@@ -1533,6 +1541,10 @@ class AppStrings {
   static String get settingsStudentRates => _t('settingsStudentRates');
   static String get settingsEarnings => _t('settingsEarnings');
   static String get settingsLanguage => _t('settingsLanguage');
+  static String get settingsTheme => _t('settingsTheme');
+  static String get themeLight => _t('themeLight');
+  static String get themeDark => _t('themeDark');
+  static String get themeSystem => _t('themeSystem');
   static String get weekdayRate => _t('weekdayRate');
   static String get sundayRate => _t('sundayRate');
   static String get studentCancelCutoff => _t('studentCancelCutoff');

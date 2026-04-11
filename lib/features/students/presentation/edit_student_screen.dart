@@ -201,8 +201,8 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
                         color: day.enabled
-                            ? HelpiTheme.textPrimary
-                            : HelpiTheme.textSecondary,
+                            ? HelpiColors.of(context).textPrimary
+                            : HelpiColors.of(context).textSecondary,
                       ),
                     ),
                   ),
@@ -328,14 +328,18 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           border: Border.all(
-            color: enabled ? HelpiTheme.border : HelpiTheme.dividerColor,
+            color: enabled
+                ? HelpiColors.of(context).border
+                : HelpiColors.of(context).dividerColor,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           formatTimeOfDay(value),
           style: TextStyle(
-            color: enabled ? HelpiTheme.textPrimary : HelpiTheme.textSecondary,
+            color: enabled
+                ? HelpiColors.of(context).textPrimary
+                : HelpiColors.of(context).textSecondary,
           ),
         ),
       ),

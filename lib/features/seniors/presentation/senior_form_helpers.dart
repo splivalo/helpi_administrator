@@ -14,10 +14,10 @@ mixin SeniorFormHelpers<T extends StatefulWidget> on State<T> {
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: HelpiTheme.textPrimary,
+            color: HelpiColors.of(context).textPrimary,
           ),
         ),
       ],
@@ -121,8 +121,8 @@ mixin SeniorFormHelpers<T extends StatefulWidget> on State<T> {
           style: TextStyle(
             fontSize: 14,
             color: value != null
-                ? HelpiTheme.textPrimary
-                : HelpiTheme.textSecondary,
+                ? HelpiColors.of(context).textPrimary
+                : HelpiColors.of(context).textSecondary,
           ),
         ),
       ),

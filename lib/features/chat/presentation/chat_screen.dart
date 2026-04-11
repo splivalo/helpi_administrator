@@ -44,7 +44,7 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
                 },
               ),
             ),
-            const VerticalDivider(width: 1, color: HelpiTheme.border),
+            VerticalDivider(width: 1, color: HelpiColors.of(context).border),
             Expanded(
               child: _selectedRoom != null
                   ? _ChatView(room: _selectedRoom!)
@@ -52,16 +52,16 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.chat_outlined,
                             size: 64,
-                            color: HelpiTheme.border,
+                            color: HelpiColors.of(context).border,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             AppStrings.chatSelectConversation,
-                            style: const TextStyle(
-                              color: HelpiTheme.textSecondary,
+                            style: TextStyle(
+                              color: HelpiColors.of(context).textSecondary,
                               fontSize: 16,
                             ),
                           ),
@@ -130,11 +130,11 @@ class _ChatRoomList extends ConsumerWidget {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: rooms.length,
-      separatorBuilder: (context, index) => const Divider(
+      separatorBuilder: (context, index) => Divider(
         height: 1,
         indent: 16,
         endIndent: 16,
-        color: HelpiTheme.border,
+        color: HelpiColors.of(context).border,
       ),
       itemBuilder: (ctx, i) {
         final room = rooms[i];
@@ -146,7 +146,7 @@ class _ChatRoomList extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             color: isSelected
-                ? HelpiTheme.pastelTeal.withValues(alpha: 0.3)
+                ? HelpiColors.of(context).pastelTeal.withValues(alpha: 0.3)
                 : null,
             child: Row(
               children: [
@@ -190,8 +190,8 @@ class _ChatRoomList extends ConsumerWidget {
                   child: Container(
                     width: 36,
                     height: 36,
-                    decoration: const BoxDecoration(
-                      color: HelpiTheme.pastelTeal,
+                    decoration: BoxDecoration(
+                      color: HelpiColors.of(context).pastelTeal,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -224,7 +224,7 @@ class _ChatRoomList extends ConsumerWidget {
                         room.lastMessage,
                         style: TextStyle(
                           fontSize: 13,
-                          color: HelpiTheme.textSecondary,
+                          color: HelpiColors.of(context).textSecondary,
                           fontWeight: unread > 0
                               ? FontWeight.w600
                               : FontWeight.normal,
@@ -245,9 +245,9 @@ class _ChatRoomList extends ConsumerWidget {
                   children: [
                     Text(
                       _formatTime(room.lastMessageAt),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: HelpiTheme.textSecondary,
+                        color: HelpiColors.of(context).textSecondary,
                       ),
                     ),
                     if (unread > 0) ...[
@@ -366,7 +366,9 @@ class _ChatViewState extends State<_ChatView> {
               ? Center(
                   child: Text(
                     AppStrings.chatNoMessages,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                 )
               : ListView.builder(
@@ -381,9 +383,11 @@ class _ChatViewState extends State<_ChatView> {
         // ── Input bar ──
         Container(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: HelpiTheme.border)),
+          decoration: BoxDecoration(
+            color: HelpiColors.of(context).surface,
+            border: Border(
+              top: BorderSide(color: HelpiColors.of(context).border),
+            ),
           ),
           child: SafeArea(
             top: false,
@@ -402,11 +406,15 @@ class _ChatViewState extends State<_ChatView> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
-                        borderSide: const BorderSide(color: HelpiTheme.border),
+                        borderSide: BorderSide(
+                          color: HelpiColors.of(context).border,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
-                        borderSide: const BorderSide(color: HelpiTheme.border),
+                        borderSide: BorderSide(
+                          color: HelpiColors.of(context).border,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
@@ -460,14 +468,16 @@ class _MessageBubble extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isAdmin ? HelpiTheme.accent : Colors.white,
+          color: isAdmin ? HelpiTheme.accent : HelpiColors.of(context).surface,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
             bottomLeft: Radius.circular(isAdmin ? 16 : 4),
             bottomRight: Radius.circular(isAdmin ? 4 : 16),
           ),
-          border: isAdmin ? null : Border.all(color: HelpiTheme.border),
+          border: isAdmin
+              ? null
+              : Border.all(color: HelpiColors.of(context).border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,7 +498,9 @@ class _MessageBubble extends StatelessWidget {
               message.text,
               style: TextStyle(
                 fontSize: 14,
-                color: isAdmin ? Colors.white : HelpiTheme.textPrimary,
+                color: isAdmin
+                    ? Colors.white
+                    : HelpiColors.of(context).textPrimary,
                 height: 1.4,
               ),
             ),
@@ -499,7 +511,9 @@ class _MessageBubble extends StatelessWidget {
                 '${message.sentAt.hour.toString().padLeft(2, '0')}:${message.sentAt.minute.toString().padLeft(2, '0')}',
                 style: TextStyle(
                   fontSize: 10,
-                  color: isAdmin ? Colors.white70 : HelpiTheme.textSecondary,
+                  color: isAdmin
+                      ? Colors.white70
+                      : HelpiColors.of(context).textSecondary,
                 ),
               ),
             ),

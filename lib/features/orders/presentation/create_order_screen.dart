@@ -384,10 +384,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: HelpiTheme.textPrimary,
+            color: HelpiColors.of(context).textPrimary,
           ),
         ),
       ],
@@ -407,9 +407,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: HelpiColors.of(context).surface,
               borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-              border: Border.all(color: HelpiTheme.border),
+              border: Border.all(color: HelpiColors.of(context).border),
             ),
             child: Row(
               children: [
@@ -439,26 +439,26 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                         ),
                         Text(
                           _selectedSenior!.address,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: HelpiTheme.textSecondary,
+                            color: HelpiColors.of(context).textSecondary,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ] else ...[
-                  const Icon(
+                  Icon(
                     Icons.person_search,
                     size: 20,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                   const SizedBox(width: 12),
                   Text(
                     AppStrings.selectSenior,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: HelpiTheme.textSecondary,
+                      color: HelpiColors.of(context).textSecondary,
                     ),
                   ),
                 ],
@@ -467,7 +467,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                   _showSeniorSearch
                       ? Icons.keyboard_arrow_up
                       : Icons.keyboard_arrow_down,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ],
             ),
@@ -496,9 +496,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           Container(
             constraints: const BoxConstraints(maxHeight: 200),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: HelpiColors.of(context).surface,
               borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-              border: Border.all(color: HelpiTheme.border),
+              border: Border.all(color: HelpiColors.of(context).border),
             ),
             child: ListView.builder(
               shrinkWrap: true,
@@ -678,9 +678,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           // Toggle end date
           Row(
             children: [
-              Switch(
+              HelpiSwitch(
                 value: _hasEndDate,
-                activeTrackColor: HelpiTheme.accent,
                 onChanged: (v) => setState(() {
                   _hasEndDate = v;
                   if (!v) _endDate = null;
@@ -742,9 +741,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: HelpiColors.of(context).surface,
         borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
+        border: Border.all(color: HelpiColors.of(context).border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -762,10 +761,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               const Spacer(),
               GestureDetector(
                 onTap: () => setState(() => _dayEntries.removeAt(index)),
-                child: const Icon(
+                child: Icon(
                   Icons.close,
                   size: 20,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ),
             ],
@@ -812,9 +811,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: HelpiColors.of(context).surface,
         borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
+        border: Border.all(color: HelpiColors.of(context).border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -833,10 +832,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               if (_dayEntries.isNotEmpty)
                 GestureDetector(
                   onTap: () => setState(() => _showingDayPicker = false),
-                  child: const Icon(
+                  child: Icon(
                     Icons.close,
                     size: 20,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                 ),
             ],
@@ -976,10 +975,12 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         decoration: BoxDecoration(
           color: isSelected
               ? HelpiTheme.accent.withValues(alpha: 0.1)
-              : Colors.white,
+              : HelpiColors.of(context).surface,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? HelpiTheme.accent : HelpiTheme.border,
+            color: isSelected
+                ? HelpiTheme.accent
+                : HelpiColors.of(context).border,
           ),
         ),
         child: Text(
@@ -987,7 +988,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: isSelected ? HelpiTheme.accent : HelpiTheme.textPrimary,
+            color: isSelected
+                ? HelpiTheme.accent
+                : HelpiColors.of(context).textPrimary,
           ),
         ),
       ),
@@ -1003,9 +1006,9 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: HelpiColors.of(context).surface,
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          border: Border.all(color: HelpiTheme.border),
+          border: Border.all(color: HelpiColors.of(context).border),
         ),
         child: Row(
           children: [
@@ -1020,8 +1023,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               style: TextStyle(
                 fontSize: 14,
                 color: date != null
-                    ? HelpiTheme.textPrimary
-                    : HelpiTheme.textSecondary,
+                    ? HelpiColors.of(context).textPrimary
+                    : HelpiColors.of(context).textSecondary,
               ),
             ),
           ],

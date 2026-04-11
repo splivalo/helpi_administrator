@@ -6,6 +6,7 @@ import 'package:helpi_admin/app/responsive_shell.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
+import 'package:helpi_admin/core/l10n/theme_notifier.dart';
 import 'package:helpi_admin/core/services/auth_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/core/services/signalr_notification_service.dart';
@@ -23,6 +24,7 @@ class HelpiAdminApp extends ConsumerStatefulWidget {
 
 class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
   final _localeNotifier = LocaleNotifier();
+  final _themeNotifier = ThemeNotifier();
   final _authService = AuthService();
   final _signalR = SignalRNotificationService(TokenStorage());
   bool _isLoggedIn = false;
@@ -115,41 +117,52 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
   void dispose() {
     _signalR.stop();
     _localeNotifier.dispose();
+    _themeNotifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Locale>(
-      valueListenable: _localeNotifier,
-      builder: (context, locale, _) {
-        // Sync AppStrings locale with notifier
-        AppStrings.setLocale(locale.languageCode);
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: _themeNotifier,
+      builder: (context, themeMode, _) {
+        return ValueListenableBuilder<Locale>(
+          valueListenable: _localeNotifier,
+          builder: (context, locale, _) {
+            // Sync AppStrings locale with notifier
+            AppStrings.setLocale(locale.languageCode);
 
-        return MaterialApp(
-          title: 'Helpi Admin',
-          debugShowCheckedModeBanner: false,
-          theme: HelpiTheme.light,
-          locale: locale,
-          supportedLocales: const [Locale('hr'), Locale('en')],
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          home: _isCheckingAuth || _isLoadingData
-              ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-              : _serverUnavailable
-              ? ServerUnavailableScreen(onServerBack: _handleServerBack)
-              : _isLoggedIn
-              ? ResponsiveShell(
-                  localeNotifier: _localeNotifier,
-                  onLogout: _handleLogout,
-                )
-              : LoginScreen(
-                  localeNotifier: _localeNotifier,
-                  onLoginSuccess: _handleLogin,
-                ),
+            return MaterialApp(
+              title: 'Helpi Admin',
+              debugShowCheckedModeBanner: false,
+              theme: HelpiTheme.light,
+              darkTheme: HelpiTheme.dark,
+              themeMode: themeMode,
+              locale: locale,
+              supportedLocales: const [Locale('hr'), Locale('en')],
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              home: _isCheckingAuth || _isLoadingData
+                  ? const Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    )
+                  : _serverUnavailable
+                  ? ServerUnavailableScreen(onServerBack: _handleServerBack)
+                  : _isLoggedIn
+                  ? ResponsiveShell(
+                      localeNotifier: _localeNotifier,
+                      themeNotifier: _themeNotifier,
+                      onLogout: _handleLogout,
+                    )
+                  : LoginScreen(
+                      localeNotifier: _localeNotifier,
+                      onLoginSuccess: _handleLogin,
+                    ),
+            );
+          },
         );
       },
     );

@@ -460,9 +460,9 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                     initialValue: _cityFilter,
                     isExpanded: true,
                     isDense: true,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: HelpiTheme.textPrimary,
+                      color: HelpiColors.of(context).textPrimary,
                     ),
                     decoration: InputDecoration(
                       contentPadding: const EdgeInsets.symmetric(
@@ -516,7 +516,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             labelColor: HelpiTheme.accent,
-            unselectedLabelColor: HelpiTheme.textSecondary,
+            unselectedLabelColor: HelpiColors.of(context).textSecondary,
             labelStyle: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -528,7 +528,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
             indicatorColor: HelpiTheme.accent,
             indicatorWeight: 2.5,
             dividerHeight: 0.5,
-            dividerColor: HelpiTheme.border,
+            dividerColor: HelpiColors.of(context).border,
             padding: const EdgeInsets.only(left: 4),
             labelPadding: const EdgeInsets.symmetric(horizontal: 12),
             tabs: _tabFilters.map((f) {
@@ -591,10 +591,10 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.download_outlined,
                     size: 20,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                   onPressed: () async {
                     final filterName = _tabFilters[_tabCtrl.index].name;
@@ -622,10 +622,10 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                 ),
                 const SizedBox(width: 4),
                 PopupMenuButton<StudentSort>(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.sort,
                     size: 20,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                   padding: EdgeInsets.zero,
                   tooltip: AppStrings.sortBy,
@@ -661,7 +661,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                       size: 20,
                       color: filterCount > 0
                           ? HelpiTheme.accent
-                          : HelpiTheme.textSecondary,
+                          : HelpiColors.of(context).textSecondary,
                     ),
                     onPressed: () => _openFilterSheet(context),
                     tooltip: AppStrings.advancedFilters,
@@ -762,7 +762,9 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
             style: TextStyle(
               fontSize: 14,
               fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              color: selected ? HelpiTheme.accent : HelpiTheme.textPrimary,
+              color: selected
+                  ? HelpiTheme.accent
+                  : HelpiColors.of(context).textPrimary,
             ),
           ),
         ],
@@ -1056,9 +1058,9 @@ class _FilterPanelState extends State<_FilterPanel> {
       maxChildSize: 0.95,
       builder: (ctx, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: HelpiTheme.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: HelpiColors.of(context).surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: _buildFilterContent(scrollController),
         );
@@ -1231,12 +1233,12 @@ class _FilterPanelState extends State<_FilterPanel> {
                         style: const TextStyle(fontSize: 13),
                         decoration: InputDecoration(
                           hintText: 'Min',
-                          hintStyle: const TextStyle(
+                          hintStyle: TextStyle(
                             fontSize: 13,
-                            color: HelpiTheme.textSecondary,
+                            color: HelpiColors.of(context).textSecondary,
                           ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: HelpiColors.of(context).surface,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 12,
@@ -1245,16 +1247,16 @@ class _FilterPanelState extends State<_FilterPanel> {
                             borderRadius: BorderRadius.circular(
                               HelpiTheme.cardRadius,
                             ),
-                            borderSide: const BorderSide(
-                              color: HelpiTheme.border,
+                            borderSide: BorderSide(
+                              color: HelpiColors.of(context).border,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(
                               HelpiTheme.cardRadius,
                             ),
-                            borderSide: const BorderSide(
-                              color: HelpiTheme.border,
+                            borderSide: BorderSide(
+                              color: HelpiColors.of(context).border,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
@@ -1283,12 +1285,12 @@ class _FilterPanelState extends State<_FilterPanel> {
                         style: const TextStyle(fontSize: 13),
                         decoration: InputDecoration(
                           hintText: 'Max',
-                          hintStyle: const TextStyle(
+                          hintStyle: TextStyle(
                             fontSize: 13,
-                            color: HelpiTheme.textSecondary,
+                            color: HelpiColors.of(context).textSecondary,
                           ),
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: HelpiColors.of(context).surface,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 12,
@@ -1297,16 +1299,16 @@ class _FilterPanelState extends State<_FilterPanel> {
                             borderRadius: BorderRadius.circular(
                               HelpiTheme.cardRadius,
                             ),
-                            borderSide: const BorderSide(
-                              color: HelpiTheme.border,
+                            borderSide: BorderSide(
+                              color: HelpiColors.of(context).border,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(
                               HelpiTheme.cardRadius,
                             ),
-                            borderSide: const BorderSide(
-                              color: HelpiTheme.border,
+                            borderSide: BorderSide(
+                              color: HelpiColors.of(context).border,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
@@ -1355,14 +1357,16 @@ class _FilterPanelState extends State<_FilterPanel> {
                           height: 42,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: selected ? HelpiTheme.accent : Colors.white,
+                            color: selected
+                                ? HelpiTheme.accent
+                                : HelpiColors.of(context).surface,
                             borderRadius: BorderRadius.circular(
                               HelpiTheme.cardRadius,
                             ),
                             border: Border.all(
                               color: selected
                                   ? HelpiTheme.accent
-                                  : HelpiTheme.border,
+                                  : HelpiColors.of(context).border,
                             ),
                           ),
                           child: Text(
@@ -1372,7 +1376,7 @@ class _FilterPanelState extends State<_FilterPanel> {
                               fontWeight: FontWeight.w600,
                               color: selected
                                   ? Colors.white
-                                  : HelpiTheme.textPrimary,
+                                  : HelpiColors.of(context).textPrimary,
                             ),
                           ),
                         ),
@@ -1390,10 +1394,10 @@ class _FilterPanelState extends State<_FilterPanel> {
               const SizedBox(height: 4),
               Text(
                 AppStrings.filterAvailHint,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontStyle: FontStyle.italic,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -1431,10 +1435,10 @@ class _FilterPanelState extends State<_FilterPanel> {
                 dense: true,
                 title: Text(
                   AppStrings.excludeBusy,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: HelpiTheme.textPrimary,
+                    color: HelpiColors.of(context).textPrimary,
                   ),
                 ),
                 activeColor: HelpiTheme.accent,
@@ -1454,13 +1458,13 @@ class _FilterPanelState extends State<_FilterPanel> {
                   initialValue: _facultyFilter,
                   isExpanded: true,
                   isDense: true,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: HelpiTheme.textPrimary,
+                    color: HelpiColors.of(context).textPrimary,
                   ),
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: HelpiColors.of(context).surface,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 12,
@@ -1469,13 +1473,17 @@ class _FilterPanelState extends State<_FilterPanel> {
                       borderRadius: BorderRadius.circular(
                         HelpiTheme.cardRadius,
                       ),
-                      borderSide: const BorderSide(color: HelpiTheme.border),
+                      borderSide: BorderSide(
+                        color: HelpiColors.of(context).border,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
                         HelpiTheme.cardRadius,
                       ),
-                      borderSide: const BorderSide(color: HelpiTheme.border),
+                      borderSide: BorderSide(
+                        color: HelpiColors.of(context).border,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
@@ -1515,13 +1523,13 @@ class _FilterPanelState extends State<_FilterPanel> {
                   initialValue: _seniorFilter,
                   isExpanded: true,
                   isDense: true,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: HelpiTheme.textPrimary,
+                    color: HelpiColors.of(context).textPrimary,
                   ),
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: HelpiColors.of(context).surface,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 12,
@@ -1530,13 +1538,17 @@ class _FilterPanelState extends State<_FilterPanel> {
                       borderRadius: BorderRadius.circular(
                         HelpiTheme.cardRadius,
                       ),
-                      borderSide: const BorderSide(color: HelpiTheme.border),
+                      borderSide: BorderSide(
+                        color: HelpiColors.of(context).border,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
                         HelpiTheme.cardRadius,
                       ),
-                      borderSide: const BorderSide(color: HelpiTheme.border),
+                      borderSide: BorderSide(
+                        color: HelpiColors.of(context).border,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(
@@ -1619,10 +1631,10 @@ class _FilterPanelState extends State<_FilterPanel> {
   Widget _sectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: HelpiTheme.textPrimary,
+        color: HelpiColors.of(context).textPrimary,
       ),
     );
   }
@@ -1644,10 +1656,14 @@ class _FilterPanelState extends State<_FilterPanel> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? HelpiTheme.pastelTeal : Colors.white,
+              color: isSelected
+                  ? HelpiColors.of(context).pastelTeal
+                  : HelpiColors.of(context).surface,
               borderRadius: BorderRadius.circular(HelpiTheme.pillRadius),
               border: Border.all(
-                color: isSelected ? HelpiTheme.accent : HelpiTheme.border,
+                color: isSelected
+                    ? HelpiTheme.accent
+                    : HelpiColors.of(context).border,
               ),
             ),
             child: Text(
@@ -1657,7 +1673,7 @@ class _FilterPanelState extends State<_FilterPanel> {
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isSelected
                     ? HelpiTheme.accent
-                    : HelpiTheme.textSecondary,
+                    : HelpiColors.of(context).textSecondary,
               ),
             ),
           ),
@@ -1690,7 +1706,7 @@ class _FilterPanelState extends State<_FilterPanel> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
         ),
-        side: const BorderSide(color: HelpiTheme.border),
+        side: BorderSide(color: HelpiColors.of(context).border),
       ),
       child: Row(
         children: [
@@ -1702,8 +1718,8 @@ class _FilterPanelState extends State<_FilterPanel> {
               style: TextStyle(
                 fontSize: 13,
                 color: value != null
-                    ? HelpiTheme.textPrimary
-                    : HelpiTheme.textSecondary,
+                    ? HelpiColors.of(context).textPrimary
+                    : HelpiColors.of(context).textSecondary,
               ),
             ),
           ),
@@ -1729,9 +1745,9 @@ class _FilterPanelState extends State<_FilterPanel> {
         height: HelpiTheme.inputFieldHeight,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: HelpiColors.of(context).surface,
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          border: Border.all(color: HelpiTheme.border),
+          border: Border.all(color: HelpiColors.of(context).border),
         ),
         child: Row(
           children: [
@@ -1744,18 +1760,18 @@ class _FilterPanelState extends State<_FilterPanel> {
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
                   color: value != null
-                      ? HelpiTheme.textPrimary
-                      : HelpiTheme.textSecondary,
+                      ? HelpiColors.of(context).textPrimary
+                      : HelpiColors.of(context).textSecondary,
                 ),
               ),
             ),
             if (value != null)
               GestureDetector(
                 onTap: onClear,
-                child: const Icon(
+                child: Icon(
                   Icons.close,
                   size: 16,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ),
           ],
@@ -1782,9 +1798,9 @@ class _StudentCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: HelpiColors.of(context).surface,
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          border: Border.all(color: HelpiTheme.border),
+          border: Border.all(color: HelpiColors.of(context).border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1795,8 +1811,8 @@ class _StudentCard extends StatelessWidget {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: const BoxDecoration(
-                    color: HelpiTheme.pastelTeal,
+                  decoration: BoxDecoration(
+                    color: HelpiColors.of(context).pastelTeal,
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -1830,8 +1846,8 @@ class _StudentCard extends StatelessWidget {
                 if (student.isArchived) ...[
                   const SizedBox(width: 6),
                   StatusBadge(
-                    textColor: HelpiTheme.textSecondary,
-                    bgColor: HelpiTheme.chipBg,
+                    textColor: HelpiColors.of(context).textSecondary,
+                    bgColor: HelpiColors.of(context).chipBg,
                     label: AppStrings.statusArchived,
                   ),
                 ],
@@ -1859,9 +1875,9 @@ class _StudentCard extends StatelessWidget {
                           const SizedBox(width: 3),
                           Text(
                             '${student.avgRating.toStringAsFixed(1)}  ·  ${student.totalReviews} ${AppStrings.studentReviewCount}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
-                              color: HelpiTheme.textSecondary,
+                              color: HelpiColors.of(context).textSecondary,
                             ),
                           ),
                         ],
@@ -1871,18 +1887,18 @@ class _StudentCard extends StatelessWidget {
                       // ── Phone ──
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.phone_outlined,
                             size: 14,
-                            color: HelpiTheme.textSecondary,
+                            color: HelpiColors.of(context).textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               student.phone,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: HelpiTheme.textSecondary,
+                                color: HelpiColors.of(context).textSecondary,
                               ),
                             ),
                           ),
@@ -1895,18 +1911,18 @@ class _StudentCard extends StatelessWidget {
                       // ── Email ──
                       Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.email_outlined,
                             size: 14,
-                            color: HelpiTheme.textSecondary,
+                            color: HelpiColors.of(context).textSecondary,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               student.email,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: HelpiTheme.textSecondary,
+                                color: HelpiColors.of(context).textSecondary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -1921,9 +1937,9 @@ class _StudentCard extends StatelessWidget {
                 ),
 
                 // ── Chevron ──
-                const Icon(
+                Icon(
                   Icons.chevron_right,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ],
             ),

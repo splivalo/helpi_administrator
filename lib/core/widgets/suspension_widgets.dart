@@ -41,16 +41,16 @@ class SuspensionHistoryCard extends StatelessWidget {
             child: Center(
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.history_toggle_off,
                     size: 36,
-                    color: HelpiTheme.border,
+                    color: HelpiColors.of(context).border,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.noSuspensionHistory,
-                    style: const TextStyle(
-                      color: HelpiTheme.textSecondary,
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -59,12 +59,12 @@ class SuspensionHistoryCard extends StatelessWidget {
             ),
           )
         else
-          ...status.suspensionHistory.map(_buildLogEntry),
+          ...status.suspensionHistory.map((l) => _buildLogEntry(context, l)),
       ],
     );
   }
 
-  Widget _buildLogEntry(SuspensionLogModel log) {
+  Widget _buildLogEntry(BuildContext context, SuspensionLogModel log) {
     final isSuspension = log.action == SuspensionAction.suspended;
     final color = isSuspension ? HelpiTheme.error : HelpiTheme.accent;
     final icon = isSuspension ? Icons.block : Icons.check_circle;
@@ -96,8 +96,8 @@ class SuspensionHistoryCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       '${fmt.formatDate(log.createdAt)} ${fmt.formatTime(log.createdAt)}',
-                      style: const TextStyle(
-                        color: HelpiTheme.textSecondary,
+                      style: TextStyle(
+                        color: HelpiColors.of(context).textSecondary,
                         fontSize: 12,
                       ),
                     ),

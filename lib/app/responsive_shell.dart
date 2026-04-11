@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
+import 'package:helpi_admin/core/l10n/theme_notifier.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/features/chat/presentation/chat_screen.dart';
 import 'package:helpi_admin/features/analytics/presentation/analytics_screen.dart';
@@ -23,10 +24,12 @@ class ResponsiveShell extends ConsumerStatefulWidget {
   const ResponsiveShell({
     super.key,
     required this.localeNotifier,
+    required this.themeNotifier,
     required this.onLogout,
   });
 
   final LocaleNotifier localeNotifier;
+  final ThemeNotifier themeNotifier;
   final VoidCallback onLogout;
 
   @override
@@ -47,6 +50,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       SettingsScreen(
         key: ValueKey('settings_$locale'),
         localeNotifier: widget.localeNotifier,
+        themeNotifier: widget.themeNotifier,
       ),
     ];
   }
@@ -90,9 +94,14 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           Container(
             width: HelpiTheme.sidebarWidth,
             decoration: BoxDecoration(
-              color: HelpiTheme.surface,
+              color: Theme.of(context).colorScheme.surface,
               border: Border(
-                right: BorderSide(color: HelpiTheme.border, width: 1),
+                right: BorderSide(
+                  color:
+                      Theme.of(context).dividerTheme.color ??
+                      HelpiColors.of(context).border,
+                  width: 1,
+                ),
               ),
             ),
             child: Column(
@@ -112,11 +121,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                     ),
                   ),
                 ),
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: HelpiTheme.border,
-                ),
+                const Divider(height: 1, thickness: 1),
 
                 // ── Nav items ──
                 Expanded(
@@ -162,11 +167,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 ),
 
                 // ── Bottom actions ──
-                const Divider(
-                  height: 8,
-                  thickness: 1,
-                  color: HelpiTheme.border,
-                ),
+                const Divider(height: 8),
                 _sidebarItem(
                   -2,
                   Icons.logout,
@@ -199,7 +200,9 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     final isSelected = index == _currentIndex && onTap == null;
     Widget iconWidget = Icon(
       isSelected ? activeIcon : icon,
-      color: isSelected ? HelpiTheme.accent : HelpiTheme.textSecondary,
+      color: isSelected
+          ? HelpiTheme.accent
+          : HelpiColors.of(context).textSecondary,
       size: 24,
     );
     if (badgeCount > 0) {
@@ -208,7 +211,9 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: Material(
-        color: isSelected ? HelpiTheme.pastelTeal : Colors.transparent,
+        color: isSelected
+            ? HelpiColors.of(context).pastelTeal
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
@@ -226,7 +231,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                     color: isSelected
                         ? HelpiTheme.accent
-                        : HelpiTheme.textPrimary,
+                        : HelpiColors.of(context).textPrimary,
                   ),
                 ),
               ],
@@ -259,7 +264,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                   IconButton(
                     onPressed: widget.onLogout,
                     icon: const Icon(Icons.logout),
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -310,7 +315,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: HelpiTheme.surface,
+          color: HelpiColors.of(context).surface,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withAlpha(10),

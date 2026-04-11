@@ -133,7 +133,7 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
           child: Container(
             width: 360,
             height: double.infinity,
-            color: HelpiTheme.background,
+            color: Theme.of(context).scaffoldBackgroundColor,
             child: Stack(
               children: [
                 Column(
@@ -142,7 +142,7 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                     Container(
                       height: HelpiTheme.appBarHeight,
                       padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.surface,
                       child: Row(
                         children: [
                           const Icon(
@@ -153,10 +153,10 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                           Expanded(
                             child: Text(
                               AppStrings.notifications,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
-                                color: HelpiTheme.textPrimary,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -167,11 +167,7 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                         ],
                       ),
                     ),
-                    const Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: HelpiTheme.border,
-                    ),
+                    const Divider(height: 1, thickness: 1),
 
                     // ── List ──
                     Expanded(
@@ -180,16 +176,18 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.notifications_off_outlined,
                                     size: 48,
-                                    color: HelpiTheme.border,
+                                    color: HelpiColors.of(context).border,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     AppStrings.noNotifications,
-                                    style: const TextStyle(
-                                      color: HelpiTheme.textSecondary,
+                                    style: TextStyle(
+                                      color: HelpiColors.of(
+                                        context,
+                                      ).textSecondary,
                                     ),
                                   ),
                                 ],
@@ -247,7 +245,7 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                         child: Center(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: HelpiColors.of(context).surface,
                               borderRadius: BorderRadius.circular(100),
                               boxShadow: [
                                 BoxShadow(
@@ -446,7 +444,9 @@ class _NotificationTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        color: notification.isRead ? null : HelpiTheme.pastelTeal.withAlpha(50),
+        color: notification.isRead
+            ? null
+            : HelpiColors.of(context).pastelTeal.withAlpha(50),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,7 +488,7 @@ class _NotificationTile extends StatelessWidget {
                             fontWeight: notification.isRead
                                 ? FontWeight.w400
                                 : FontWeight.w600,
-                            color: HelpiTheme.textPrimary,
+                            color: HelpiColors.of(context).textPrimary,
                           ),
                         ),
                       ),
@@ -506,9 +506,9 @@ class _NotificationTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     notification.body,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: HelpiTheme.textSecondary,
+                      color: HelpiColors.of(context).textSecondary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -516,9 +516,9 @@ class _NotificationTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     _timeAgo(notification.createdAt),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: HelpiTheme.textSecondary,
+                      color: HelpiColors.of(context).textSecondary,
                     ),
                   ),
                 ],
@@ -650,7 +650,9 @@ class _PillIconButton extends StatelessWidget {
         child: Icon(
           icon,
           size: 20,
-          color: enabled ? HelpiTheme.accent : HelpiTheme.textSecondary,
+          color: enabled
+              ? HelpiTheme.accent
+              : HelpiColors.of(context).textSecondary,
         ),
       ),
     );
@@ -675,7 +677,9 @@ class _PillTextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = enabled ? HelpiTheme.accent : HelpiTheme.textSecondary;
+    final color = enabled
+        ? HelpiTheme.accent
+        : HelpiColors.of(context).textSecondary;
     return InkWell(
       borderRadius: const BorderRadius.horizontal(right: Radius.circular(100)),
       onTap: enabled ? onPressed : null,

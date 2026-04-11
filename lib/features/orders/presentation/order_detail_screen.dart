@@ -238,7 +238,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               AppStrings.sectionLayoutHint,
-              style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
+              style: TextStyle(
+                fontSize: 13,
+                color: HelpiColors.of(context).textSecondary,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -558,15 +561,17 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             child: Center(
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.person_off_outlined,
                     size: 36,
-                    color: HelpiTheme.border,
+                    color: HelpiColors.of(context).border,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.noStudentAssigned,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -616,9 +621,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   children: [
                     Text(
                       AppStrings.promoCode,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: HelpiTheme.textSecondary,
+                        color: HelpiColors.of(context).textSecondary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -628,11 +633,13 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: HelpiTheme.textSecondary.withValues(alpha: 0.1),
+                        color: HelpiColors.of(
+                          context,
+                        ).textSecondary.withValues(alpha: 0.1),
                         border: Border.all(
-                          color: HelpiTheme.textSecondary.withValues(
-                            alpha: 0.3,
-                          ),
+                          color: HelpiColors.of(
+                            context,
+                          ).textSecondary.withValues(alpha: 0.3),
                         ),
                         borderRadius: BorderRadius.circular(
                           HelpiTheme.statusBadgeRadius,
@@ -643,10 +650,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                         children: [
                           Text(
                             _order.promoCode!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: HelpiTheme.textSecondary,
+                              color: HelpiColors.of(context).textSecondary,
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -670,10 +677,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                               }
                               await _refreshOrder();
                             },
-                            child: const Icon(
+                            child: Icon(
                               Icons.close,
                               size: 12,
-                              color: HelpiTheme.textSecondary,
+                              color: HelpiColors.of(context).textSecondary,
                             ),
                           ),
                         ],
@@ -709,9 +716,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: HelpiColors.of(context).surface,
         borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
+        border: Border.all(color: HelpiColors.of(context).border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -721,15 +728,17 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               Icon(
                 Icons.calendar_month,
                 size: 20,
-                color: isMuted ? HelpiTheme.textSecondary : HelpiTheme.accent,
+                color: isMuted
+                    ? HelpiColors.of(context).textSecondary
+                    : HelpiTheme.accent,
               ),
               const SizedBox(width: 8),
               Text(
                 AppStrings.sessionsTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: HelpiTheme.textPrimary,
+                  color: HelpiColors.of(context).textPrimary,
                 ),
               ),
             ],
@@ -743,9 +752,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 : _order.frequency != FrequencyType.oneTime
                 ? AppStrings.sessionsMonthlySubtitle
                 : '',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: HelpiTheme.textSecondary,
+              color: HelpiColors.of(context).textSecondary,
             ),
           ),
           if (displaySessions.isNotEmpty) ...[
@@ -867,28 +876,27 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFFFAFAFA),
+        color: HelpiColors.of(context).scaffold,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HelpiTheme.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.event_note,
                 size: 18,
-                color: HelpiTheme.textSecondary,
+                color: HelpiColors.of(context).textSecondary,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   dateStr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 14,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                 ),
               ),
@@ -904,17 +912,17 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             padding: const EdgeInsets.only(left: 26),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.access_time,
                   size: 14,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   '$timeStr  ·  ${session.durationHours}h',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                 ),
               ],
@@ -942,9 +950,11 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isCancelled ? const Color(0xFFFAFAFA) : Colors.white,
+        color: isCancelled
+            ? HelpiColors.of(context).chipBg
+            : HelpiColors.of(context).surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: HelpiTheme.border),
+        border: Border.all(color: HelpiColors.of(context).border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -976,8 +986,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                           color: isCancelled
-                              ? HelpiTheme.textSecondary
-                              : HelpiTheme.textPrimary,
+                              ? HelpiColors.of(context).textSecondary
+                              : HelpiColors.of(context).textPrimary,
                           decoration: isCancelled
                               ? TextDecoration.lineThrough
                               : null,
@@ -1019,9 +1029,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 const SizedBox(width: 4),
                 Text(
                   '$timeStr  ·  ${session.durationHours}h',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                 ),
               ],
@@ -1043,9 +1053,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   const SizedBox(width: 4),
                   Text(
                     session.studentName!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: HelpiTheme.textSecondary,
+                      color: HelpiColors.of(context).textSecondary,
                     ),
                   ),
                 ],
@@ -1211,6 +1221,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             child: Text(AppStrings.cancel),
           ),
           TextButton(
+            style: TextButton.styleFrom(foregroundColor: HelpiTheme.error),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(AppStrings.cancelOrderBtn),
           ),
@@ -1255,6 +1266,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             child: Text(AppStrings.cancel),
           ),
           TextButton(
+            style: TextButton.styleFrom(foregroundColor: HelpiTheme.error),
             onPressed: () async {
               Navigator.pop(ctx);
               final sessionId = int.tryParse(session.id);
@@ -1403,8 +1415,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.loading,
-                    style: const TextStyle(
-                      color: HelpiTheme.textSecondary,
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -1434,8 +1446,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
                 AppStrings.noStudentsForSlot,
-                style: const TextStyle(
-                  color: HelpiTheme.textSecondary,
+                style: TextStyle(
+                  color: HelpiColors.of(context).textSecondary,
                   fontSize: 13,
                 ),
               ),
@@ -1565,10 +1577,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               AppStrings.sessionSelectStudent,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: HelpiTheme.textSecondary,
+                color: HelpiColors.of(context).textSecondary,
               ),
             ),
           ),
@@ -2260,9 +2272,9 @@ class _StudentAssignCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: HelpiColors.of(context).surface,
         borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
+        border: Border.all(color: HelpiColors.of(context).border),
       ),
       child: Row(
         children: [
@@ -2270,8 +2282,8 @@ class _StudentAssignCard extends StatelessWidget {
           Container(
             width: 44,
             height: 44,
-            decoration: const BoxDecoration(
-              color: HelpiTheme.pastelTeal,
+            decoration: BoxDecoration(
+              color: HelpiColors.of(context).pastelTeal,
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -2312,24 +2324,24 @@ class _StudentAssignCard extends StatelessWidget {
                     const SizedBox(width: 3),
                     Text(
                       student.avgRating.toStringAsFixed(1),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: HelpiTheme.textSecondary,
+                        color: HelpiColors.of(context).textSecondary,
                       ),
                     ),
                     if (distanceKm != null) ...[
                       const SizedBox(width: 6),
-                      const Icon(
+                      Icon(
                         Icons.location_on,
                         size: 13,
-                        color: HelpiTheme.textSecondary,
+                        color: HelpiColors.of(context).textSecondary,
                       ),
                       const SizedBox(width: 2),
                       Text(
                         '${distanceKm!.toStringAsFixed(1)} km',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: HelpiTheme.textSecondary,
+                          color: HelpiColors.of(context).textSecondary,
                         ),
                       ),
                     ],
@@ -2492,7 +2504,7 @@ class _RescheduleRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: HelpiTheme.border),
+          border: Border.all(color: HelpiColors.of(context).border),
         ),
         child: Row(
           children: [
@@ -2501,9 +2513,9 @@ class _RescheduleRow extends StatelessWidget {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ),
             ),
@@ -2512,10 +2524,10 @@ class _RescheduleRow extends StatelessWidget {
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
             const SizedBox(width: 4),
-            const Icon(
+            Icon(
               Icons.chevron_right,
               size: 20,
-              color: HelpiTheme.textSecondary,
+              color: HelpiColors.of(context).textSecondary,
             ),
           ],
         ),
@@ -2606,7 +2618,7 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
     if (widget.useDialog) {
       return Container(
         decoration: BoxDecoration(
-          color: HelpiTheme.scaffold,
+          color: HelpiColors.of(context).scaffold,
           borderRadius: BorderRadius.all(
             Radius.circular(HelpiTheme.cardRadius),
           ),
@@ -2626,7 +2638,7 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
       curve: Curves.easeOut,
       height: MediaQuery.of(context).size.height * height,
       decoration: BoxDecoration(
-        color: HelpiTheme.scaffold,
+        color: HelpiColors.of(context).scaffold,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(HelpiTheme.cardRadius),
         ),
@@ -2690,9 +2702,11 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                     child: Container(
                       height: 30,
                       decoration: BoxDecoration(
-                        border: Border.all(color: HelpiTheme.border),
+                        border: Border.all(
+                          color: HelpiColors.of(context).border,
+                        ),
                         borderRadius: BorderRadius.circular(8),
-                        color: HelpiTheme.chipBg,
+                        color: HelpiColors.of(context).chipBg,
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Row(
@@ -2707,19 +2721,21 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,
-                                  color: HelpiTheme.textSecondary,
+                                  color: HelpiColors.of(context).textSecondary,
                                 ),
                                 icon: Icon(
                                   Icons.arrow_drop_down,
                                   size: 16,
-                                  color: HelpiTheme.textSecondary,
+                                  color: HelpiColors.of(context).textSecondary,
                                 ),
                                 hint: Text(
                                   AppStrings.anyFaculty,
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w400,
-                                    color: HelpiTheme.textSecondary,
+                                    color: HelpiColors.of(
+                                      context,
+                                    ).textSecondary,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -2761,7 +2777,7 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                     size: 16,
                     color: _onlyWorkedWithSenior
                         ? HelpiTheme.accent
-                        : HelpiTheme.textSecondary,
+                        : HelpiColors.of(context).textSecondary,
                   ),
                   const SizedBox(width: 4),
                   Text(
@@ -2771,7 +2787,7 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
                       fontWeight: FontWeight.w400,
                       color: _onlyWorkedWithSenior
                           ? HelpiTheme.accent
-                          : HelpiTheme.textSecondary,
+                          : HelpiColors.of(context).textSecondary,
                     ),
                   ),
                 ],
@@ -2780,14 +2796,14 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
               showCheckmark: false,
               color: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return HelpiTheme.pastelTeal;
+                  return HelpiColors.of(context).pastelTeal;
                 }
-                return HelpiTheme.chipBg;
+                return HelpiColors.of(context).chipBg;
               }),
               side: BorderSide(
                 color: _onlyWorkedWithSenior
                     ? HelpiTheme.accent
-                    : HelpiTheme.border,
+                    : HelpiColors.of(context).border,
               ),
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               visualDensity: VisualDensity.compact,
@@ -2814,7 +2830,9 @@ class _OrderAssignFlowSheetState extends ConsumerState<_OrderAssignFlowSheet> {
               ? Center(
                   child: Text(
                     AppStrings.noStudentsFound,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                 )
               : ListView.builder(
@@ -3014,10 +3032,14 @@ class _StudentRadioTile extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         margin: const EdgeInsets.only(bottom: 4),
         decoration: BoxDecoration(
-          color: isSelected ? HelpiTheme.pastelTeal : Colors.transparent,
+          color: isSelected
+              ? HelpiColors.of(context).pastelTeal
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? HelpiTheme.accent : HelpiTheme.border,
+            color: isSelected
+                ? HelpiTheme.accent
+                : HelpiColors.of(context).border,
           ),
         ),
         child: Row(
@@ -3025,7 +3047,9 @@ class _StudentRadioTile extends StatelessWidget {
             Icon(
               isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
               size: 20,
-              color: isSelected ? HelpiTheme.accent : HelpiTheme.textSecondary,
+              color: isSelected
+                  ? HelpiTheme.accent
+                  : HelpiColors.of(context).textSecondary,
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -3043,9 +3067,9 @@ class _StudentRadioTile extends StatelessWidget {
                   ),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: HelpiTheme.textSecondary,
+                      color: HelpiColors.of(context).textSecondary,
                     ),
                   ),
                 ],

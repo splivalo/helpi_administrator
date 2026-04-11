@@ -285,7 +285,9 @@ class _NotesSectionState extends State<NotesSection> {
                   const SizedBox(height: 8),
                   Text(
                     _error!,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   TextButton(
@@ -302,15 +304,17 @@ class _NotesSectionState extends State<NotesSection> {
             child: Center(
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.sticky_note_2_outlined,
                     size: 36,
-                    color: HelpiTheme.border,
+                    color: HelpiColors.of(context).border,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     AppStrings.adminNotesEmpty,
-                    style: const TextStyle(color: HelpiTheme.textSecondary),
+                    style: TextStyle(
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -333,7 +337,7 @@ class _NotesSectionState extends State<NotesSection> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: HelpiTheme.scaffold,
+        color: HelpiColors.of(context).scaffold,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -344,21 +348,21 @@ class _NotesSectionState extends State<NotesSection> {
               Expanded(
                 child: Text(
                   '$dateStr$editedSuffix',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                 ),
               ),
               InkWell(
                 borderRadius: BorderRadius.circular(4),
                 onTap: () => _editNote(note),
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
                   child: Icon(
                     Icons.edit,
                     size: 16,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                 ),
               ),
@@ -366,12 +370,12 @@ class _NotesSectionState extends State<NotesSection> {
               InkWell(
                 borderRadius: BorderRadius.circular(4),
                 onTap: () => _deleteNote(note),
-                child: const Padding(
-                  padding: EdgeInsets.all(4),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
                   child: Icon(
                     Icons.delete_outline,
                     size: 16,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                 ),
               ),

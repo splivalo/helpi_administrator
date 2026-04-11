@@ -357,7 +357,10 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             const SizedBox(height: 8),
             Text(
               '${_fmtDate(_rangeStart)} – ${_fmtDate(_rangeEnd)}',
-              style: TextStyle(fontSize: 13, color: HelpiTheme.textSecondary),
+              style: TextStyle(
+                fontSize: 13,
+                color: HelpiColors.of(context).textSecondary,
+              ),
             ),
 
             // ── Comparison toggle + Export icon ──
@@ -370,7 +373,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   icon: const Icon(Icons.download_outlined),
                   tooltip: 'Export Excel',
                   iconSize: 20,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(
                     minWidth: 32,
@@ -420,7 +423,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               title: AppStrings.analyticsActiveSeniors,
               icon: Icons.elderly_outlined,
               lineColor: HelpiTheme.accent,
-              bgColor: HelpiTheme.pastelTeal,
+              bgColor: HelpiColors.of(context).pastelTeal,
               currentValues: seniorsData,
               compValues: seniorsComp,
               pct: pctSeniors,
@@ -532,12 +535,16 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
           showCheckmark: false,
           selectedColor: HelpiTheme.accent,
           labelStyle: TextStyle(
-            color: selected ? Colors.white : HelpiTheme.textPrimary,
+            color: selected
+                ? Colors.white
+                : HelpiColors.of(context).textPrimary,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
             fontSize: 13,
           ),
           side: BorderSide(
-            color: selected ? HelpiTheme.accent : HelpiTheme.border,
+            color: selected
+                ? HelpiTheme.accent
+                : HelpiColors.of(context).border,
           ),
           onSelected: (_) {
             HapticFeedback.selectionClick();
@@ -573,52 +580,29 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
   // ═══════════════════════════════════════════════════════════
 
   Widget _comparisonToggle() {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () => setState(() => _showComparison = !_showComparison),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 36,
-              height: 20,
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: _showComparison ? HelpiTheme.accent : HelpiTheme.border,
-              ),
-              alignment: _showComparison
-                  ? Alignment.centerRight
-                  : Alignment.centerLeft,
-              child: Container(
-                width: 16,
-                height: 16,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Builder(
-              builder: (ctx) {
-                final isWide = MediaQuery.sizeOf(ctx).width >= 600;
-                return Text(
-                  isWide
-                      ? AppStrings.analyticsCompare
-                      : AppStrings.analyticsCompareShort,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: HelpiTheme.textSecondary,
-                  ),
-                );
-              },
-            ),
-          ],
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HelpiSwitch(
+          value: _showComparison,
+          onChanged: (v) => setState(() => _showComparison = v),
         ),
-      ),
+        const SizedBox(width: 8),
+        Builder(
+          builder: (ctx) {
+            final isWide = MediaQuery.sizeOf(ctx).width >= 600;
+            return Text(
+              isWide
+                  ? AppStrings.analyticsCompare
+                  : AppStrings.analyticsCompareShort,
+              style: TextStyle(
+                fontSize: 12,
+                color: HelpiColors.of(context).textSecondary,
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -639,10 +623,10 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               opacity: _showEarnings ? 0.35 : 1.0,
               child: Text(
                 AppStrings.analyticsRevenue,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ),
             ),
@@ -674,10 +658,10 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               opacity: _showEarnings ? 1.0 : 0.35,
               child: Text(
                 AppStrings.analyticsEarnings,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: HelpiTheme.textSecondary,
+                  color: HelpiColors.of(context).textSecondary,
                 ),
               ),
             ),
@@ -709,9 +693,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: HelpiColors.of(context).surface,
         borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
+        border: Border.all(color: HelpiColors.of(context).border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,23 +716,31 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
 
               final headerRow = Row(
                 children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: bgColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(icon, color: lineColor, size: 20),
+                  Builder(
+                    builder: (iconCtx) {
+                      final isDark =
+                          Theme.of(iconCtx).brightness == Brightness.dark;
+                      return Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? lineColor.withValues(alpha: 0.15)
+                              : bgColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(icon, color: lineColor, size: 20),
+                      );
+                    },
                   ),
                   const SizedBox(width: 10),
                   if (!hideTitle)
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: HelpiTheme.textSecondary,
+                        color: HelpiColors.of(ctx).textSecondary,
                       ),
                     ),
                   if (!hideTitle && headerTrailing != null)
@@ -801,7 +793,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                 ),
                 const SizedBox(width: 20),
                 _LegendDot(
-                  color: HelpiTheme.border,
+                  color: HelpiColors.of(context).border,
                   label: AppStrings.analyticsPrevious,
                   isDashed: true,
                 ),
@@ -827,7 +819,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
       return Center(
         child: Text(
           AppStrings.analyticsNoData,
-          style: const TextStyle(color: HelpiTheme.textSecondary),
+          style: TextStyle(color: HelpiColors.of(context).textSecondary),
         ),
       );
     }
@@ -879,7 +871,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
           spots: compSpots,
           isCurved: true,
           curveSmoothness: 0.25,
-          color: HelpiTheme.border,
+          color: HelpiColors.of(context).border,
           barWidth: 2,
           isStrokeCapRound: true,
           dashArray: [6, 4],
@@ -902,7 +894,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
           drawVerticalLine: false,
           horizontalInterval: maxY / 4,
           getDrawingHorizontalLine: (v) => FlLine(
-            color: HelpiTheme.border.withValues(alpha: 0.5),
+            color: HelpiColors.of(context).border.withValues(alpha: 0.5),
             strokeWidth: 1,
           ),
         ),
@@ -925,9 +917,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   metric == _Metric.revenue
                       ? '€${value.toStringAsFixed(0)}'
                       : value.toStringAsFixed(0),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
-                    color: HelpiTheme.textSecondary,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
                 );
               },
@@ -946,9 +938,9 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     '${d.day}.${d.month}.',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
-                      color: HelpiTheme.textSecondary,
+                      color: HelpiColors.of(context).textSecondary,
                     ),
                   ),
                 );
@@ -961,7 +953,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
             return spotIndexes.map((i) {
               return TouchedSpotIndicatorData(
                 FlLine(
-                  color: HelpiTheme.border.withValues(alpha: 0.5),
+                  color: HelpiColors.of(context).border.withValues(alpha: 0.5),
                   strokeWidth: 1,
                 ),
                 FlDotData(
@@ -1017,14 +1009,19 @@ class _PercentBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final isUp = pct > 0;
     final isDown = pct < 0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isUp
         ? const Color(0xFF2E7D32)
-        : (isDown ? HelpiTheme.statusCancelledText : HelpiTheme.textSecondary);
-    final bg = isUp
-        ? const Color(0xFFE8F5E9)
         : (isDown
-              ? HelpiTheme.statusCancelledBg
-              : HelpiTheme.border.withValues(alpha: 0.3));
+              ? HelpiTheme.statusCancelledText
+              : HelpiColors.of(context).textSecondary);
+    final bg = isDark
+        ? color.withValues(alpha: 0.15)
+        : (isUp
+              ? const Color(0xFFE8F5E9)
+              : (isDown
+                    ? HelpiTheme.statusCancelledBg
+                    : HelpiColors.of(context).border.withValues(alpha: 0.3)));
     final icon = isUp
         ? Icons.trending_up
         : (isDown ? Icons.trending_down : Icons.trending_flat);
@@ -1096,7 +1093,10 @@ class _LegendDot extends StatelessWidget {
         const SizedBox(width: 6),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: HelpiTheme.textSecondary),
+          style: TextStyle(
+            fontSize: 12,
+            color: HelpiColors.of(context).textSecondary,
+          ),
         ),
       ],
     );

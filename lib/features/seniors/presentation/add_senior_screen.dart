@@ -86,9 +86,8 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
           // ── Toggle naručitelj ──
           Row(
             children: [
-              Switch(
+              HelpiSwitch(
                 value: _hasOrderer,
-                activeTrackColor: HelpiTheme.accent,
                 onChanged: (v) => setState(() => _hasOrderer = v),
               ),
               const SizedBox(width: 8),

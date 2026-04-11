@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
+import 'package:helpi_admin/core/l10n/theme_notifier.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
@@ -13,9 +14,14 @@ import 'package:helpi_admin/core/widgets/helpi_app_bar.dart';
 
 /// Admin Settings screen — pricing, cancel rules, operational, tax, language.
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key, required this.localeNotifier});
+  const SettingsScreen({
+    super.key,
+    required this.localeNotifier,
+    required this.themeNotifier,
+  });
 
   final LocaleNotifier localeNotifier;
+  final ThemeNotifier themeNotifier;
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -415,10 +421,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       DropdownButtonFormField<String>(
                         value: AppStrings.currentLocale,
                         isExpanded: true,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: HelpiTheme.textPrimary,
-                        ),
                         items: const [
                           DropdownMenuItem(
                             value: 'hr',
@@ -429,6 +431,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         onChanged: (v) {
                           if (v != null) {
                             widget.localeNotifier.setLocale(v);
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ── Theme ──
+                  _sectionCard(
+                    icon: Icons.brightness_6,
+                    title: AppStrings.settingsTheme,
+                    children: [
+                      DropdownButtonFormField<ThemeMode>(
+                        value: widget.themeNotifier.value,
+                        isExpanded: true,
+                        items: [
+                          DropdownMenuItem(
+                            value: ThemeMode.system,
+                            child: Text(AppStrings.themeSystem),
+                          ),
+                          DropdownMenuItem(
+                            value: ThemeMode.light,
+                            child: Text(AppStrings.themeLight),
+                          ),
+                          DropdownMenuItem(
+                            value: ThemeMode.dark,
+                            child: Text(AppStrings.themeDark),
+                          ),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) {
+                            widget.themeNotifier.setThemeMode(v);
                           }
                         },
                       ),
@@ -471,9 +505,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: HelpiColors.of(context).surface,
         borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-        border: Border.all(color: HelpiTheme.border),
+        border: Border.all(color: HelpiColors.of(context).border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,10 +518,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(width: 10),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
-                  color: HelpiTheme.textPrimary,
+                  color: HelpiColors.of(context).textPrimary,
                 ),
               ),
             ],
@@ -521,10 +555,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ],
       decoration: InputDecoration(
         labelText: label,
-        fillColor: _editing ? null : HelpiTheme.chipBg,
+        fillColor: _editing ? null : HelpiColors.of(context).chipBg,
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          borderSide: const BorderSide(color: HelpiTheme.border),
+          borderSide: BorderSide(color: HelpiColors.of(context).border),
         ),
         suffixIcon: (suffix != null || _editing)
             ? Padding(
@@ -535,9 +569,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     if (suffix != null)
                       Text(
                         suffix,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: HelpiTheme.textSecondary,
+                          color: HelpiColors.of(context).textSecondary,
                         ),
                       ),
                     if (_editing) ...[
@@ -554,9 +588,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                                 iconSize: 20,
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.arrow_drop_up,
-                                  color: HelpiTheme.textSecondary,
+                                  color: HelpiColors.of(context).textSecondary,
                                 ),
                                 onPressed: () => _increment(
                                   ctrl,
@@ -572,9 +606,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                                 iconSize: 20,
-                                icon: const Icon(
+                                icon: Icon(
                                   Icons.arrow_drop_down,
-                                  color: HelpiTheme.textSecondary,
+                                  color: HelpiColors.of(context).textSecondary,
                                 ),
                                 onPressed: () => _decrement(
                                   ctrl,
