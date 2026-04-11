@@ -48,6 +48,9 @@ class HelpiTheme {
   // ─── Sidebar (desktop) ──────────────────────────────────────────
   static const double sidebarWidth = 260.0;
 
+  // ─── NavigationRail (tablet) ────────────────────────────────────
+  static const double navIndicatorRadius = 24.0;
+
   // ─── Tema ───────────────────────────────────────────────────────
   static ThemeData get light => ThemeData(
     useMaterial3: true,
@@ -228,6 +231,9 @@ class HelpiTheme {
     ),
     navigationRailTheme: const NavigationRailThemeData(
       backgroundColor: surface,
+      indicatorShape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(navIndicatorRadius)),
+      ),
       selectedIconTheme: IconThemeData(color: accent),
       unselectedIconTheme: IconThemeData(color: navUnselected),
       selectedLabelTextStyle: TextStyle(
