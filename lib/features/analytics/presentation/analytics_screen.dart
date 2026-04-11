@@ -847,7 +847,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
           show: current.length <= 31,
           getDotPainter: (spot, pct, bar, idx) => FlDotCirclePainter(
             radius: 3,
-            color: Colors.white,
+            color: HelpiColors.of(context).surface,
             strokeWidth: 2,
             strokeColor: lineColor,
           ),
@@ -962,7 +962,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                     radius: 4,
                     color: lineColor,
                     strokeWidth: 2,
-                    strokeColor: Colors.white,
+                    strokeColor: HelpiColors.of(context).surface,
                   ),
                 ),
               );
