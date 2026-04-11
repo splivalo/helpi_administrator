@@ -162,7 +162,11 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 ),
 
                 // ── Bottom actions ──
-                const Divider(height: 1),
+                const Divider(
+                  height: 8,
+                  thickness: 1,
+                  color: HelpiTheme.border,
+                ),
                 _sidebarItem(
                   -2,
                   Icons.logout,
@@ -170,7 +174,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                   AppStrings.logout,
                   onTap: widget.onLogout,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
               ],
             ),
           ),
