@@ -304,6 +304,11 @@ class HelpiTheme {
       labelStyle: const TextStyle(fontSize: 16, color: textSecondary),
       hintStyle: const TextStyle(fontSize: 16, color: textSecondary),
     ),
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: accent,
+      selectionColor: accent.withValues(alpha: 0.22),
+      selectionHandleColor: accent,
+    ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: surface,
       selectedItemColor: accent,
@@ -556,6 +561,11 @@ class HelpiTheme {
       ),
       labelStyle: const TextStyle(fontSize: 16, color: darkTextSecondary),
       hintStyle: const TextStyle(fontSize: 16, color: darkTextSecondary),
+    ),
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: accent,
+      selectionColor: accent.withValues(alpha: 0.28),
+      selectionHandleColor: accent,
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: darkSurface,
