@@ -97,10 +97,10 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
             ),
             child: Column(
               children: [
-                // ── Logo (height matches kToolbarHeight so divider
+                // ── Logo (height matches appBarHeight so divider
                 //    aligns with AppBar bottom border) ──
                 SizedBox(
-                  height: kToolbarHeight,
+                  height: HelpiTheme.appBarHeight,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Align(

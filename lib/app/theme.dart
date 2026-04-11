@@ -36,6 +36,7 @@ class HelpiTheme {
   static const Color scaffold = background;
 
   // ─── Dimenzije ──────────────────────────────────────────────────
+  static const double appBarHeight = 56.0;
   static const double buttonHeight = 56.0;
   static const double buttonRadius = 12.0;
   static const double cardRadius = 12.0;
@@ -73,6 +74,7 @@ class HelpiTheme {
       foregroundColor: textPrimary,
       elevation: 0,
       scrolledUnderElevation: 0,
+      toolbarHeight: appBarHeight,
       centerTitle: false,
       titleTextStyle: TextStyle(
         fontSize: 22,

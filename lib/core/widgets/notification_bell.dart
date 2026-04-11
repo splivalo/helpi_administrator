@@ -140,7 +140,7 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                   children: [
                     // ── Header ──
                     Container(
-                      height: kToolbarHeight,
+                      height: HelpiTheme.appBarHeight,
                       padding: const EdgeInsets.fromLTRB(16, 0, 8, 0),
                       color: Colors.white,
                       child: Row(
