@@ -278,7 +278,7 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                                 Container(
                                   width: 1,
                                   height: 24,
-                                  color: Colors.grey.shade300,
+                                  color: HelpiColors.of(context).border,
                                 ),
                                 // ── ☁ Arhiviraj (icon + text) ──
                                 _PillTextButton(
@@ -441,6 +441,12 @@ class _NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconFg = _iconColor(notification.type);
+    final iconBg = isDark
+        ? iconFg.withValues(alpha: 0.15)
+        : _iconBg(notification.type);
+
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -461,13 +467,13 @@ class _NotificationTile extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: _iconBg(notification.type),
+                    color: iconBg,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     _icon(notification.type),
                     size: 18,
-                    color: _iconColor(notification.type),
+                    color: iconFg,
                   ),
                 ),
               ),
