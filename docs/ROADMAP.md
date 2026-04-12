@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-04-05 (Notification overhaul + archive to Google Drive + pill hover animation)
+> Zadnja izmjena: 2026-04-12 (Sponzor sustav dodan)
 
 ## 📖 Za Sidney-a — Što čitati
 
@@ -39,8 +39,6 @@
 
 ### Admin app & infrastruktura
 
-### Stripe egzaktni fee za Helpi neto
-
 - [ ] **Stripe fee iz webhoooka (backend + frontend)** — Trenutno admin analytics "Helpi neto" koristi formulu `1.5% + €0.25` (EEA standard). Za non-EEA kartice (Revolut UK i sl.) Stripe uzima 3.25% + €0.25, pa formula podcjenjuje fee za te transakcije. **Plan**:
   1. Backend: dodati `StripeFee` (decimal) kolonu u `PaymentTransaction` entitet + migracija
   2. Backend: u `StripeWebhookController` dodati handler za `charge.succeeded` event — iz `Charge.BalanceTransaction.Fee` izvući egzaktni fee i spremiti ga
@@ -49,8 +47,8 @@
   - **Referenca**: Order #30 (€42) i Order #24 (€56) u Stripe dashboardu imaju veći fee → non-EEA kartice
   - **Utjecaj**: Razlika je minimalna (~€0.74 po non-EEA transakciji), ali za 100% točnost treba ovo
 
-- [ ] **Backend integracija** — Zamjena AppData s REST API pozivima. Definiranje API endpointova, autentifikacija (JWT), error handling. Ovo je GLAVNI preostali zadatak.
 - [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
+- [x] **Backend integracija** — DataLoader dohvaća sve podatke s REST API-ja u parallel, puni Riverpod providere. AppData služi samo kao static cache/intermediary. UI sloj čita isključivo iz providera. ✅ (odavno gotovo)
 - [x] **Blagdani (javni praznici)** — `CroatianHolidays.cs` (backend) + `croatian_holidays.dart` (admin) — 13 fiksnih praznika + Computus algoritam za Uskrsni ponedjeljak i Tijelovo. `HangfireRecurringJobService` koristi `isOvertimeDay = Sunday || CroatianHolidays.IsPublicHoliday(date)`. Label: "Povećana satnica" (ne "Nedjeljna"). ✅ (2026-03-22, commit backend `a652bff`, admin `742ff07`)
 - [x] **Admin notifikacije (SignalR)** — 7 backend notifikacija (newStudent, newSenior, orderCancel, jobCancel, contractExpired, paymentSuccess, paymentFailed) + SignalR real-time delivery u admin app + icon/color mapping za svaki tip. NE ovisi o Firebase — koristi SignalR WebSocket. ✅ (2026-03-23, backend commit `69aec15`, admin commit `adcad0f`)
 - [x] **Filter & Assignment safety** — Block assignment on cancelled/completed orders, suspended students excluded from substitutes, "Zamjena" hidden when no subs, faculty dropdown always visible, 60-day filter removed, availability labels updated. ✅ (2026-03-30)
@@ -59,6 +57,13 @@
 - [x] **Server reachability detection** — `DataLoader.isServerReachable()`, 3-way `_checkExistingSession` (server-down vs expired-token vs OK), `_handleLogin`/`_handleServerBack` always proceed. ✅ (2026-03-31)
 - [x] **Senior status centralization** — `seniorStatusStyle()` + `StatusBadge.senior()` factory, fixed AppBar bug (checked all orders instead of live only), orders sorted newest first, "Planirano" badge per card. ✅ (2026-03-31)
 - [ ] **Push notifikacije (Firebase FCM)** — Push notifikacije za mobilne korisnike (student app, senior app). ⚠️ Ovisi o Firebase credentials.
+
+### Sponzor sustav (branding na platformi)
+
+- [ ] **Backend: SponsorConfiguration entitet + migracija** — Tablica `sponsor_configurations`: logo_url, logo_dark_url (opcijski), sponsor_name, display_text, is_active, created_at. CRUD controller `api/sponsor-config`.
+- [ ] **Backend: SVG upload endpoint** — Upload SVG logo na disk/storage, vraća URL. Podržava 2 varijante: light (obavezan) + dark (opcionalan).
+- [ ] **Admin: Sponzor sekcija u Settings** — File picker za SVG (light + opcionalno dark), text field za tekst (npr. "Omogućio HT"), toggle aktivan/neaktivan, preview prikaz.
+- [ ] **helpi_app: Sponzor badge na 3 mjesta** — (1) Home Screen — logo + "Omogućio [Sponzor]", (2) završni ekran narudžbe — "Ovu uslugu omogućio [Logo]", (3) student job detail — manji badge. App dohvaća config pri startu i cacheira. Ako dark varijanta nije uploadana, logo se prikazuje u svijetlom containeru. Ako nema aktivnog sponzora — ništa se ne prikazuje.
 
 ### Chat / Poruke sustav (NIŠTA ne postoji u backendu!)
 
