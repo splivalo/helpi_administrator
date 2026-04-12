@@ -1342,7 +1342,7 @@ class AdminApiService {
 
     return OrderModel(
       id: '${json['id']}',
-      orderNumber: json['id'].toString(),
+      orderNumber: '${json['orderNumber'] ?? json['id']}',
       senior: _mapOrderSenior(json),
       student: assignedStudent,
       status: _mapOrderStatus(json['status']),
