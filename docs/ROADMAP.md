@@ -1,6 +1,6 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-04-12 (Sponzor sustav dodan)
+> Zadnja izmjena: 2026-04-12
 
 ## 📖 Za Sidney-a — Što čitati
 
@@ -65,14 +65,14 @@
 - [ ] **Admin: Sponzor sekcija u Settings** — File picker za SVG (light + opcionalno dark), text field za tekst (npr. "Omogućio HT"), toggle aktivan/neaktivan, preview prikaz.
 - [ ] **helpi_app: Sponzor badge na 3 mjesta** — (1) Home Screen — logo + "Omogućio [Sponzor]", (2) završni ekran narudžbe — "Ovu uslugu omogućio [Logo]", (3) student job detail — manji badge. App dohvaća config pri startu i cacheira. Ako dark varijanta nije uploadana, logo se prikazuje u svijetlom containeru. Ako nema aktivnog sponzora — ništa se ne prikazuje.
 
-### Chat / Poruke sustav (NIŠTA ne postoji u backendu!)
+### Chat / Poruke sustav ✅ KOMPLETNO (2026-04-12)
 
-- [ ] **Backend: Chat entiteti + migracija** — Kreirati `ChatRoom` i `ChatMessage` entitete u `Helpi.Domain`, DB migracija. Nema NI JEDNOG chat entityja u backendu trenutno.
-- [ ] **Backend: ChatController + ChatService** — CRUD za chat rooms, send/receive poruke, lista razgovora. Endpoint: `api/chat`.
-- [ ] **Backend: ChatHub (SignalR)** — Real-time poruke. Trenutno postoji samo `NotificationHub` (za push). Treba ili proširiti ili napraviti zasebni `ChatHub`.
-- [ ] **Admin app: wiring** — `ChatModScreen` je UI-gotov (split-view, moderacija), ali čita iz `AppData.chatRooms` (prazan `[]`). `DataLoader` ima TODO comment. Treba: zamjena AppData → API pozivi.
-- [x] **Admin app: chat unread badge** — `UnreadMessagesNotifier` provider, SignalR `ReceiveMessage` listener, red `Badge.count` on all 3 nav layouts (sidebar/rail/bottomnav), reset on chat tap. ✅ Infrastructure ready — needs backend ChatHub + Firebase to deliver real message events. (2026-03-30)
-- [ ] **helpi_app: zamjena mock chata** — `senior_chat_list_screen.dart` i `student_chat_screen.dart` su identične kopije s hardkodiranim `_ChatMessage` listom (lokalni state, ne šalje ništa). Treba: pravi model, ChatService, SignalR konekcija.
+- [x] **Backend: Chat entiteti + migracija** — `ChatRoom` i `ChatMessage` entiteti, DB migracija primijenjena.
+- [x] **Backend: ChatController + ChatService** — CRUD za chat rooms, send/receive poruke, auto-create admin room, welcome message. Endpoint: `api/chat`.
+- [x] **Backend: ChatHub (SignalR)** — Real-time poruke. `ChatHub` kreiran + broadcast via `NotificationHub` (oba app-a spajaju se na NotificationHub).
+- [x] **Admin app: wiring** — `ChatModScreen` potpuno prepisana. `chat_api_service.dart` kreiran. Provideri prepisani (`AdminChatRoomsNotifier`, `AdminChatMessagesNotifier`). Mock data uklonjen.
+- [x] **Admin app: chat unread badge** — `UnreadMessagesNotifier`, SignalR `ReceiveChatMessage` listener, `Badge.count` na sva 3 nav layouta, reset on chat tap. ✅
+- [x] **helpi_app: zamjena mock chata** — `DirectChatScreen` (auto-open admin room), `ChatApiService`, `chatRoomsProvider`/`chatMessagesProvider`/`chatUnreadCountProvider`. Unread badge na oba shell-a. WhatsApp-style bubbles. Sender name ("Helpi") prikazan.
 
 ## Dovršeno
 

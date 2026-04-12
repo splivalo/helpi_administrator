@@ -11,6 +11,7 @@ import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
+import 'package:helpi_admin/features/chat/data/chat_api_service.dart';
 
 /// SignalR service for real-time admin notifications.
 ///
@@ -70,7 +71,7 @@ class SignalRNotificationService {
     });
 
     _connection!.on('ReceiveNotification', _onReceiveNotification);
-    _connection!.on('ReceiveMessage', _onReceiveMessage);
+    _connection!.on('ReceiveChatMessage', _onReceiveChatMessage);
     _connection!.on('SettingsChanged', _onSettingsChanged);
     _connection!.on('EntityChanged', _onEntityChanged);
 
@@ -89,13 +90,33 @@ class SignalRNotificationService {
     _connection = null;
   }
 
-  void _onReceiveMessage(List<Object?>? args) {
-    if (_ref == null) return;
-    final roomId = (args != null && args.isNotEmpty)
-        ? args[0]?.toString() ?? 'unknown'
-        : 'unknown';
-    _ref!.read(unreadMessagesProvider.notifier).incrementRoom(roomId);
-    debugPrint('[SignalR] new message in room $roomId, unread incremented');
+  void _onReceiveChatMessage(List<Object?>? args) {
+    if (_ref == null || args == null || args.isEmpty) return;
+    try {
+      final raw = args[0];
+      final Map<String, dynamic> json;
+      if (raw is String) {
+        json = jsonDecode(raw) as Map<String, dynamic>;
+      } else if (raw is Map) {
+        json = Map<String, dynamic>.from(raw);
+      } else {
+        debugPrint(
+          '[SignalR] unexpected chat message format: ${raw.runtimeType}',
+        );
+        _ref!.read(unreadMessagesProvider.notifier).refresh();
+        _ref!.read(adminChatRoomsProvider.notifier).loadRooms();
+        return;
+      }
+      final msg = ApiChatMessage.fromJson(json);
+      _ref!.read(adminChatMessagesProvider.notifier).onReceiveMessage(msg);
+      _ref!.read(adminChatRoomsProvider.notifier).loadRooms();
+      _ref!.read(unreadMessagesProvider.notifier).refresh();
+      debugPrint('[SignalR] ReceiveChatMessage room=${msg.chatRoomId}');
+    } catch (e) {
+      debugPrint('[SignalR] ReceiveChatMessage parse error: $e');
+      _ref!.read(unreadMessagesProvider.notifier).refresh();
+      _ref!.read(adminChatRoomsProvider.notifier).loadRooms();
+    }
   }
 
   void _onSettingsChanged(List<Object?>? args) {

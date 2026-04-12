@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/network/api_endpoints.dart';
+import 'package:helpi_admin/app/theme.dart';
 
 /// Full-screen prikazuje se kad backend ne odgovara.
 ///
@@ -79,9 +80,10 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final helpiColors = HelpiColors.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF6F1),
+      backgroundColor: helpiColors.scaffold,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -101,6 +103,7 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
                     AppStrings.serverUnavailableTitle,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: helpiColors.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -108,7 +111,7 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
                   Text(
                     AppStrings.serverUnavailableMessage,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withAlpha(153),
+                      color: helpiColors.textSecondary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -126,7 +129,7 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
                         Text(
                           AppStrings.serverUnavailableRetrying,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurface.withAlpha(153),
+                            color: helpiColors.textSecondary,
                           ),
                         ),
                       ],

@@ -131,4 +131,10 @@ class ApiEndpoints {
   static String adminNotes(String entityType, int entityId) =>
       '/api/admin-notes/$entityType/$entityId';
   static String adminNoteById(int id) => '/api/admin-notes/$id';
+
+  // Chat
+  static const String chatRooms = '/api/chat/rooms';
+  static String chatMessages(int roomId) => '/api/chat/rooms/$roomId/messages';
+  static String chatMarkRead(int roomId) => '/api/chat/rooms/$roomId/read';
+  static const String chatUnreadCount = '/api/chat/unread-count';
 }

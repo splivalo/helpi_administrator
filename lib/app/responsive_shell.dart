@@ -61,8 +61,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   }
 
   Widget _badgedIcon(Widget icon) {
-    final unread = ref.watch(unreadMessagesProvider);
-    final count = unread.values.fold(0, (sum, c) => sum + c);
+    final count = ref.watch(unreadMessagesProvider);
     if (count == 0) return icon;
     return Badge.count(count: count, child: icon);
   }
@@ -145,10 +144,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                         Icons.chat_bubble_outline,
                         Icons.chat_bubble,
                         AppStrings.navChat,
-                        badgeCount: ref
-                            .watch(unreadMessagesProvider)
-                            .values
-                            .fold(0, (sum, c) => sum + c),
+                        badgeCount: ref.watch(unreadMessagesProvider),
                       ),
                       _sidebarItem(
                         3,

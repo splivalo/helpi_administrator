@@ -2,6 +2,17 @@
 
 > Kronologija ključnih odluka i promjena.
 
+## 2026-04-12 — Chat sustav kompletiran (backend + admin + helpi_app)
+
+- **Backend chat built from scratch** — `ChatRoom` i `ChatMessage` entiteti, `ChatService`, `ChatRepository`, `ChatController` (`api/chat`), `ChatHub` (SignalR), DB migracija. Auto-creates admin room per user + welcome message ("Dobrodošli u Helpi. Kako vam možemo pomoći?").
+- **Admin chat rewrite** — Potpuno uklonjen mock chat. Kreiran `chat_api_service.dart` (getRooms, getMessages, sendMessage, markAsRead, getUnreadCount). Provideri prepisani (`AdminChatRoomsNotifier`, `AdminChatMessagesNotifier`, `UnreadMessagesNotifier`). `chat_screen.dart` potpuni rewrite: API modeli, WhatsApp-style shrink-wrap bubbles (Row+Flexible pattern), avatar→profil navigacija, senderName prikaz.
+- **SignalR real-time chat** — Backend broadcasts `ReceiveChatMessage` via `NotificationHub` (ne samo `ChatHub`). Admin sluša na `_onReceiveChatMessage`. helpi_app sluša na generic `.on()` handler.
+- **helpi_app chat** — `DirectChatScreen` (bez liste soba — otvara direktno razgovor s Helpi). `ChatRoom`/`ChatMessage` modeli, `ChatApiService`, `chatRoomsProvider`/`chatMessagesProvider`/`chatUnreadCountProvider`. Sender name ("Helpi") prikazan iznad poruka.
+- **Unread badge na mobilnom** — Badge counter na "Poruke" tab u `senior_shell.dart` i `student_shell.dart`. Oba shell-a pretvoreni u `ConsumerStatefulWidget`. Badge se čisti odmah na tab tap.
+- **Admin chat flicker fix** — `isInitialLoad` flag sprečava "Nema poruka" flash pri loadanju. Guard `if (_currentRoomId == roomId && state.isNotEmpty) return` sprečava nepotreban re-fetch.
+- **GetByIdWithContactAsync** — Dodan u `IUserRepository`/`UserRepository` za eager loading Student.Contact/Customer.Contact, ispravlja prikazivanje email-a umjesto imena.
+- **Ključna odluka:** Admin = userId 1, prikazuje se kao "Helpi" svugdje. Backend ne koristi ChatHub za delivery (apps ne connectaju na njega), koristi NotificationHub za broadcast.
+
 ## 2026-04-04 — Settings Screen + Dynamic Pricing + Student Rates
 
 - **Settings screen kreiran** — 6 sekcija u `settings_screen.dart`: Cijena usluge (senior satnice), Studentska satnica (fiksni iznosi), Pravila otkazivanja, Operativno (buffer/naplata), Zarada (marža posrednika + PDV), Jezik.

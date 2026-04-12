@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/features/chat/data/chat_api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  STUDENTS
@@ -127,53 +128,140 @@ final notificationsProvider =
     );
 
 // ═══════════════════════════════════════════════════════════════
-//  CHAT ROOMS
+//  CHAT ROOMS (API-backed)
 // ═══════════════════════════════════════════════════════════════
 
-class ChatRoomsNotifier extends StateNotifier<List<ChatRoom>> {
-  ChatRoomsNotifier() : super([]);
+class AdminChatRoomsNotifier extends StateNotifier<List<ApiChatRoom>> {
+  AdminChatRoomsNotifier() : super([]);
 
-  void setAll(List<ChatRoom> items) => state = [...items];
+  final _api = ChatApiService();
 
-  void addRoom(ChatRoom room) => state = [...state, room];
+  Future<void> loadRooms() async {
+    final rooms = await _api.getRooms();
+    // Sort: most recent message first
+    rooms.sort((a, b) {
+      final aTime = a.lastMessageAt ?? a.createdAt;
+      final bTime = b.lastMessageAt ?? b.createdAt;
+      return bTime.compareTo(aTime);
+    });
+    state = rooms;
+  }
 
-  void updateRoom(ChatRoom room) {
-    state = [for (final r in state) r.id == room.id ? room : r];
+  void onNewMessage(ApiChatRoom updatedRoom) {
+    final rooms = [...state];
+    final idx = rooms.indexWhere((r) => r.id == updatedRoom.id);
+    if (idx >= 0) {
+      rooms.removeAt(idx);
+    }
+    rooms.insert(0, updatedRoom);
+    state = rooms;
+  }
+
+  void clearUnread(int roomId) {
+    state = [
+      for (final r in state)
+        if (r.id == roomId) ...[r..unreadCount = 0] else r,
+    ];
   }
 }
 
-final chatRoomsProvider =
-    StateNotifierProvider<ChatRoomsNotifier, List<ChatRoom>>(
-      (ref) => ChatRoomsNotifier(),
+final adminChatRoomsProvider =
+    StateNotifierProvider<AdminChatRoomsNotifier, List<ApiChatRoom>>(
+      (ref) => AdminChatRoomsNotifier(),
     );
 
 // ═══════════════════════════════════════════════════════════════
-//  UNREAD MESSAGES COUNT
+//  CHAT MESSAGES (API-backed)
 // ═══════════════════════════════════════════════════════════════
 
-class UnreadMessagesNotifier extends StateNotifier<Map<String, int>> {
-  UnreadMessagesNotifier()
-    : super({
-        'demo-chat-1': 2, // TODO: revert to empty {} after testing
-        'demo-chat-3': 1, // TODO: revert to empty {} after testing
-      });
+class AdminChatMessagesNotifier extends StateNotifier<List<ApiChatMessage>> {
+  AdminChatMessagesNotifier() : super([]);
 
-  void incrementRoom(String roomId) {
-    final current = state[roomId] ?? 0;
-    state = {...state, roomId: current + 1};
+  final _api = ChatApiService();
+  int? _currentRoomId;
+  int _page = 1;
+  bool _hasMore = true;
+  bool _loading = false;
+  bool _isInitialLoad = false;
+
+  int? get currentRoomId => _currentRoomId;
+  bool get isInitialLoad => _isInitialLoad;
+
+  Future<void> loadMessages(int roomId) async {
+    if (_currentRoomId == roomId && state.isNotEmpty) return;
+    _currentRoomId = roomId;
+    _page = 1;
+    _hasMore = true;
+    _isInitialLoad = true;
+    state = [...state]; // trigger rebuild with isInitialLoad=true
+    final msgs = await _api.getMessages(roomId, page: 1);
+    _isInitialLoad = false;
+    state = msgs;
+    _hasMore = msgs.length >= 50;
   }
 
-  void markRoomRead(String roomId) {
-    final updated = {...state};
-    updated.remove(roomId);
-    state = updated;
+  Future<void> loadMore() async {
+    if (_loading || !_hasMore || _currentRoomId == null) return;
+    _loading = true;
+    _page++;
+    final msgs = await _api.getMessages(_currentRoomId!, page: _page);
+    _hasMore = msgs.length >= 50;
+    state = [...msgs, ...state];
+    _loading = false;
   }
 
-  int get totalUnread => state.values.fold(0, (sum, c) => sum + c);
+  Future<ApiChatMessage?> sendMessage(String content) async {
+    if (_currentRoomId == null) return null;
+    final msg = await _api.sendMessage(_currentRoomId!, content);
+    if (msg != null) {
+      state = [...state, msg];
+    }
+    return msg;
+  }
+
+  Future<void> markAsRead() async {
+    if (_currentRoomId == null) return;
+    await _api.markAsRead(_currentRoomId!);
+  }
+
+  void onReceiveMessage(ApiChatMessage msg) {
+    if (msg.chatRoomId == _currentRoomId) {
+      final exists = state.any((m) => m.id == msg.id);
+      if (!exists) {
+        state = [...state, msg];
+      }
+    }
+  }
+
+  void clear() {
+    _currentRoomId = null;
+    state = [];
+  }
+}
+
+final adminChatMessagesProvider =
+    StateNotifierProvider<AdminChatMessagesNotifier, List<ApiChatMessage>>(
+      (ref) => AdminChatMessagesNotifier(),
+    );
+
+// ═══════════════════════════════════════════════════════════════
+//  UNREAD MESSAGES COUNT (API-backed)
+// ═══════════════════════════════════════════════════════════════
+
+class UnreadMessagesNotifier extends StateNotifier<int> {
+  UnreadMessagesNotifier() : super(0);
+
+  final _api = ChatApiService();
+
+  Future<void> refresh() async {
+    state = await _api.getUnreadCount();
+  }
+
+  void set(int count) => state = count;
 }
 
 final unreadMessagesProvider =
-    StateNotifierProvider<UnreadMessagesNotifier, Map<String, int>>(
+    StateNotifierProvider<UnreadMessagesNotifier, int>(
       (ref) => UnreadMessagesNotifier(),
     );
 

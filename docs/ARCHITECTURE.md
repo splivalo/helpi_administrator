@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-04-05
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-04-12
 
 ---
 
@@ -86,11 +86,13 @@ lib/
     │       ├── order_detail_screen.dart # Detalj narudžbe (3152 linija)
     │       └── create_order_screen.dart # Kreiranje narudžbe (1223 linija)
     └── chat/
+        ├── data/
+        │   └── chat_api_service.dart   # Chat API service + models (ApiChatRoom, ApiChatMessage) (~180 linija)
         └── presentation/
-            └── chat_screen.dart        # Chat moderacija (461 linija)
+            └── chat_screen.dart        # Chat moderacija — real API, WhatsApp-style bubbles, split-view (~560 linija)
 ```
 
-**28 Dart fajlova, ~18.400 linija koda**
+**29 Dart fajlova, ~19.000 linija koda**
 
 ### Shared widgeti/utilitiji (core/)
 

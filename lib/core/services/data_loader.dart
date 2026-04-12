@@ -10,8 +10,6 @@ import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 
-// TODO: Add chatRooms loading once chat backend is implemented
-
 /// Loads data from the backend API into Riverpod providers (and [AppData]
 /// for backward compatibility).
 ///
@@ -137,10 +135,6 @@ class DataLoader {
       allOk = false;
     }
 
-    // TODO: Chat backend not implemented - using demo data for development.
-    // Notifications stay backend-only so the admin drawer reflects real events.
-    _seedDemoChatIfEmpty();
-
     // Sync Riverpod providers for reactive UI updates
     if (ref != null) {
       ref.read(studentsProvider.notifier).setAll(AppData.students);
@@ -148,7 +142,9 @@ class DataLoader {
       ref.read(ordersProvider.notifier).setAll(AppData.orders);
       ref.read(reviewsProvider.notifier).setAll(AppData.reviews);
       ref.read(notificationsProvider.notifier).setAll(AppData.notifications);
-      ref.read(chatRoomsProvider.notifier).setAll(AppData.chatRooms);
+      // Chat rooms loaded from API
+      await ref.read(adminChatRoomsProvider.notifier).loadRooms();
+      await ref.read(unreadMessagesProvider.notifier).refresh();
     }
 
     _loaded = allOk;
@@ -159,144 +155,9 @@ class DataLoader {
       'orders=${AppData.orders.length}, '
       'reviews=${AppData.reviews.length}, '
       'notifications=${AppData.notifications.length}, '
-      'chatRooms=${AppData.chatRooms.length}, '
       'allOk=$allOk',
     );
     return allOk;
-  }
-
-  /// Seeds only demo chat data for development until chat backend exists.
-  /// Notifications intentionally remain backend-only.
-  static void _seedDemoChatIfEmpty() {
-    // Demo chat rooms if none exist - use real IDs from loaded data
-    if (AppData.chatRooms.isEmpty && AppData.seniors.isNotEmpty) {
-      final senior1 = AppData.seniors.isNotEmpty ? AppData.seniors[0] : null;
-      final senior2 = AppData.seniors.length > 1 ? AppData.seniors[1] : null;
-      final student1 = AppData.students.isNotEmpty ? AppData.students[0] : null;
-
-      if (senior1 != null) {
-        AppData.chatRooms.add(
-          ChatRoom(
-            id: 'demo-chat-1',
-            participantId: senior1.id,
-            participantName: senior1.fullName,
-            participantRole: 'senior',
-            lastMessage: 'Hvala na brzom odgovoru!',
-            lastMessageAt: DateTime.now().subtract(const Duration(minutes: 5)),
-            unreadCount: 2,
-            orderId: 'ORD-001',
-            messages: [
-              ChatMessage(
-                id: 'msg-1',
-                senderId: senior1.id,
-                senderName: senior1.fullName,
-                senderRole: 'senior',
-                content: 'Dobar dan, imam pitanje o narudžbi',
-                sentAt: DateTime.now().subtract(const Duration(minutes: 30)),
-              ),
-              ChatMessage(
-                id: 'msg-2',
-                senderId: 'admin-1',
-                senderName: 'Admin',
-                senderRole: 'admin',
-                content: 'Dobar dan! Kako Vam mogu pomoći?',
-                sentAt: DateTime.now().subtract(const Duration(minutes: 25)),
-              ),
-              ChatMessage(
-                id: 'msg-3',
-                senderId: senior1.id,
-                senderName: senior1.fullName,
-                senderRole: 'senior',
-                content: 'Mogu li promijeniti vrijeme dolaska studenta?',
-                sentAt: DateTime.now().subtract(const Duration(minutes: 10)),
-              ),
-              ChatMessage(
-                id: 'msg-4',
-                senderId: 'admin-1',
-                senderName: 'Admin',
-                senderRole: 'admin',
-                content: 'Da, naravno. Koje vrijeme Vam odgovara?',
-                sentAt: DateTime.now().subtract(const Duration(minutes: 8)),
-              ),
-              ChatMessage(
-                id: 'msg-5',
-                senderId: senior1.id,
-                senderName: senior1.fullName,
-                senderRole: 'senior',
-                content: 'Hvala na brzom odgovoru!',
-                sentAt: DateTime.now().subtract(const Duration(minutes: 5)),
-              ),
-            ],
-          ),
-        );
-      }
-
-      if (student1 != null) {
-        AppData.chatRooms.add(
-          ChatRoom(
-            id: 'demo-chat-2',
-            participantId: student1.id,
-            participantName: student1.fullName,
-            participantRole: 'student',
-            lastMessage: 'Razumijem, hvala!',
-            lastMessageAt: DateTime.now().subtract(const Duration(hours: 2)),
-            unreadCount: 0,
-            messages: [
-              ChatMessage(
-                id: 'msg-6',
-                senderId: student1.id,
-                senderName: student1.fullName,
-                senderRole: 'student',
-                content: 'Bok, kada mi istječe ugovor?',
-                sentAt: DateTime.now().subtract(const Duration(hours: 3)),
-              ),
-              ChatMessage(
-                id: 'msg-7',
-                senderId: 'admin-1',
-                senderName: 'Admin',
-                senderRole: 'admin',
-                content: 'Vaš ugovor vrijedi do 15.06.2026.',
-                sentAt: DateTime.now().subtract(
-                  const Duration(hours: 2, minutes: 30),
-                ),
-              ),
-              ChatMessage(
-                id: 'msg-8',
-                senderId: student1.id,
-                senderName: student1.fullName,
-                senderRole: 'student',
-                content: 'Razumijem, hvala!',
-                sentAt: DateTime.now().subtract(const Duration(hours: 2)),
-              ),
-            ],
-          ),
-        );
-      }
-
-      if (senior2 != null) {
-        AppData.chatRooms.add(
-          ChatRoom(
-            id: 'demo-chat-3',
-            participantId: senior2.id,
-            participantName: senior2.fullName,
-            participantRole: 'senior',
-            lastMessage: 'Studentica je bila izvrsna!',
-            lastMessageAt: DateTime.now().subtract(const Duration(days: 1)),
-            unreadCount: 1,
-            messages: [
-              ChatMessage(
-                id: 'msg-9',
-                senderId: senior2.id,
-                senderName: senior2.fullName,
-                senderRole: 'senior',
-                content: 'Studentica je bila izvrsna!',
-                sentAt: DateTime.now().subtract(const Duration(days: 1)),
-              ),
-            ],
-          ),
-        );
-      }
-    }
   }
 
   /// Reset loaded flag (e.g. on logout).

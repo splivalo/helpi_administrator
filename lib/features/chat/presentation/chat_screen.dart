@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
-import 'package:helpi_admin/core/widgets/helpi_app_bar.dart';
-import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
+import 'package:helpi_admin/core/widgets/helpi_app_bar.dart';
+import 'package:helpi_admin/features/chat/data/chat_api_service.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
-
-// TODO: Chat backend not implemented. Need ChatController, ChatRoom/Message entities, SignalR hub for real-time messaging.
 
 /// Chat Moderation Screen — admin chat s korisnicima.
 class ChatModScreen extends ConsumerStatefulWidget {
@@ -20,7 +19,28 @@ class ChatModScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatModScreenState extends ConsumerState<ChatModScreen> {
-  ChatRoom? _selectedRoom;
+  ApiChatRoom? _selectedRoom;
+  int _adminUserId = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAdminUserId();
+  }
+
+  Future<void> _loadAdminUserId() async {
+    final id = await TokenStorage().getUserId() ?? 0;
+    if (!mounted) return;
+    setState(() => _adminUserId = id);
+  }
+
+  void _selectRoom(ApiChatRoom room) {
+    ref.read(adminChatMessagesProvider.notifier).loadMessages(room.id);
+    ref.read(adminChatMessagesProvider.notifier).markAsRead();
+    ref.read(adminChatRoomsProvider.notifier).clearUnread(room.id);
+    ref.read(unreadMessagesProvider.notifier).refresh();
+    setState(() => _selectedRoom = room);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,19 +55,18 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
             SizedBox(
               width: 340,
               child: _ChatRoomList(
+                adminUserId: _adminUserId,
                 selectedRoomId: _selectedRoom?.id,
-                onRoomSelected: (room) {
-                  ref
-                      .read(unreadMessagesProvider.notifier)
-                      .markRoomRead(room.id);
-                  setState(() => _selectedRoom = room);
-                },
+                onRoomSelected: _selectRoom,
               ),
             ),
             VerticalDivider(width: 1, color: HelpiColors.of(context).border),
             Expanded(
               child: _selectedRoom != null
-                  ? _ChatView(room: _selectedRoom!)
+                  ? _ChatView(
+                      roomId: _selectedRoom!.id,
+                      adminUserId: _adminUserId,
+                    )
                   : Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -78,12 +97,16 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
     return Scaffold(
       appBar: HelpiAppBar(title: Text(AppStrings.chatTitle)),
       body: _ChatRoomList(
+        adminUserId: _adminUserId,
         selectedRoomId: null,
         onRoomSelected: (room) {
-          ref.read(unreadMessagesProvider.notifier).markRoomRead(room.id);
+          _selectRoom(room);
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => _ChatDetailPage(room: room)),
+            MaterialPageRoute(
+              builder: (_) =>
+                  _ChatDetailPage(room: room, adminUserId: _adminUserId),
+            ),
           );
         },
       ),
@@ -94,18 +117,19 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
 // ═══════════════════════════════════════════════════════════════
 //  CHAT DETAIL PAGE (mobile only)
 // ═══════════════════════════════════════════════════════════════
-class _ChatDetailPage extends StatelessWidget {
-  const _ChatDetailPage({required this.room});
-  final ChatRoom room;
+class _ChatDetailPage extends ConsumerWidget {
+  const _ChatDetailPage({required this.room, required this.adminUserId});
+  final ApiChatRoom room;
+  final int adminUserId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: HelpiAppBar(
-        title: Text(room.participantName),
+        title: Text(room.otherName(adminUserId)),
         titleSpacing: HelpiAppBar.innerTitleSpacing,
       ),
-      body: _ChatView(room: room),
+      body: _ChatView(roomId: room.id, adminUserId: adminUserId),
     );
   }
 }
@@ -115,20 +139,21 @@ class _ChatDetailPage extends StatelessWidget {
 // ═══════════════════════════════════════════════════════════════
 class _ChatRoomList extends ConsumerWidget {
   const _ChatRoomList({
+    required this.adminUserId,
     required this.selectedRoomId,
     required this.onRoomSelected,
   });
 
-  final String? selectedRoomId;
-  final ValueChanged<ChatRoom> onRoomSelected;
+  final int adminUserId;
+  final int? selectedRoomId;
+  final ValueChanged<ApiChatRoom> onRoomSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final rooms = ref.watch(chatRoomsProvider);
-    final unreadMap = ref.watch(unreadMessagesProvider);
+    final rooms = ref.watch(adminChatRoomsProvider);
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.zero,
       itemCount: rooms.length,
       separatorBuilder: (context, index) => Divider(
         height: 1,
@@ -139,7 +164,9 @@ class _ChatRoomList extends ConsumerWidget {
       itemBuilder: (ctx, i) {
         final room = rooms[i];
         final isSelected = room.id == selectedRoomId;
-        final unread = unreadMap[room.id] ?? 0;
+        final unread = room.unreadCount;
+        final otherRole = room.otherRole(adminUserId);
+        final isSenior = otherRole == 'customer';
 
         return InkWell(
           onTap: () => onRoomSelected(room),
@@ -154,10 +181,11 @@ class _ChatRoomList extends ConsumerWidget {
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    if (room.isSenior) {
+                    final participantUserId = room.otherUserId(adminUserId);
+                    if (isSenior) {
                       final senior = ref
                           .read(seniorsProvider)
-                          .where((s) => s.id == room.participantId)
+                          .where((s) => s.userId == participantUserId)
                           .firstOrNull;
                       if (senior == null) return;
                       final orders = ref
@@ -176,7 +204,7 @@ class _ChatRoomList extends ConsumerWidget {
                     } else {
                       final student = ref
                           .read(studentsProvider)
-                          .where((s) => s.id == room.participantId)
+                          .where((s) => s.id == participantUserId.toString())
                           .firstOrNull;
                       if (student == null) return;
                       Navigator.push(
@@ -195,7 +223,7 @@ class _ChatRoomList extends ConsumerWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      room.isSenior ? Icons.elderly : Icons.school,
+                      isSenior ? Icons.elderly : Icons.school,
                       size: 18,
                       color: HelpiTheme.accent,
                     ),
@@ -209,7 +237,7 @@ class _ChatRoomList extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        room.participantName,
+                        room.otherName(adminUserId),
                         style: TextStyle(
                           fontWeight: unread > 0
                               ? FontWeight.w700
@@ -221,7 +249,7 @@ class _ChatRoomList extends ConsumerWidget {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        room.lastMessage,
+                        room.lastMessageText ?? '',
                         style: TextStyle(
                           fontSize: 13,
                           color: HelpiColors.of(context).textSecondary,
@@ -244,7 +272,7 @@ class _ChatRoomList extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _formatTime(room.lastMessageAt),
+                      _formatTime(room.lastMessageAt ?? room.createdAt),
                       style: TextStyle(
                         fontSize: 12,
                         color: HelpiColors.of(context).textSecondary,
@@ -293,32 +321,18 @@ class _ChatRoomList extends ConsumerWidget {
 // ═══════════════════════════════════════════════════════════════
 //  CHAT VIEW
 // ═══════════════════════════════════════════════════════════════
-class _ChatView extends StatefulWidget {
-  const _ChatView({required this.room});
-  final ChatRoom room;
+class _ChatView extends ConsumerStatefulWidget {
+  const _ChatView({required this.roomId, required this.adminUserId});
+  final int roomId;
+  final int adminUserId;
 
   @override
-  State<_ChatView> createState() => _ChatViewState();
+  ConsumerState<_ChatView> createState() => _ChatViewState();
 }
 
-class _ChatViewState extends State<_ChatView> {
+class _ChatViewState extends ConsumerState<_ChatView> {
   final _msgCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
-  late List<ChatMessage> _messages;
-
-  @override
-  void initState() {
-    super.initState();
-    _messages = List.of(widget.room.messages);
-  }
-
-  @override
-  void didUpdateWidget(covariant _ChatView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.room.id != widget.room.id) {
-      _messages = List.of(widget.room.messages);
-    }
-  }
 
   @override
   void dispose() {
@@ -327,23 +341,16 @@ class _ChatViewState extends State<_ChatView> {
     super.dispose();
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage() async {
     final text = _msgCtrl.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _messages.add(
-        ChatMessage(
-          id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-          senderId: 'admin',
-          senderName: 'Admin',
-          senderRole: 'admin',
-          content: text,
-          sentAt: DateTime.now(),
-        ),
-      );
-      _msgCtrl.clear();
-    });
+    _msgCtrl.clear();
+    await ref.read(adminChatMessagesProvider.notifier).sendMessage(text);
+    if (!mounted) return;
+
+    // Refresh rooms list to update last message preview
+    ref.read(adminChatRoomsProvider.notifier).loadRooms();
 
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollCtrl.hasClients) {
@@ -358,11 +365,25 @@ class _ChatViewState extends State<_ChatView> {
 
   @override
   Widget build(BuildContext context) {
+    final messages = ref.watch(adminChatMessagesProvider);
+    final isLoading = ref
+        .read(adminChatMessagesProvider.notifier)
+        .isInitialLoad;
+
+    // Auto-scroll when new messages arrive
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollCtrl.hasClients) {
+        _scrollCtrl.jumpTo(_scrollCtrl.position.maxScrollExtent);
+      }
+    });
+
     return Column(
       children: [
         // ── Messages list ──
         Expanded(
-          child: _messages.isEmpty
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : messages.isEmpty
               ? Center(
                   child: Text(
                     AppStrings.chatNoMessages,
@@ -371,12 +392,20 @@ class _ChatViewState extends State<_ChatView> {
                     ),
                   ),
                 )
-              : ListView.builder(
-                  controller: _scrollCtrl,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _messages.length,
-                  itemBuilder: (ctx, i) =>
-                      _MessageBubble(message: _messages[i]),
+              : LayoutBuilder(
+                  builder: (ctx, constraints) {
+                    final maxBubble = constraints.maxWidth * 0.65;
+                    return ListView.builder(
+                      controller: _scrollCtrl,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: messages.length,
+                      itemBuilder: (ctx, i) => _MessageBubble(
+                        message: messages[i],
+                        adminUserId: widget.adminUserId,
+                        maxBubbleWidth: maxBubble,
+                      ),
+                    );
+                  },
                 ),
         ),
 
@@ -452,73 +481,91 @@ class _ChatViewState extends State<_ChatView> {
 //  MESSAGE BUBBLE
 // ═══════════════════════════════════════════════════════════════
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.message});
-  final ChatMessage message;
+  const _MessageBubble({
+    required this.message,
+    required this.adminUserId,
+    required this.maxBubbleWidth,
+  });
+  final ApiChatMessage message;
+  final int adminUserId;
+  final double maxBubbleWidth;
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = message.isAdmin;
+    final isMine = message.isMine(adminUserId);
 
-    return Align(
-      alignment: isAdmin ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.65,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: isAdmin ? HelpiTheme.accent : HelpiColors.of(context).surface,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isAdmin ? 16 : 4),
-            bottomRight: Radius.circular(isAdmin ? 4 : 16),
-          ),
-          border: isAdmin
-              ? null
-              : Border.all(color: HelpiColors.of(context).border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (!isAdmin)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 3),
-                child: Text(
-                  message.senderName,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: HelpiTheme.accent,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: isMine
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        children: [
+          Flexible(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: maxBubbleWidth),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isMine
+                    ? HelpiTheme.accent
+                    : HelpiColors.of(context).surface,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                  bottomLeft: Radius.circular(isMine ? 16 : 4),
+                  bottomRight: Radius.circular(isMine ? 4 : 16),
+                ),
+                border: isMine
+                    ? null
+                    : Border.all(color: HelpiColors.of(context).border),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!isMine)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 3),
+                      child: Text(
+                        message.senderName,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: HelpiTheme.accent,
+                        ),
+                      ),
+                    ),
+                  Text(
+                    message.content,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isMine
+                          ? Colors.white
+                          : HelpiColors.of(context).textPrimary,
+                      height: 1.4,
+                    ),
                   ),
-                ),
-              ),
-            Text(
-              message.text,
-              style: TextStyle(
-                fontSize: 14,
-                color: isAdmin
-                    ? Colors.white
-                    : HelpiColors.of(context).textPrimary,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Text(
-                '${message.sentAt.hour.toString().padLeft(2, '0')}:${message.sentAt.minute.toString().padLeft(2, '0')}',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isAdmin
-                      ? Colors.white70
-                      : HelpiColors.of(context).textSecondary,
-                ),
+                  const SizedBox(height: 3),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        message.timeFormatted,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isMine
+                              ? Colors.white70
+                              : HelpiColors.of(context).textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

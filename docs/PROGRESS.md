@@ -1,6 +1,6 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-04-04
+> Zadnja izmjena: 2026-04-12
 
 ## Ukupno stanje
 
@@ -17,21 +17,21 @@
 | Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                                                                                             | 100%       |
 | Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje (3-branch), uređivanje, promo kod, udaljenost, planirani termini                                                                  | 100%       |
 | Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                                                                                              | 100%       |
-| Chat (Moderacija)     | ✅ Mock preview razgovora + poruke + unread badge na navigaciji (3 layouta), spremno za budući backend                                                                                  | 95%        |
+| Chat (Moderacija)     | ✅ Real-time chat s backendom (API + SignalR), split-view moderacija, WhatsApp-style bubbles, unread badge na navigaciji (3 layouta), auto-create admin room, welcome message           | 100%       |
 | Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + backend-only feed bez demo seedanja + reschedule/reassignment refresh hooks                                                          | 100%       |
 | Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild, ConsumerStatefulWidget, chat badge                                                                                               | 100%       |
 | i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                                                                                                       | 100%       |
 | Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                                                                                             | 100%       |
-| Mock/Fallback Data    | 🔄 Backend-first učitavanje za core podatke; mock fallback ostaje samo za offline/dev scenarij i demo chat dok pravi chat backend ne postoji                                            | 85%        |
+| Mock/Fallback Data    | ✅ Backend-first učitavanje za sve podatke; mock fallback ostaje samo za offline/dev scenarij                                                                                           | 100%       |
 | State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                                                                                                    | 100%       |
-| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveMessage + SettingsChanged handlers, Riverpod sync                                                               | 100%       |
+| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveChatMessage + SettingsChanged handlers, Riverpod sync                                                           | 100%       |
 | DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                                                                                           | 100%       |
 | SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                                                                                            | 100%       |
 | UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                                                                                            | 100%       |
 | Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                                                                                                   | 100%       |
-| Backend integracija   | ✅ Kompletna admin backend integracija: auth, students, seniors, orders, reviews, notifications, sessions, settings, assign/reschedule, cities, dashboard API; jedino chat čeka backend | 95%        |
+| Backend integracija   | ✅ Kompletna admin backend integracija: auth, students, seniors, orders, reviews, notifications, sessions, settings, assign/reschedule, cities, dashboard API, chat (real-time + REST)  | 100%       |
 
-**Ukupna dovršenost frontenda: ~98%**
+**Ukupna dovršenost frontenda: ~100%**
 **28 Dart fajlova, ~18.400 linija koda**
 **Deploy:** `https://kungfu.digital/helpi/index.html`
 
@@ -96,7 +96,8 @@
 
 ### Chat & Notifikacije
 
-- [x] ChatScreen — moderacija razgovora
+- [x] ChatScreen — real-time chat moderacija (API + SignalR), WhatsApp-style bubbles, senderName prikaz
+- [x] Chat API service (chat_api_service.dart) — getRooms, getMessages, sendMessage, markAsRead, getUnreadCount
 - [x] NotificationBell — ikona sa badge brojem nepročitanih + notifications drawer
 
 ### UI Polish & Consistency
