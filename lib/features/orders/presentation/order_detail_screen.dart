@@ -42,6 +42,16 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       _sectionOrder = List.generate(_sectionCount, (i) => i);
     }
     _loadSessions();
+
+    // Auto-refresh when SignalR updates ordersProvider (EntityChanged).
+    ref.listenManual(ordersProvider, (prev, next) {
+      final updated = next.where((o) => o.id == _order.id).firstOrNull;
+      if (updated == null) return;
+      if (updated.status != _order.status ||
+          updated.student?.id != _order.student?.id) {
+        _refreshOrder();
+      }
+    });
   }
 
   Future<void> _loadSessions() async {
@@ -1360,16 +1370,16 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         availableStudents = result.success ? (result.data ?? []) : [];
         isLoadingStudents = false;
 
-        // Check if current student is in the available list
-        final currentStillAvailable =
-            session.studentId != null &&
-            availableStudents.any(
-              (s) => int.tryParse(s.id) == session.studentId,
-            );
-        // If selected student is no longer available, reset
-        if (selectedStudentId == session.studentId && !currentStillAvailable) {
+        // Only reset selection if the selected student is NOT the current
+        // one AND is no longer in the available list.
+        if (selectedStudentId != session.studentId &&
+            !availableStudents.any(
+              (s) => int.tryParse(s.id) == selectedStudentId,
+            )) {
           if (availableStudents.isNotEmpty) {
             selectedStudentId = int.tryParse(availableStudents.first.id);
+          } else if (session.studentId != null) {
+            selectedStudentId = session.studentId;
           } else {
             selectedStudentId = null;
           }
@@ -1425,11 +1435,15 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
           )
         else ...[
-          // "Keep current" option (only if available for this slot)
-          if (session.studentName != null && currentStillAvailable)
+          // "Keep current" option — always show if session has a student.
+          // Even if not in the backend available list (e.g. availability
+          // slots changed), admin should be able to keep the assignment.
+          if (session.studentName != null && session.studentId != null)
             _StudentRadioTile(
               name: session.studentName!,
-              subtitle: AppStrings.sessionKeepCurrentStudent,
+              subtitle: currentStillAvailable
+                  ? AppStrings.sessionKeepCurrentStudent
+                  : '${AppStrings.sessionKeepCurrentStudent} ⚠️',
               isSelected: selectedStudentId == session.studentId,
               onTap: () {
                 setSheetState(() {
@@ -1441,7 +1455,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           if (availableStudents
                   .where((s) => int.tryParse(s.id) != session.studentId)
                   .isEmpty &&
-              !currentStillAvailable)
+              session.studentId == null)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Text(
@@ -2155,6 +2169,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
               // Sync updated order back to provider for reactive UI
               ref.read(ordersProvider.notifier).updateItem(_order);
+
+              // Refresh from backend to get real session IDs (needed
+              // for reschedule excludeJobInstanceIds to work correctly).
+              await _refreshOrder();
+
+              if (!mounted) return;
 
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -3025,57 +3045,61 @@ class _StudentRadioTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        margin: const EdgeInsets.only(bottom: 4),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? HelpiColors.of(context).pastelTeal
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
             color: isSelected
-                ? HelpiTheme.accent
-                : HelpiColors.of(context).border,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-              size: 20,
+                ? HelpiColors.of(context).pastelTeal
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
               color: isSelected
                   ? HelpiTheme.accent
-                  : HelpiColors.of(context).textSecondary,
+                  : HelpiColors.of(context).border,
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: HelpiColors.of(context).textSecondary,
-                    ),
-                  ),
-                ],
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isSelected
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_off,
+                size: 20,
+                color: isSelected
+                    ? HelpiTheme.accent
+                    : HelpiColors.of(context).textSecondary,
               ),
-            ),
-          ],
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: HelpiColors.of(context).textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
