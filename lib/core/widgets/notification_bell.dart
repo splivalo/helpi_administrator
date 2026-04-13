@@ -14,8 +14,6 @@ import 'package:helpi_admin/features/students/presentation/student_detail_screen
 // Empty state is expected until the backend actually emits or stores an event.
 
 const _hiddenAdminNotificationTypes = {
-  NotificationType.paymentSuccess,
-  NotificationType.paymentFailed,
   NotificationType.paymentRefunded,
   NotificationType.jobRequest,
   NotificationType.jobStartReminder,
@@ -222,6 +220,15 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
                                     }
                                   },
                                   onNavigate: () => _navigateToEntity(n),
+                                  onDelete: () {
+                                    ref
+                                        .read(notificationsProvider.notifier)
+                                        .removeById(n.id);
+                                    final nId = int.tryParse(n.id) ?? 0;
+                                    if (nId > 0) {
+                                      AdminApiService().deleteNotification(nId);
+                                    }
+                                  },
                                 );
                               },
                             ),
@@ -391,6 +398,29 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
       return;
     }
 
+    // Payment notifications — navigate to the senior
+    if (n.seniorId != null &&
+        (type == NotificationType.paymentSuccess ||
+            type == NotificationType.paymentFailed)) {
+      final senior = ref
+          .read(seniorsProvider)
+          .where((s) => s.id == '${n.seniorId}')
+          .firstOrNull;
+      if (senior == null) return;
+      final orders = ref
+          .read(ordersProvider)
+          .where((o) => o.senior.id == senior.id)
+          .toList();
+      Navigator.of(context).pop();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SeniorDetailScreen(senior: senior, orders: orders),
+        ),
+      );
+      return;
+    }
+
     // Order-related notifications — navigate to the senior who owns the order
     if (n.orderId != null &&
         (type == NotificationType.newOrderAdded ||
@@ -433,11 +463,13 @@ class _NotificationTile extends StatelessWidget {
     required this.notification,
     required this.onTap,
     required this.onNavigate,
+    required this.onDelete,
   });
 
   final NotificationModel notification;
   final VoidCallback onTap;
   final VoidCallback onNavigate;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -447,90 +479,119 @@ class _NotificationTile extends StatelessWidget {
         ? iconFg.withValues(alpha: 0.15)
         : _iconBg(notification.type);
 
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        color: notification.isRead
-            ? null
-            : HelpiColors.of(context).pastelTeal.withAlpha(50),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Icon (tap to navigate) ──
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onNavigate,
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: iconBg,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    _icon(notification.type),
-                    size: 18,
-                    color: iconFg,
+    return _HoverBuilder(
+      builder: (isHovered) => InkWell(
+        onTap: onTap,
+        child: Container(
+          color: notification.isRead
+              ? null
+              : HelpiColors.of(context).pastelTeal.withAlpha(50),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Icon (tap to navigate) ──
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onNavigate,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: iconBg,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      _icon(notification.type),
+                      size: 18,
+                      color: iconFg,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            // ── Content ──
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          notification.title,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: notification.isRead
-                                ? FontWeight.w400
-                                : FontWeight.w600,
-                            color: HelpiColors.of(context).textPrimary,
+              const SizedBox(width: 12),
+              // ── Content ──
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title row with X on hover
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notification.title,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: notification.isRead
+                                  ? FontWeight.w400
+                                  : FontWeight.w600,
+                              color: HelpiColors.of(context).textPrimary,
+                            ),
                           ),
                         ),
+                        if (isHovered)
+                          GestureDetector(
+                            onTap: onDelete,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: Icon(
+                                Icons.close,
+                                size: 16,
+                                color: HelpiColors.of(context).textSecondary,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Subtitle row with dot
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notification.body,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: HelpiColors.of(context).textSecondary,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (!notification.isRead) ...[
+                          SizedBox(
+                            width: 16,
+                            child: Center(
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: HelpiTheme.accent,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _timeAgo(notification.createdAt),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: HelpiColors.of(context).textSecondary,
                       ),
-                      if (!notification.isRead)
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: HelpiTheme.accent,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    notification.body,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: HelpiColors.of(context).textSecondary,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _timeAgo(notification.createdAt),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: HelpiColors.of(context).textSecondary,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -538,6 +599,8 @@ class _NotificationTile extends StatelessWidget {
 
   static IconData _icon(NotificationType type) {
     return switch (type) {
+      NotificationType.paymentSuccess => Icons.payment_outlined,
+      NotificationType.paymentFailed => Icons.money_off_outlined,
       NotificationType.newStudentAdded => Icons.person_add_outlined,
       NotificationType.newSeniorAdded => Icons.person_add_outlined,
       NotificationType.newOrderAdded => Icons.shopping_bag_outlined,
@@ -563,6 +626,9 @@ class _NotificationTile extends StatelessWidget {
 
   static Color _iconColor(NotificationType type) {
     return switch (type) {
+      // Payment
+      NotificationType.paymentSuccess => HelpiTheme.statusActiveText,
+      NotificationType.paymentFailed => HelpiTheme.statusCancelledText,
       // Added (green)
       NotificationType.newStudentAdded => HelpiTheme.statusActiveText,
       NotificationType.newSeniorAdded => HelpiTheme.statusActiveText,
@@ -593,6 +659,9 @@ class _NotificationTile extends StatelessWidget {
 
   static Color _iconBg(NotificationType type) {
     return switch (type) {
+      // Payment bg
+      NotificationType.paymentSuccess => HelpiTheme.statusActiveBg,
+      NotificationType.paymentFailed => HelpiTheme.statusCancelledBg,
       // Added (green bg)
       NotificationType.newStudentAdded => HelpiTheme.statusActiveBg,
       NotificationType.newSeniorAdded => HelpiTheme.statusActiveBg,
@@ -707,6 +776,31 @@ class _PillTextButton extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Lightweight hover detector
+// ─────────────────────────────────────────────────────────────
+class _HoverBuilder extends StatefulWidget {
+  const _HoverBuilder({required this.builder});
+
+  final Widget Function(bool isHovered) builder;
+
+  @override
+  State<_HoverBuilder> createState() => _HoverBuilderState();
+}
+
+class _HoverBuilderState extends State<_HoverBuilder> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: widget.builder(_hovered),
     );
   }
 }

@@ -497,6 +497,7 @@ class ReviewModel {
   final int rating;
   final String? comment;
   final DateTime createdAt;
+
   /// 0 = SeniorToStudent, 1 = StudentToSenior
   final int reviewType;
 

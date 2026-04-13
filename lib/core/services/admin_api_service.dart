@@ -748,6 +748,15 @@ class AdminApiService {
     }
   }
 
+  Future<ApiResult<void>> deleteNotification(int notificationId) async {
+    try {
+      await _api.delete(ApiEndpoints.notificationDelete(notificationId));
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   // ─────────────────────────────────────────────
   //  CONTACT INFO
   // ─────────────────────────────────────────────

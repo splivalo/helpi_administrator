@@ -120,6 +120,10 @@ class NotificationsNotifier extends StateNotifier<List<NotificationModel>> {
   void removeRead() {
     state = state.where((n) => !n.isRead).toList();
   }
+
+  void removeById(String id) {
+    state = state.where((n) => n.id != id).toList();
+  }
 }
 
 final notificationsProvider =
