@@ -175,7 +175,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
   Widget build(BuildContext context) {
     final reviews = ref
         .watch(reviewsProvider)
-        .where((r) => r.studentName == _student.fullName)
+        .where((r) => r.studentName == _student.fullName && r.reviewType == 0)
         .toList();
     final orders =
         ref

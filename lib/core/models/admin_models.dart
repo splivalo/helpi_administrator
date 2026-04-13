@@ -497,6 +497,8 @@ class ReviewModel {
   final int rating;
   final String? comment;
   final DateTime createdAt;
+  /// 0 = SeniorToStudent, 1 = StudentToSenior
+  final int reviewType;
 
   const ReviewModel({
     required this.id,
@@ -508,6 +510,7 @@ class ReviewModel {
     required this.rating,
     this.comment,
     required this.createdAt,
+    this.reviewType = 0,
   });
 }
 

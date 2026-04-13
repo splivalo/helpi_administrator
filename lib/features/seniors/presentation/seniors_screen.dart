@@ -1727,7 +1727,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
 
   List<ReviewModel> get _seniorReviews => ref
       .read(reviewsProvider)
-      .where((r) => r.seniorName == _senior.fullName)
+      .where((r) => r.seniorName == _senior.fullName && r.reviewType == 1)
       .toList();
 
   Widget _buildReviewsSection(List<ReviewModel> reviews) {

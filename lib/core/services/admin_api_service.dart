@@ -1428,6 +1428,7 @@ class AdminApiService {
       rating: json['rating'] as int? ?? 0,
       comment: json['comment'] as String?,
       createdAt: _parseDateTime(json['createdAt']),
+      reviewType: json['type'] as int? ?? 0,
     );
   }
 
