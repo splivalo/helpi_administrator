@@ -299,26 +299,9 @@ class _NotesSectionState extends State<NotesSection> {
             ),
           )
         else if (_notes == null || _notes!.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.sticky_note_2_outlined,
-                    size: 36,
-                    color: HelpiColors.of(context).border,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    AppStrings.adminNotesEmpty,
-                    style: TextStyle(
-                      color: HelpiColors.of(context).textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          SectionEmptyState(
+            icon: Icons.sticky_note_2_outlined,
+            message: AppStrings.adminNotesEmpty,
           )
         else
           ..._notes!.map(_buildNoteCard),

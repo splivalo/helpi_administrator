@@ -465,6 +465,43 @@ class EmptyState extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  SECTION EMPTY STATE — consistent empty indicator within SectionCard
+// ═══════════════════════════════════════════════════════════════
+
+/// Compact empty-state widget used inside [SectionCard] children.
+///
+/// Provides a uniform look: centred icon (36px) + message in
+/// `textSecondary` colour with `vertical: 16` padding.
+class SectionEmptyState extends StatelessWidget {
+  const SectionEmptyState({
+    super.key,
+    required this.icon,
+    required this.message,
+  });
+  final IconData icon;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(icon, size: 36, color: HelpiColors.of(context).border),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: TextStyle(color: HelpiColors.of(context).textSecondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  RESULT COUNT ROW
 // ═══════════════════════════════════════════════════════════════
 

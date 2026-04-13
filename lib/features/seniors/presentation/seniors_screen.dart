@@ -1461,26 +1461,9 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
       icon: Icons.credit_card,
       children: _senior.creditCards.isEmpty
           ? [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.credit_card_off,
-                        size: 36,
-                        color: HelpiColors.of(context).border,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        AppStrings.seniorNoCards,
-                        style: TextStyle(
-                          color: HelpiColors.of(context).textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              SectionEmptyState(
+                icon: Icons.credit_card_off,
+                message: AppStrings.seniorNoCards,
               ),
             ]
           : _senior.creditCards

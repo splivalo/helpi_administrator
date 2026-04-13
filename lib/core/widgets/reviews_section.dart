@@ -31,26 +31,9 @@ class ReviewsSection extends StatelessWidget {
         title: title,
         icon: Icons.star,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Center(
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.star_border,
-                    size: 36,
-                    color: HelpiTheme.border,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    AppStrings.seniorNoReviews,
-                    style: TextStyle(
-                      color: HelpiColors.of(context).textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          SectionEmptyState(
+            icon: Icons.star_border,
+            message: AppStrings.seniorNoReviews,
           ),
         ],
       );

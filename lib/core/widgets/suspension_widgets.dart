@@ -36,27 +36,9 @@ class SuspensionHistoryCard extends StatelessWidget {
           const SizedBox(height: 12),
         ],
         if (status.suspensionHistory.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.history_toggle_off,
-                    size: 36,
-                    color: HelpiColors.of(context).border,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    AppStrings.noSuspensionHistory,
-                    style: TextStyle(
-                      color: HelpiColors.of(context).textSecondary,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          SectionEmptyState(
+            icon: Icons.history_toggle_off,
+            message: AppStrings.noSuspensionHistory,
           )
         else
           ...status.suspensionHistory.map((l) => _buildLogEntry(context, l)),
