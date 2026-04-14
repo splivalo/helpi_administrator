@@ -27,6 +27,7 @@ mixin SeniorFormHelpers<T extends StatefulWidget> on State<T> {
   Widget buildTextField({
     required TextEditingController controller,
     required String label,
+    String? hint,
     TextInputType keyboardType = TextInputType.text,
     bool required = false,
     bool obscureText = false,
@@ -37,6 +38,7 @@ mixin SeniorFormHelpers<T extends StatefulWidget> on State<T> {
       obscureText: obscureText,
       decoration: InputDecoration(
         labelText: label,
+        hintText: hint,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
         ),

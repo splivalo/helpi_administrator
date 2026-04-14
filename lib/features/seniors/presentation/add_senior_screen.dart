@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/widgets/address_autocomplete_field.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
@@ -45,6 +46,9 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
   final _ordAddressCtrl = TextEditingController();
   Gender? _ordGender;
   DateTime? _ordDateOfBirth;
+
+  String _seniorGooglePlaceId = 'admin-manual-entry';
+  String _ordererGooglePlaceId = 'admin-manual-entry';
 
   @override
   void dispose() {
@@ -139,10 +143,13 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
               required: true,
             ),
             const SizedBox(height: 12),
-            buildTextField(
+            AddressAutocompleteField(
               controller: _ordAddressCtrl,
               label: AppStrings.seniorOrdererAddress,
               required: true,
+              onSelected: (addr) {
+                _ordererGooglePlaceId = addr.placeId;
+              },
             ),
             const SizedBox(height: 12),
             buildGenderSelector(
@@ -196,10 +203,13 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
             required: true,
           ),
           const SizedBox(height: 12),
-          buildTextField(
+          AddressAutocompleteField(
             controller: _addressCtrl,
             label: AppStrings.seniorAddress,
             required: true,
+            onSelected: (addr) {
+              _seniorGooglePlaceId = addr.placeId;
+            },
           ),
           const SizedBox(height: 12),
           buildGenderSelector(
@@ -316,13 +326,14 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
       required String address,
       required int gender,
       required String dateOfBirth,
+      required String googlePlaceId,
     }) {
       return {
         'fullName': '$firstName $lastName',
         'phone': phone,
         'gender': gender,
         'dateOfBirth': dateOfBirth,
-        'googlePlaceId': 'admin-manual-entry',
+        'googlePlaceId': googlePlaceId,
         'fullAddress': address,
         'languageCode': 'hr',
         'country': 'Croatia',
@@ -342,6 +353,7 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
         address: _ordAddressCtrl.text.trim(),
         gender: _ordGender == Gender.male ? 0 : 1,
         dateOfBirth: _ordDateOfBirth!.toIso8601String().split('T').first,
+        googlePlaceId: _ordererGooglePlaceId,
       );
       seniorContactInfo = buildContactInfo(
         firstName: _firstNameCtrl.text.trim(),
@@ -350,6 +362,7 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
         address: _addressCtrl.text.trim(),
         gender: _gender == Gender.male ? 0 : 1,
         dateOfBirth: _dateOfBirth!.toIso8601String().split('T').first,
+        googlePlaceId: _seniorGooglePlaceId,
       );
     } else {
       email = _emailCtrl.text.trim();
@@ -361,6 +374,7 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
         address: _addressCtrl.text.trim(),
         gender: _gender == Gender.male ? 0 : 1,
         dateOfBirth: _dateOfBirth!.toIso8601String().split('T').first,
+        googlePlaceId: _seniorGooglePlaceId,
       );
     }
 

@@ -137,14 +137,18 @@ class DataLoader {
 
     // Sync Riverpod providers for reactive UI updates
     if (ref != null) {
-      ref.read(studentsProvider.notifier).setAll(AppData.students);
-      ref.read(seniorsProvider.notifier).setAll(AppData.seniors);
-      ref.read(ordersProvider.notifier).setAll(AppData.orders);
-      ref.read(reviewsProvider.notifier).setAll(AppData.reviews);
-      ref.read(notificationsProvider.notifier).setAll(AppData.notifications);
-      // Chat rooms loaded from API
-      await ref.read(adminChatRoomsProvider.notifier).loadRooms();
-      await ref.read(unreadMessagesProvider.notifier).refresh();
+      try {
+        ref.read(studentsProvider.notifier).setAll(AppData.students);
+        ref.read(seniorsProvider.notifier).setAll(AppData.seniors);
+        ref.read(ordersProvider.notifier).setAll(AppData.orders);
+        ref.read(reviewsProvider.notifier).setAll(AppData.reviews);
+        ref.read(notificationsProvider.notifier).setAll(AppData.notifications);
+        // Chat rooms loaded from API
+        await ref.read(adminChatRoomsProvider.notifier).loadRooms();
+        await ref.read(unreadMessagesProvider.notifier).refresh();
+      } catch (e) {
+        debugPrint('[DataLoader] ref.read failed (widget disposed?): $e');
+      }
     }
 
     _loaded = allOk;

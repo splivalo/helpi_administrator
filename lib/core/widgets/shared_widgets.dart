@@ -349,6 +349,7 @@ class ActionChipButton extends StatelessWidget {
     required this.onTap,
     this.outlined = false,
     this.size = ActionChipButtonSize.small,
+    this.loading = false,
   });
 
   final IconData icon;
@@ -357,6 +358,7 @@ class ActionChipButton extends StatelessWidget {
   final VoidCallback onTap;
   final bool outlined;
   final ActionChipButtonSize size;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
@@ -375,12 +377,13 @@ class ActionChipButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       child: InkWell(
         borderRadius: BorderRadius.circular(radius),
+        canRequestFocus: false,
         hoverColor: outlined ? color.withAlpha(20) : Colors.white.withAlpha(25),
         splashColor: outlined
             ? color.withAlpha(35)
             : Colors.white.withAlpha(40),
         mouseCursor: SystemMouseCursors.click,
-        onTap: onTap,
+        onTap: loading ? null : onTap,
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
           decoration: outlined
@@ -392,7 +395,17 @@ class ActionChipButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: iconSize, color: fgColor),
+              if (loading)
+                SizedBox(
+                  width: iconSize,
+                  height: iconSize,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: fgColor,
+                  ),
+                )
+              else
+                Icon(icon, size: iconSize, color: fgColor),
               SizedBox(width: gap),
               Text(
                 label,

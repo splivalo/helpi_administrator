@@ -415,6 +415,7 @@ class AppStrings {
       'confirm': 'Potvrdi',
       'ok': 'U redu',
       'save': 'Spremi',
+      'saving': 'Spremam...',
       'delete': 'Obriši',
       'edit': 'Uredi',
       'yesterday': 'Jučer',
@@ -450,6 +451,8 @@ class AppStrings {
       'confirmNewPassword': 'Potvrdite novu lozinku',
       'resetPasswordButton': 'Resetiraj lozinku',
       'resetPasswordSuccess': 'Lozinka uspješno promijenjena',
+      'setPasswordLabel': 'Postavi lozinku',
+      'setPasswordHint': 'Ostavi prazno ako ne želiš mijenjati',
       'codeSent': 'Kod je poslan na vaš email',
       'backToLogin': 'Povratak na prijavu',
 
@@ -911,6 +914,7 @@ class AppStrings {
       'confirm': 'Confirm',
       'ok': 'OK',
       'save': 'Save',
+      'saving': 'Saving...',
       'delete': 'Delete',
       'edit': 'Edit',
       'yesterday': 'Yesterday',
@@ -946,6 +950,8 @@ class AppStrings {
       'confirmNewPassword': 'Confirm new password',
       'resetPasswordButton': 'Reset password',
       'resetPasswordSuccess': 'Password changed successfully',
+      'setPasswordLabel': 'Set password',
+      'setPasswordHint': 'Leave empty to keep current',
       'codeSent': 'Code sent to your email',
       'backToLogin': 'Back to login',
 
@@ -1410,6 +1416,7 @@ class AppStrings {
   static String get confirm => _t('confirm');
   static String get ok => _t('ok');
   static String get save => _t('save');
+  static String get saving => _t('saving');
   static String get delete => _t('delete');
   static String get edit => _t('edit');
   static String get yesterday => _t('yesterday');
@@ -1430,6 +1437,8 @@ class AppStrings {
   static String get confirmNewPassword => _t('confirmNewPassword');
   static String get resetPasswordButton => _t('resetPasswordButton');
   static String get resetPasswordSuccess => _t('resetPasswordSuccess');
+  static String get setPasswordLabel => _t('setPasswordLabel');
+  static String get setPasswordHint => _t('setPasswordHint');
   static String get codeSent => _t('codeSent');
   static String get backToLogin => _t('backToLogin');
 

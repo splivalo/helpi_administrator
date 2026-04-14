@@ -26,6 +26,7 @@ class SignalRNotificationService {
   bool _stoppedManually = false;
   int _reconnectAttempt = 0;
   WidgetRef? _ref;
+  Timer? _entityChangedDebounce;
 
   bool get isConnected =>
       _connection != null && _connection!.state == HubConnectionState.Connected;
@@ -132,10 +133,13 @@ class SignalRNotificationService {
     final entityType = (args != null && args.isNotEmpty)
         ? args[0]?.toString() ?? 'unknown'
         : 'unknown';
-    debugPrint('[SignalR] EntityChanged ($entityType) — refreshing all data');
-    if (_ref != null) {
-      DataLoader.loadAll(ref: _ref!);
-    }
+    debugPrint('[SignalR] EntityChanged ($entityType) — debounced refresh');
+    _entityChangedDebounce?.cancel();
+    _entityChangedDebounce = Timer(const Duration(milliseconds: 500), () {
+      if (_ref != null) {
+        DataLoader.loadAll(ref: _ref!);
+      }
+    });
   }
 
   void _onReceiveNotification(List<Object?>? args) {

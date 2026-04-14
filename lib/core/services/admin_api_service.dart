@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -255,8 +257,12 @@ class AdminApiService {
 
   Future<ApiResult<List<SessionModel>>> getSessions() async {
     try {
-      final response = await _api.get(ApiEndpoints.sessions);
-      final list = (response.data as List<dynamic>)
+      final response = await _api.dio.get<String>(
+        ApiEndpoints.sessions,
+        options: Options(responseType: ResponseType.plain),
+      );
+      final decoded = jsonDecode(response.data!) as List<dynamic>;
+      final list = decoded
           .map((e) => _mapSession(e as Map<String, dynamic>))
           .toList();
       return ApiResult.ok(list);
@@ -269,10 +275,12 @@ class AdminApiService {
     int studentId,
   ) async {
     try {
-      final response = await _api.get(
+      final response = await _api.dio.get<String>(
         '${ApiEndpoints.sessions}/student/$studentId',
+        options: Options(responseType: ResponseType.plain),
       );
-      final list = (response.data as List<dynamic>)
+      final decoded = jsonDecode(response.data!) as List<dynamic>;
+      final list = decoded
           .map((e) => _mapSession(e as Map<String, dynamic>))
           .toList();
       return ApiResult.ok(list);
@@ -285,10 +293,12 @@ class AdminApiService {
     int seniorId,
   ) async {
     try {
-      final response = await _api.get(
+      final response = await _api.dio.get<String>(
         '${ApiEndpoints.sessions}/completed/senior/$seniorId',
+        options: Options(responseType: ResponseType.plain),
       );
-      final list = (response.data as List<dynamic>)
+      final decoded = jsonDecode(response.data!) as List<dynamic>;
+      final list = decoded
           .map((e) => _mapSession(e as Map<String, dynamic>))
           .toList();
       return ApiResult.ok(list);
@@ -299,8 +309,12 @@ class AdminApiService {
 
   Future<ApiResult<List<SessionModel>>> getSessionsByOrder(int orderId) async {
     try {
-      final response = await _api.get(ApiEndpoints.sessionsByOrder(orderId));
-      final list = (response.data as List<dynamic>)
+      final response = await _api.dio.get<String>(
+        ApiEndpoints.sessionsByOrder(orderId),
+        options: Options(responseType: ResponseType.plain),
+      );
+      final decoded = jsonDecode(response.data!) as List<dynamic>;
+      final list = decoded
           .map((e) => _mapSession(e as Map<String, dynamic>))
           .toList();
       return ApiResult.ok(list);
@@ -800,6 +814,7 @@ class AdminApiService {
     required String fullAddress,
     required int gender,
     required String dateOfBirth,
+    String googlePlaceId = 'admin-manual-entry',
   }) async {
     try {
       await _api.put(
@@ -811,13 +826,66 @@ class AdminApiService {
           'fullAddress': fullAddress,
           'gender': gender,
           'dateOfBirth': dateOfBirth,
-          'googlePlaceId': 'admin-manual-entry',
+          'googlePlaceId': googlePlaceId,
           'languageCode': 'hr',
           'country': 'Croatia',
           'cityId': 1, // Default city, backend should handle null
         },
       );
       return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Update a senior's relationship (e.g. Self → Parent).
+  Future<ApiResult<void>> updateSenior({
+    required int seniorId,
+    required int relationship,
+  }) async {
+    try {
+      await _api.put(
+        ApiEndpoints.updateSenior(seniorId),
+        data: {'relationship': relationship},
+      );
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Admin-only: force-reset a user's password.
+  Future<ApiResult<void>> adminResetPassword({
+    required int userId,
+    required String newPassword,
+  }) async {
+    try {
+      await _api.post(
+        ApiEndpoints.adminResetPassword,
+        data: {'userId': userId, 'newPassword': newPassword},
+      );
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  // ─────────────────────────────────────────────
+  //  PLACES (backend proxy for Google autocomplete)
+  // ─────────────────────────────────────────────
+
+  Future<ApiResult<List<Map<String, dynamic>>>> placesAutocomplete(
+    String input,
+  ) async {
+    try {
+      final response = await _api.get(
+        ApiEndpoints.placesAutocomplete,
+        queryParameters: {'input': input},
+      );
+      final list = (response.data as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      return ApiResult.ok(list);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
     }
@@ -1172,6 +1240,7 @@ class AdminApiService {
       id: '${json['userId']}',
       contactId: contact?['id'] as int?,
       facultyId: json['facultyId'] as int?,
+      googlePlaceId: contact?['googlePlaceId'] as String?,
       firstName: firstName,
       lastName: lastName,
       email: contact?['email'] as String? ?? '',
@@ -1241,6 +1310,9 @@ class AdminApiService {
       userId: json['customerId'] as int?,
       contactId: contact?['id'] as int?,
       ordererContactId: ordererContact?['id'] as int?,
+      relationship: json['relationship'] as int? ?? 0,
+      googlePlaceId: contact?['googlePlaceId'] as String?,
+      ordererGooglePlaceId: ordererContact?['googlePlaceId'] as String?,
       firstName: firstName,
       lastName: lastName,
       email: contact?['email'] as String? ?? '',

@@ -7,6 +7,7 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
+import 'package:helpi_admin/core/widgets/address_autocomplete_field.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/seniors/presentation/senior_form_helpers.dart';
 
@@ -48,6 +49,16 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
   Gender? _ordGender;
   DateTime? _ordDateOfBirth;
 
+  // Password (optional — admin can set/reset)
+  final _passwordCtrl = TextEditingController();
+  bool _obscurePassword = true;
+
+  bool _isSaving = false;
+
+  // Google Place IDs for address autocomplete
+  late String _seniorGooglePlaceId;
+  late String _ordererGooglePlaceId;
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +71,9 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
     _addressCtrl = TextEditingController(text: s.address);
     _gender = s.gender;
     _dateOfBirth = s.dateOfBirth;
+
+    _seniorGooglePlaceId = s.googlePlaceId ?? 'admin-manual-entry';
+    _ordererGooglePlaceId = s.ordererGooglePlaceId ?? 'admin-manual-entry';
 
     _hasOrderer = s.hasOrderer;
     _ordFirstNameCtrl = TextEditingController(text: s.ordererFirstName ?? '');
@@ -83,6 +97,7 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
     _ordEmailCtrl.dispose();
     _ordPhoneCtrl.dispose();
     _ordAddressCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
@@ -98,7 +113,22 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
             children: [
               HelpiSwitch(
                 value: _hasOrderer,
-                onChanged: (v) => setState(() => _hasOrderer = v),
+                onChanged: (v) {
+                  setState(() {
+                    _hasOrderer = v;
+                    // Pre-fill orderer fields with senior data (same person before split)
+                    if (v && !widget.senior.hasOrderer) {
+                      _ordFirstNameCtrl.text = _firstNameCtrl.text;
+                      _ordLastNameCtrl.text = _lastNameCtrl.text;
+                      _ordEmailCtrl.text = _emailCtrl.text;
+                      _ordPhoneCtrl.text = _phoneCtrl.text;
+                      _ordAddressCtrl.text = _addressCtrl.text;
+                      _ordGender = _gender;
+                      _ordDateOfBirth = _dateOfBirth;
+                      _ordererGooglePlaceId = _seniorGooglePlaceId;
+                    }
+                  });
+                },
               ),
               const SizedBox(width: 8),
               Text(
@@ -142,10 +172,13 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
               required: true,
             ),
             const SizedBox(height: 12),
-            buildTextField(
+            AddressAutocompleteField(
               controller: _ordAddressCtrl,
               label: AppStrings.seniorOrdererAddress,
               required: true,
+              onSelected: (addr) {
+                _ordererGooglePlaceId = addr.placeId;
+              },
             ),
             const SizedBox(height: 12),
             buildGenderSelector(
@@ -192,10 +225,13 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
             required: true,
           ),
           const SizedBox(height: 12),
-          buildTextField(
+          AddressAutocompleteField(
             controller: _addressCtrl,
             label: AppStrings.seniorAddress,
             required: true,
+            onSelected: (addr) {
+              _seniorGooglePlaceId = addr.placeId;
+            },
           ),
           const SizedBox(height: 12),
           buildGenderSelector(
@@ -208,6 +244,35 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
             value: _dateOfBirth,
             onChanged: (d) => setState(() => _dateOfBirth = d),
           ),
+
+          // ── Lozinka (samo kad ima naručitelja) ──
+          if (_hasOrderer) ...[
+            const SizedBox(height: 24),
+            buildSectionLabel(AppStrings.setPasswordLabel, Icons.lock_outline),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _passwordCtrl,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                labelText: AppStrings.setPasswordLabel,
+                hintText: AppStrings.setPasswordHint,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 32),
 
           // ── Save button ──
@@ -216,10 +281,11 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
               alignment: Alignment.centerRight,
               child: ActionChipButton(
                 icon: Icons.check,
-                label: AppStrings.save,
+                label: _isSaving ? AppStrings.saving : AppStrings.save,
                 color: HelpiTheme.accent,
                 size: ActionChipButtonSize.medium,
-                onTap: _onSave,
+                onTap: _isSaving ? () {} : _onSave,
+                loading: _isSaving,
               ),
             )
           else
@@ -227,9 +293,18 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
               width: double.infinity,
               height: 48,
               child: FilledButton.icon(
-                onPressed: _onSave,
-                icon: const Icon(Icons.check, size: 20),
-                label: Text(AppStrings.save),
+                onPressed: _isSaving ? null : _onSave,
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.check, size: 20),
+                label: Text(_isSaving ? AppStrings.saving : AppStrings.save),
                 style: FilledButton.styleFrom(
                   backgroundColor: HelpiTheme.accent,
                   shape: RoundedRectangleBorder(
@@ -287,6 +362,7 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
   }
 
   Future<void> _onSave() async {
+    if (_isSaving) return;
     if (!_formKey.currentState!.validate()) return;
 
     if (_gender == null || _dateOfBirth == null) {
@@ -309,22 +385,22 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
       return;
     }
 
-    final api = AdminApiService();
+    setState(() => _isSaving = true);
 
-    // Update senior contact info
-    final seniorContactId = widget.senior.contactId;
-    if (seniorContactId != null) {
-      final result = await api.updateContactInfo(
-        contactId: seniorContactId,
-        fullName: '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}',
-        email: _emailCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim(),
-        fullAddress: _addressCtrl.text.trim(),
-        gender: _gender == Gender.male ? 0 : 1,
-        dateOfBirth: _dateOfBirth!.toIso8601String().split('T').first,
+    final api = AdminApiService();
+    final seniorId = int.tryParse(widget.senior.id);
+
+    // 1. Update relationship if changed
+    final oldHasOrderer = widget.senior.hasOrderer;
+    if (seniorId != null && _hasOrderer != oldHasOrderer) {
+      final newRelationship = _hasOrderer ? 4 : 0;
+      final result = await api.updateSenior(
+        seniorId: seniorId,
+        relationship: newRelationship,
       );
       if (!mounted) return;
       if (!result.success) {
+        setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result.error ?? 'Error'),
@@ -333,27 +409,93 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
         );
         return;
       }
+      // Reload only seniors to get updated contact IDs
+      final seniorsResult = await api.getSeniors();
+      if (!mounted) return;
+      if (seniorsResult.success && seniorsResult.data != null) {
+        ref.read(seniorsProvider.notifier).setAll(seniorsResult.data!);
+      }
     }
 
-    // Update orderer contact info if present
-    if (_hasOrderer) {
-      final ordererContactId = widget.senior.ordererContactId;
-      if (ordererContactId != null) {
-        final result = await api.updateContactInfo(
-          contactId: ordererContactId,
+    // Re-read the senior to get updated contact IDs (may have changed)
+    final currentSenior =
+        ref
+            .read(seniorsProvider)
+            .where((s) => s.id == widget.senior.id)
+            .firstOrNull ??
+        widget.senior;
+
+    // Refresh googlePlaceIds from backend after relationship change
+    final refreshedSeniorPlaceId = currentSenior.googlePlaceId;
+    if (refreshedSeniorPlaceId != null && refreshedSeniorPlaceId.isNotEmpty) {
+      _seniorGooglePlaceId = refreshedSeniorPlaceId;
+    }
+    final refreshedOrdererPlaceId = currentSenior.ordererGooglePlaceId;
+    if (refreshedOrdererPlaceId != null && refreshedOrdererPlaceId.isNotEmpty) {
+      _ordererGooglePlaceId = refreshedOrdererPlaceId;
+    }
+
+    // 2-4. Run contact updates + password reset in parallel
+    final futures = <Future<ApiResult<void>>>[];
+
+    // Senior contact update
+    final seniorContactId = currentSenior.contactId;
+    if (seniorContactId != null) {
+      futures.add(
+        api.updateContactInfo(
+          contactId: seniorContactId,
           fullName:
-              '${_ordFirstNameCtrl.text.trim()} ${_ordLastNameCtrl.text.trim()}',
-          email: _ordEmailCtrl.text.trim(),
-          phone: _ordPhoneCtrl.text.trim(),
-          fullAddress: _ordAddressCtrl.text.trim(),
-          gender: _ordGender == Gender.male ? 0 : 1,
-          dateOfBirth: _ordDateOfBirth!.toIso8601String().split('T').first,
+              '${_firstNameCtrl.text.trim()} ${_lastNameCtrl.text.trim()}',
+          email: _emailCtrl.text.trim(),
+          phone: _phoneCtrl.text.trim(),
+          fullAddress: _addressCtrl.text.trim(),
+          gender: _gender == Gender.male ? 0 : 1,
+          dateOfBirth: _dateOfBirth!.toIso8601String().split('T').first,
+          googlePlaceId: _seniorGooglePlaceId,
+        ),
+      );
+    }
+
+    // Orderer contact update
+    if (_hasOrderer) {
+      final ordererContactId = currentSenior.ordererContactId;
+      if (ordererContactId != null) {
+        futures.add(
+          api.updateContactInfo(
+            contactId: ordererContactId,
+            fullName:
+                '${_ordFirstNameCtrl.text.trim()} ${_ordLastNameCtrl.text.trim()}',
+            email: _ordEmailCtrl.text.trim(),
+            phone: _ordPhoneCtrl.text.trim(),
+            fullAddress: _ordAddressCtrl.text.trim(),
+            gender: _ordGender == Gender.male ? 0 : 1,
+            dateOfBirth: _ordDateOfBirth!.toIso8601String().split('T').first,
+            googlePlaceId: _ordererGooglePlaceId,
+          ),
         );
-        if (!mounted) return;
-        if (!result.success) {
+      }
+    }
+
+    // Password reset
+    final newPassword = _passwordCtrl.text.trim();
+    if (newPassword.isNotEmpty && currentSenior.userId != null) {
+      futures.add(
+        api.adminResetPassword(
+          userId: currentSenior.userId!,
+          newPassword: newPassword,
+        ),
+      );
+    }
+
+    if (futures.isNotEmpty) {
+      final results = await Future.wait(futures);
+      if (!mounted) return;
+      for (final r in results) {
+        if (!r.success) {
+          setState(() => _isSaving = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.error ?? 'Error'),
+              content: Text(r.error ?? 'Error'),
               backgroundColor: HelpiTheme.primary,
             ),
           );
@@ -362,11 +504,10 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
       }
     }
 
-    // Refresh data from backend
+    // 5. Refresh data from backend
     await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
 
-    // Find refreshed senior from provider
     final refreshed = ref
         .read(seniorsProvider)
         .where((s) => s.id == widget.senior.id)

@@ -9,6 +9,7 @@ import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
+import 'package:helpi_admin/core/widgets/address_autocomplete_field.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/seniors/presentation/senior_form_helpers.dart';
 
@@ -43,6 +44,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
   Gender? _gender;
   DateTime? _dateOfBirth;
   Faculty? _selectedFaculty;
+  late String _googlePlaceId;
 
   // ── Availability ──
   late List<_DaySlot> _days;
@@ -51,6 +53,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
   void initState() {
     super.initState();
     final s = widget.student;
+    _googlePlaceId = s.googlePlaceId ?? 'admin-manual-entry';
 
     _firstNameCtrl = TextEditingController(text: s.firstName);
     _lastNameCtrl = TextEditingController(text: s.lastName);
@@ -131,10 +134,13 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
             required: true,
           ),
           const SizedBox(height: 12),
-          buildTextField(
+          AddressAutocompleteField(
             controller: _addressCtrl,
             label: AppStrings.studentAddress,
             required: true,
+            onSelected: (addr) {
+              _googlePlaceId = addr.placeId;
+            },
           ),
           const SizedBox(height: 12),
           buildGenderSelector(
@@ -375,6 +381,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
         fullAddress: _addressCtrl.text.trim(),
         gender: _gender == Gender.male ? 0 : 1,
         dateOfBirth: _dateOfBirth!.toIso8601String().split('T').first,
+        googlePlaceId: _googlePlaceId,
       );
       if (!mounted) return;
       if (!result.success) {

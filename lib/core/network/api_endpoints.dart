@@ -11,6 +11,7 @@ class ApiEndpoints {
   static const String changePassword = '/api/auth/change-password';
   static const String forgotPassword = '/api/auth/forgot-password';
   static const String resetPassword = '/api/auth/reset-password-code';
+  static const String adminResetPassword = '/api/auth/admin-reset-password';
 
   // Dashboard
   static const String dashboardAdmin = '/api/dashboard/admin';
@@ -35,6 +36,7 @@ class ApiEndpoints {
   // Seniors
   static const String seniors = '/api/seniors';
   static String seniorById(int id) => '/api/seniors/$id';
+  static String updateSenior(int id) => '/api/seniors/$id';
 
   // Customers
   static const String customers = '/api/customers';
@@ -42,6 +44,9 @@ class ApiEndpoints {
 
   // Contact Info
   static const String contactInfos = '/api/contact-infos';
+
+  // Places (backend proxy for Google Places autocomplete)
+  static const String placesAutocomplete = '/api/places/autocomplete';
 
   // Student Contracts
   static const String studentContracts = '/api/student-contracts';

@@ -143,9 +143,12 @@ class CreditCard {
 
 class SeniorModel {
   final String id;
-  final int? userId; // Customer/User ID (AspNetUsers.Id) � for suspend/activate
+  final int? userId; // Customer/User ID (AspNetUsers.Id) — for suspend/activate
   final int? contactId; // For backend update via PUT /api/contact-infos/{id}
   final int? ordererContactId; // For orderer update
+  final int relationship; // 0=Self, 1=Spouse, 2=Parent, 3=Relative, 4=Other
+  final String? googlePlaceId; // Senior's google place ID
+  final String? ordererGooglePlaceId; // Orderer's google place ID
   final String firstName;
   final String lastName;
   final String email;
@@ -175,6 +178,9 @@ class SeniorModel {
     this.userId,
     this.contactId,
     this.ordererContactId,
+    this.relationship = 0,
+    this.googlePlaceId,
+    this.ordererGooglePlaceId,
     required this.firstName,
     required this.lastName,
     required this.email,
@@ -201,7 +207,7 @@ class SeniorModel {
   });
 
   String get fullName => '$firstName $lastName';
-  bool get hasOrderer => ordererFirstName != null;
+  bool get hasOrderer => relationship != 0;
   String get ordererFullName =>
       hasOrderer ? '$ordererFirstName $ordererLastName' : '';
   String get contactName => hasOrderer ? ordererFullName : fullName;
@@ -213,6 +219,7 @@ class StudentModel {
   final String id;
   final int? contactId;
   final int? facultyId;
+  final String? googlePlaceId;
   final String firstName;
   final String lastName;
   final String email;
@@ -246,6 +253,7 @@ class StudentModel {
     required this.id,
     this.contactId,
     this.facultyId,
+    this.googlePlaceId,
     required this.firstName,
     required this.lastName,
     required this.email,
