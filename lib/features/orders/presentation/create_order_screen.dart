@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
-import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
@@ -41,14 +40,11 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   final _formKey = GlobalKey<FormState>();
   final _scrollCtrl = ScrollController();
   late final TextEditingController _notesCtrl;
-  final _seniorSearchCtrl = TextEditingController();
-
   // ── Mode ──
   bool get _isEditMode => widget.existingOrder != null;
 
   // ── Senior ──
   SeniorModel? _selectedSenior;
-  bool _showSeniorSearch = false;
 
   // ── Frequency ──
   FrequencyType _frequency = FrequencyType.oneTime;
@@ -123,7 +119,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   void dispose() {
     _scrollCtrl.dispose();
     _notesCtrl.dispose();
-    _seniorSearchCtrl.dispose();
     super.dispose();
   }
 
@@ -170,13 +165,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       return label[0];
     }
     return label;
-  }
-
-  List<SeniorModel> get _filteredSeniors {
-    final q = _seniorSearchCtrl.text.toLowerCase();
-    final seniors = ref.read(seniorsProvider);
-    if (q.isEmpty) return seniors;
-    return seniors.where((s) => s.fullName.toLowerCase().contains(q)).toList();
   }
 
   Set<int> get _usedDays => _dayEntries.map((e) => e.dayOfWeek).toSet();
@@ -237,17 +225,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           // ══════════════════════════════════════
-          // 1) ODABERI SENIORA
-          // ══════════════════════════════════════
-          if (widget.senior == null && !_isEditMode) ...[
-            _buildSectionLabel(AppStrings.selectSenior, Icons.elderly),
-            const SizedBox(height: 12),
-            _buildSeniorPicker(),
-            const SizedBox(height: 24),
-          ],
-
-          // ══════════════════════════════════════
-          // 2) UČESTALOST
+          // UČESTALOST
           // ══════════════════════════════════════
           if (_seniorReady) ...[
             _buildSectionLabel(AppStrings.orderFrequency, Icons.repeat),
@@ -390,166 +368,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
             color: HelpiColors.of(context).textPrimary,
           ),
         ),
-      ],
-    );
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  //  SENIOR PICKER
-  // ═══════════════════════════════════════════════════════════════
-  Widget _buildSeniorPicker() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Selected senior or tap to select
-        GestureDetector(
-          onTap: () => setState(() => _showSeniorSearch = !_showSeniorSearch),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              color: HelpiColors.of(context).surface,
-              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-              border: Border.all(color: HelpiColors.of(context).border),
-            ),
-            child: Row(
-              children: [
-                if (_selectedSenior != null) ...[
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: HelpiTheme.accent.withValues(alpha: 0.12),
-                    child: Text(
-                      _selectedSenior!.firstName[0],
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: HelpiTheme.accent,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _selectedSenior!.fullName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Text(
-                          _selectedSenior!.address,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: HelpiColors.of(context).textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ] else ...[
-                  Icon(
-                    Icons.person_search,
-                    size: 20,
-                    color: HelpiColors.of(context).textSecondary,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    AppStrings.selectSenior,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: HelpiColors.of(context).textSecondary,
-                    ),
-                  ),
-                ],
-                const Spacer(),
-                Icon(
-                  _showSeniorSearch
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  color: HelpiColors.of(context).textSecondary,
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Search dropdown
-        if (_showSeniorSearch) ...[
-          const SizedBox(height: 8),
-          TextField(
-            controller: _seniorSearchCtrl,
-            onChanged: (_) => setState(() {}),
-            decoration: InputDecoration(
-              hintText: AppStrings.selectSeniorHint,
-              prefixIcon: const Icon(Icons.search, color: HelpiTheme.accent),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            constraints: const BoxConstraints(maxHeight: 200),
-            decoration: BoxDecoration(
-              color: HelpiColors.of(context).surface,
-              borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-              border: Border.all(color: HelpiColors.of(context).border),
-            ),
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: _filteredSeniors.length,
-              itemBuilder: (ctx, i) {
-                final senior = _filteredSeniors[i];
-                final isSelected = _selectedSenior?.id == senior.id;
-                return ListTile(
-                  dense: true,
-                  selected: isSelected,
-                  selectedTileColor: HelpiTheme.accent.withValues(alpha: 0.06),
-                  leading: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: HelpiTheme.accent.withValues(alpha: 0.12),
-                    child: Text(
-                      senior.firstName[0],
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: HelpiTheme.accent,
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    senior.fullName,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  subtitle: Text(
-                    senior.address,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  trailing: isSelected
-                      ? const Icon(
-                          Icons.check_circle,
-                          color: HelpiTheme.accent,
-                          size: 20,
-                        )
-                      : null,
-                  onTap: () {
-                    setState(() {
-                      _selectedSenior = senior;
-                      _showSeniorSearch = false;
-                      _seniorSearchCtrl.clear();
-                    });
-                    _scrollToBottom();
-                  },
-                );
-              },
-            ),
-          ),
-        ],
       ],
     );
   }
@@ -1279,22 +1097,12 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     final result = await api.updateOrder(orderId, data);
     if (!mounted) return;
     if (!result.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.error ?? 'Error'),
-          backgroundColor: HelpiTheme.primary,
-        ),
-      );
+      showErrorSnack(context, result.error ?? 'Error');
       return;
     }
     await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.editOrderSuccess),
-        backgroundColor: HelpiTheme.accent,
-      ),
-    );
+    showSuccessSnack(context, AppStrings.editOrderSuccess);
     Navigator.pop(context, true);
   }
 
@@ -1361,29 +1169,17 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     final result = await api.createOrder(orderData);
     if (!mounted) return;
     if (!result.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.error ?? 'Error'),
-          backgroundColor: HelpiTheme.primary,
-        ),
-      );
+      showErrorSnack(context, result.error ?? 'Error');
       return;
     }
     await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.createOrderSuccess),
-        backgroundColor: HelpiTheme.accent,
-      ),
-    );
+    showSuccessSnack(context, AppStrings.createOrderSuccess);
     Navigator.pop(context, true);
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: HelpiTheme.primary),
-    );
+    showErrorSnack(context, message);
   }
 }
 

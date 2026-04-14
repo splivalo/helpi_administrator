@@ -598,19 +598,13 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                   ),
                   onPressed: () async {
                     final filterName = _tabFilters[_tabCtrl.index].name;
-                    final messenger = ScaffoldMessenger.of(context);
                     final saved = await ExcelExportService.exportStudents(
                       students,
                       filterName,
                     );
-                    if (!mounted) return;
+                    if (!context.mounted) return;
                     if (saved) {
-                      messenger.showSnackBar(
-                        SnackBar(
-                          content: Text(AppStrings.exportSuccess),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
+                      showSuccessSnack(context, AppStrings.exportSuccess);
                     }
                   },
                   tooltip: AppStrings.exportToExcel,
@@ -1808,23 +1802,9 @@ class _StudentCard extends StatelessWidget {
             // ── Header: Avatar + Name + Status chips ──
             Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: HelpiColors.of(context).pastelTeal,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      student.firstName[0] + student.lastName[0],
-                      style: const TextStyle(
-                        color: HelpiTheme.accent,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
+                ProfileAvatar(
+                  initials: student.firstName[0] + student.lastName[0],
+                  profileImageUrl: student.profileImageUrl,
                 ),
                 const SizedBox(width: 10),
                 Expanded(

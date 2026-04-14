@@ -105,12 +105,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
 
   void _confirmAssign() {
     if (_unresolvedCount > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.unresolvedConflicts),
-          backgroundColor: HelpiTheme.error,
-        ),
-      );
+      showErrorSnack(context, AppStrings.unresolvedConflicts);
       return;
     }
     widget.onAssigned(_sessions);
@@ -682,17 +677,11 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                     ),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          backgroundColor: HelpiTheme.accent.withAlpha(30),
+                        ProfileAvatar(
+                          initials: '${sub.firstName[0]}${sub.lastName[0]}',
+                          profileImageUrl: sub.profileImageUrl,
                           radius: 14,
-                          child: Text(
-                            '${sub.firstName[0]}${sub.lastName[0]}',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              color: HelpiTheme.accent,
-                            ),
-                          ),
+                          fontSize: 10,
                         ),
                         const SizedBox(width: 8),
                         Expanded(

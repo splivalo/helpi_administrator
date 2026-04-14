@@ -408,19 +408,13 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
                         color: HelpiColors.of(context).textSecondary,
                       ),
                       onPressed: () async {
-                        final messenger = ScaffoldMessenger.of(context);
                         final saved = await ExcelExportService.exportSeniors(
                           seniors,
                           currentFilter.name,
                         );
-                        if (!mounted) return;
+                        if (!context.mounted) return;
                         if (saved) {
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text(AppStrings.exportSuccess),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
+                          showSuccessSnack(context, AppStrings.exportSuccess);
                         }
                       },
                       tooltip: AppStrings.exportToExcel,
@@ -637,23 +631,9 @@ class _SeniorCard extends ConsumerWidget {
             // ── Header: Avatar + Name + Status chip ──
             Row(
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: HelpiColors.of(context).pastelTeal,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      senior.firstName[0] + senior.lastName[0],
-                      style: const TextStyle(
-                        color: HelpiTheme.accent,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
-                    ),
-                  ),
+                ProfileAvatar(
+                  initials: senior.firstName[0] + senior.lastName[0],
+                  profileImageUrl: senior.profileImageUrl,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -844,9 +824,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
     if (!mounted) return;
 
     if (!checkResult.success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(checkResult.error ?? 'Error')));
+      showSuccessSnack(context, checkResult.error ?? 'Error');
       return;
     }
 
@@ -897,13 +875,9 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
         if (refreshed != null) {
           setState(() => _senior = refreshed);
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
+        showSuccessSnack(context, AppStrings.archiveSuccess);
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
+        showSuccessSnack(context, archiveResult.error ?? 'Error');
       }
       return;
     }
@@ -944,13 +918,9 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
       if (refreshed != null) {
         setState(() => _senior = refreshed);
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
+      showSuccessSnack(context, AppStrings.archiveSuccess);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
+      showSuccessSnack(context, archiveResult.error ?? 'Error');
     }
   }
 
@@ -983,9 +953,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
     if (!mounted) return;
 
     if (!result.success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
+      showSuccessSnack(context, result.error ?? 'Error');
       return;
     }
 
@@ -1000,12 +968,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
       setState(() => _senior = refreshed);
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.unarchiveSuccess),
-        backgroundColor: HelpiTheme.accent,
-      ),
-    );
+    showSuccessSnack(context, AppStrings.unarchiveSuccess);
   }
 
   void _openEditSenior() {
@@ -1599,9 +1562,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
       final error = await suspendUserApi(_api, userId, reason);
       if (!mounted) return;
       if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.suspensionFailed}: $error')),
-        );
+        showErrorSnack(context, '${AppStrings.suspensionFailed}: $error');
         return;
       }
     }
@@ -1629,9 +1590,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
       _senior = fresh;
       _orders = freshOrders;
     });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(AppStrings.suspensionSuccess)));
+    showSuccessSnack(context, AppStrings.suspensionSuccess);
     SuspensionStateManager.instance.suspend(_senior.id);
     _loadSuspensionStatus();
   }
@@ -1664,9 +1623,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
       final error = await activateUserApi(_api, userId);
       if (!mounted) return;
       if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.activationFailed}: $error')),
-        );
+        showErrorSnack(context, '${AppStrings.activationFailed}: $error');
         return;
       }
     }
@@ -1693,9 +1650,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
       _senior = fresh;
       _orders = freshOrders;
     });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(AppStrings.activationSuccess)));
+    showSuccessSnack(context, AppStrings.activationSuccess);
     SuspensionStateManager.instance.activate(_senior.id);
     _loadSuspensionStatus();
   }

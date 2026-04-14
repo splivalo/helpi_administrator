@@ -678,10 +678,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                               );
                               if (!mounted) return;
                               if (!result.success) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(result.error ?? 'Error'),
-                                  ),
+                                showErrorSnack(
+                                  context,
+                                  result.error ?? 'Error',
                                 );
                                 return;
                               }
@@ -1207,9 +1206,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       final result = await api.updateOrderPromoCode(orderId, promoValue);
       if (!mounted) return;
       if (!result.success) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
+        showSuccessSnack(context, result.error ?? 'Error');
         return;
       }
       await _refreshOrder();
@@ -1245,12 +1242,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       final result = await api.cancelOrder(orderId, 'Cancelled by admin');
       if (!mounted) return;
       if (!result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result.error ?? 'Error'),
-            backgroundColor: HelpiTheme.primary,
-          ),
-        );
+        showErrorSnack(context, result.error ?? 'Error');
         return;
       }
       await _refreshOrder();
@@ -1285,9 +1277,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               final result = await api.cancelSession(sessionId);
               if (!mounted) return;
               if (!result.success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(result.error ?? 'Error')),
-                );
+                showErrorSnack(context, result.error ?? 'Error');
                 return;
               }
               await _refreshOrder();
@@ -1671,10 +1661,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     );
                     if (!mounted) return;
                     if (!reactivateResult.success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(_localizeError(reactivateResult.error)),
-                        ),
+                      showErrorSnack(
+                        context,
+                        _localizeError(reactivateResult.error),
                       );
                       return;
                     }
@@ -1691,10 +1680,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                       );
                       if (!mounted) return;
                       if (!manageResult.success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(_localizeError(manageResult.error)),
-                          ),
+                        showErrorSnack(
+                          context,
+                          _localizeError(manageResult.error),
                         );
                         return;
                       }
@@ -1715,9 +1703,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                     );
                     if (!mounted) return;
                     if (!result.success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(_localizeError(result.error))),
-                      );
+                      showErrorSnack(context, _localizeError(result.error));
                       return;
                     }
                   }
@@ -1860,12 +1846,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         final result = await assignApi.adminAssign(scheduleId, studentId);
         if (!mounted) return;
         if (!result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result.error ?? 'Error'),
-              backgroundColor: HelpiTheme.error,
-            ),
-          );
+          showErrorSnack(context, result.error ?? 'Error');
           return;
         }
       }
@@ -1942,12 +1923,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       ref.read(ordersProvider.notifier).updateItem(_order);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.assignSuccess),
-          backgroundColor: HelpiTheme.accent,
-        ),
-      );
+      showSuccessSnack(context, AppStrings.assignSuccess);
     }
 
     // Fetch available students per schedule and classify by coverage
@@ -1962,12 +1938,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         final result = await api.getAvailableStudentsForSchedule(sid);
         if (!mounted) return;
         if (!result.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result.error ?? 'Error'),
-              backgroundColor: HelpiTheme.error,
-            ),
-          );
+          showErrorSnack(context, result.error ?? 'Error');
           return;
         }
         for (final s in result.data ?? <StudentModel>[]) {
@@ -1993,12 +1964,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       );
       if (!mounted) return;
       if (!result.success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result.error ?? 'Error'),
-            backgroundColor: HelpiTheme.error,
-          ),
-        );
+        showErrorSnack(context, result.error ?? 'Error');
         return;
       }
       for (final s in result.data ?? <StudentModel>[]) {
@@ -2124,12 +2090,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 final result = await api.adminAssign(scheduleId, studentId);
                 if (!result.success) {
                   if (!mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(result.error ?? 'Error'),
-                      backgroundColor: HelpiTheme.error,
-                    ),
-                  );
+                  showErrorSnack(context, result.error ?? 'Error');
                   return;
                 }
               }
@@ -2176,12 +2137,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
               if (!mounted) return;
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(AppStrings.assignSuccess),
-                  backgroundColor: HelpiTheme.accent,
-                ),
-              );
+              showSuccessSnack(context, AppStrings.assignSuccess);
             },
             style: ElevatedButton.styleFrom(
               minimumSize: Size.zero,
@@ -2299,23 +2255,11 @@ class _StudentAssignCard extends StatelessWidget {
       child: Row(
         children: [
           // -- Avatar --
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: HelpiColors.of(context).pastelTeal,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                student.firstName[0] + student.lastName[0],
-                style: const TextStyle(
-                  color: HelpiTheme.accent,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
-            ),
+          ProfileAvatar(
+            initials: student.firstName[0] + student.lastName[0],
+            profileImageUrl: student.profileImageUrl,
+            radius: 22,
+            fontSize: 16,
           ),
           const SizedBox(width: 12),
 

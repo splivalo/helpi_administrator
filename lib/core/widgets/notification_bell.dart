@@ -7,6 +7,7 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
+import 'package:helpi_admin/core/widgets/shared_widgets.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 
@@ -324,24 +325,12 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
       if (count > 0) {
         // Remove archived (read) from local state
         ref.read(notificationsProvider.notifier).removeRead();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppStrings.archiveSuccess}: $count'),
-            backgroundColor: HelpiTheme.accent,
-          ),
-        );
+        showSuccessSnack(context, '${AppStrings.archiveSuccess}: $count');
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(AppStrings.notifArchiveEmpty)));
+        showSuccessSnack(context, AppStrings.notifArchiveEmpty);
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.notifArchiveFailed),
-          backgroundColor: HelpiTheme.error,
-        ),
-      );
+      showErrorSnack(context, AppStrings.notifArchiveFailed);
     }
   }
 

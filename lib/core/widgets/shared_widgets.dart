@@ -2,6 +2,23 @@ import 'package:flutter/material.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
+import 'package:helpi_admin/core/network/api_endpoints.dart';
+
+// ═══════════════════════════════════════════════════════════════
+//  SNACKBAR HELPERS — consistent styling across the app
+// ═══════════════════════════════════════════════════════════════
+
+void showSuccessSnack(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(message), backgroundColor: HelpiTheme.accent),
+  );
+}
+
+void showErrorSnack(BuildContext context, String message) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(message), backgroundColor: HelpiTheme.error),
+  );
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  SECTION CARD — white card with optional icon + title + children
@@ -735,6 +752,65 @@ class HelpiSearchBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PROFILE AVATAR — shows image if available, initials fallback
+// ═══════════════════════════════════════════════════════════════
+
+class ProfileAvatar extends StatelessWidget {
+  const ProfileAvatar({
+    super.key,
+    required this.initials,
+    this.profileImageUrl,
+    this.radius = 20,
+    this.fontSize = 15,
+    this.backgroundColor,
+    this.textColor,
+  });
+
+  final String initials;
+  final String? profileImageUrl;
+  final double radius;
+  final double fontSize;
+  final Color? backgroundColor;
+  final Color? textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final bgColor = backgroundColor ?? HelpiColors.of(context).pastelTeal;
+    final fgColor = textColor ?? HelpiTheme.accent;
+    final hasImage = profileImageUrl != null && profileImageUrl!.isNotEmpty;
+
+    if (hasImage) {
+      final url = profileImageUrl!.startsWith('http')
+          ? profileImageUrl!
+          : '${ApiEndpoints.baseUrl}$profileImageUrl';
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: bgColor,
+        backgroundImage: NetworkImage(url),
+        onBackgroundImageError: (e, s) {},
+        child: null,
+      );
+    }
+
+    return Container(
+      width: radius * 2,
+      height: radius * 2,
+      decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
+      child: Center(
+        child: Text(
+          initials,
+          style: TextStyle(
+            color: fgColor,
+            fontWeight: FontWeight.w700,
+            fontSize: fontSize,
+          ),
         ),
       ),
     );

@@ -332,6 +332,15 @@ class HelpiTheme {
       ),
       actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
     ),
+    snackBarTheme: const SnackBarThemeData(
+      backgroundColor: Color(0xFF323232),
+      contentTextStyle: TextStyle(color: Colors.white, fontSize: 14),
+      actionTextColor: accent,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
+    ),
     dividerTheme: const DividerThemeData(
       color: dividerColor,
       thickness: 1,
@@ -589,6 +598,15 @@ class HelpiTheme {
         borderRadius: BorderRadius.circular(cardRadius),
       ),
       actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+    ),
+    snackBarTheme: const SnackBarThemeData(
+      backgroundColor: Color(0xFF3A3A3A),
+      contentTextStyle: TextStyle(color: Colors.white, fontSize: 14),
+      actionTextColor: accent,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(8)),
+      ),
     ),
     dividerTheme: const DividerThemeData(
       color: darkDivider,

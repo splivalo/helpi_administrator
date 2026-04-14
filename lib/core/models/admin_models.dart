@@ -149,6 +149,7 @@ class SeniorModel {
   final int relationship; // 0=Self, 1=Spouse, 2=Parent, 3=Relative, 4=Other
   final String? googlePlaceId; // Senior's google place ID
   final String? ordererGooglePlaceId; // Orderer's google place ID
+  final String? profileImageUrl;
   final String firstName;
   final String lastName;
   final String email;
@@ -181,6 +182,7 @@ class SeniorModel {
     this.relationship = 0,
     this.googlePlaceId,
     this.ordererGooglePlaceId,
+    this.profileImageUrl,
     required this.firstName,
     required this.lastName,
     required this.email,
@@ -220,6 +222,7 @@ class StudentModel {
   final int? contactId;
   final int? facultyId;
   final String? googlePlaceId;
+  final String? profileImageUrl;
   final String firstName;
   final String lastName;
   final String email;
@@ -254,6 +257,7 @@ class StudentModel {
     this.contactId,
     this.facultyId,
     this.googlePlaceId,
+    this.profileImageUrl,
     required this.firstName,
     required this.lastName,
     required this.email,

@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
+import 'package:helpi_admin/core/widgets/shared_widgets.dart';
 
 /// Teal phone-call icon button (20×20 hit-target).
 class PhoneCallButton extends StatelessWidget {
@@ -37,12 +38,7 @@ class EmailCopyButton extends StatelessWidget {
     return IconButton(
       onPressed: () {
         Clipboard.setData(ClipboardData(text: email));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppStrings.emailCopied),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        showSuccessSnack(context, AppStrings.emailCopied);
       },
       icon: const Icon(Icons.copy, size: 16, color: HelpiTheme.accent),
       padding: EdgeInsets.zero,

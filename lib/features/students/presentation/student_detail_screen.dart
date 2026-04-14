@@ -827,9 +827,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
       final error = await suspendUserApi(_api, userId, reason);
       if (!mounted) return;
       if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.suspensionFailed}: $error')),
-        );
+        showErrorSnack(context, '${AppStrings.suspensionFailed}: $error');
         return;
       }
     }
@@ -845,9 +843,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     setState(() {
       _student = fresh;
     });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(AppStrings.suspensionSuccess)));
+    showSuccessSnack(context, AppStrings.suspensionSuccess);
     SuspensionStateManager.instance.suspend(_student.id);
     // Refresh suspension history for the panel
     _loadSuspensionStatus();
@@ -881,9 +877,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
       final error = await activateUserApi(_api, userId);
       if (!mounted) return;
       if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${AppStrings.activationFailed}: $error')),
-        );
+        showErrorSnack(context, '${AppStrings.activationFailed}: $error');
         return;
       }
     }
@@ -899,9 +893,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     setState(() {
       _student = fresh;
     });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(AppStrings.activationSuccess)));
+    showSuccessSnack(context, AppStrings.activationSuccess);
     SuspensionStateManager.instance.activate(_student.id);
     // Refresh suspension history for the panel
     _loadSuspensionStatus();
@@ -918,9 +910,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     if (!mounted) return;
 
     if (!checkResult.success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(checkResult.error ?? 'Error')));
+      showSuccessSnack(context, checkResult.error ?? 'Error');
       return;
     }
 
@@ -975,13 +965,9 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
         if (refreshed != null) {
           setState(() => _student = refreshed);
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
+        showSuccessSnack(context, AppStrings.archiveSuccess);
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
+        showSuccessSnack(context, archiveResult.error ?? 'Error');
       }
       return;
     }
@@ -1023,13 +1009,9 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
       if (refreshed != null) {
         setState(() => _student = refreshed);
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(AppStrings.archiveSuccess)));
+      showSuccessSnack(context, AppStrings.archiveSuccess);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(archiveResult.error ?? 'Error')));
+      showSuccessSnack(context, archiveResult.error ?? 'Error');
     }
   }
 
@@ -1061,9 +1043,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
       final result = await api.unarchiveStudent(studentId);
       if (!mounted) return;
       if (!result.success) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(result.error ?? 'Error')));
+        showSuccessSnack(context, result.error ?? 'Error');
         return;
       }
       await DataLoader.loadAll(ref: ref);
@@ -1075,9 +1055,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
       if (refreshed != null) {
         setState(() => _student = refreshed);
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(AppStrings.unarchiveSuccess)));
+      showSuccessSnack(context, AppStrings.unarchiveSuccess);
     });
   }
 
@@ -1091,9 +1069,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     if (!mounted) return;
 
     if (!checkResult.success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(checkResult.error ?? 'Error')));
+      showSuccessSnack(context, checkResult.error ?? 'Error');
       return;
     }
 
@@ -1151,12 +1127,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
       if (!mounted) return;
       if (!deleteResult.success) {
         setState(() => _isContractLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(deleteResult.error ?? 'Error'),
-            backgroundColor: HelpiTheme.primary,
-          ),
-        );
+        showErrorSnack(context, deleteResult.error ?? 'Error');
         return;
       }
 
@@ -1173,12 +1144,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
         if (refreshed != null) _student = refreshed;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.contractDeleteSuccess),
-          backgroundColor: HelpiTheme.statusActiveText,
-        ),
-      );
+      showSuccessSnack(context, AppStrings.contractDeleteSuccess);
       return;
     }
 
@@ -1215,12 +1181,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     if (!mounted) return;
     if (!result.success) {
       setState(() => _isContractLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.error ?? 'Error'),
-          backgroundColor: HelpiTheme.primary,
-        ),
-      );
+      showErrorSnack(context, result.error ?? 'Error');
       return;
     }
 
@@ -1238,12 +1199,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     });
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.contractDeleteSuccess),
-        backgroundColor: HelpiTheme.statusActiveText,
-      ),
-    );
+    showSuccessSnack(context, AppStrings.contractDeleteSuccess);
   }
 
   Future<void> _simulateContractUpload() async {
@@ -1307,12 +1263,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     if (!mounted) return;
     if (!result.success) {
       setState(() => _isContractLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.error ?? 'Error'),
-          backgroundColor: HelpiTheme.primary,
-        ),
-      );
+      showErrorSnack(context, result.error ?? 'Error');
       return;
     }
 
@@ -1332,11 +1283,9 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     });
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${AppStrings.contractUploadSuccess} ($fileName)'),
-        backgroundColor: HelpiTheme.statusActiveText,
-      ),
+    showSuccessSnack(
+      context,
+      '${AppStrings.contractUploadSuccess} ($fileName)',
     );
   }
 

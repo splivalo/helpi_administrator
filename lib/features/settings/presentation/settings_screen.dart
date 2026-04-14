@@ -11,6 +11,7 @@ import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/widgets/notification_bell.dart';
 import 'package:helpi_admin/core/widgets/helpi_app_bar.dart';
+import 'package:helpi_admin/core/widgets/shared_widgets.dart';
 
 /// Admin Settings screen — pricing, cancel rules, operational, tax, language.
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -136,19 +137,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       }
     } catch (_) {
       if (!mounted) return;
-      _showSnack(AppStrings.settingsLoadFailed, isError: true);
+      showErrorSnack(context, AppStrings.settingsLoadFailed);
     }
     if (!mounted) return;
     setState(() => _loading = false);
   }
 
   void _showSnack(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? HelpiTheme.error : HelpiTheme.accent,
-      ),
-    );
+    if (isError) {
+      showErrorSnack(context, message);
+    } else {
+      showSuccessSnack(context, message);
+    }
   }
 
   String _fmt(dynamic v) {

@@ -369,12 +369,7 @@ class _SessionPreviewSheetState extends ConsumerState<_SessionPreviewSheet> {
     final slots = _findAlternativeSlots(session);
 
     if (slots.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.noSubstitutesAvailable),
-          backgroundColor: HelpiTheme.error,
-        ),
-      );
+      showErrorSnack(context, AppStrings.noSubstitutesAvailable);
       return;
     }
 
@@ -429,12 +424,7 @@ class _SessionPreviewSheetState extends ConsumerState<_SessionPreviewSheet> {
     final subs = _findSubstitutes(session);
 
     if (subs.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.noSubstitutesAvailable),
-          backgroundColor: HelpiTheme.error,
-        ),
-      );
+      showErrorSnack(context, AppStrings.noSubstitutesAvailable);
       return;
     }
 
@@ -458,17 +448,11 @@ class _SessionPreviewSheetState extends ConsumerState<_SessionPreviewSheet> {
               const Divider(height: 1),
               ...subs.map((sub) {
                 return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: HelpiColors.of(context).pastelTeal,
+                  leading: ProfileAvatar(
+                    initials: '${sub.firstName[0]}${sub.lastName[0]}',
+                    profileImageUrl: sub.profileImageUrl,
                     radius: 18,
-                    child: Text(
-                      '${sub.firstName[0]}${sub.lastName[0]}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: HelpiTheme.accent,
-                      ),
-                    ),
+                    fontSize: 13,
                   ),
                   title: Text(sub.fullName),
                   subtitle: Text(
@@ -491,12 +475,7 @@ class _SessionPreviewSheetState extends ConsumerState<_SessionPreviewSheet> {
 
   void _confirmAssign() {
     if (_unresolvedCount > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.unresolvedConflicts),
-          backgroundColor: HelpiTheme.error,
-        ),
-      );
+      showErrorSnack(context, AppStrings.unresolvedConflicts);
       return;
     }
     widget.onAssigned();

@@ -356,12 +356,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
     if (!_formKey.currentState!.validate()) return;
 
     if (_gender == null || _dateOfBirth == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.fieldRequired),
-          backgroundColor: HelpiTheme.primary,
-        ),
-      );
+      showErrorSnack(context, AppStrings.fieldRequired);
       return;
     }
 
@@ -386,12 +381,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
       if (!mounted) return;
       if (!result.success) {
         setState(() => _saving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result.error ?? 'Error'),
-            backgroundColor: HelpiTheme.primary,
-          ),
-        );
+        showErrorSnack(context, result.error ?? 'Error');
         return;
       }
     }
@@ -409,12 +399,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
           if (!mounted) return;
           if (!result.success) {
             setState(() => _saving = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(result.error ?? 'Error'),
-                backgroundColor: HelpiTheme.primary,
-              ),
-            );
+            showErrorSnack(context, result.error ?? 'Error');
             return;
           }
         }
@@ -441,12 +426,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
       if (!mounted) return;
       if (!result.success) {
         setState(() => _saving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result.error ?? 'Error'),
-            backgroundColor: HelpiTheme.primary,
-          ),
-        );
+        showErrorSnack(context, result.error ?? 'Error');
         return;
       }
     }
@@ -462,12 +442,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
 
     setState(() => _saving = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.editStudentSuccess),
-        backgroundColor: HelpiTheme.accent,
-      ),
-    );
+    showSuccessSnack(context, AppStrings.editStudentSuccess);
     Navigator.pop(context, refreshed ?? widget.student);
   }
 }

@@ -101,9 +101,7 @@ class _NotesSectionState extends State<NotesSection> {
     if (result.success) {
       setState(() => _notes?.remove(note));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.error ?? 'Error deleting note')),
-      );
+      showErrorSnack(context, result.error ?? 'Error deleting note');
     }
   }
 
@@ -224,11 +222,7 @@ class _NotesSectionState extends State<NotesSection> {
             existing.updatedAt = DateTime.now();
           });
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(updateResult.error ?? 'Error updating note'),
-            ),
-          );
+          showErrorSnack(context, updateResult.error ?? 'Error updating note');
         }
       } else {
         // Create new note via API
@@ -243,11 +237,7 @@ class _NotesSectionState extends State<NotesSection> {
           final newNote = AdminNote.fromJson(createResult.data!);
           setState(() => _notes?.insert(0, newNote));
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(createResult.error ?? 'Error creating note'),
-            ),
-          );
+          showErrorSnack(context, createResult.error ?? 'Error creating note');
         }
       }
     });

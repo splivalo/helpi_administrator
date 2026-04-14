@@ -366,22 +366,12 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
     if (!_formKey.currentState!.validate()) return;
 
     if (_gender == null || _dateOfBirth == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.fieldRequired),
-          backgroundColor: HelpiTheme.primary,
-        ),
-      );
+      showErrorSnack(context, AppStrings.fieldRequired);
       return;
     }
 
     if (_hasOrderer && (_ordGender == null || _ordDateOfBirth == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.fieldRequired),
-          backgroundColor: HelpiTheme.primary,
-        ),
-      );
+      showErrorSnack(context, AppStrings.fieldRequired);
       return;
     }
 
@@ -401,12 +391,7 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
       if (!mounted) return;
       if (!result.success) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result.error ?? 'Error'),
-            backgroundColor: HelpiTheme.primary,
-          ),
-        );
+        showErrorSnack(context, result.error ?? 'Error');
         return;
       }
       // Reload only seniors to get updated contact IDs
@@ -493,12 +478,7 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
       for (final r in results) {
         if (!r.success) {
           setState(() => _isSaving = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(r.error ?? 'Error'),
-              backgroundColor: HelpiTheme.primary,
-            ),
-          );
+          showErrorSnack(context, r.error ?? 'Error');
           return;
         }
       }
@@ -513,12 +493,7 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
         .where((s) => s.id == widget.senior.id)
         .firstOrNull;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.editSeniorSuccess),
-        backgroundColor: HelpiTheme.accent,
-      ),
-    );
+    showSuccessSnack(context, AppStrings.editSeniorSuccess);
     Navigator.pop(context, refreshed ?? widget.senior);
   }
 }

@@ -296,22 +296,12 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
     if (!_formKey.currentState!.validate()) return;
 
     if (_gender == null || _dateOfBirth == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.fieldRequired),
-          backgroundColor: HelpiTheme.primary,
-        ),
-      );
+      showErrorSnack(context, AppStrings.fieldRequired);
       return;
     }
 
     if (_hasOrderer && (_ordGender == null || _ordDateOfBirth == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppStrings.fieldRequired),
-          backgroundColor: HelpiTheme.primary,
-        ),
-      );
+      showErrorSnack(context, AppStrings.fieldRequired);
       return;
     }
 
@@ -387,23 +377,13 @@ class _AddSeniorScreenState extends ConsumerState<AddSeniorScreen>
     );
     if (!mounted) return;
     if (!result.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result.error ?? 'Error'),
-          backgroundColor: HelpiTheme.primary,
-        ),
-      );
+      showErrorSnack(context, result.error ?? 'Error');
       return;
     }
 
     await DataLoader.loadAll(ref: ref);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppStrings.addSeniorSuccess),
-        backgroundColor: HelpiTheme.accent,
-      ),
-    );
+    showSuccessSnack(context, AppStrings.addSeniorSuccess);
     Navigator.pop(context, true);
   }
 }
