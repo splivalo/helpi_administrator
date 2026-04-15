@@ -651,28 +651,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             if (wide)
                               Row(
                                 children: [
-                                  Opacity(
-                                    opacity: _editingSponsor ? 1.0 : 0.5,
-                                    child: HelpiSwitch(
-                                      value: _sponsorActive,
-                                      onChanged: _editingSponsor
-                                          ? (v) => setState(
-                                              () => _sponsorActive = v,
-                                            )
-                                          : (_) {},
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Opacity(
+                                          opacity: _editingSponsor ? 1.0 : 0.5,
+                                          child: HelpiSwitch(
+                                            value: _sponsorActive,
+                                            onChanged: _editingSponsor
+                                                ? (v) => setState(
+                                                    () => _sponsorActive = v,
+                                                  )
+                                                : (_) {},
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          AppStrings.sponsorActive,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: HelpiColors.of(
+                                              context,
+                                            ).textSecondary,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    AppStrings.sponsorActive,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: HelpiColors.of(
-                                        context,
-                                      ).textSecondary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 24),
+                                  const SizedBox(width: 16),
                                   Expanded(
                                     child: _sponsorTextField(
                                       _sponsorLabelCtrl,
