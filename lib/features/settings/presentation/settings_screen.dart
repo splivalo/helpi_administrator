@@ -72,9 +72,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _uploadingLight = false;
   bool _uploadingDark = false;
   bool _savingSponsor = false;
+  bool _editingSponsor = false;
 
   // Snapshot for cancel/revert
   Map<String, String> _snapshot = {};
+  Map<String, dynamic> _sponsorSnapshot = {};
 
   int _lastPricingVersion = 0;
 
@@ -102,6 +104,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _sponsorDarkLogoCtrl.dispose();
     _sponsorLabelCtrl.dispose();
     super.dispose();
+  }
+
+  void _takeSponsorSnapshot() {
+    _sponsorSnapshot = {
+      'name': _sponsorNameCtrl.text,
+      'logo': _sponsorLogoCtrl.text,
+      'darkLogo': _sponsorDarkLogoCtrl.text,
+      'label': _sponsorLabelCtrl.text,
+      'labelMap': Map<String, String>.from(_sponsorLabelMap),
+      'active': _sponsorActive,
+    };
+  }
+
+  void _restoreSponsorSnapshot() {
+    _sponsorNameCtrl.text = _sponsorSnapshot['name'] as String? ?? '';
+    _sponsorLogoCtrl.text = _sponsorSnapshot['logo'] as String? ?? '';
+    _sponsorDarkLogoCtrl.text = _sponsorSnapshot['darkLogo'] as String? ?? '';
+    _sponsorLabelCtrl.text = _sponsorSnapshot['label'] as String? ?? '';
+    _sponsorLabelMap = Map<String, String>.from(
+      _sponsorSnapshot['labelMap'] as Map<String, String>? ?? {},
+    );
+    _sponsorActive = _sponsorSnapshot['active'] as bool? ?? false;
+  }
+
+  void _startEditingSponsor() {
+    _takeSponsorSnapshot();
+    setState(() => _editingSponsor = true);
+  }
+
+  void _cancelEditingSponsor() {
+    _restoreSponsorSnapshot();
+    setState(() => _editingSponsor = false);
   }
 
   void _takeSnapshot() {
@@ -236,7 +270,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     setState(() => _savingSponsor = true);
     await _saveSponsor();
     if (!mounted) return;
-    setState(() => _savingSponsor = false);
+    setState(() {
+      _savingSponsor = false;
+      _editingSponsor = false;
+    });
     _showSnack(AppStrings.sponsorSaved);
   }
 
@@ -382,34 +419,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 ),
                               ),
                             ),
-                            if (_editing) ...[
-                              TextButton(
-                                onPressed: _saving ? null : _cancelEditing,
-                                child: Text(AppStrings.cancel),
-                              ),
-                              const SizedBox(width: 4),
-                              _saving
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : IconButton(
-                                      icon: const Icon(
-                                        Icons.save,
-                                        size: 22,
-                                        color: HelpiTheme.accent,
-                                      ),
-                                      tooltip: AppStrings.save,
-                                      onPressed: _saveSettings,
+                            if (_editing)
+                              SizedBox(
+                                height: 36,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    TextButton(
+                                      onPressed: _saving
+                                          ? null
+                                          : _cancelEditing,
+                                      child: Text(AppStrings.cancel),
                                     ),
-                            ] else
-                              IconButton(
-                                icon: const Icon(Icons.edit, size: 20),
-                                tooltip: AppStrings.edit,
-                                onPressed: _startEditing,
+                                    const SizedBox(width: 4),
+                                    _saving
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : TextButton.icon(
+                                            onPressed: _saveSettings,
+                                            icon: const Icon(
+                                              Icons.save,
+                                              size: 18,
+                                            ),
+                                            label: Text(AppStrings.save),
+                                            style: TextButton.styleFrom(
+                                              foregroundColor:
+                                                  HelpiTheme.accent,
+                                            ),
+                                          ),
+                                  ],
+                                ),
+                              )
+                            else
+                              SizedBox(
+                                width: 36,
+                                height: 36,
+                                child: IconButton(
+                                  icon: const Icon(Icons.edit, size: 20),
+                                  tooltip: AppStrings.edit,
+                                  onPressed: _startEditing,
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
                               ),
                           ],
                         ),
@@ -537,6 +593,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _sectionCard(
                     icon: Icons.handshake_outlined,
                     title: AppStrings.settingsSponsor,
+                    trailing: _editingSponsor
+                        ? SizedBox(
+                            height: 36,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextButton(
+                                  onPressed: _savingSponsor
+                                      ? null
+                                      : _cancelEditingSponsor,
+                                  child: Text(AppStrings.cancel),
+                                ),
+                                const SizedBox(width: 4),
+                                _savingSponsor
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : TextButton.icon(
+                                        onPressed: _saveSponsorOnly,
+                                        icon: const Icon(Icons.save, size: 18),
+                                        label: Text(AppStrings.save),
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: HelpiTheme.accent,
+                                        ),
+                                      ),
+                              ],
+                            ),
+                          )
+                        : SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: IconButton(
+                              icon: const Icon(Icons.edit, size: 20),
+                              onPressed: _startEditingSponsor,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                          ),
                     children: _sponsorLoading
                         ? [
                             const Center(
@@ -549,71 +647,130 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ),
                           ]
                         : [
-                            Row(
-                              children: [
-                                HelpiSwitch(
-                                  value: _sponsorActive,
-                                  onChanged: (v) =>
-                                      setState(() => _sponsorActive = v),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  AppStrings.sponsorActive,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: HelpiColors.of(
-                                      context,
-                                    ).textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            _logoUploadRow(
-                              label: AppStrings.sponsorLogoUrl,
-                              currentUrl: _sponsorLogoCtrl.text,
-                              uploading: _uploadingLight,
-                              buttonLabel: AppStrings.sponsorChooseLogo,
-                              onPick: () => _pickAndUploadLogo('light'),
-                              onDelete: () => _deleteLogo('light'),
-                              canDelete: !_sponsorActive,
-                            ),
-                            const SizedBox(height: 12),
-                            _logoUploadRow(
-                              label: AppStrings.sponsorDarkLogoUrl,
-                              currentUrl: _sponsorDarkLogoCtrl.text,
-                              uploading: _uploadingDark,
-                              buttonLabel: AppStrings.sponsorChooseDarkLogo,
-                              onPick: () => _pickAndUploadLogo('dark'),
-                              hint: AppStrings.sponsorDarkLogoHint,
-                              onDelete: () => _deleteLogo('dark'),
-                              canDelete: true,
-                            ),
-                            const SizedBox(height: 12),
-                            _sponsorTextField(
-                              _sponsorLabelCtrl,
-                              AppStrings.sponsorLabel,
-                            ),
-                            const SizedBox(height: 12),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: _savingSponsor
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : TextButton.icon(
-                                      onPressed: _saveSponsorOnly,
-                                      icon: const Icon(Icons.save, size: 18),
-                                      label: Text(AppStrings.save),
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: HelpiTheme.accent,
-                                      ),
+                            // Switch + Label text field
+                            if (wide)
+                              Row(
+                                children: [
+                                  Opacity(
+                                    opacity: _editingSponsor ? 1.0 : 0.5,
+                                    child: HelpiSwitch(
+                                      value: _sponsorActive,
+                                      onChanged: _editingSponsor
+                                          ? (v) => setState(
+                                              () => _sponsorActive = v,
+                                            )
+                                          : (_) {},
                                     ),
-                            ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    AppStrings.sponsorActive,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: HelpiColors.of(
+                                        context,
+                                      ).textSecondary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 24),
+                                  Expanded(
+                                    child: _sponsorTextField(
+                                      _sponsorLabelCtrl,
+                                      AppStrings.sponsorLabel,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else ...[
+                              Row(
+                                children: [
+                                  Opacity(
+                                    opacity: _editingSponsor ? 1.0 : 0.5,
+                                    child: HelpiSwitch(
+                                      value: _sponsorActive,
+                                      onChanged: _editingSponsor
+                                          ? (v) => setState(
+                                              () => _sponsorActive = v,
+                                            )
+                                          : (_) {},
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    AppStrings.sponsorActive,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: HelpiColors.of(
+                                        context,
+                                      ).textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              _sponsorTextField(
+                                _sponsorLabelCtrl,
+                                AppStrings.sponsorLabel,
+                              ),
+                            ],
+                            const SizedBox(height: 16),
+
+                            // Logo cards
+                            if (wide)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: _logoCard(
+                                      label: AppStrings.sponsorLogoUrl,
+                                      currentUrl: _sponsorLogoCtrl.text,
+                                      uploading: _uploadingLight,
+                                      buttonLabel: AppStrings.sponsorChooseLogo,
+                                      onPick: () => _pickAndUploadLogo('light'),
+                                      onDelete: () => _deleteLogo('light'),
+                                      canDelete: !_sponsorActive,
+                                      enabled: _editingSponsor,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _logoCard(
+                                      label: AppStrings.sponsorDarkLogoUrl,
+                                      currentUrl: _sponsorDarkLogoCtrl.text,
+                                      uploading: _uploadingDark,
+                                      buttonLabel:
+                                          AppStrings.sponsorChooseDarkLogo,
+                                      onPick: () => _pickAndUploadLogo('dark'),
+                                      onDelete: () => _deleteLogo('dark'),
+                                      canDelete: true,
+                                      enabled: _editingSponsor,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else ...[
+                              _logoCard(
+                                label: AppStrings.sponsorLogoUrl,
+                                currentUrl: _sponsorLogoCtrl.text,
+                                uploading: _uploadingLight,
+                                buttonLabel: AppStrings.sponsorChooseLogo,
+                                onPick: () => _pickAndUploadLogo('light'),
+                                onDelete: () => _deleteLogo('light'),
+                                canDelete: !_sponsorActive,
+                                enabled: _editingSponsor,
+                              ),
+                              const SizedBox(height: 12),
+                              _logoCard(
+                                label: AppStrings.sponsorDarkLogoUrl,
+                                currentUrl: _sponsorDarkLogoCtrl.text,
+                                uploading: _uploadingDark,
+                                buttonLabel: AppStrings.sponsorChooseDarkLogo,
+                                onPick: () => _pickAndUploadLogo('dark'),
+                                onDelete: () => _deleteLogo('dark'),
+                                canDelete: true,
+                                enabled: _editingSponsor,
+                              ),
+                            ],
                           ],
                   ),
                   const SizedBox(height: 16),
@@ -723,6 +880,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     required IconData icon,
     required String title,
     required List<Widget> children,
+    Widget? trailing,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -738,14 +896,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               Icon(icon, size: 22, color: HelpiTheme.accent),
               const SizedBox(width: 10),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: HelpiColors.of(context).textPrimary,
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    color: HelpiColors.of(context).textPrimary,
+                  ),
                 ),
               ),
+              ?trailing,
             ],
           ),
           const SizedBox(height: 16),
@@ -852,17 +1013,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  // ── Plain text field for sponsor fields ──
-  // ── Always-editable text field (for Sponsor section) ──
+  // ── Text field for Sponsor section (respects _editingSponsor) ──
   Widget _sponsorTextField(TextEditingController ctrl, String label) {
     return TextField(
       controller: ctrl,
-      decoration: InputDecoration(labelText: label),
+      readOnly: !_editingSponsor,
+      enabled: _editingSponsor,
+      decoration: InputDecoration(
+        labelText: label,
+        fillColor: _editingSponsor ? null : HelpiColors.of(context).chipBg,
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          borderSide: BorderSide(color: HelpiColors.of(context).border),
+        ),
+      ),
     );
   }
 
-  // ── Logo upload row: label + filename/preview + upload button + delete ──
-  Widget _logoUploadRow({
+  // ── Logo card: bordered box with larger preview, title, actions ──
+  Widget _logoCard({
     required String label,
     required String currentUrl,
     required bool uploading,
@@ -874,120 +1043,165 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     String? hint,
   }) {
     final hasLogo = currentUrl.isNotEmpty;
-    final fileName = hasLogo
-        ? Uri.parse(currentUrl).pathSegments.last
-        : AppStrings.sponsorNoLogo;
+    final fullUrl = '${ApiEndpoints.baseUrl}$currentUrl';
+    final isSvg = currentUrl.toLowerCase().endsWith('.svg');
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: HelpiColors.of(context).textSecondary,
-          ),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: HelpiColors.of(context).border.withValues(alpha: 0.6),
         ),
-        if (hint != null && !hasLogo)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              hint,
-              style: TextStyle(
-                fontSize: 11,
-                color: HelpiColors.of(
-                  context,
-                ).textSecondary.withValues(alpha: 0.6),
-              ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: HelpiColors.of(context).textSecondary,
             ),
           ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            // Logo preview or filename
-            if (hasLogo)
-              Container(
-                width: 40,
-                height: 40,
-                margin: const EdgeInsets.only(right: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: HelpiColors.of(context).border),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: currentUrl.toLowerCase().endsWith('.svg')
-                      ? SvgPicture.network(
-                          '${ApiEndpoints.baseUrl}$currentUrl',
-                          fit: BoxFit.contain,
-                          placeholderBuilder: (_) =>
-                              const Icon(Icons.image, size: 20),
-                        )
-                      : Image.network(
-                          '${ApiEndpoints.baseUrl}$currentUrl',
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, e, s) =>
-                              const Icon(Icons.broken_image, size: 20),
-                        ),
-                ),
-              ),
-            Expanded(
+          if (hint != null && !hasLogo)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
               child: Text(
-                fileName,
+                hint,
                 style: TextStyle(
-                  fontSize: 13,
-                  color: hasLogo
-                      ? HelpiColors.of(context).textPrimary
-                      : HelpiColors.of(context).textSecondary,
+                  fontSize: 11,
+                  color: HelpiColors.of(
+                    context,
+                  ).textSecondary.withValues(alpha: 0.6),
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 8),
-            if (hasLogo && onDelete != null && enabled)
-              IconButton(
-                onPressed: canDelete
-                    ? onDelete
-                    : () {
-                        showErrorSnack(
+          const SizedBox(height: 10),
+
+          // Preview area
+          Container(
+            width: double.infinity,
+            height: 72,
+            decoration: BoxDecoration(
+              color: HelpiColors.of(context).background,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: HelpiColors.of(context).border.withValues(alpha: 0.3),
+              ),
+            ),
+            child: hasLogo
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: isSvg
+                          ? SvgPicture.network(
+                              fullUrl,
+                              fit: BoxFit.contain,
+                              placeholderBuilder: (_) =>
+                                  const Icon(Icons.image, size: 28),
+                            )
+                          : Image.network(
+                              fullUrl,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, _, _) =>
+                                  const Icon(Icons.broken_image, size: 28),
+                            ),
+                    ),
+                  )
+                : Center(
+                    child: Icon(
+                      Icons.image_outlined,
+                      size: 28,
+                      color: HelpiColors.of(
+                        context,
+                      ).textSecondary.withValues(alpha: 0.3),
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 8),
+
+          // Actions row
+          Row(
+            children: [
+              Expanded(
+                child: hasLogo
+                    ? Text(
+                        Uri.parse(currentUrl).pathSegments.last,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: HelpiColors.of(context).textSecondary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    : Text(
+                        AppStrings.sponsorNoLogo,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: HelpiColors.of(
+                            context,
+                          ).textSecondary.withValues(alpha: 0.5),
+                        ),
+                      ),
+              ),
+              if (hasLogo && onDelete != null)
+                IconButton(
+                  onPressed: enabled && canDelete
+                      ? onDelete
+                      : enabled && !canDelete
+                      ? () => showErrorSnack(
                           context,
                           AppStrings.sponsorDeleteLogoMsg,
-                        );
-                      },
-                icon: Icon(
-                  Icons.close,
-                  size: 18,
-                  color: canDelete
-                      ? Colors.red.shade400
-                      : HelpiColors.of(
-                          context,
-                        ).textSecondary.withValues(alpha: 0.4),
+                        )
+                      : null,
+                  icon: Icon(
+                    Icons.close,
+                    size: 16,
+                    color: !enabled
+                        ? HelpiColors.of(
+                            context,
+                          ).textSecondary.withValues(alpha: 0.2)
+                        : canDelete
+                        ? Colors.red.shade400
+                        : HelpiColors.of(
+                            context,
+                          ).textSecondary.withValues(alpha: 0.4),
+                  ),
+                  tooltip: canDelete
+                      ? AppStrings.sponsorDeleteLogoTitle
+                      : AppStrings.sponsorDeleteLogoMsg,
+                  constraints: const BoxConstraints(
+                    minWidth: 28,
+                    minHeight: 28,
+                  ),
+                  padding: EdgeInsets.zero,
                 ),
-                tooltip: canDelete
-                    ? AppStrings.sponsorDeleteLogoTitle
-                    : AppStrings.sponsorDeleteLogoMsg,
-                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                padding: EdgeInsets.zero,
-              ),
-            if (enabled)
               uploading
                   ? const SizedBox(
-                      width: 20,
-                      height: 20,
+                      width: 18,
+                      height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : TextButton.icon(
-                      onPressed: onPick,
-                      icon: const Icon(Icons.upload_file, size: 18),
+                      onPressed: enabled ? onPick : null,
+                      icon: const Icon(Icons.upload_file, size: 16),
                       label: Text(buttonLabel),
                       style: TextButton.styleFrom(
                         foregroundColor: HelpiTheme.accent,
-                        textStyle: const TextStyle(fontSize: 12),
+                        disabledForegroundColor: HelpiColors.of(
+                          context,
+                        ).textSecondary.withValues(alpha: 0.3),
+                        textStyle: const TextStyle(fontSize: 11),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 32),
                       ),
                     ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 

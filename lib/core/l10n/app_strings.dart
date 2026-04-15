@@ -58,7 +58,7 @@ class AppStrings {
       // ── Sponzorstvo ──
       'settingsSponsor': 'Sponzorstvo',
       'sponsorLogoUrl': 'URL logotipa',
-      'sponsorDarkLogoUrl': 'URL logotipa (tamna tema)',
+      'sponsorDarkLogoUrl': 'URL logotipa (opcionalno)',
       'sponsorLabel': 'Tekst oznake',
       'sponsorActive': 'Sponzor vidljiv',
       'sponsorName': 'Naziv sponzora',
@@ -585,7 +585,7 @@ class AppStrings {
       // ── Sponsor ──
       'settingsSponsor': 'Sponsorship',
       'sponsorLogoUrl': 'Logo URL',
-      'sponsorDarkLogoUrl': 'Logo URL (dark theme)',
+      'sponsorDarkLogoUrl': 'Logo URL (optional)',
       'sponsorLabel': 'Label text',
       'sponsorActive': 'Sponsor visible',
       'sponsorName': 'Sponsor name',
