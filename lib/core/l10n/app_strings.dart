@@ -36,6 +36,8 @@ class AppStrings {
       'settingsEarnings': 'Zarada',
       'settingsLanguage': 'Jezik',
       'settingsTheme': 'Tema',
+      'settingsPreferences': 'Preferencije',
+      'settingsConfiguration': 'Konfiguracija',
       'themeLight': 'Svijetla',
       'themeDark': 'Tamna',
       'themeSystem': 'Sistemska',
@@ -52,6 +54,29 @@ class AppStrings {
       'settingsSaved': 'Postavke uspješno spremljene',
       'settingsSaveFailed': 'Spremanje postavki nije uspjelo',
       'settingsLoadFailed': 'Učitavanje postavki nije uspjelo',
+
+      // ── Sponzorstvo ──
+      'settingsSponsor': 'Sponzorstvo',
+      'sponsorLogoUrl': 'URL logotipa',
+      'sponsorDarkLogoUrl': 'URL logotipa (tamna tema)',
+      'sponsorLabel': 'Tekst oznake',
+      'sponsorActive': 'Sponzor vidljiv',
+      'sponsorName': 'Naziv sponzora',
+      'sponsorSaved': 'Sponzor uspješno spremljen',
+      'sponsorSaveFailed': 'Spremanje sponzora nije uspjelo',
+      'sponsorLoadFailed': 'Učitavanje sponzora nije uspjelo',
+      'sponsorDarkLogoHint':
+          'Opcionalno – ako je prazno, koristi se glavni logo',
+      'sponsorChooseLogo': 'Odaberi logo',
+      'sponsorChooseDarkLogo': 'Odaberi logo',
+      'sponsorUploading': 'Učitavanje...',
+      'sponsorUploadFailed': 'Upload logotipa nije uspio',
+      'sponsorNoLogo': 'Nema logotipa',
+      'sponsorDeleteLogoTitle': 'Obriši logotip',
+      'sponsorDeleteLogoMsg':
+          'Deaktiviraj sponzora prije brisanja glavnog loga.',
+      'sponsorDeleteLogoConfirm': 'Želiš li obrisati ovaj logotip?',
+      'sponsorDeleteFailed': 'Brisanje logotipa nije uspjelo',
 
       // ── Analitika ─────────────────────────────
       'dashboardTitle': 'Analitika',
@@ -538,6 +563,8 @@ class AppStrings {
       'settingsEarnings': 'Earnings',
       'settingsLanguage': 'Language',
       'settingsTheme': 'Theme',
+      'settingsPreferences': 'Preferences',
+      'settingsConfiguration': 'Configuration',
       'themeLight': 'Light',
       'themeDark': 'Dark',
       'themeSystem': 'System',
@@ -554,6 +581,28 @@ class AppStrings {
       'settingsSaved': 'Settings saved successfully',
       'settingsSaveFailed': 'Failed to save settings',
       'settingsLoadFailed': 'Failed to load settings',
+
+      // ── Sponsor ──
+      'settingsSponsor': 'Sponsorship',
+      'sponsorLogoUrl': 'Logo URL',
+      'sponsorDarkLogoUrl': 'Logo URL (dark theme)',
+      'sponsorLabel': 'Label text',
+      'sponsorActive': 'Sponsor visible',
+      'sponsorName': 'Sponsor name',
+      'sponsorSaved': 'Sponsor saved successfully',
+      'sponsorSaveFailed': 'Failed to save sponsor',
+      'sponsorLoadFailed': 'Failed to load sponsor',
+      'sponsorDarkLogoHint': 'Optional – if empty, main logo is used',
+      'sponsorChooseLogo': 'Choose logo',
+      'sponsorChooseDarkLogo': 'Choose logo',
+      'sponsorUploading': 'Uploading...',
+      'sponsorUploadFailed': 'Logo upload failed',
+      'sponsorNoLogo': 'No logo',
+      'sponsorDeleteLogoTitle': 'Delete logo',
+      'sponsorDeleteLogoMsg':
+          'Deactivate sponsor before deleting the main logo.',
+      'sponsorDeleteLogoConfirm': 'Do you want to delete this logo?',
+      'sponsorDeleteFailed': 'Failed to delete logo',
 
       // ── Analitika ─────────────────────────────
       'dashboardTitle': 'Analytics',
@@ -1554,6 +1603,8 @@ class AppStrings {
   static String get settingsEarnings => _t('settingsEarnings');
   static String get settingsLanguage => _t('settingsLanguage');
   static String get settingsTheme => _t('settingsTheme');
+  static String get settingsPreferences => _t('settingsPreferences');
+  static String get settingsConfiguration => _t('settingsConfiguration');
   static String get themeLight => _t('themeLight');
   static String get themeDark => _t('themeDark');
   static String get themeSystem => _t('themeSystem');
@@ -1570,4 +1621,25 @@ class AppStrings {
   static String get settingsSaved => _t('settingsSaved');
   static String get settingsSaveFailed => _t('settingsSaveFailed');
   static String get settingsLoadFailed => _t('settingsLoadFailed');
+
+  // ── Sponzorstvo ──
+  static String get settingsSponsor => _t('settingsSponsor');
+  static String get sponsorLogoUrl => _t('sponsorLogoUrl');
+  static String get sponsorDarkLogoUrl => _t('sponsorDarkLogoUrl');
+  static String get sponsorLabel => _t('sponsorLabel');
+  static String get sponsorActive => _t('sponsorActive');
+  static String get sponsorName => _t('sponsorName');
+  static String get sponsorSaved => _t('sponsorSaved');
+  static String get sponsorSaveFailed => _t('sponsorSaveFailed');
+  static String get sponsorLoadFailed => _t('sponsorLoadFailed');
+  static String get sponsorDarkLogoHint => _t('sponsorDarkLogoHint');
+  static String get sponsorChooseLogo => _t('sponsorChooseLogo');
+  static String get sponsorChooseDarkLogo => _t('sponsorChooseDarkLogo');
+  static String get sponsorUploading => _t('sponsorUploading');
+  static String get sponsorUploadFailed => _t('sponsorUploadFailed');
+  static String get sponsorNoLogo => _t('sponsorNoLogo');
+  static String get sponsorDeleteLogoTitle => _t('sponsorDeleteLogoTitle');
+  static String get sponsorDeleteLogoMsg => _t('sponsorDeleteLogoMsg');
+  static String get sponsorDeleteLogoConfirm => _t('sponsorDeleteLogoConfirm');
+  static String get sponsorDeleteFailed => _t('sponsorDeleteFailed');
 }

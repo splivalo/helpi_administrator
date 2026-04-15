@@ -143,4 +143,9 @@ class ApiEndpoints {
   static String chatMessages(int roomId) => '/api/chat/rooms/$roomId/messages';
   static String chatMarkRead(int roomId) => '/api/chat/rooms/$roomId/read';
   static const String chatUnreadCount = '/api/chat/unread-count';
+
+  // Sponsors
+  static const String sponsors = '/api/Sponsors';
+  static const String sponsorsActive = '/api/Sponsors/active';
+  static String sponsorById(int id) => '/api/Sponsors/$id';
 }

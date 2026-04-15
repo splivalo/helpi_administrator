@@ -1211,6 +1211,125 @@ class AdminApiService {
     }
   }
 
+  // ─────────────────────────────────────────────
+  //  SPONSORS
+  // ─────────────────────────────────────────────
+
+  /// Returns the first active sponsor (or null).
+  Future<ApiResult<Map<String, dynamic>?>> getActiveSponsor() async {
+    try {
+      final response = await _api.get(ApiEndpoints.sponsorsActive);
+      final list = response.data as List<dynamic>;
+      if (list.isEmpty) return ApiResult.ok(null);
+      return ApiResult.ok(list.first as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Returns all sponsors (admin listing).
+  Future<ApiResult<List<Map<String, dynamic>>>> getSponsors() async {
+    try {
+      final response = await _api.get(ApiEndpoints.sponsors);
+      final list = (response.data as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Creates a new sponsor.
+  Future<ApiResult<Map<String, dynamic>>> createSponsor({
+    required String name,
+    required String logoUrl,
+    String? darkLogoUrl,
+    Map<String, String>? labelMap,
+    String? linkUrl,
+    bool isActive = true,
+  }) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.sponsors,
+        data: {
+          'name': name,
+          'logoUrl': logoUrl,
+          if (darkLogoUrl != null && darkLogoUrl.isNotEmpty)
+            'darkLogoUrl': darkLogoUrl,
+          if (labelMap != null && labelMap.isNotEmpty) 'label': labelMap,
+          if (linkUrl != null && linkUrl.isNotEmpty) 'linkUrl': linkUrl,
+          'isActive': isActive,
+        },
+      );
+      return ApiResult.ok(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Updates an existing sponsor.
+  Future<ApiResult<void>> updateSponsor({
+    required int id,
+    String? name,
+    String? logoUrl,
+    String? darkLogoUrl,
+    Map<String, String>? labelMap,
+    String? linkUrl,
+    bool? isActive,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+      if (name != null) data['name'] = name;
+      if (logoUrl != null) data['logoUrl'] = logoUrl;
+      if (darkLogoUrl != null) data['darkLogoUrl'] = darkLogoUrl;
+      if (labelMap != null) data['label'] = labelMap;
+      if (linkUrl != null) data['linkUrl'] = linkUrl;
+      if (isActive != null) data['isActive'] = isActive;
+      await _api.put(ApiEndpoints.sponsorById(id), data: data);
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Uploads a logo image for a sponsor. variant = "light" or "dark".
+  Future<ApiResult<String>> uploadSponsorLogo({
+    required int sponsorId,
+    required Uint8List fileBytes,
+    required String fileName,
+    String variant = 'light',
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(fileBytes, filename: fileName),
+      });
+      final response = await _api.post(
+        '${ApiEndpoints.sponsorById(sponsorId)}/logo?variant=$variant',
+        data: formData,
+      );
+      final data = response.data as Map<String, dynamic>;
+      return ApiResult.ok(data['logoUrl'] as String);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Deletes a logo for a sponsor. variant = "light" or "dark".
+  Future<ApiResult<void>> deleteSponsorLogo({
+    required int sponsorId,
+    String variant = 'light',
+  }) async {
+    try {
+      await _api.delete(
+        '${ApiEndpoints.sponsorById(sponsorId)}/logo?variant=$variant',
+      );
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   // ═════════════════════════════════════════════
   //  MAPPERS — Backend JSON → Frontend Models
   // ═════════════════════════════════════════════

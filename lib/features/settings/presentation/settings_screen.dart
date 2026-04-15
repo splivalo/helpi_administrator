@@ -1,6 +1,8 @@
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
@@ -9,6 +11,7 @@ import 'package:helpi_admin/core/l10n/theme_notifier.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/widgets/notification_bell.dart';
 import 'package:helpi_admin/core/widgets/helpi_app_bar.dart';
 import 'package:helpi_admin/core/widgets/shared_widgets.dart';
@@ -56,6 +59,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _intermediaryPctCtrl = TextEditingController();
   final _vatCtrl = TextEditingController();
 
+  // ── Sponsor ──
+  final _adminApi = AdminApiService();
+  final _sponsorNameCtrl = TextEditingController();
+  final _sponsorLogoCtrl = TextEditingController();
+  final _sponsorDarkLogoCtrl = TextEditingController();
+  final _sponsorLabelCtrl = TextEditingController();
+  Map<String, String> _sponsorLabelMap = {};
+  bool _sponsorActive = false;
+  int? _sponsorId;
+  bool _sponsorLoading = true;
+  bool _uploadingLight = false;
+  bool _uploadingDark = false;
+  bool _savingSponsor = false;
+
   // Snapshot for cancel/revert
   Map<String, String> _snapshot = {};
 
@@ -65,6 +82,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void initState() {
     super.initState();
     _loadSettings();
+    _loadSponsor();
   }
 
   @override
@@ -79,6 +97,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _studentSundayRateCtrl.dispose();
     _intermediaryPctCtrl.dispose();
     _vatCtrl.dispose();
+    _sponsorNameCtrl.dispose();
+    _sponsorLogoCtrl.dispose();
+    _sponsorDarkLogoCtrl.dispose();
+    _sponsorLabelCtrl.dispose();
     super.dispose();
   }
 
@@ -141,6 +163,81 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
     if (!mounted) return;
     setState(() => _loading = false);
+  }
+
+  Future<void> _loadSponsor() async {
+    setState(() => _sponsorLoading = true);
+    try {
+      final result = await _adminApi.getSponsors();
+      if (!mounted) return;
+      if (result.success && result.data != null && result.data!.isNotEmpty) {
+        final s = result.data!.first;
+        _sponsorId = (s['id'] as num).toInt();
+        _sponsorNameCtrl.text = s['name'] as String? ?? '';
+        _sponsorLogoCtrl.text = s['logoUrl'] as String? ?? '';
+        _sponsorDarkLogoCtrl.text = s['darkLogoUrl'] as String? ?? '';
+        _sponsorLabelCtrl.text = '';
+        final rawLabel = s['label'];
+        if (rawLabel is Map) {
+          _sponsorLabelMap = Map<String, String>.from(
+            rawLabel.map((k, v) => MapEntry(k.toString(), v.toString())),
+          );
+          _sponsorLabelCtrl.text =
+              _sponsorLabelMap[AppStrings.currentLocale] ??
+              _sponsorLabelMap['hr'] ??
+              '';
+        }
+        _sponsorActive = s['isActive'] as bool? ?? false;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      showErrorSnack(context, AppStrings.sponsorLoadFailed);
+    }
+    if (!mounted) return;
+    setState(() => _sponsorLoading = false);
+  }
+
+  Future<void> _saveSponsor() async {
+    // Merge current text into the label map for the active locale
+    _sponsorLabelMap[AppStrings.currentLocale] = _sponsorLabelCtrl.text;
+
+    if (_sponsorId != null) {
+      final result = await _adminApi.updateSponsor(
+        id: _sponsorId!,
+        name: _sponsorNameCtrl.text,
+        logoUrl: _sponsorLogoCtrl.text,
+        darkLogoUrl: _sponsorDarkLogoCtrl.text,
+        labelMap: _sponsorLabelMap,
+        isActive: _sponsorActive,
+      );
+      if (!mounted) return;
+      if (!result.success) {
+        _showSnack(AppStrings.sponsorSaveFailed, isError: true);
+      }
+    } else {
+      final result = await _adminApi.createSponsor(
+        name: _sponsorNameCtrl.text.isEmpty ? 'Sponsor' : _sponsorNameCtrl.text,
+        logoUrl: _sponsorLogoCtrl.text,
+        darkLogoUrl: _sponsorDarkLogoCtrl.text,
+        labelMap: _sponsorLabelMap,
+        isActive: _sponsorActive,
+      );
+      if (!mounted) return;
+      if (result.success && result.data != null) {
+        _sponsorId = (result.data!['id'] as num).toInt();
+      } else {
+        _showSnack(AppStrings.sponsorSaveFailed, isError: true);
+      }
+    }
+  }
+
+  /// Save sponsor independently (from its own Save button).
+  Future<void> _saveSponsorOnly() async {
+    setState(() => _savingSponsor = true);
+    await _saveSponsor();
+    if (!mounted) return;
+    setState(() => _savingSponsor = false);
+    _showSnack(AppStrings.sponsorSaved);
   }
 
   void _showSnack(String message, {bool isError = false}) {
@@ -214,6 +311,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       );
       if (!mounted) return;
       ref.read(pricingVersionProvider.notifier).state++;
+      if (!mounted) return;
       setState(() => _editing = false);
       _showSnack(AppStrings.settingsSaved);
     } catch (_) {
@@ -240,32 +338,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Scaffold(
       appBar: HelpiAppBar(
         title: Text(AppStrings.settingsTitle),
-        actions: [
-          if (_editing) ...[
-            TextButton(
-              onPressed: _saving ? null : _cancelEditing,
-              child: Text(AppStrings.cancel),
-            ),
-            IconButton(
-              icon: _saving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.save, size: 22, color: HelpiTheme.accent),
-              tooltip: AppStrings.save,
-              onPressed: _saving ? null : _saveSettings,
-            ),
-          ] else ...[
-            IconButton(
-              icon: const Icon(Icons.edit, size: 22),
-              tooltip: AppStrings.edit,
-              onPressed: _startEditing,
-            ),
-          ],
-          const NotificationBell(),
-        ],
+        actions: const [NotificationBell()],
       ),
       body: SafeArea(
         child: Padding(
@@ -275,141 +348,273 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               final wide = constraints.maxWidth >= 600;
               return ListView(
                 children: [
-                  // ── Pricing ──
-                  _sectionCard(
-                    icon: Icons.euro,
-                    title: AppStrings.settingsPricing,
-                    children: [
-                      _fieldPair(
-                        wide: wide,
-                        first: _numField(
-                          _weekdayRateCtrl,
-                          AppStrings.weekdayRate,
-                          suffix: '€',
-                          decimal: true,
-                        ),
-                        second: _numField(
-                          _sundayRateCtrl,
-                          AppStrings.sundayRate,
-                          suffix: '€',
-                          decimal: true,
-                        ),
+                  // ═══════════════════════════════════════════
+                  //  CONFIGURATION (locked under Edit)
+                  // ═══════════════════════════════════════════
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: HelpiColors.of(context).surface,
+                      borderRadius: BorderRadius.circular(
+                        HelpiTheme.cardRadius,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── Student rates ──
-                  _sectionCard(
-                    icon: Icons.school_outlined,
-                    title: AppStrings.settingsStudentRates,
-                    children: [
-                      _fieldPair(
-                        wide: wide,
-                        first: _numField(
-                          _studentRateCtrl,
-                          AppStrings.studentHourlyRate,
-                          suffix: '€',
-                          decimal: true,
-                        ),
-                        second: _numField(
-                          _studentSundayRateCtrl,
-                          AppStrings.studentSundayRate,
-                          suffix: '€',
-                          decimal: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── Cancel rules ──
-                  _sectionCard(
-                    icon: Icons.timer_off,
-                    title: AppStrings.settingsCancelRules,
-                    children: [
-                      _fieldPair(
-                        wide: wide,
-                        first: _numField(
-                          _studentCutoffCtrl,
-                          AppStrings.studentCancelCutoff,
-                          suffix: 'h',
-                        ),
-                        second: _numField(
-                          _seniorCutoffCtrl,
-                          AppStrings.seniorCancelCutoff,
-                          suffix: 'h',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── Operational ──
-                  _sectionCard(
-                    icon: Icons.tune,
-                    title: AppStrings.settingsOperational,
-                    children: [
-                      _fieldPair(
-                        wide: wide,
-                        first: _numField(
-                          _travelBufferCtrl,
-                          AppStrings.travelBuffer,
-                          suffix: 'min',
-                        ),
-                        second: _numField(
-                          _paymentTimingCtrl,
-                          AppStrings.paymentTiming,
-                          suffix: 'min',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // ── Earnings (margin + VAT) ──
-                  _sectionCard(
-                    icon: Icons.calculate_outlined,
-                    title: AppStrings.settingsEarnings,
-                    children: [
-                      if (wide)
+                      border: Border.all(color: HelpiColors.of(context).border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── Header: title + Edit/Save/Cancel ──
                         Row(
                           children: [
+                            Icon(
+                              Icons.settings,
+                              size: 22,
+                              color: HelpiTheme.accent,
+                            ),
+                            const SizedBox(width: 10),
                             Expanded(
-                              child: _numField(
-                                _intermediaryPctCtrl,
-                                AppStrings.intermediaryPercentage,
-                                suffix: '%',
-                                decimal: true,
+                              child: Text(
+                                AppStrings.settingsConfiguration,
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w600,
+                                  color: HelpiColors.of(context).textPrimary,
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _numField(
-                                _vatCtrl,
-                                AppStrings.vatPercentage,
-                                suffix: '%',
-                                decimal: true,
+                            if (_editing) ...[
+                              TextButton(
+                                onPressed: _saving ? null : _cancelEditing,
+                                child: Text(AppStrings.cancel),
                               ),
-                            ),
+                              const SizedBox(width: 4),
+                              _saving
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : IconButton(
+                                      icon: const Icon(
+                                        Icons.save,
+                                        size: 22,
+                                        color: HelpiTheme.accent,
+                                      ),
+                                      tooltip: AppStrings.save,
+                                      onPressed: _saveSettings,
+                                    ),
+                            ] else
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                tooltip: AppStrings.edit,
+                                onPressed: _startEditing,
+                              ),
                           ],
-                        )
-                      else ...[
-                        _numField(
-                          _intermediaryPctCtrl,
-                          AppStrings.intermediaryPercentage,
-                          suffix: '%',
-                          decimal: true,
                         ),
-                        const SizedBox(height: 12),
-                        _numField(
-                          _vatCtrl,
-                          AppStrings.vatPercentage,
-                          suffix: '%',
-                          decimal: true,
+                        const SizedBox(height: 16),
+
+                        // ── Pricing ──
+                        _subSectionHeader(
+                          Icons.euro,
+                          AppStrings.settingsPricing,
+                        ),
+                        const SizedBox(height: 8),
+                        _fieldPair(
+                          wide: wide,
+                          first: _numField(
+                            _weekdayRateCtrl,
+                            AppStrings.weekdayRate,
+                            suffix: '€',
+                            decimal: true,
+                          ),
+                          second: _numField(
+                            _sundayRateCtrl,
+                            AppStrings.sundayRate,
+                            suffix: '€',
+                            decimal: true,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // ── Student rates ──
+                        _subSectionHeader(
+                          Icons.school_outlined,
+                          AppStrings.settingsStudentRates,
+                        ),
+                        const SizedBox(height: 8),
+                        _fieldPair(
+                          wide: wide,
+                          first: _numField(
+                            _studentRateCtrl,
+                            AppStrings.studentHourlyRate,
+                            suffix: '€',
+                            decimal: true,
+                          ),
+                          second: _numField(
+                            _studentSundayRateCtrl,
+                            AppStrings.studentSundayRate,
+                            suffix: '€',
+                            decimal: true,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // ── Cancel rules ──
+                        _subSectionHeader(
+                          Icons.timer_off,
+                          AppStrings.settingsCancelRules,
+                        ),
+                        const SizedBox(height: 8),
+                        _fieldPair(
+                          wide: wide,
+                          first: _numField(
+                            _studentCutoffCtrl,
+                            AppStrings.studentCancelCutoff,
+                            suffix: 'h',
+                          ),
+                          second: _numField(
+                            _seniorCutoffCtrl,
+                            AppStrings.seniorCancelCutoff,
+                            suffix: 'h',
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // ── Operational ──
+                        _subSectionHeader(
+                          Icons.tune,
+                          AppStrings.settingsOperational,
+                        ),
+                        const SizedBox(height: 8),
+                        _fieldPair(
+                          wide: wide,
+                          first: _numField(
+                            _travelBufferCtrl,
+                            AppStrings.travelBuffer,
+                            suffix: 'min',
+                          ),
+                          second: _numField(
+                            _paymentTimingCtrl,
+                            AppStrings.paymentTiming,
+                            suffix: 'min',
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // ── Earnings ──
+                        _subSectionHeader(
+                          Icons.calculate_outlined,
+                          AppStrings.settingsEarnings,
+                        ),
+                        const SizedBox(height: 8),
+                        _fieldPair(
+                          wide: wide,
+                          first: _numField(
+                            _intermediaryPctCtrl,
+                            AppStrings.intermediaryPercentage,
+                            suffix: '%',
+                            decimal: true,
+                          ),
+                          second: _numField(
+                            _vatCtrl,
+                            AppStrings.vatPercentage,
+                            suffix: '%',
+                            decimal: true,
+                          ),
                         ),
                       ],
-                    ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ═══════════════════════════════════════════
+                  //  PREFERENCES (always interactive)
+                  // ═══════════════════════════════════════════
+
+                  // ── Sponsor ──
+                  _sectionCard(
+                    icon: Icons.handshake_outlined,
+                    title: AppStrings.settingsSponsor,
+                    children: _sponsorLoading
+                        ? [
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                          ]
+                        : [
+                            Row(
+                              children: [
+                                HelpiSwitch(
+                                  value: _sponsorActive,
+                                  onChanged: (v) =>
+                                      setState(() => _sponsorActive = v),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  AppStrings.sponsorActive,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: HelpiColors.of(
+                                      context,
+                                    ).textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _logoUploadRow(
+                              label: AppStrings.sponsorLogoUrl,
+                              currentUrl: _sponsorLogoCtrl.text,
+                              uploading: _uploadingLight,
+                              buttonLabel: AppStrings.sponsorChooseLogo,
+                              onPick: () => _pickAndUploadLogo('light'),
+                              onDelete: () => _deleteLogo('light'),
+                              canDelete: !_sponsorActive,
+                            ),
+                            const SizedBox(height: 12),
+                            _logoUploadRow(
+                              label: AppStrings.sponsorDarkLogoUrl,
+                              currentUrl: _sponsorDarkLogoCtrl.text,
+                              uploading: _uploadingDark,
+                              buttonLabel: AppStrings.sponsorChooseDarkLogo,
+                              onPick: () => _pickAndUploadLogo('dark'),
+                              hint: AppStrings.sponsorDarkLogoHint,
+                              onDelete: () => _deleteLogo('dark'),
+                              canDelete: true,
+                            ),
+                            const SizedBox(height: 12),
+                            _sponsorTextField(
+                              _sponsorLabelCtrl,
+                              AppStrings.sponsorLabel,
+                            ),
+                            const SizedBox(height: 12),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: _savingSponsor
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : TextButton.icon(
+                                      onPressed: _saveSponsorOnly,
+                                      icon: const Icon(Icons.save, size: 18),
+                                      label: Text(AppStrings.save),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: HelpiTheme.accent,
+                                      ),
+                                    ),
+                            ),
+                          ],
                   ),
                   const SizedBox(height: 16),
 
@@ -478,7 +683,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  // ── Responsive field pair: Row on wide, Column on narrow ──
+  // ── Sub-section header inside the config card ──
+  Widget _subSectionHeader(IconData icon, String title) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: HelpiTheme.accent),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: HelpiColors.of(context).textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _fieldPair({
     required bool wide,
     required Widget first,
@@ -628,5 +850,252 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         suffixIconConstraints: const BoxConstraints(minHeight: 0, minWidth: 0),
       ),
     );
+  }
+
+  // ── Plain text field for sponsor fields ──
+  // ── Always-editable text field (for Sponsor section) ──
+  Widget _sponsorTextField(TextEditingController ctrl, String label) {
+    return TextField(
+      controller: ctrl,
+      decoration: InputDecoration(labelText: label),
+    );
+  }
+
+  // ── Logo upload row: label + filename/preview + upload button + delete ──
+  Widget _logoUploadRow({
+    required String label,
+    required String currentUrl,
+    required bool uploading,
+    required String buttonLabel,
+    required VoidCallback onPick,
+    VoidCallback? onDelete,
+    bool canDelete = true,
+    bool enabled = true,
+    String? hint,
+  }) {
+    final hasLogo = currentUrl.isNotEmpty;
+    final fileName = hasLogo
+        ? Uri.parse(currentUrl).pathSegments.last
+        : AppStrings.sponsorNoLogo;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: HelpiColors.of(context).textSecondary,
+          ),
+        ),
+        if (hint != null && !hasLogo)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              hint,
+              style: TextStyle(
+                fontSize: 11,
+                color: HelpiColors.of(
+                  context,
+                ).textSecondary.withValues(alpha: 0.6),
+              ),
+            ),
+          ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            // Logo preview or filename
+            if (hasLogo)
+              Container(
+                width: 40,
+                height: 40,
+                margin: const EdgeInsets.only(right: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: HelpiColors.of(context).border),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: currentUrl.toLowerCase().endsWith('.svg')
+                      ? SvgPicture.network(
+                          '${ApiEndpoints.baseUrl}$currentUrl',
+                          fit: BoxFit.contain,
+                          placeholderBuilder: (_) =>
+                              const Icon(Icons.image, size: 20),
+                        )
+                      : Image.network(
+                          '${ApiEndpoints.baseUrl}$currentUrl',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, e, s) =>
+                              const Icon(Icons.broken_image, size: 20),
+                        ),
+                ),
+              ),
+            Expanded(
+              child: Text(
+                fileName,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: hasLogo
+                      ? HelpiColors.of(context).textPrimary
+                      : HelpiColors.of(context).textSecondary,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            if (hasLogo && onDelete != null && enabled)
+              IconButton(
+                onPressed: canDelete
+                    ? onDelete
+                    : () {
+                        showErrorSnack(
+                          context,
+                          AppStrings.sponsorDeleteLogoMsg,
+                        );
+                      },
+                icon: Icon(
+                  Icons.close,
+                  size: 18,
+                  color: canDelete
+                      ? Colors.red.shade400
+                      : HelpiColors.of(
+                          context,
+                        ).textSecondary.withValues(alpha: 0.4),
+                ),
+                tooltip: canDelete
+                    ? AppStrings.sponsorDeleteLogoTitle
+                    : AppStrings.sponsorDeleteLogoMsg,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                padding: EdgeInsets.zero,
+              ),
+            if (enabled)
+              uploading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : TextButton.icon(
+                      onPressed: onPick,
+                      icon: const Icon(Icons.upload_file, size: 18),
+                      label: Text(buttonLabel),
+                      style: TextButton.styleFrom(
+                        foregroundColor: HelpiTheme.accent,
+                        textStyle: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ── Delete logo from backend ──
+  Future<void> _deleteLogo(String variant) async {
+    if (_sponsorId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStrings.sponsorDeleteLogoTitle),
+        content: Text(AppStrings.sponsorDeleteLogoConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(AppStrings.sponsorDeleteLogoTitle),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+
+    final result = await _adminApi.deleteSponsorLogo(
+      sponsorId: _sponsorId!,
+      variant: variant,
+    );
+    if (!mounted) return;
+
+    if (result.success) {
+      setState(() {
+        if (variant == 'dark') {
+          _sponsorDarkLogoCtrl.text = '';
+        } else {
+          _sponsorLogoCtrl.text = '';
+        }
+      });
+    } else {
+      showErrorSnack(context, result.error ?? AppStrings.sponsorDeleteFailed);
+    }
+  }
+
+  // ── Pick image file and upload to backend ──
+  Future<void> _pickAndUploadLogo(String variant) async {
+    // Ensure sponsor exists in DB first
+    if (_sponsorId == null) {
+      final result = await _adminApi.createSponsor(
+        name: _sponsorNameCtrl.text.isEmpty ? 'Sponsor' : _sponsorNameCtrl.text,
+        logoUrl: '',
+        isActive: _sponsorActive,
+      );
+      if (!mounted) return;
+      if (!result.success || result.data == null) {
+        showErrorSnack(context, AppStrings.sponsorSaveFailed);
+        return;
+      }
+      _sponsorId = (result.data!['id'] as num).toInt();
+    }
+
+    const imageType = XTypeGroup(
+      label: 'Images',
+      extensions: ['svg', 'png', 'jpg', 'jpeg', 'webp'],
+    );
+    final file = await openFile(acceptedTypeGroups: [imageType]);
+    if (!mounted || file == null) return;
+
+    setState(() {
+      if (variant == 'dark') {
+        _uploadingDark = true;
+      } else {
+        _uploadingLight = true;
+      }
+    });
+
+    final fileBytes = await file.readAsBytes();
+    if (!mounted) return;
+
+    final result = await _adminApi.uploadSponsorLogo(
+      sponsorId: _sponsorId!,
+      fileBytes: Uint8List.fromList(fileBytes),
+      fileName: file.name,
+      variant: variant,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      if (variant == 'dark') {
+        _uploadingDark = false;
+      } else {
+        _uploadingLight = false;
+      }
+    });
+
+    if (result.success && result.data != null) {
+      setState(() {
+        if (variant == 'dark') {
+          _sponsorDarkLogoCtrl.text = result.data!;
+        } else {
+          _sponsorLogoCtrl.text = result.data!;
+        }
+      });
+    } else {
+      showErrorSnack(context, result.error ?? AppStrings.sponsorUploadFailed);
+    }
   }
 }
