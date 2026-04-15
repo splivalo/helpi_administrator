@@ -519,12 +519,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           first: _numField(
                             _studentCutoffCtrl,
                             AppStrings.studentCancelCutoff,
-                            suffix: 'h',
+                            suffix: 'sati prije',
                           ),
                           second: _numField(
                             _seniorCutoffCtrl,
                             AppStrings.seniorCancelCutoff,
-                            suffix: 'h',
+                            suffix: 'sati prije',
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -542,7 +542,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           second: _numField(
                             _paymentTimingCtrl,
                             AppStrings.paymentTiming,
-                            suffix: 'min',
+                            suffix: 'min prije',
                           ),
                         ),
                         const SizedBox(height: 20),
