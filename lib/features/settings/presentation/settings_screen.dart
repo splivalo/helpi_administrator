@@ -472,10 +472,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const SizedBox(height: 16),
 
                         // ── Pricing ──
-                        _subSectionHeader(
-                          Icons.euro,
-                          AppStrings.settingsPricing,
-                        ),
+                        _subSectionHeader(AppStrings.settingsPricing),
                         const SizedBox(height: 8),
                         _fieldPair(
                           wide: wide,
@@ -495,10 +492,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const SizedBox(height: 20),
 
                         // ── Student rates ──
-                        _subSectionHeader(
-                          Icons.school_outlined,
-                          AppStrings.settingsStudentRates,
-                        ),
+                        _subSectionHeader(AppStrings.settingsStudentRates),
                         const SizedBox(height: 8),
                         _fieldPair(
                           wide: wide,
@@ -518,10 +512,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const SizedBox(height: 20),
 
                         // ── Cancel rules ──
-                        _subSectionHeader(
-                          Icons.timer_off,
-                          AppStrings.settingsCancelRules,
-                        ),
+                        _subSectionHeader(AppStrings.settingsCancelRules),
                         const SizedBox(height: 8),
                         _fieldPair(
                           wide: wide,
@@ -539,10 +530,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const SizedBox(height: 20),
 
                         // ── Operational ──
-                        _subSectionHeader(
-                          Icons.tune,
-                          AppStrings.settingsOperational,
-                        ),
+                        _subSectionHeader(AppStrings.settingsOperational),
                         const SizedBox(height: 8),
                         _fieldPair(
                           wide: wide,
@@ -560,10 +548,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         const SizedBox(height: 20),
 
                         // ── Earnings ──
-                        _subSectionHeader(
-                          Icons.calculate_outlined,
-                          AppStrings.settingsEarnings,
-                        ),
+                        _subSectionHeader(AppStrings.settingsEarnings),
                         const SizedBox(height: 8),
                         _fieldPair(
                           wide: wide,
@@ -847,20 +832,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   // ── Sub-section header inside the config card ──
-  Widget _subSectionHeader(IconData icon, String title) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: HelpiTheme.accent),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: HelpiColors.of(context).textPrimary,
-          ),
-        ),
-      ],
+  Widget _subSectionHeader(String title) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: HelpiColors.of(context).textPrimary,
+      ),
     );
   }
 

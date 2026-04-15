@@ -29,10 +29,10 @@ class AppStrings {
 
       // ── Postavke ──────────────────────────────
       'settingsTitle': 'Postavke',
-      'settingsPricing': 'Cijena usluge',
-      'settingsCancelRules': 'Pravila promjena',
-      'settingsOperational': 'Operativno',
-      'settingsStudentRates': 'Studentska satnica',
+      'settingsPricing': 'Cijena',
+      'settingsCancelRules': 'Otkazivanje',
+      'settingsOperational': 'Logistika',
+      'settingsStudentRates': 'Satnica',
       'settingsEarnings': 'Zarada',
       'settingsLanguage': 'Jezik',
       'settingsTheme': 'Tema',
@@ -556,10 +556,10 @@ class AppStrings {
 
       // ── Settings ──────────────────────────────
       'settingsTitle': 'Settings',
-      'settingsPricing': 'Service pricing',
-      'settingsCancelRules': 'Change rules',
-      'settingsOperational': 'Operational',
-      'settingsStudentRates': 'Student rates',
+      'settingsPricing': 'Pricing',
+      'settingsCancelRules': 'Cancellation',
+      'settingsOperational': 'Logistics',
+      'settingsStudentRates': 'Rates',
       'settingsEarnings': 'Earnings',
       'settingsLanguage': 'Language',
       'settingsTheme': 'Theme',
