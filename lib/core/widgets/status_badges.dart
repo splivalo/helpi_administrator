@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:helpi_admin/app/theme.dart';
@@ -276,6 +278,129 @@ class StatusBadge extends StatelessWidget {
     );
   }
 }
+
+// ═══════════════════════════════════════════════════════════════
+//  LIVE SESSION BADGE (auto-transitions scheduled→active→completed)
+// ═══════════════════════════════════════════════════════════════
+
+/// A session badge that automatically switches between Upcoming/Active/Completed
+/// based on the current time, without polling.
+class LiveSessionBadge extends StatefulWidget {
+  const LiveSessionBadge({
+    super.key,
+    required this.status,
+    required this.date,
+    required this.startTime,
+    required this.endTime,
+    this.size = StatusBadgeSize.small,
+  });
+
+  final SessionStatus status;
+  final DateTime date;
+  final TimeOfDay startTime;
+  final TimeOfDay endTime;
+  final StatusBadgeSize size;
+
+  @override
+  State<LiveSessionBadge> createState() => _LiveSessionBadgeState();
+}
+
+class _LiveSessionBadgeState extends State<LiveSessionBadge> {
+  Timer? _timer;
+  late _SessionPhase _phase;
+
+  @override
+  void initState() {
+    super.initState();
+    _computeAndSchedule();
+  }
+
+  @override
+  void didUpdateWidget(LiveSessionBadge old) {
+    super.didUpdateWidget(old);
+    if (old.status != widget.status ||
+        old.date != widget.date ||
+        old.startTime != widget.startTime ||
+        old.endTime != widget.endTime) {
+      _timer?.cancel();
+      _computeAndSchedule();
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  DateTime get _startsAt => DateTime(
+    widget.date.year,
+    widget.date.month,
+    widget.date.day,
+    widget.startTime.hour,
+    widget.startTime.minute,
+  );
+
+  DateTime get _endsAt => DateTime(
+    widget.date.year,
+    widget.date.month,
+    widget.date.day,
+    widget.endTime.hour,
+    widget.endTime.minute,
+  );
+
+  void _computeAndSchedule() {
+    final now = DateTime.now();
+
+    if (widget.status == SessionStatus.scheduled) {
+      if (now.isBefore(_startsAt)) {
+        _phase = _SessionPhase.upcoming;
+        _scheduleAt(_startsAt);
+      } else if (now.isBefore(_endsAt)) {
+        _phase = _SessionPhase.active;
+        _scheduleAt(_endsAt);
+      } else {
+        _phase = _SessionPhase.completed;
+      }
+    } else if (widget.status == SessionStatus.completed) {
+      _phase = _SessionPhase.completed;
+    } else {
+      _phase = _SessionPhase.cancelled;
+    }
+  }
+
+  void _scheduleAt(DateTime target) {
+    final delay = target.difference(DateTime.now());
+    if (delay.isNegative) {
+      _computeAndSchedule();
+      return;
+    }
+    _timer = Timer(delay, () {
+      if (mounted) setState(() => _computeAndSchedule());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    switch (_phase) {
+      case _SessionPhase.active:
+        return StatusBadge(
+          textColor: HelpiTheme.accent,
+          bgColor: const Color(0xFFE0F5F5),
+          label: AppStrings.sessionStatusActive,
+          size: widget.size,
+        );
+      case _SessionPhase.upcoming:
+        return StatusBadge.session(SessionStatus.scheduled, size: widget.size);
+      case _SessionPhase.completed:
+        return StatusBadge.session(SessionStatus.completed, size: widget.size);
+      case _SessionPhase.cancelled:
+        return StatusBadge.session(SessionStatus.cancelled, size: widget.size);
+    }
+  }
+}
+
+enum _SessionPhase { upcoming, active, completed, cancelled }
 
 // ═══════════════════════════════════════════════════════════════
 //  SERVICE CHIP (pill in Wrap)

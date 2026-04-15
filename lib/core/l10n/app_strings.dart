@@ -377,7 +377,8 @@ class AppStrings {
       'sessionsCancelledSubtitle': 'Narudžba je otkazana.',
       'sessionStatusPlanned': 'Planirano',
       'sessionStatusScheduled': 'Nadolazeći',
-      'sessionStatusCompleted': 'Obavljen',
+      'sessionStatusActive': 'Aktivan',
+      'sessionStatusCompleted': 'Završen',
       'sessionStatusCancelled': 'Otkazan',
       'sessionCancel': 'Otkaži termin',
       'sessionCancelShort': 'Otkaži',
@@ -877,6 +878,7 @@ class AppStrings {
       'sessionsCancelledSubtitle': 'Order has been cancelled.',
       'sessionStatusPlanned': 'Planned',
       'sessionStatusScheduled': 'Scheduled',
+      'sessionStatusActive': 'Active',
       'sessionStatusCompleted': 'Completed',
       'sessionStatusCancelled': 'Cancelled',
       'sessionCancel': 'Cancel session',
@@ -1464,6 +1466,7 @@ class AppStrings {
       _t('sessionsCancelledSubtitle');
   static String get sessionStatusPlanned => _t('sessionStatusPlanned');
   static String get sessionStatusScheduled => _t('sessionStatusScheduled');
+  static String get sessionStatusActive => _t('sessionStatusActive');
   static String get sessionStatusCompleted => _t('sessionStatusCompleted');
   static String get sessionStatusCancelled => _t('sessionStatusCancelled');
   static String get sessionCancel => _t('sessionCancel');

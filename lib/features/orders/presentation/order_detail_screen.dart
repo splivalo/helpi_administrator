@@ -1020,7 +1020,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               if (orderCancelled)
                 StatusBadge.session(SessionStatus.cancelled)
               else
-                _sessionStatusBadge(session.status),
+                LiveSessionBadge(
+                  status: session.status,
+                  date: session.date,
+                  startTime: session.startTime,
+                  endTime: session.endTime,
+                ),
             ],
           ),
           const SizedBox(height: 6),
@@ -1072,7 +1077,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
           ],
 
-          // Row 4: action buttons (only for upcoming, NOT on cancelled orders)
+          // Row 4: action buttons (scheduled sessions, NOT on cancelled orders)
           if (session.status == SessionStatus.scheduled && !orderCancelled) ...[
             const SizedBox(height: 8),
             Padding(
@@ -1080,6 +1085,15 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               child: Builder(
                 builder: (context) {
                   final narrow = MediaQuery.sizeOf(context).width < 600;
+                  final now = DateTime.now();
+                  final start = DateTime(
+                    session.date.year,
+                    session.date.month,
+                    session.date.day,
+                    session.startTime.hour,
+                    session.startTime.minute,
+                  );
+                  final isActiveOrDone = now.isAfter(start);
                   return Row(
                     children: [
                       _SessionActionButton(
@@ -1088,7 +1102,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                             ? AppStrings.sessionRescheduleShort
                             : AppStrings.sessionReschedule,
                         color: HelpiTheme.accent,
-                        onTap: () => _showRescheduleSheet(session),
+                        onTap: isActiveOrDone
+                            ? null
+                            : () => _showRescheduleSheet(session),
                       ),
                       const SizedBox(width: 12),
                       _SessionActionButton(
@@ -1097,7 +1113,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                             ? AppStrings.sessionCancelShort
                             : AppStrings.sessionCancel,
                         color: HelpiTheme.primary,
-                        onTap: () => _confirmCancelSession(session),
+                        onTap: isActiveOrDone
+                            ? null
+                            : () => _confirmCancelSession(session),
                       ),
                     ],
                   );
@@ -1123,9 +1141,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       ),
     );
   }
-
-  Widget _sessionStatusBadge(SessionStatus status) =>
-      StatusBadge.session(status);
 
   // ---------------------------------------------------------------
   //  ADMIN ACTIONS SECTION
@@ -2397,42 +2412,47 @@ class _SessionActionButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.color,
-    required this.onTap,
+    this.onTap,
   });
 
   final IconData icon;
   final String label;
   final Color color;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+
+  bool get _disabled => onTap == null;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor = _disabled ? Colors.grey : color;
     return Material(
-      color: color.withValues(alpha: 0.08),
+      color: effectiveColor.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(8),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        hoverColor: color.withValues(alpha: 0.15),
-        splashColor: color.withValues(alpha: 0.2),
-        mouseCursor: SystemMouseCursors.click,
+        hoverColor: _disabled ? null : effectiveColor.withValues(alpha: 0.15),
+        splashColor: _disabled ? null : effectiveColor.withValues(alpha: 0.2),
+        mouseCursor: _disabled
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withValues(alpha: 0.25)),
+            border: Border.all(color: effectiveColor.withValues(alpha: 0.25)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: color),
+              Icon(icon, size: 14, color: effectiveColor),
               const SizedBox(width: 4),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: color,
+                  color: effectiveColor,
                 ),
               ),
             ],

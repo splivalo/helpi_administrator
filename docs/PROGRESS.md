@@ -1,6 +1,6 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-04-12
+> Zadnja izmjena: 2026-04-15
 
 ## Ukupno stanje
 
@@ -416,6 +416,19 @@
 
 1. Zadržati vanjske providere (`Stripe`, `Minimax`, `Mailgun`, `MailerLite`, `Firebase`) izvan scopea dok ih developer ne spoji na live credentials.
 2. Nakon potvrde nastaviti sa sljedećim prioritetom iz [ROADMAP.md](ROADMAP.md).
+
+---
+
+### Live Session Status Chips + Disabled Buttons (2026-04-14)
+
+- [x] **LiveSessionBadge** — `StatefulWidget` s `Timer` u `core/widgets/status_badges.dart`, auto-transition Predstojeći→Aktivan→Završen po vremenu
+- [x] **`_SessionPhase` enum** — `upcoming`, `active`, `completed`, `cancelled` s odgovarajućim bojama
+- [x] **order_detail_screen.dart** — Koristi `LiveSessionBadge` umjesto statičkog badgea na sesijama
+- [x] **Disabled buttons** — "Promijeni" i "Otkaži" gumbi disabled kad je sesija aktivna ili završena (`isActiveOrDone = now.isAfter(start)`)
+- [x] **`_SessionActionButton.onTap` nullable** — Kad je `null`, gumb prikazuje sivu boju (`Colors.grey`) umjesto teal/coral
+- [x] **"Obavljen" → "Završen"** — `sessionStatusCompleted` promijenjen u admin AppStrings za konzistentnost s mobilnom aplikacijom
+- [x] **`sessionStatusActive`** — Novi i18n ključ (HR: "Aktivan")
+- [x] Verifikacija: `flutter analyze` = 0 issues
 
 ---
 
