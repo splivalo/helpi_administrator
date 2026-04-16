@@ -942,11 +942,43 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     );
   }
 
+  bool _isSessionActive(SessionModel s) {
+    if (s.status != SessionStatus.scheduled) return false;
+    final now = DateTime.now();
+    final start = DateTime(
+      s.date.year,
+      s.date.month,
+      s.date.day,
+      s.startTime.hour,
+      s.startTime.minute,
+    );
+    final end = DateTime(
+      s.date.year,
+      s.date.month,
+      s.date.day,
+      s.endTime.hour,
+      s.endTime.minute,
+    );
+    return now.isAfter(start) && now.isBefore(end);
+  }
+
+  bool _isSessionDone(SessionModel s) {
+    if (s.status == SessionStatus.completed) return true;
+    if (s.status != SessionStatus.scheduled) return false;
+    final end = DateTime(
+      s.date.year,
+      s.date.month,
+      s.date.day,
+      s.endTime.hour,
+      s.endTime.minute,
+    );
+    return DateTime.now().isAfter(end);
+  }
+
   Widget _buildSessionCard(
     SessionModel session, {
     bool orderCancelled = false,
   }) {
-    final isCompleted = session.status == SessionStatus.completed;
     final isCancelled =
         session.status == SessionStatus.cancelled || orderCancelled;
 
@@ -972,17 +1004,21 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           Row(
             children: [
               Icon(
-                isCompleted
+                _isSessionDone(session)
                     ? Icons.event_available
                     : isCancelled
                     ? Icons.event_busy
+                    : _isSessionActive(session)
+                    ? Icons.event_available
                     : Icons.event,
                 size: 18,
-                color: isCompleted
-                    ? HelpiTheme.statusActiveText
+                color: _isSessionDone(session)
+                    ? HelpiTheme.accent
                     : isCancelled
-                    ? HelpiTheme.primary
-                    : const Color(0xFF1976D2),
+                    ? HelpiTheme.statusCancelledText
+                    : _isSessionActive(session)
+                    ? HelpiTheme.statusActiveText
+                    : HelpiTheme.statusScheduledText,
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -1025,6 +1061,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   date: session.date,
                   startTime: session.startTime,
                   endTime: session.endTime,
+                  onPhaseChanged: () {
+                    if (mounted) setState(() {});
+                  },
                 ),
             ],
           ),

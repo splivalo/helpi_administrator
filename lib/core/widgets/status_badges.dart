@@ -293,6 +293,7 @@ class LiveSessionBadge extends StatefulWidget {
     required this.startTime,
     required this.endTime,
     this.size = StatusBadgeSize.small,
+    this.onPhaseChanged,
   });
 
   final SessionStatus status;
@@ -300,6 +301,9 @@ class LiveSessionBadge extends StatefulWidget {
   final TimeOfDay startTime;
   final TimeOfDay endTime;
   final StatusBadgeSize size;
+
+  /// Called when the live phase changes (e.g. upcoming→active→completed).
+  final VoidCallback? onPhaseChanged;
 
   @override
   State<LiveSessionBadge> createState() => _LiveSessionBadgeState();
@@ -376,7 +380,10 @@ class _LiveSessionBadgeState extends State<LiveSessionBadge> {
       return;
     }
     _timer = Timer(delay, () {
-      if (mounted) setState(() => _computeAndSchedule());
+      if (mounted) {
+        setState(() => _computeAndSchedule());
+        widget.onPhaseChanged?.call();
+      }
     });
   }
 
