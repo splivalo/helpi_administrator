@@ -90,8 +90,8 @@ String serviceLabel(ServiceType type) => switch (type) {
         AppStrings.sessionStatusScheduled,
       ),
       SessionStatus.completed => (
-        HelpiTheme.statusActiveText,
-        HelpiTheme.statusActiveBg,
+        HelpiTheme.accent,
+        HelpiTheme.pastelTeal,
         AppStrings.sessionStatusCompleted,
       ),
       SessionStatus.cancelled => (
@@ -385,8 +385,8 @@ class _LiveSessionBadgeState extends State<LiveSessionBadge> {
     switch (_phase) {
       case _SessionPhase.active:
         return StatusBadge(
-          textColor: HelpiTheme.accent,
-          bgColor: const Color(0xFFE0F5F5),
+          textColor: HelpiTheme.statusActiveText,
+          bgColor: HelpiTheme.statusActiveBg,
           label: AppStrings.sessionStatusActive,
           size: widget.size,
         );
