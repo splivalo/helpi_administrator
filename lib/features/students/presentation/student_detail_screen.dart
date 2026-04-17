@@ -235,7 +235,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
               children: [
                 for (int i = 0; i < sections.length; i++) ...[
                   sections[i],
-                  if (i < sections.length - 1) const SizedBox(height: 12),
+                  if (i < sections.length - 1) const SizedBox(height: 10),
                 ],
               ],
             ),
@@ -1796,7 +1796,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
   }
 
   Widget _buildOrderTile(OrderModel o) {
-    return GestureDetector(
+    return HoverCard(
       onTap: () {
         Navigator.push(
           context,
@@ -1806,46 +1806,43 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           setState(() {});
         });
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: HelpiColors.of(context).scaffold,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '#${o.orderNumber}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
+      bgColor: HelpiColors.of(context).scaffold,
+      borderColor: Colors.transparent,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      radius: 8,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '#${o.orderNumber}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    o.senior.fullName,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: HelpiColors.of(context).textSecondary,
-                    ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  o.senior.fullName,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            StatusBadge.order(o.status),
-            const SizedBox(width: 4),
-            Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: HelpiColors.of(context).textSecondary,
-            ),
-          ],
-        ),
+          ),
+          StatusBadge.order(o.status),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.chevron_right,
+            size: 20,
+            color: HelpiColors.of(context).textSecondary,
+          ),
+        ],
       ),
     );
   }

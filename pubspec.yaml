@@ -22,6 +22,7 @@ dependencies:
   signalr_netcore: ^1.4.4
   flutter_secure_storage: ^9.2.4
   flutter_riverpod: ^2.6.1
+  intl: ^0.20.2
   excel: ^4.0.6
   fl_chart: ^1.2.0
 

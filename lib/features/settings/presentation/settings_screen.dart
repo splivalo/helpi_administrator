@@ -379,7 +379,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          padding: const EdgeInsets.all(16),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final wide = constraints.maxWidth >= 600;
@@ -568,7 +568,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
                   // ═══════════════════════════════════════════
                   //  PREFERENCES (always interactive)
@@ -764,7 +764,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ],
                           ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
                   // ── Language ──
                   _sectionCard(
@@ -789,7 +789,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
                   // ── Theme ──
                   _sectionCard(
@@ -821,7 +821,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                 ],
               );
             },

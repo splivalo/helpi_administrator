@@ -2,6 +2,15 @@
 
 > Kronologija ključnih odluka i promjena.
 
+## 2026-04-14 — Kupon sustav UI polish + backend integracija
+
+- **Coupon card 3-row redesign** — `_CouponCard` u `coupons_screen.dart` kompletno redizajniran: Row 1 (kod teal + copy + badge + delete), Row 2 (naziv + univerzalni value format), Row 3 (datumi + combinable/grad/seniori). Univerzalni format: `X sati / mj.`, `X sati / tj.`, `X sati / ukupno`, `X% / termin`, `€X / termin`. Hrvatska gramatika sati (1 sat, 2-4 sata, 5+ sati).
+- **City dropdown crash fix** — `coupon_form_dialog.dart`: `_selectedCityId` se postavljao u `initState` prije nego su gradovi učitani → DropdownButton assertion crash. Fix: deferred u `_loadCities()` callback.
+- **Order detail coupon chips** — Chip label skraćen na samo `code` (uklonjeni tip/vrijednost). Dodan custom dark tooltip s nazivom kupona + preostalim satima. Chip border 0.5px, uklonjen default delete tooltip.
+- **Tooltip konzistentnost** — Svi tooltipovi (copy ikona, delete ikona, chip hover) sada koriste isti custom dark stil (`Color(0xE6616161)`, borderRadius 6, fontSize 13, white text) umjesto Flutter default bijelog.
+- **Button label refinement** — "Dodijeli senioru" → "Dodijeli kupon", "Otkaži" → "Otkaži narudžbu".
+- **Ključna odluka:** Coupon tipovi (MonthlyHours, WeeklyHours, OneTimeHours, Percentage, FixedPerSession) prikazuju se univerzalnim formatom umjesto dugačkih naziva. Tooltip na hover daje kontekst bez zatrpavanja UI-ja.
+
 ## 2026-04-12 — Chat sustav kompletiran (backend + admin + helpi_app)
 
 - **Backend chat built from scratch** — `ChatRoom` i `ChatMessage` entiteti, `ChatService`, `ChatRepository`, `ChatController` (`api/chat`), `ChatHub` (SignalR), DB migracija. Auto-creates admin room per user + welcome message ("Dobrodošli u Helpi. Kako vam možemo pomoći?").

@@ -25,7 +25,9 @@ class AppStrings {
       'navStudents': 'Studenti',
       'navSeniors': 'Seniori',
       'navChat': 'Poruke',
+      'navCoupons': 'Kuponi',
       'navSettings': 'Postavke',
+      'navMore': 'Više',
 
       // ── Postavke ──────────────────────────────
       'settingsTitle': 'Postavke',
@@ -78,6 +80,54 @@ class AppStrings {
       'sponsorDeleteLogoConfirm': 'Želiš li obrisati ovaj logotip?',
       'sponsorDeleteFailed': 'Brisanje logotipa nije uspjelo',
 
+      // ── Kuponi ────────────────────────────
+      'couponsTitle': 'Kuponi',
+      'couponNew': 'Novi kupon',
+      'couponCode': 'Kod',
+      'couponName': 'Naziv',
+      'couponDescription': 'Opis',
+      'couponType': 'Tip',
+      'couponValue': 'Vrijednost',
+      'couponCombinable': 'Može se kombinirati',
+      'couponCity': 'Grad',
+      'couponCityAll': 'Svi gradovi',
+      'couponValidFrom': 'Vrijedi od',
+      'couponValidUntil': 'Vrijedi do',
+      'couponActive': 'Aktivan',
+      'couponInactive': 'Neaktivan',
+      'couponExpired': 'Istekao',
+      'couponAssignments': 'Dodjele',
+      'couponAssignSenior': 'Dodijeli kupon',
+      'couponNoAssignments': 'Nema dodjela',
+      'couponSaved': 'Kupon spremljen',
+      'couponSaveFailed': 'Spremanje kupona nije uspjelo',
+      'couponDeleted': 'Kupon obrisan',
+      'couponDeleteFailed': 'Brisanje kupona nije uspjelo',
+      'couponDeleteConfirm': 'Obrisati kupon?',
+      'couponNoCoupons': 'Nema kupona',
+      'couponTypeMonthlyHours': 'Mjesečno (sati)',
+      'couponTypeWeeklyHours': 'Tjedno (sati)',
+      'couponTypeOneTimeHours': 'Jednokratno (sati)',
+      'couponTypePercentage': 'Postotak (%)',
+      'couponTypeFixedPerSession': 'Fiksno po terminu (€)',
+      'couponRemainingHours': 'Preostalo sati',
+      'couponAssignedBy': 'Dodijelio',
+      'couponSelfRedeemed': 'Unio senior',
+      'couponRedeemTitle': 'Aktiviraj kupon',
+      'couponRedeemHint': 'Unesite kod kupona',
+      'couponRedeemed': 'Kupon aktiviran',
+      'couponRedeemFailed': 'Aktivacija kupona nije uspjela',
+      'couponDeactivated': 'Kupon deaktiviran',
+      'couponDeactivateFailed': 'Deaktivacija kupona nije uspjela',
+      'couponNotFound': 'Kupon nije pronađen',
+      'couponAlreadyActive': 'Kupon je već aktivan',
+      'couponNotYetValid': 'Kupon još nije valjan',
+      'couponExclusiveConflict': 'Ne može se kombinirati s postojećim kuponom',
+      'couponActiveCoupons': 'Aktivni kuponi',
+      'couponNone': 'Nema aktivnih kupona',
+      'couponCodeCopied': 'Kod kupona kopiran',
+      'couponCopyCode': 'Kopiraj kod',
+
       // ── Analitika ─────────────────────────────
       'dashboardTitle': 'Analitika',
       'analyticsLast7Days': 'Zadnjih 7 dana',
@@ -109,7 +159,7 @@ class AppStrings {
       'cancelOrderConfirmTitle': 'Otkaži narudžbu',
       'cancelOrderConfirmMsg':
           'Jeste li sigurni da želite otkazati ovu narudžbu? Svi nadolazeći termini će biti otkazani.',
-      'cancelOrderBtn': 'Otkaži',
+      'cancelOrderBtn': 'Otkaži narudžbu',
       'editOrderTitle': 'Uredi narudžbu',
       'editOrderSuccess': 'Narudžba uspješno ažurirana',
       'orderNumber': 'Narudžba #{number}',
@@ -552,7 +602,9 @@ class AppStrings {
       'navStudents': 'Students',
       'navSeniors': 'Seniors',
       'navChat': 'Messages',
+      'navCoupons': 'Coupons',
       'navSettings': 'Settings',
+      'navMore': 'More',
 
       // ── Settings ──────────────────────────────
       'settingsTitle': 'Settings',
@@ -604,6 +656,54 @@ class AppStrings {
       'sponsorDeleteLogoConfirm': 'Do you want to delete this logo?',
       'sponsorDeleteFailed': 'Failed to delete logo',
 
+      // ── Coupons ────────────────────────────
+      'couponsTitle': 'Coupons',
+      'couponNew': 'New coupon',
+      'couponCode': 'Code',
+      'couponName': 'Name',
+      'couponDescription': 'Description',
+      'couponType': 'Type',
+      'couponValue': 'Value',
+      'couponCombinable': 'Can be combined',
+      'couponCity': 'City',
+      'couponCityAll': 'All cities',
+      'couponValidFrom': 'Valid from',
+      'couponValidUntil': 'Valid until',
+      'couponActive': 'Active',
+      'couponInactive': 'Inactive',
+      'couponExpired': 'Expired',
+      'couponAssignments': 'Assignments',
+      'couponAssignSenior': 'Assign coupon',
+      'couponNoAssignments': 'No assignments',
+      'couponSaved': 'Coupon saved',
+      'couponSaveFailed': 'Failed to save coupon',
+      'couponDeleted': 'Coupon deleted',
+      'couponDeleteFailed': 'Failed to delete coupon',
+      'couponDeleteConfirm': 'Delete coupon?',
+      'couponNoCoupons': 'No coupons',
+      'couponTypeMonthlyHours': 'Monthly (hours)',
+      'couponTypeWeeklyHours': 'Weekly (hours)',
+      'couponTypeOneTimeHours': 'One-time (hours)',
+      'couponTypePercentage': 'Percentage (%)',
+      'couponTypeFixedPerSession': 'Fixed per session (€)',
+      'couponRemainingHours': 'Remaining hours',
+      'couponAssignedBy': 'Assigned by',
+      'couponSelfRedeemed': 'Self-redeemed',
+      'couponRedeemTitle': 'Activate coupon',
+      'couponRedeemHint': 'Enter coupon code',
+      'couponRedeemed': 'Coupon activated',
+      'couponRedeemFailed': 'Coupon activation failed',
+      'couponDeactivated': 'Coupon deactivated',
+      'couponDeactivateFailed': 'Coupon deactivation failed',
+      'couponNotFound': 'Coupon not found',
+      'couponAlreadyActive': 'Coupon is already active',
+      'couponNotYetValid': 'Coupon is not yet valid',
+      'couponExclusiveConflict': 'Cannot combine with existing coupon',
+      'couponActiveCoupons': 'Active coupons',
+      'couponNone': 'No active coupons',
+      'couponCodeCopied': 'Coupon code copied',
+      'couponCopyCode': 'Copy code',
+
       // ── Analitika ─────────────────────────────
       'dashboardTitle': 'Analytics',
       'analyticsLast7Days': 'Last 7 days',
@@ -635,7 +735,7 @@ class AppStrings {
       'cancelOrderConfirmTitle': 'Cancel order',
       'cancelOrderConfirmMsg':
           'Are you sure you want to cancel this order? All upcoming sessions will be cancelled.',
-      'cancelOrderBtn': 'Cancel',
+      'cancelOrderBtn': 'Cancel order',
       'editOrderTitle': 'Edit order',
       'editOrderSuccess': 'Order updated successfully',
       'orderNumber': 'Order #{number}',
@@ -1110,7 +1210,9 @@ class AppStrings {
   static String get navStudents => _t('navStudents');
   static String get navSeniors => _t('navSeniors');
   static String get navChat => _t('navChat');
+  static String get navCoupons => _t('navCoupons');
   static String get navSettings => _t('navSettings');
+  static String get navMore => _t('navMore');
 
   // ── Analitika ──
   static String get dashboardTitle => _t('dashboardTitle');
@@ -1642,4 +1744,53 @@ class AppStrings {
   static String get sponsorDeleteLogoMsg => _t('sponsorDeleteLogoMsg');
   static String get sponsorDeleteLogoConfirm => _t('sponsorDeleteLogoConfirm');
   static String get sponsorDeleteFailed => _t('sponsorDeleteFailed');
+
+  // ── Kuponi ──
+  static String get couponsTitle => _t('couponsTitle');
+  static String get couponNew => _t('couponNew');
+  static String get couponCode => _t('couponCode');
+  static String get couponName => _t('couponName');
+  static String get couponDescription => _t('couponDescription');
+  static String get couponType => _t('couponType');
+  static String get couponValue => _t('couponValue');
+  static String get couponCombinable => _t('couponCombinable');
+  static String get couponCity => _t('couponCity');
+  static String get couponCityAll => _t('couponCityAll');
+  static String get couponValidFrom => _t('couponValidFrom');
+  static String get couponValidUntil => _t('couponValidUntil');
+  static String get couponActive => _t('couponActive');
+  static String get couponInactive => _t('couponInactive');
+  static String get couponExpired => _t('couponExpired');
+  static String get couponAssignments => _t('couponAssignments');
+  static String get couponAssignSenior => _t('couponAssignSenior');
+  static String get couponNoAssignments => _t('couponNoAssignments');
+  static String get couponSaved => _t('couponSaved');
+  static String get couponSaveFailed => _t('couponSaveFailed');
+  static String get couponDeleted => _t('couponDeleted');
+  static String get couponDeleteFailed => _t('couponDeleteFailed');
+  static String get couponDeleteConfirm => _t('couponDeleteConfirm');
+  static String get couponNoCoupons => _t('couponNoCoupons');
+  static String get couponTypeMonthlyHours => _t('couponTypeMonthlyHours');
+  static String get couponTypeWeeklyHours => _t('couponTypeWeeklyHours');
+  static String get couponTypeOneTimeHours => _t('couponTypeOneTimeHours');
+  static String get couponTypePercentage => _t('couponTypePercentage');
+  static String get couponTypeFixedPerSession =>
+      _t('couponTypeFixedPerSession');
+  static String get couponRemainingHours => _t('couponRemainingHours');
+  static String get couponAssignedBy => _t('couponAssignedBy');
+  static String get couponSelfRedeemed => _t('couponSelfRedeemed');
+  static String get couponRedeemTitle => _t('couponRedeemTitle');
+  static String get couponRedeemHint => _t('couponRedeemHint');
+  static String get couponRedeemed => _t('couponRedeemed');
+  static String get couponRedeemFailed => _t('couponRedeemFailed');
+  static String get couponDeactivated => _t('couponDeactivated');
+  static String get couponDeactivateFailed => _t('couponDeactivateFailed');
+  static String get couponNotFound => _t('couponNotFound');
+  static String get couponAlreadyActive => _t('couponAlreadyActive');
+  static String get couponNotYetValid => _t('couponNotYetValid');
+  static String get couponExclusiveConflict => _t('couponExclusiveConflict');
+  static String get couponActiveCoupons => _t('couponActiveCoupons');
+  static String get couponNone => _t('couponNone');
+  static String get couponCodeCopied => _t('couponCodeCopied');
+  static String get couponCopyCode => _t('couponCopyCode');
 }

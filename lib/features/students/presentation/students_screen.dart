@@ -582,8 +582,6 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
             ),
           ],
 
-          const SizedBox(height: 8),
-
           // ── Result count + sort/filter ──
           ResultCountRow(
             text: AppStrings.filterResultCount(students.length),
@@ -685,7 +683,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                           : (screenWidth >= 900 ? 2 : 1);
                       if (_isGridView && gridCols > 1) {
                         return ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
                           itemCount: (students.length / gridCols).ceil(),
                           itemBuilder: (ctx, rowIdx) {
                             final start = rowIdx * gridCols;
@@ -711,7 +709,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
                         );
                       }
                       return ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
                         itemCount: students.length,
                         itemBuilder: (ctx, i) {
                           final s = students[i];
@@ -1786,145 +1784,138 @@ class _StudentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return HoverCard(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: HelpiColors.of(context).surface,
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          border: Border.all(color: HelpiColors.of(context).border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Header: Avatar + Name + Status chips ──
-            Row(
-              children: [
-                ProfileAvatar(
-                  initials: student.firstName[0] + student.lastName[0],
-                  profileImageUrl: student.profileImageUrl,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    student.fullName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+      bgColor: HelpiColors.of(context).surface,
+      borderColor: HelpiColors.of(context).border,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header: Avatar + Name + Status chips ──
+          Row(
+            children: [
+              ProfileAvatar(
+                initials: student.firstName[0] + student.lastName[0],
+                profileImageUrl: student.profileImageUrl,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  student.fullName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: 8),
-                if (student.isSuspended)
-                  StatusBadge.suspended()
-                else
-                  StatusBadge.contract(student.contractStatus),
-                if (student.isArchived) ...[
-                  const SizedBox(width: 6),
-                  StatusBadge(
-                    textColor: HelpiColors.of(context).textSecondary,
-                    bgColor: HelpiColors.of(context).chipBg,
-                    label: AppStrings.statusArchived,
-                  ),
-                ],
+              ),
+              const SizedBox(width: 8),
+              if (student.isSuspended)
+                StatusBadge.suspended()
+              else
+                StatusBadge.contract(student.contractStatus),
+              if (student.isArchived) ...[
+                const SizedBox(width: 6),
+                StatusBadge(
+                  textColor: HelpiColors.of(context).textSecondary,
+                  bgColor: HelpiColors.of(context).chipBg,
+                  label: AppStrings.statusArchived,
+                ),
               ],
-            ),
-            const SizedBox(height: 10),
-            const Divider(height: 1),
-            const SizedBox(height: 10),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Divider(height: 1),
+          const SizedBox(height: 10),
 
-            // ── Details + Chevron ──
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ── Rating + Jobs ──
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            size: 14,
-                            color: HelpiTheme.starYellow,
+          // ── Details + Chevron ──
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Rating + Jobs ──
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          size: 14,
+                          color: HelpiTheme.starYellow,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          '${student.avgRating.toStringAsFixed(1)}  ·  ${student.totalReviews} ${AppStrings.studentReviewCount}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: HelpiColors.of(context).textSecondary,
                           ),
-                          const SizedBox(width: 3),
-                          Text(
-                            '${student.avgRating.toStringAsFixed(1)}  ·  ${student.totalReviews} ${AppStrings.studentReviewCount}',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+
+                    // ── Phone ──
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.phone_outlined,
+                          size: 14,
+                          color: HelpiColors.of(context).textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            student.phone,
                             style: TextStyle(
                               fontSize: 14,
                               color: HelpiColors.of(context).textSecondary,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
+                        ),
+                        const SizedBox(width: 4),
+                        PhoneCallButton(phone: student.phone),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
 
-                      // ── Phone ──
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.phone_outlined,
-                            size: 14,
-                            color: HelpiColors.of(context).textSecondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              student.phone,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: HelpiColors.of(context).textSecondary,
-                              ),
+                    // ── Email ──
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.email_outlined,
+                          size: 14,
+                          color: HelpiColors.of(context).textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            student.email,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: HelpiColors.of(context).textSecondary,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 4),
-                          PhoneCallButton(phone: student.phone),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-
-                      // ── Email ──
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.email_outlined,
-                            size: 14,
-                            color: HelpiColors.of(context).textSecondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              student.email,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: HelpiColors.of(context).textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          EmailCopyButton(email: student.email),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                        const SizedBox(width: 4),
+                        EmailCopyButton(email: student.email),
+                      ],
+                    ),
+                  ],
                 ),
+              ),
 
-                // ── Chevron ──
-                Icon(
-                  Icons.chevron_right,
-                  color: HelpiColors.of(context).textSecondary,
-                ),
-              ],
-            ),
-          ],
-        ),
+              // ── Chevron ──
+              Icon(
+                Icons.chevron_right,
+                color: HelpiColors.of(context).textSecondary,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

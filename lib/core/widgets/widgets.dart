@@ -1,6 +1,7 @@
 // Barrel export for all shared widgets.
 export 'contact_actions.dart';
 export 'helpi_app_bar.dart';
+export 'hover_card.dart';
 export 'notes_section.dart';
 export 'notification_bell.dart';
 export 'reviews_section.dart';

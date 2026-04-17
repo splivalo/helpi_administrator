@@ -1331,6 +1331,178 @@ class AdminApiService {
   }
 
   // ═════════════════════════════════════════════
+  //  COUPONS
+  // ═════════════════════════════════════════════
+
+  Future<ApiResult<List<Map<String, dynamic>>>> getCoupons() async {
+    try {
+      final response = await _api.get(ApiEndpoints.coupons);
+      final list = (response.data as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<Map<String, dynamic>>> getCouponById(int id) async {
+    try {
+      final response = await _api.get(ApiEndpoints.couponById(id));
+      return ApiResult.ok(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<Map<String, dynamic>>> createCoupon({
+    required String code,
+    required String name,
+    String? description,
+    required int type,
+    required double value,
+    required bool isCombainable,
+    int? cityId,
+    required String validFrom,
+    required String validUntil,
+  }) async {
+    try {
+      final payload = {
+        'code': code,
+        'name': name,
+        'description': ?description,
+        'type': type,
+        'value': value,
+        'isCombainable': isCombainable,
+        'cityId': ?cityId,
+        'validFrom': validFrom,
+        'validUntil': validUntil,
+      };
+      debugPrint('[createCoupon] payload: $payload');
+      final response = await _api.post(ApiEndpoints.coupons, data: payload);
+      return ApiResult.ok(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      debugPrint(
+        '[createCoupon] DioError: ${e.response?.statusCode} ${e.response?.data}',
+      );
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> updateCoupon(
+    int id, {
+    String? name,
+    String? description,
+    double? value,
+    bool? isCombainable,
+    int? cityId,
+    String? validFrom,
+    String? validUntil,
+    bool? isActive,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+      if (name != null) data['name'] = name;
+      if (description != null) data['description'] = description;
+      if (value != null) data['value'] = value;
+      if (isCombainable != null) data['isCombainable'] = isCombainable;
+      if (cityId != null) data['cityId'] = cityId;
+      if (validFrom != null) data['validFrom'] = validFrom;
+      if (validUntil != null) data['validUntil'] = validUntil;
+      if (isActive != null) data['isActive'] = isActive;
+      await _api.put(ApiEndpoints.couponById(id), data: data);
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> deleteCoupon(int id) async {
+    try {
+      await _api.delete(ApiEndpoints.couponById(id));
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<Map<String, dynamic>>> assignCouponToSenior(
+    int couponId,
+    int seniorId,
+  ) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.couponAssign(couponId),
+        data: {'seniorId': seniorId},
+      );
+      return ApiResult.ok(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<List<Map<String, dynamic>>>> getCouponAssignments(
+    int couponId,
+  ) async {
+    try {
+      final response = await _api.get(ApiEndpoints.couponAssignments(couponId));
+      final list = (response.data as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> deactivateCouponAssignment(int assignmentId) async {
+    try {
+      await _api.delete(ApiEndpoints.couponDeactivateAssignment(assignmentId));
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<List<Map<String, dynamic>>>> getSeniorCoupons(
+    int seniorId,
+  ) async {
+    try {
+      final response = await _api.get(ApiEndpoints.myCoupons(seniorId));
+      final list = (response.data as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      return ApiResult.ok(list);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<Map<String, dynamic>>> redeemCouponForSenior(
+    String code,
+    int seniorId,
+  ) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.couponRedeem,
+        data: {'code': code, 'seniorId': seniorId},
+      );
+      return ApiResult.ok(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> deactivateMyAssignment(int assignmentId) async {
+    try {
+      await _api.delete(ApiEndpoints.deactivateMyAssignment(assignmentId));
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  // ═════════════════════════════════════════════
   //  MAPPERS — Backend JSON → Frontend Models
   // ═════════════════════════════════════════════
 
@@ -1596,7 +1768,7 @@ class AdminApiService {
     final studentContact =
         assignment?['student']?['contact'] as Map<String, dynamic>?;
 
-    final studentUserId = assignment?['studentId'] as int?;
+    final studentUserId = assignment?['student']?['userId'] as int?;
     final companyAmount = (json['companyAmount'] as num?)?.toDouble();
 
     return SessionModel(
@@ -1749,7 +1921,50 @@ class AdminApiService {
 
   ServiceType _mapServiceType(Map<String, dynamic> serviceJson) {
     final id = serviceJson['id'] as int? ?? 0;
-    return _serviceIdToType[id] ?? ServiceType.other;
+    final direct = _serviceIdToType[id];
+    if (direct != null) return direct;
+
+    // Text-based fallback for old v1 service IDs
+    final translations =
+        serviceJson['translations'] as Map<String, dynamic>? ?? {};
+    final hr = translations['hr'] as Map<String, dynamic>? ?? {};
+    final en = translations['en'] as Map<String, dynamic>? ?? {};
+    final raw = '${hr['name'] ?? ''} ${en['name'] ?? ''}'.toLowerCase();
+    final text = raw
+        .replaceAll('č', 'c')
+        .replaceAll('ć', 'c')
+        .replaceAll('š', 's')
+        .replaceAll('ž', 'z')
+        .replaceAll('đ', 'd');
+
+    if (text.contains('kup') || text.contains('shop')) {
+      return ServiceType.shopping;
+    }
+    if (text.contains('cisc') ||
+        text.contains('clean') ||
+        text.contains('house') ||
+        text.contains('home help')) {
+      return ServiceType.houseHelp;
+    }
+    if (text.contains('razgov') ||
+        text.contains('compan') ||
+        text.contains('social') ||
+        text.contains('druze') ||
+        text.contains('drustvo') ||
+        text.contains('slusanj')) {
+      return ServiceType.companionship;
+    }
+    if (text.contains('set') || text.contains('walk')) {
+      return ServiceType.walking;
+    }
+    if (text.contains('prat') ||
+        text.contains('escort') ||
+        text.contains('doctor') ||
+        text.contains('lijec') ||
+        text.contains('posjet')) {
+      return ServiceType.escort;
+    }
+    return ServiceType.other;
   }
 
   // ═════════════════════════════════════════════

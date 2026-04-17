@@ -389,8 +389,6 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
             }).toList(),
           ),
 
-          const SizedBox(height: 8),
-
           // ── Result count + sort ──
           Builder(
             builder: (context) {
@@ -466,7 +464,7 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
                     : (screenWidth >= 900 ? 2 : 1);
                 if (_isGridView && gridCols > 1) {
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
                     itemCount: (seniors.length / gridCols).ceil(),
                     itemBuilder: (ctx, rowIdx) {
                       final start = rowIdx * gridCols;
@@ -491,7 +489,7 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
                   );
                 }
                 return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
                   itemCount: seniors.length,
                   itemBuilder: (ctx, i) => _SeniorCard(
                     senior: seniors[i],
@@ -615,138 +613,131 @@ class _SeniorCard extends ConsumerWidget {
         )
         .toList();
 
-    return GestureDetector(
+    return HoverCard(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: HelpiColors.of(context).surface,
-          borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
-          border: Border.all(color: HelpiColors.of(context).border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Header: Avatar + Name + Status chip ──
-            Row(
-              children: [
-                ProfileAvatar(
-                  initials: senior.firstName[0] + senior.lastName[0],
-                  profileImageUrl: senior.profileImageUrl,
+      bgColor: HelpiColors.of(context).surface,
+      borderColor: HelpiColors.of(context).border,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header: Avatar + Name + Status chip ──
+          Row(
+            children: [
+              ProfileAvatar(
+                initials: senior.firstName[0] + senior.lastName[0],
+                profileImageUrl: senior.profileImageUrl,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  senior.fullName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    senior.fullName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
+              ),
+              const SizedBox(width: 8),
+              StatusBadge.senior(senior, liveOrders: liveOrders),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Divider(height: 1),
+          const SizedBox(height: 10),
+
+          // ── Details + Chevron ──
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Phone ──
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.phone_outlined,
+                          size: 14,
+                          color: HelpiColors.of(context).textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            senior.contactPhone,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: HelpiColors.of(context).textSecondary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        PhoneCallButton(phone: senior.contactPhone),
+                      ],
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                StatusBadge.senior(senior, liveOrders: liveOrders),
-              ],
-            ),
-            const SizedBox(height: 10),
-            const Divider(height: 1),
-            const SizedBox(height: 10),
+                    const SizedBox(height: 4),
 
-            // ── Details + Chevron ──
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ── Phone ──
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.phone_outlined,
-                            size: 14,
-                            color: HelpiColors.of(context).textSecondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              senior.contactPhone,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: HelpiColors.of(context).textSecondary,
-                              ),
+                    // ── Email ──
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.email_outlined,
+                          size: 14,
+                          color: HelpiColors.of(context).textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            senior.contactEmail,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: HelpiColors.of(context).textSecondary,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 4),
-                          PhoneCallButton(phone: senior.contactPhone),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
+                        ),
+                        const SizedBox(width: 4),
+                        EmailCopyButton(email: senior.contactEmail),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
 
-                      // ── Email ──
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.email_outlined,
-                            size: 14,
-                            color: HelpiColors.of(context).textSecondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              senior.contactEmail,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: HelpiColors.of(context).textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                    // ── Address (always senior's — service location) ──
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
+                          color: HelpiColors.of(context).textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            senior.address,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: HelpiColors.of(context).textSecondary,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 4),
-                          EmailCopyButton(email: senior.contactEmail),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-
-                      // ── Address (always senior's — service location) ──
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 14,
-                            color: HelpiColors.of(context).textSecondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              senior.address,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: HelpiColors.of(context).textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
+              ),
 
-                // ── Chevron ──
-                Icon(
-                  Icons.chevron_right,
-                  color: HelpiColors.of(context).textSecondary,
-                ),
-              ],
-            ),
-          ],
-        ),
+              // ── Chevron ──
+              Icon(
+                Icons.chevron_right,
+                color: HelpiColors.of(context).textSecondary,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -797,6 +788,17 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
       _sectionOrder = List.generate(_sectionCount, (i) => i);
     }
     _loadSuspensionStatus();
+
+    // Auto-refresh orders when SignalR updates ordersProvider.
+    ref.listenManual(ordersProvider, (prev, next) {
+      final fresh = next.where((o) => o.senior.id == _senior.id).toList()
+        ..sort((a, b) {
+          final aNum = int.tryParse(a.orderNumber) ?? 0;
+          final bNum = int.tryParse(b.orderNumber) ?? 0;
+          return bNum.compareTo(aNum);
+        });
+      if (mounted) setState(() => _orders = fresh);
+    });
   }
 
   Future<void> _loadSuspensionStatus() async {
@@ -1108,9 +1110,8 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
               children: [
                 for (int i = 0; i < sections.length; i++) ...[
                   sections[i],
-                  if (i < sections.length - 1) const SizedBox(height: 12),
+                  if (i < sections.length - 1) const SizedBox(height: 10),
                 ],
-                const SizedBox(height: 40),
               ],
             ),
           );
@@ -1751,7 +1752,7 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
   }
 
   Widget _buildOrderRow(OrderModel order) {
-    return GestureDetector(
+    return HoverCard(
       onTap: () async {
         await Navigator.push(
           context,
@@ -1769,42 +1770,39 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
               });
         setState(() => _orders = seniorOrders);
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: HelpiColors.of(context).scaffold,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '#${order.orderNumber}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
+      bgColor: HelpiColors.of(context).scaffold,
+      borderColor: Colors.transparent,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      radius: 8,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '#${order.orderNumber}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    order.services.map((s) => serviceLabel(s)).join(', '),
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: HelpiColors.of(context).textSecondary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  order.services.map((s) => serviceLabel(s)).join(', '),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: HelpiColors.of(context).textSecondary,
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            StatusBadge.order(order.status),
-          ],
-        ),
+          ),
+          StatusBadge.order(order.status),
+        ],
       ),
     );
   }

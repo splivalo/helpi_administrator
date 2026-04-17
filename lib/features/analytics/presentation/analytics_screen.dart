@@ -396,7 +396,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               compValues: ordersComp,
               pct: pctOrders,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
             // ── Revenue chart ──
             _buildMetricChartCard(
@@ -414,7 +414,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
               headerTrailing: _earningsToggle(),
               hideTitle: true,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
             // ── Active seniors chart ──
             _buildMetricChartCard(

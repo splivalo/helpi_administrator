@@ -30,6 +30,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   late OrderModel _order;
   bool _sessionsLoading = true;
   late List<int> _sectionOrder;
+  List<Map<String, dynamic>> _seniorCoupons = [];
+  bool _couponsLoading = false;
 
   @override
   void initState() {
@@ -42,6 +44,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       _sectionOrder = List.generate(_sectionCount, (i) => i);
     }
     _loadSessions();
+    _loadSeniorCoupons();
 
     // Auto-refresh when SignalR updates ordersProvider (EntityChanged).
     ref.listenManual(ordersProvider, (prev, next) {
@@ -63,6 +66,20 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       _sessionsLoading = false;
       if (result.success && result.data != null) {
         _order = _order.copyWith(sessions: result.data);
+      }
+    });
+  }
+
+  Future<void> _loadSeniorCoupons() async {
+    final seniorId = int.tryParse(_order.senior.id);
+    if (seniorId == null) return;
+    setState(() => _couponsLoading = true);
+    final result = await AdminApiService().getSeniorCoupons(seniorId);
+    if (!mounted) return;
+    setState(() {
+      _couponsLoading = false;
+      if (result.success && result.data != null) {
+        _seniorCoupons = result.data!;
       }
     });
   }
@@ -151,9 +168,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               children: [
                 for (int i = 0; i < sections.length; i++) ...[
                   sections[i],
-                  if (i < sections.length - 1) const SizedBox(height: 12),
+                  if (i < sections.length - 1) const SizedBox(height: 10),
                 ],
-                const SizedBox(height: 40),
               ],
             ),
           );
@@ -623,77 +639,96 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
             if (_order.notes != null && _order.notes!.isNotEmpty)
               InfoField(label: AppStrings.orderNotes, value: _order.notes!),
-            if (_order.promoCode != null && _order.promoCode!.isNotEmpty)
+            if (_couponsLoading)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
+            else if (_seniorCoupons.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppStrings.promoCode,
+                      AppStrings.couponActiveCoupons,
                       style: TextStyle(
                         fontSize: 12,
                         color: HelpiColors.of(context).textSecondary,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: HelpiColors.of(
-                          context,
-                        ).textSecondary.withValues(alpha: 0.1),
-                        border: Border.all(
-                          color: HelpiColors.of(
-                            context,
-                          ).textSecondary.withValues(alpha: 0.3),
-                        ),
-                        borderRadius: BorderRadius.circular(
-                          HelpiTheme.statusBadgeRadius,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _order.promoCode!,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: HelpiColors.of(context).textSecondary,
-                            ),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: _seniorCoupons.map((c) {
+                        final code = c['couponCode'] as String? ?? '';
+                        final assignmentId = c['id'] as int? ?? 0;
+                        final remaining = (c['remainingValue'] as num?)
+                            ?.toDouble();
+                        final couponType = c['couponType'] as int? ?? 0;
+                        final couponValue =
+                            (c['couponValue'] as num?)?.toDouble() ?? 0;
+                        final couponName = c['couponName'] as String? ?? code;
+
+                        // Build hover tooltip
+                        String tooltip = couponName;
+                        if (couponType <= 2 && remaining != null) {
+                          // Hour-based: show remaining
+                          tooltip =
+                              '$couponName\n${remaining.toStringAsFixed(remaining == remaining.roundToDouble() ? 0 : 1)}h preostalo od ${couponValue.toStringAsFixed(couponValue == couponValue.roundToDouble() ? 0 : 1)}h';
+                        } else if (couponType == 3) {
+                          tooltip =
+                              '$couponName\n${couponValue.toStringAsFixed(0)}% po terminu';
+                        } else if (couponType == 4) {
+                          tooltip =
+                              '$couponName\n€${couponValue.toStringAsFixed(2)} po terminu';
+                        }
+
+                        return Tooltip(
+                          message: tooltip,
+                          waitDuration: const Duration(milliseconds: 400),
+                          preferBelow: false,
+                          verticalOffset: 14,
+                          decoration: BoxDecoration(
+                            color: const Color(0xE6616161),
+                            borderRadius: BorderRadius.circular(6),
                           ),
-                          const SizedBox(width: 4),
-                          GestureDetector(
-                            onTap: () async {
-                              final orderId = int.tryParse(_order.id);
-                              if (orderId == null) return;
-                              final api = AdminApiService();
-                              final result = await api.updateOrderPromoCode(
-                                orderId,
-                                null,
-                              );
-                              if (!mounted) return;
-                              if (!result.success) {
-                                showErrorSnack(
-                                  context,
-                                  result.error ?? 'Error',
-                                );
-                                return;
-                              }
-                              await _refreshOrder();
-                            },
-                            child: Icon(
-                              Icons.close,
-                              size: 12,
-                              color: HelpiColors.of(context).textSecondary,
-                            ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
                           ),
-                        ],
-                      ),
+                          textStyle: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.white,
+                          ),
+                          child: Chip(
+                            avatar: const Icon(Icons.local_offer, size: 14),
+                            label: Text(
+                              code,
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                            side: BorderSide(
+                              color: HelpiColors.of(context).border,
+                              width: 0.5,
+                            ),
+                            deleteIcon: const Icon(Icons.close, size: 14),
+                            deleteButtonTooltipMessage: '',
+                            onDeleted: () =>
+                                _deactivateSeniorCoupon(assignmentId),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ),
@@ -991,9 +1026,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isCancelled
-            ? HelpiColors.of(context).chipBg
-            : HelpiColors.of(context).surface,
+        color: HelpiColors.of(context).surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: HelpiColors.of(context).border),
       ),
@@ -1210,10 +1243,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               ),
             if (!isCancelled)
               ActionChipButton(
-                icon: Icons.discount_outlined,
-                label: AppStrings.promoCodeApply,
+                icon: Icons.local_offer,
+                label: AppStrings.couponAssignSenior,
                 color: HelpiTheme.accent,
-                onTap: _showPromoCodeDialog,
+                onTap: _showCouponDialog,
               ),
           ],
         ),
@@ -1221,20 +1254,20 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     );
   }
 
-  void _showPromoCodeDialog() {
-    final controller = TextEditingController(text: _order.promoCode ?? '');
+  void _showCouponDialog() {
+    final controller = TextEditingController();
     showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.promoCodeApply),
+        title: Text(AppStrings.couponRedeemTitle),
         content: SizedBox(
           width: 400,
           child: TextField(
             controller: controller,
             decoration: InputDecoration(
-              hintText: AppStrings.promoCodeHint,
-              labelText: AppStrings.promoCode,
-              prefixIcon: const Icon(Icons.discount_outlined),
+              hintText: AppStrings.couponRedeemHint,
+              labelText: AppStrings.couponCode,
+              prefixIcon: const Icon(Icons.local_offer),
             ),
             autofocus: true,
             textCapitalization: TextCapitalization.characters,
@@ -1252,19 +1285,59 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         ],
       ),
     ).then((code) async {
-      if (code == null || !mounted) return;
-      final orderId = int.tryParse(_order.id);
-      if (orderId == null) return;
+      if (code == null || code.isEmpty || !mounted) return;
+      final seniorId = int.tryParse(_order.senior.id);
+      if (seniorId == null) return;
       final api = AdminApiService();
-      final promoValue = code.isEmpty ? null : code;
-      final result = await api.updateOrderPromoCode(orderId, promoValue);
+      final result = await api.redeemCouponForSenior(code, seniorId);
       if (!mounted) return;
       if (!result.success) {
-        showSuccessSnack(context, result.error ?? 'Error');
+        showErrorSnack(context, result.error ?? AppStrings.couponRedeemFailed);
         return;
       }
-      await _refreshOrder();
+      final data = result.data;
+      if (data != null && data['isValid'] == true) {
+        showSuccessSnack(context, AppStrings.couponRedeemed);
+        await _loadSeniorCoupons();
+      } else {
+        final errorCode = data?['errorCode'] as String? ?? '';
+        showErrorSnack(context, _mapCouponErrorCode(errorCode));
+      }
     });
+  }
+
+  Future<void> _deactivateSeniorCoupon(int assignmentId) async {
+    final api = AdminApiService();
+    final result = await api.deactivateMyAssignment(assignmentId);
+    if (!mounted) return;
+    if (result.success) {
+      showSuccessSnack(context, AppStrings.couponDeactivated);
+      await _loadSeniorCoupons();
+    } else {
+      showErrorSnack(
+        context,
+        result.error ?? AppStrings.couponDeactivateFailed,
+      );
+    }
+  }
+
+  String _mapCouponErrorCode(String code) {
+    switch (code) {
+      case 'coupon_not_found':
+        return AppStrings.couponNotFound;
+      case 'coupon_already_active':
+        return AppStrings.couponAlreadyActive;
+      case 'coupon_inactive':
+        return AppStrings.couponInactive;
+      case 'coupon_not_yet_valid':
+        return AppStrings.couponNotYetValid;
+      case 'coupon_expired':
+        return AppStrings.couponExpired;
+      case 'exclusive_coupon_conflict':
+        return AppStrings.couponExclusiveConflict;
+      default:
+        return AppStrings.couponRedeemFailed;
+    }
   }
 
   void _confirmCancelOrder() {

@@ -8,8 +8,9 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/l10n/locale_notifier.dart';
 import 'package:helpi_admin/core/l10n/theme_notifier.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
-import 'package:helpi_admin/features/chat/presentation/chat_screen.dart';
 import 'package:helpi_admin/features/analytics/presentation/analytics_screen.dart';
+import 'package:helpi_admin/features/chat/presentation/chat_screen.dart';
+import 'package:helpi_admin/features/coupons/presentation/coupons_screen.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 import 'package:helpi_admin/features/settings/presentation/settings_screen.dart';
 import 'package:helpi_admin/features/students/presentation/students_screen.dart';
@@ -46,6 +47,7 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
       SeniorsScreen(key: ValueKey('seniors_$locale')),
       StudentsScreen(key: ValueKey('students_$locale')),
       ChatModScreen(key: ValueKey('chat_$locale')),
+      CouponsScreen(key: ValueKey('coupons_$locale')),
       AnalyticsScreen(key: ValueKey('analytics_$locale')),
       SettingsScreen(
         key: ValueKey('settings_$locale'),
@@ -148,12 +150,18 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                       ),
                       _sidebarItem(
                         3,
+                        Icons.confirmation_number_outlined,
+                        Icons.confirmation_number,
+                        AppStrings.navCoupons,
+                      ),
+                      _sidebarItem(
+                        4,
                         Icons.analytics_outlined,
                         Icons.analytics,
                         AppStrings.navDashboard,
                       ),
                       _sidebarItem(
-                        4,
+                        5,
                         Icons.settings_outlined,
                         Icons.settings,
                         AppStrings.navSettings,
@@ -283,6 +291,11 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
                 label: Text(AppStrings.navChat),
               ),
               NavigationRailDestination(
+                icon: const Icon(Icons.confirmation_number_outlined),
+                selectedIcon: const Icon(Icons.confirmation_number),
+                label: Text(AppStrings.navCoupons),
+              ),
+              NavigationRailDestination(
                 icon: const Icon(Icons.analytics_outlined),
                 selectedIcon: const Icon(Icons.analytics),
                 label: Text(AppStrings.navDashboard),
@@ -307,6 +320,10 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
   //  MOBILE — BottomNavigationBar
   // ═══════════════════════════════════════════════════════════════
   Widget _buildMobileLayout() {
+    // Mobile shows 3 primary tabs + "More" overflow.
+    // _currentIndex 0-2 map directly; 3+ are behind the More sheet.
+    final bottomIndex = _currentIndex <= 2 ? _currentIndex : 3;
+
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: Container(
@@ -321,8 +338,14 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
           ],
         ),
         child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: _onItemTapped,
+          currentIndex: bottomIndex,
+          onTap: (i) {
+            if (i < 3) {
+              _onItemTapped(i);
+            } else {
+              _showMoreSheet();
+            }
+          },
           items: [
             BottomNavigationBarItem(
               icon: const Icon(Icons.elderly_outlined, size: 26),
@@ -342,18 +365,72 @@ class _ResponsiveShellState extends ConsumerState<ResponsiveShell> {
               label: AppStrings.navChat,
             ),
             BottomNavigationBarItem(
-              icon: const Icon(Icons.analytics_outlined, size: 26),
-              activeIcon: const Icon(Icons.analytics, size: 26),
-              label: AppStrings.navDashboard,
-            ),
-            BottomNavigationBarItem(
-              icon: const Icon(Icons.settings_outlined, size: 26),
-              activeIcon: const Icon(Icons.settings, size: 26),
-              label: AppStrings.navSettings,
+              icon: Icon(
+                Icons.more_horiz,
+                size: 26,
+                color: _currentIndex >= 3
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
+              ),
+              activeIcon: const Icon(Icons.more_horiz, size: 26),
+              label: AppStrings.navMore,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showMoreSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  _currentIndex == 3
+                      ? Icons.confirmation_number
+                      : Icons.confirmation_number_outlined,
+                ),
+                title: Text(AppStrings.navCoupons),
+                selected: _currentIndex == 3,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _onItemTapped(3);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  _currentIndex == 4
+                      ? Icons.analytics
+                      : Icons.analytics_outlined,
+                ),
+                title: Text(AppStrings.navDashboard),
+                selected: _currentIndex == 4,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _onItemTapped(4);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  _currentIndex == 5 ? Icons.settings : Icons.settings_outlined,
+                ),
+                title: Text(AppStrings.navSettings),
+                selected: _currentIndex == 5,
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _onItemTapped(5);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
     );
   }
 }

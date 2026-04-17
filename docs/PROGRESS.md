@@ -412,6 +412,23 @@
 - [x] **api_endpoints.dart** — `notificationArchive(userId)` endpoint
 - [x] Verifikacija: `flutter analyze` = 0 issues, backend build = 0 errors
 
+### Kupon sustav — UI Polish & Backend integracija (2026-04-14)
+
+- [x] **Coupon card 3-row redesign** — `_CouponCard` potpuni redizajn:
+  - Row 1: Kod u teal 16px bold monospace + copy ikona (dark tooltip) + Spacer + StatusBadge + delete ikona (dark tooltip)
+  - Row 2: Naziv 13px normal (lijevo) + `_formatTypeValue()` 16px bold white (desno)
+  - Row 3: Datumi 12px secondary (lijevo) + combinable ikona + grad + broj seniora (desno)
+- [x] **Univerzalni value format** — `X sati / mj.`, `X sati / tj.`, `X sati / ukupno`, `X% / termin`, `€X / termin`
+- [x] **Hrvatska gramatika sati** — `_hoursLabel()`: 1 sat, 2-4 sata, 5+ sati (handles 11-19 special case)
+- [x] **Copy icon na coupon code** — Teal `Icons.copy` s custom dark tooltipom ("Kopiraj kod"), Clipboard copy + SnackBar potvrda
+- [x] **City dropdown crash fix** — `_selectedCityId` više se ne postavlja u `initState` (gradovi još nisu učitani) → deferred u `_loadCities()` callback
+- [x] **Order detail coupon chip cleanup** — Label sadrži samo `code` (uklonjeni type/value). Chip border 0.5px. `deleteButtonTooltipMessage: ''` (uklonjen default "Brisanje" tooltip)
+- [x] **Coupon chip tooltip** — Custom dark tooltip na hover: naziv kupona + preostali sati ili tip/vrijednost
+- [x] **Tooltip konzistentnost** — Svi tooltipovi u admin appu koriste custom dark stil: `Color(0xE6616161)`, borderRadius 6, fontSize 13, white text
+- [x] **Button label promjene** — "Dodijeli senioru" → "Dodijeli kupon", "Otkaži" → "Otkaži narudžbu"
+- [x] **AppStrings** — Dodani: `couponCodeCopied`, `couponCopyCode`. Izmijenjeni: `couponAssignSenior`, `cancelOrderBtn`
+- [x] Verifikacija: `flutter analyze` = 0 issues
+
 ## Sljedeći koraci (Next Steps)
 
 1. Zadržati vanjske providere (`Stripe`, `Minimax`, `Mailgun`, `MailerLite`, `Firebase`) izvan scopea dok ih developer ne spoji na live credentials.

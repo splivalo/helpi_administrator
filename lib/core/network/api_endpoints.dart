@@ -148,4 +148,17 @@ class ApiEndpoints {
   static const String sponsors = '/api/Sponsors';
   static const String sponsorsActive = '/api/Sponsors/active';
   static String sponsorById(int id) => '/api/Sponsors/$id';
+
+  // Coupons
+  static const String coupons = '/api/coupons';
+  static String couponById(int id) => '/api/coupons/$id';
+  static String couponAssign(int id) => '/api/coupons/$id/assign';
+  static String couponAssignments(int id) => '/api/coupons/$id/assignments';
+  static String couponDeactivateAssignment(int id) =>
+      '/api/coupons/assignments/$id';
+  static const String couponRedeem = '/api/coupons/redeem';
+  static String myCoupons(int seniorId) =>
+      '/api/coupons/my-coupons?seniorId=$seniorId';
+  static String deactivateMyAssignment(int assignmentId) =>
+      '/api/coupons/my-assignments/$assignmentId';
 }
