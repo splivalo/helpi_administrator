@@ -1207,7 +1207,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: HelpiTheme.error),
             child: Text(AppStrings.sponsorDeleteLogoTitle),
           ),
         ],

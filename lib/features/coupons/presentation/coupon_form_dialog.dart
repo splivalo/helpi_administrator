@@ -27,7 +27,6 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
   bool _submitted = false;
 
   late final TextEditingController _codeCtrl;
-  late final TextEditingController _nameCtrl;
   late final TextEditingController _descCtrl;
   late final TextEditingController _valueCtrl;
 
@@ -49,7 +48,6 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
     super.initState();
     final e = widget.existing;
     _codeCtrl = TextEditingController(text: e?.code ?? '');
-    _nameCtrl = TextEditingController(text: e?.name ?? '');
     _descCtrl = TextEditingController(text: e?.description ?? '');
     _valueCtrl = TextEditingController(
       text: e != null ? e.value.toString() : '',
@@ -68,7 +66,6 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
   @override
   void dispose() {
     _codeCtrl.dispose();
-    _nameCtrl.dispose();
     _descCtrl.dispose();
     _valueCtrl.dispose();
     super.dispose();
@@ -135,9 +132,9 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
     setState(() => _submitted = true);
 
     final code = _codeCtrl.text.trim();
-    final name = _nameCtrl.text.trim();
+    final name = code; // backend requires name — use code
     final value = double.tryParse(_valueCtrl.text.trim());
-    if (code.length < 3 || name.length < 2 || value == null || value <= 0) {
+    if (code.length < 3 || value == null || value <= 0) {
       return;
     }
 
@@ -150,7 +147,7 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
       if (_isEdit) {
         final result = await _api.updateCoupon(
           widget.existing!.id,
-          name: _nameCtrl.text.trim(),
+          name: name,
           description: desc.isEmpty ? null : desc,
           value: value,
           isCombainable: _combinable,
@@ -165,7 +162,7 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
           final updated = CouponModel(
             id: widget.existing!.id,
             code: widget.existing!.code,
-            name: _nameCtrl.text.trim(),
+            name: name,
             description: desc.isEmpty ? null : desc,
             type: widget.existing!.type,
             value: value,
@@ -197,8 +194,8 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
         }
       } else {
         final result = await _api.createCoupon(
-          code: _codeCtrl.text.trim(),
-          name: _nameCtrl.text.trim(),
+          code: code,
+          name: name,
           description: desc.isEmpty ? null : desc,
           type: _type.index,
           value: value,
@@ -259,33 +256,26 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
               ),
               const SizedBox(height: 20),
 
-              // ── Code + Name ──
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _codeCtrl,
-                      decoration: InputDecoration(
-                        labelText: AppStrings.couponCode,
-                        enabledBorder: _errBorder(_codeCtrl.text, minLength: 3),
-                        focusedBorder: _errBorder(_codeCtrl.text, minLength: 3),
-                      ),
-                      enabled: !_isEdit,
-                      textCapitalization: TextCapitalization.characters,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _nameCtrl,
-                      decoration: InputDecoration(
-                        labelText: AppStrings.couponName,
-                        enabledBorder: _errBorder(_nameCtrl.text, minLength: 2),
-                        focusedBorder: _errBorder(_nameCtrl.text, minLength: 2),
-                      ),
-                    ),
-                  ),
-                ],
+              // ── Code (full width) ──
+              TextField(
+                controller: _codeCtrl,
+                decoration: InputDecoration(
+                  labelText: AppStrings.couponCode,
+                  enabledBorder: _errBorder(_codeCtrl.text, minLength: 3),
+                  focusedBorder: _errBorder(_codeCtrl.text, minLength: 3),
+                ),
+                enabled: !_isEdit,
+                textCapitalization: TextCapitalization.characters,
+              ),
+              const SizedBox(height: 12),
+
+              // ── Description (full width) ──
+              TextField(
+                controller: _descCtrl,
+                decoration: InputDecoration(
+                  labelText: AppStrings.couponDescription,
+                ),
+                maxLines: 1,
               ),
               const SizedBox(height: 12),
 

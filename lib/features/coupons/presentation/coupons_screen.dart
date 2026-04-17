@@ -51,7 +51,7 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text(AppStrings.couponDeleteConfirm),
-        content: Text(coupon.name),
+        content: Text(coupon.code),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -59,10 +59,8 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(
-              AppStrings.delete,
-              style: const TextStyle(color: Colors.red),
-            ),
+            style: TextButton.styleFrom(foregroundColor: HelpiTheme.error),
+            child: Text(AppStrings.delete),
           ),
         ],
       ),
@@ -232,11 +230,16 @@ class _CouponCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // ── Row 2: Coupon name (left) → Type+Value (right) ──
+          // ── Row 2: Description (left) → Type+Value (right) ──
           Row(
             children: [
               Expanded(
-                child: Text(coupon.name, style: const TextStyle(fontSize: 13)),
+                child: Text(
+                  coupon.description ?? '',
+                  style: const TextStyle(fontSize: 13),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
