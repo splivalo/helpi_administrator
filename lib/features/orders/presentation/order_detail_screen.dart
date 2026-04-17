@@ -694,21 +694,6 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
 
                         return Tooltip(
                           message: tooltip,
-                          waitDuration: const Duration(milliseconds: 400),
-                          preferBelow: false,
-                          verticalOffset: 14,
-                          decoration: BoxDecoration(
-                            color: const Color(0xE6616161),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.white,
-                          ),
                           child: Chip(
                             avatar: const Icon(Icons.local_offer, size: 14),
                             label: Text(

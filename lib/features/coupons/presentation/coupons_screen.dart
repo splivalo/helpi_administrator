@@ -199,65 +199,34 @@ class _CouponCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Tooltip(
-                message: AppStrings.couponCopyCode,
-                waitDuration: const Duration(milliseconds: 400),
-                preferBelow: false,
-                verticalOffset: 14,
-                decoration: BoxDecoration(
-                  color: const Color(0xE6616161),
-                  borderRadius: BorderRadius.circular(6),
+              IconButton(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: coupon.code));
+                  showSuccessSnack(context, AppStrings.couponCodeCopied);
+                },
+                icon: const Icon(
+                  Icons.copy,
+                  size: 16,
+                  color: HelpiTheme.accent,
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                textStyle: const TextStyle(fontSize: 13, color: Colors.white),
-                child: IconButton(
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: coupon.code));
-                    showSuccessSnack(context, AppStrings.couponCodeCopied);
-                  },
-                  icon: const Icon(
-                    Icons.copy,
-                    size: 16,
-                    color: HelpiTheme.accent,
-                  ),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 20,
-                    minHeight: 20,
-                  ),
-                  splashRadius: 14,
-                  style: IconButton.styleFrom(
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
+                tooltip: AppStrings.couponCopyCode,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                splashRadius: 14,
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
               const Spacer(),
               badge,
               const SizedBox(width: 8),
-              Tooltip(
-                message: AppStrings.delete,
-                waitDuration: const Duration(milliseconds: 400),
-                preferBelow: false,
-                verticalOffset: 14,
-                decoration: BoxDecoration(
-                  color: const Color(0xE6616161),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                textStyle: const TextStyle(fontSize: 13, color: Colors.white),
-                child: IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  onPressed: onDelete,
-                  color: HelpiColors.of(context).textSecondary,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20),
+                tooltip: AppStrings.delete,
+                onPressed: onDelete,
+                color: HelpiColors.of(context).textSecondary,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),

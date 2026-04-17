@@ -615,6 +615,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             height: 36,
                             child: IconButton(
                               icon: const Icon(Icons.edit, size: 20),
+                              tooltip: AppStrings.edit,
                               onPressed: _startEditingSponsor,
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),

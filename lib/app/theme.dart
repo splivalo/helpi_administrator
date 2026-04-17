@@ -346,6 +346,16 @@ class HelpiTheme {
       thickness: 1,
       space: 1,
     ),
+    tooltipTheme: TooltipThemeData(
+      decoration: BoxDecoration(
+        color: const Color(0xE6616161),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      textStyle: const TextStyle(fontSize: 13, color: Colors.white),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      waitDuration: const Duration(milliseconds: 400),
+      preferBelow: false,
+    ),
     navigationRailTheme: const NavigationRailThemeData(
       backgroundColor: surface,
       indicatorShape: RoundedRectangleBorder(
@@ -612,6 +622,16 @@ class HelpiTheme {
       color: darkDivider,
       thickness: 1,
       space: 1,
+    ),
+    tooltipTheme: TooltipThemeData(
+      decoration: BoxDecoration(
+        color: const Color(0xE6616161),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      textStyle: const TextStyle(fontSize: 13, color: Colors.white),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      waitDuration: const Duration(milliseconds: 400),
+      preferBelow: false,
     ),
     navigationRailTheme: const NavigationRailThemeData(
       backgroundColor: darkSurface,
