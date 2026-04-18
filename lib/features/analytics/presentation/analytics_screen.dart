@@ -371,7 +371,7 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
                 IconButton(
                   onPressed: () => _exportToExcel(allOrders, allSeniors),
                   icon: const Icon(Icons.download_outlined),
-                  tooltip: 'Export Excel',
+                  tooltip: AppStrings.exportToExcel,
                   iconSize: 20,
                   color: HelpiColors.of(context).textSecondary,
                   padding: EdgeInsets.zero,
