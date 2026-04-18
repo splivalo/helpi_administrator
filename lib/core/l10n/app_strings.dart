@@ -108,8 +108,6 @@ class AppStrings {
       'couponTypeMonthlyHours': 'Mjesečno (sati)',
       'couponTypeWeeklyHours': 'Tjedno (sati)',
       'couponTypeOneTimeHours': 'Jednokratno (sati)',
-      'couponTypePercentage': 'Postotak (%)',
-      'couponTypeFixedPerSession': 'Fiksno po terminu (€)',
       'couponRemainingHours': 'Preostalo sati',
       'couponAssignedBy': 'Dodijelio',
       'couponSelfRedeemed': 'Unio senior',
@@ -175,11 +173,6 @@ class AppStrings {
       'suggestedStudents': 'Predloženi studenti',
       'assignConfirm': 'Dodijeliti {student} na ovu narudžbu?',
       'noOrdersFound': 'Nema pronađenih narudžbi',
-
-      // ── Promo kod ─────────────────────────────
-      'promoCode': 'Promo kod',
-      'promoCodeHint': 'Unesite promo kod...',
-      'promoCodeApply': 'Primijeni promo kod',
 
       // ── Kreiranje narudžbe ────────────────────
       'createOrder': 'Nova narudžba',
@@ -684,8 +677,6 @@ class AppStrings {
       'couponTypeMonthlyHours': 'Monthly (hours)',
       'couponTypeWeeklyHours': 'Weekly (hours)',
       'couponTypeOneTimeHours': 'One-time (hours)',
-      'couponTypePercentage': 'Percentage (%)',
-      'couponTypeFixedPerSession': 'Fixed per session (€)',
       'couponRemainingHours': 'Remaining hours',
       'couponAssignedBy': 'Assigned by',
       'couponSelfRedeemed': 'Self-redeemed',
@@ -751,11 +742,6 @@ class AppStrings {
       'suggestedStudents': 'Suggested students',
       'assignConfirm': 'Assign {student} to this order?',
       'noOrdersFound': 'No orders found',
-
-      // ── Promo kod ─────────────────────────────
-      'promoCode': 'Promo code',
-      'promoCodeHint': 'Enter promo code...',
-      'promoCodeApply': 'Apply promo code',
 
       // ── Kreiranje narudžbe ────────────────────
       'createOrder': 'New order',
@@ -1260,9 +1246,6 @@ class AppStrings {
   static String get orderServices => _t('orderServices');
   static String get orderNotes => _t('orderNotes');
   static String get orderFrequency => _t('orderFrequency');
-  static String get promoCode => _t('promoCode');
-  static String get promoCodeHint => _t('promoCodeHint');
-  static String get promoCodeApply => _t('promoCodeApply');
   static String get orderStudent => _t('orderStudent');
   static String get assignStudent => _t('assignStudent');
   static String get reassignStudent => _t('reassignStudent');
@@ -1773,9 +1756,6 @@ class AppStrings {
   static String get couponTypeMonthlyHours => _t('couponTypeMonthlyHours');
   static String get couponTypeWeeklyHours => _t('couponTypeWeeklyHours');
   static String get couponTypeOneTimeHours => _t('couponTypeOneTimeHours');
-  static String get couponTypePercentage => _t('couponTypePercentage');
-  static String get couponTypeFixedPerSession =>
-      _t('couponTypeFixedPerSession');
   static String get couponRemainingHours => _t('couponRemainingHours');
   static String get couponAssignedBy => _t('couponAssignedBy');
   static String get couponSelfRedeemed => _t('couponSelfRedeemed');

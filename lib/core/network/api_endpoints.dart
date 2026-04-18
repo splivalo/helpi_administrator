@@ -76,11 +76,9 @@ class ApiEndpoints {
   static String reviewsByStudent(int studentId) =>
       '/api/reviews/student/$studentId';
 
-  // Promo Codes
-  static const String promoCodes = '/api/promo-codes';
-  static String promoCodeById(int id) => '/api/promo-codes/$id';
-  static const String promoCodeValidate = '/api/promo-codes/validate';
-  static const String promoCodeApply = '/api/promo-codes/apply';
+  // Coupons (order-level validate/apply)
+  static const String couponValidate = '/api/coupons/validate';
+  static const String couponApply = '/api/coupons/apply';
 
   // Pricing
   static const String pricingConfigurations = '/api/PricingConfiguration';

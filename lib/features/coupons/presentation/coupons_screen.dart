@@ -105,7 +105,10 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
     final coupons = ref.watch(couponsProvider);
 
     return Scaffold(
-      appBar: HelpiAppBar(title: Text(AppStrings.couponsTitle)),
+      appBar: HelpiAppBar(
+        title: Text(AppStrings.couponsTitle),
+        actions: const [NotificationBell()],
+      ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'coupons_fab',
         onPressed: _openCreateDialog,
@@ -222,7 +225,7 @@ class _CouponCard extends StatelessWidget {
                 icon: const Icon(Icons.delete_outline, size: 20),
                 tooltip: AppStrings.delete,
                 onPressed: onDelete,
-                color: HelpiColors.of(context).textSecondary,
+                color: HelpiTheme.error,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
@@ -324,10 +327,6 @@ class _CouponCard extends StatelessWidget {
         return '$hours / tj.';
       case CouponType.oneTimeHours:
         return '$hours / ukupno';
-      case CouponType.percentage:
-        return '${c.value.toStringAsFixed(0)}% / termin';
-      case CouponType.fixedPerSession:
-        return '€${c.value.toStringAsFixed(c.value == c.value.roundToDouble() ? 0 : 2)} / termin';
     }
   }
 

@@ -2,6 +2,13 @@
 
 > Kronologija ključnih odluka i promjena.
 
+## 2026-04-18 — CouponType simplifikacija + UI konzistentnost
+
+- **Percentage + FixedPerSession uklonjeni** — CouponType enum smanjen na 3 sat-based tipa: MonthlyHours, WeeklyHours, OneTimeHours. Uklonjeno iz `coupon_model.dart` (enum + label switch), `coupon_form_dialog.dart` (`_valueSuffix`), `coupons_screen.dart` (`_formatTypeValue`), `app_strings.dart` (HR/EN stringovi + getteri).
+- **Delete ikona crvena** — `_CouponCard` delete `IconButton` promijenjen s `HelpiColors.textSecondary` na `HelpiTheme.error` (crvena) za konzistentnost s ostatkom admin sučelja.
+- **NotificationBell na svim ekranima** — Dodan `NotificationBell` u AppBar na `coupons_screen.dart` i `chat_screen.dart` (desktop + mobile layout). Sada svih 6 glavnih ekrana imaju zvonce: Dashboard, Studenti, Seniori, Kuponi, Poruke, Postavke.
+- **0 issues** — `flutter analyze` = 0 issues nakon svih promjena.
+
 ## 2026-04-14 — Kupon sustav UI polish + backend integracija
 
 - **Coupon card 3-row redesign** — `_CouponCard` u `coupons_screen.dart` kompletno redizajniran: Row 1 (kod teal + copy + badge + delete), Row 2 (naziv + univerzalni value format), Row 3 (datumi + combinable/grad/seniori). Univerzalni format: `X sati / mj.`, `X sati / tj.`, `X sati / ukupno`, `X% / termin`, `€X / termin`. Hrvatska gramatika sati (1 sat, 2-4 sata, 5+ sati).

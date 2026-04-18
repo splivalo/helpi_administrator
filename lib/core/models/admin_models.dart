@@ -323,7 +323,7 @@ class OrderModel {
   final DateTime? endDate;
   final List<DayEntry> dayEntries;
   final List<SessionModel> sessions;
-  final String? promoCode;
+  final String? couponCode;
   final List<int> scheduleIds;
 
   const OrderModel({
@@ -343,7 +343,7 @@ class OrderModel {
     this.endDate,
     this.dayEntries = const [],
     this.sessions = const [],
-    this.promoCode,
+    this.couponCode,
     this.scheduleIds = const [],
   });
 
@@ -369,7 +369,7 @@ class OrderModel {
       endDate: endDate,
       dayEntries: dayEntries,
       sessions: sessions ?? this.sessions,
-      promoCode: promoCode,
+      couponCode: couponCode,
       scheduleIds: scheduleIds,
     );
   }

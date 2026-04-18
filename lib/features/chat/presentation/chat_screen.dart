@@ -6,6 +6,7 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/widgets/helpi_app_bar.dart';
+import 'package:helpi_admin/core/widgets/notification_bell.dart';
 import 'package:helpi_admin/features/chat/data/chat_api_service.dart';
 import 'package:helpi_admin/features/seniors/presentation/seniors_screen.dart';
 import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
@@ -49,7 +50,10 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
     if (isWide) {
       // ── Desktop: split view ──
       return Scaffold(
-        appBar: HelpiAppBar(title: Text(AppStrings.chatTitle)),
+        appBar: HelpiAppBar(
+          title: Text(AppStrings.chatTitle),
+          actions: const [NotificationBell()],
+        ),
         body: Row(
           children: [
             SizedBox(
@@ -95,7 +99,10 @@ class _ChatModScreenState extends ConsumerState<ChatModScreen> {
 
     // ── Mobile: room list only, tap opens chat ──
     return Scaffold(
-      appBar: HelpiAppBar(title: Text(AppStrings.chatTitle)),
+      appBar: HelpiAppBar(
+        title: Text(AppStrings.chatTitle),
+        actions: const [NotificationBell()],
+      ),
       body: _ChatRoomList(
         adminUserId: _adminUserId,
         selectedRoomId: null,

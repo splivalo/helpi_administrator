@@ -1,6 +1,6 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-04-15
+> Zadnja izmjena: 2026-04-18
 
 ## Ukupno stanje
 
@@ -460,3 +460,13 @@
 - [x] AppStrings: `sessionStatusUpcoming` → `sessionStatusScheduled`, `serviceWalk` → `serviceWalking`, `jobAssigned`/`jobUpcoming` → `jobScheduled`
 - [x] Cancel order = status promjena (potvrđeno, nikad brisanje)
 - [x] OrderStatus transition rules: već ispravni (processing→active→completed→cancelled→archived)
+
+---
+
+## PromoCode→Coupon ujedinjenje (2026-04-18)
+
+- [x] API endpointi: `promo-codes/*` uklonjeni, sada samo `coupons/*`
+- [x] `OrderModel.promoCode` → `couponCode`
+- [x] `admin_api_service.dart`: `updateOrderPromoCode` → `updateOrderCoupon`, `validatePromoCode` → `validateCoupon`
+- [x] AppStrings: uklonjeni dupli `couponCode` ključevi (promo sekcija) — existing coupon CRUD ključevi dovoljni
+- [x] Verifikacija: `flutter analyze` = 0 issues

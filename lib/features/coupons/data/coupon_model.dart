@@ -3,16 +3,12 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 enum CouponType {
   monthlyHours,
   weeklyHours,
-  oneTimeHours,
-  percentage,
-  fixedPerSession;
+  oneTimeHours;
 
   String get label => switch (this) {
     monthlyHours => AppStrings.couponTypeMonthlyHours,
     weeklyHours => AppStrings.couponTypeWeeklyHours,
     oneTimeHours => AppStrings.couponTypeOneTimeHours,
-    percentage => AppStrings.couponTypePercentage,
-    fixedPerSession => AppStrings.couponTypeFixedPerSession,
   };
 
   static CouponType fromIndex(int index) => CouponType.values[index];

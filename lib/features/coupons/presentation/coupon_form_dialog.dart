@@ -422,13 +422,7 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
     );
   }
 
-  String get _valueSuffix => switch (_type) {
-    CouponType.monthlyHours ||
-    CouponType.weeklyHours ||
-    CouponType.oneTimeHours => 'h',
-    CouponType.percentage => '%',
-    CouponType.fixedPerSession => '€',
-  };
+  String get _valueSuffix => 'h';
 }
 
 // ─────────────────────────────────────────────────────────────

@@ -2026,7 +2026,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           endDate: _order.endDate,
           dayEntries: _order.dayEntries,
           sessions: updatedSessions,
-          promoCode: _order.promoCode,
+          couponCode: _order.couponCode,
           scheduleIds: _order.scheduleIds,
         );
       });
@@ -2235,7 +2235,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   endDate: _order.endDate,
                   dayEntries: _order.dayEntries,
                   sessions: updatedSessions,
-                  promoCode: _order.promoCode,
+                  couponCode: _order.couponCode,
                   scheduleIds: _order.scheduleIds,
                 );
               });

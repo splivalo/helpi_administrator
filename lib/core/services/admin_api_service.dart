@@ -211,23 +211,20 @@ class AdminApiService {
     }
   }
 
-  /// Update order promo code. Pass null to remove promo code.
-  Future<ApiResult<void>> updateOrderPromoCode(
+  /// Update order coupon. Pass null to remove coupon.
+  Future<ApiResult<void>> updateOrderCoupon(
     int orderId,
-    String? promoCode,
+    String? couponCode,
   ) async {
     try {
-      if (promoCode == null || promoCode.isEmpty) {
-        // Remove promo code: send 0
-        await _api.put(
-          ApiEndpoints.orderById(orderId),
-          data: {'promoCodeId': 0},
-        );
+      if (couponCode == null || couponCode.isEmpty) {
+        // Remove coupon: send 0
+        await _api.put(ApiEndpoints.orderById(orderId), data: {'couponId': 0});
       } else {
-        // Look up the promo code ID from the code string
-        final response = await _api.get(ApiEndpoints.promoCodes);
+        // Look up the coupon ID from the code string
+        final response = await _api.get(ApiEndpoints.coupons);
         final codes = response.data as List<dynamic>;
-        final upperCode = promoCode.toUpperCase();
+        final upperCode = couponCode.toUpperCase();
         Map<String, dynamic>? match;
         for (final c in codes) {
           final entry = c as Map<String, dynamic>;
@@ -237,12 +234,12 @@ class AdminApiService {
           }
         }
         if (match == null) {
-          return ApiResult.fail('Promo code not found: $promoCode');
+          return ApiResult.fail('Coupon not found: $couponCode');
         }
-        final promoCodeId = match['id'] as int;
+        final couponId = match['id'] as int;
         await _api.put(
           ApiEndpoints.orderById(orderId),
-          data: {'promoCodeId': promoCodeId},
+          data: {'couponId': couponId},
         );
       }
       return const ApiResult._(success: true);
@@ -679,13 +676,13 @@ class AdminApiService {
   }
 
   // ─────────────────────────────────────────────
-  //  PROMO CODES
+  //  COUPON VALIDATION
   // ─────────────────────────────────────────────
 
-  Future<ApiResult<Map<String, dynamic>>> validatePromoCode(String code) async {
+  Future<ApiResult<Map<String, dynamic>>> validateCoupon(String code) async {
     try {
       final response = await _api.post(
-        ApiEndpoints.promoCodeValidate,
+        ApiEndpoints.couponValidate,
         data: {'code': code},
       );
       return ApiResult.ok(response.data as Map<String, dynamic>);
@@ -1737,7 +1734,7 @@ class AdminApiService {
       dayEntries: dayEntries,
       sessions: const [],
       scheduleIds: scheduleIds,
-      promoCode: json['promoCodeCode'] as String?,
+      couponCode: json['couponCode'] as String?,
     );
   }
 
