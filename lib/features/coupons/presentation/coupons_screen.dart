@@ -222,10 +222,10 @@ class _CouponCard extends StatelessWidget {
               badge,
               const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20),
+                icon: const Icon(Icons.close, size: 18),
                 tooltip: AppStrings.delete,
                 onPressed: onDelete,
-                color: HelpiTheme.error,
+                color: HelpiColors.of(context).textSecondary,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
