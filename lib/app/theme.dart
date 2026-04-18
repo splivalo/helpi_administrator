@@ -121,8 +121,8 @@ class HelpiTheme {
   static const Color statusProcessingBg = Color(0xFFFFF3E0);
   static const Color statusActiveText = Color(0xFF4CAF50);
   static const Color statusActiveBg = Color(0xFFE8F5E9);
-  static const Color statusCompletedText = Color(0xFF1976D2); // blue
-  static const Color statusCompletedBg = Color(0xFFE8F1FB);
+  static const Color statusCompletedText = Color(0xFF009D9D); // teal
+  static const Color statusCompletedBg = Color(0xFFE0F5F5);
   static const Color statusCancelledText = Color(0xFFEF5B5B);
   static const Color statusCancelledBg = Color(0xFFFFEBEE);
   static const Color statusScheduledText = Color(0xFF1976D2);
