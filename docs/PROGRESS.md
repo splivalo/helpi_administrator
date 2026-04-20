@@ -476,12 +476,14 @@
 ## 2026-04-20 — SignalR instant session refresh + session date range filter
 
 ### sessionsVersionProvider + EntityChanged fix
+
 - `data_providers.dart` — novi `sessionsVersionProvider` (`StateProvider<int>`)
 - `signalr_notification_service.dart` — `_onEntityChanged()` prepisano: prethodno koristilo `args[0]?.toString()` na Map objektu što je davalo cijeli Map kao string umjesto entitetskog tipa; sada ispravno parsira `{entityType: "Sessions", timestamp: ...}` format; bumpa `sessionsVersionProvider` za Sessions/Orders/JobInstances entitete
 - `order_detail_screen.dart` — sluša `sessionsVersionProvider` via `ref.listenManual`, auto-poziva `_loadSessions()` kad se verzija promijeni bez izlaska iz ekrana
 - **Rezultat:** kad senior otkaže termin u mob app-u, admin odmah vidi promjenu u real-time bez ručnog refresha
 
 ### Session date range filter
+
 - `order_detail_screen.dart` — `_monthRange()` vraća range za SVE tipove narudžbi (prethodno samo za recurring); admin uvijek fetcha samo sesije tekućeg mjeseca
 
 - [x] Verifikacija: `flutter analyze` = 0 issues
