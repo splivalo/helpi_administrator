@@ -32,7 +32,12 @@ class AppStrings {
       // ── Postavke ──────────────────────────────
       'settingsTitle': 'Postavke',
       'settingsPricing': 'Cijena',
-      'settingsCancelRules': 'Otkazivanje',
+      'settingsRestrictions': 'Ograničenja',
+      'settingsCancelRules': 'Otkazivanje sesije',
+      'settingsAvailabilityRules': 'Promjena dostupnosti',
+      'studentCancelEnabled': 'Student može otkazati',
+      'availabilityChangeEnabled': 'Student može mijenjati dostupnost',
+      'availabilityChangeCutoff': 'Student',
       'settingsOperational': 'Logistika',
       'settingsStudentRates': 'Satnica',
       'settingsEarnings': 'Troškovi',
@@ -170,6 +175,18 @@ class AppStrings {
       'assignStudent': 'Dodijeli studenta',
       'reassignStudent': 'Promijeni studenta',
       'noStudentAssigned': 'Nije dodijeljen student',
+      'pendingAcceptanceBanner': '{count} narudžbi čeka potvrdu studenta',
+      'pendingAcceptanceTitle': 'Čekaju potvrdu',
+      'pendingAcceptanceSenior': 'Senior',
+      'pendingAcceptanceStudent': 'Student',
+      'pendingAcceptanceTime': 'Čeka',
+      'pendingAcceptanceEmpty': 'Nema narudžbi koje čekaju potvrdu.',
+      'pendingAcceptanceMinutes': '{min} min',
+      'pendingAcceptanceHours': '{h}h {min}min',
+      'pendingAcceptanceDays': '{d}d {h}h',
+      'studentAwaitingAcceptance': 'Čeka potvrdu studenta',
+      'awaitingAcceptanceMulti': 'Čekaju potvrdu',
+      'pendingStudentLabel': 'Dodijeljeni student',
       'suggestedStudents': 'Predloženi studenti',
       'assignConfirm': 'Dodijeliti {student} na ovu narudžbu?',
       'noOrdersFound': 'Nema pronađenih narudžbi',
@@ -253,7 +270,7 @@ class AppStrings {
       'filterPeriodCustom': 'Prilagođeno',
       'filterPeriodFrom': 'Od datuma',
       'filterPeriodTo': 'Do datuma',
-      'filterAvailHint': 'Dan + sat se kombiniraju (AND)',
+      'filterAvailHint': 'Dan + sat se kombiniraju',
       'filterMinJobs': 'Min. završenih poslova',
       'filterByAvailability': 'Dostupnost',
       'filterByDay': 'Dan u tjednu',
@@ -348,6 +365,7 @@ class AppStrings {
       'adminNoteEdited': 'uređeno',
       'assignShort': 'Dodijeli',
       'assignSuccess': 'Student dodijeljen na nalog',
+      'allSchedulesCovered': 'Svi termini već imaju dodijeljenog studenta',
       'hours': 'h',
 
       // ── Session Preview (assign flow) ────────
@@ -602,7 +620,12 @@ class AppStrings {
       // ── Settings ──────────────────────────────
       'settingsTitle': 'Settings',
       'settingsPricing': 'Pricing',
-      'settingsCancelRules': 'Cancellation',
+      'settingsRestrictions': 'Restrictions',
+      'settingsCancelRules': 'Session cancellation',
+      'settingsAvailabilityRules': 'Availability change',
+      'studentCancelEnabled': 'Student can cancel',
+      'availabilityChangeEnabled': 'Student can change availability',
+      'availabilityChangeCutoff': 'Student',
       'settingsOperational': 'Logistics',
       'settingsStudentRates': 'Rates',
       'settingsEarnings': 'Costs',
@@ -739,6 +762,18 @@ class AppStrings {
       'assignStudent': 'Assign student',
       'reassignStudent': 'Reassign student',
       'noStudentAssigned': 'No student assigned',
+      'pendingAcceptanceBanner': '{count} orders awaiting student confirmation',
+      'pendingAcceptanceTitle': 'Awaiting confirmation',
+      'pendingAcceptanceSenior': 'Senior',
+      'pendingAcceptanceStudent': 'Student',
+      'pendingAcceptanceTime': 'Waiting',
+      'pendingAcceptanceEmpty': 'No orders awaiting confirmation.',
+      'pendingAcceptanceMinutes': '{min} min',
+      'pendingAcceptanceHours': '{h}h {min}min',
+      'pendingAcceptanceDays': '{d}d {h}h',
+      'studentAwaitingAcceptance': 'Awaiting student confirmation',
+      'awaitingAcceptanceMulti': 'Awaiting confirmation',
+      'pendingStudentLabel': 'Assigned student',
       'suggestedStudents': 'Suggested students',
       'assignConfirm': 'Assign {student} to this order?',
       'noOrdersFound': 'No orders found',
@@ -822,7 +857,7 @@ class AppStrings {
       'filterPeriodCustom': 'Custom',
       'filterPeriodFrom': 'From date',
       'filterPeriodTo': 'To date',
-      'filterAvailHint': 'Day + hour are combined (AND)',
+      'filterAvailHint': 'Day + hour are combined',
       'filterMinJobs': 'Min. completed jobs',
       'filterByAvailability': 'Availability',
       'filterByDay': 'Day of week',
@@ -916,6 +951,7 @@ class AppStrings {
       'adminNoteEdited': 'edited',
       'assignShort': 'Assign',
       'assignSuccess': 'Student assigned to order',
+      'allSchedulesCovered': 'All schedules already have a student assigned',
       'hours': 'h',
 
       // ── Session Preview (assign flow) ────────
@@ -1250,6 +1286,23 @@ class AppStrings {
   static String get assignStudent => _t('assignStudent');
   static String get reassignStudent => _t('reassignStudent');
   static String get noStudentAssigned => _t('noStudentAssigned');
+  static String pendingAcceptanceBanner(int count) =>
+      _t('pendingAcceptanceBanner', params: {'count': '$count'});
+  static String get pendingAcceptanceTitle => _t('pendingAcceptanceTitle');
+  static String get pendingAcceptanceSenior => _t('pendingAcceptanceSenior');
+  static String get pendingAcceptanceStudent => _t('pendingAcceptanceStudent');
+  static String get pendingAcceptanceTime => _t('pendingAcceptanceTime');
+  static String get pendingAcceptanceEmpty => _t('pendingAcceptanceEmpty');
+  static String pendingAcceptanceMinutes(int min) =>
+      _t('pendingAcceptanceMinutes', params: {'min': '$min'});
+  static String pendingAcceptanceHours(int h, int min) =>
+      _t('pendingAcceptanceHours', params: {'h': '$h', 'min': '$min'});
+  static String pendingAcceptanceDays(int d, int h) =>
+      _t('pendingAcceptanceDays', params: {'d': '$d', 'h': '$h'});
+  static String get studentAwaitingAcceptance =>
+      _t('studentAwaitingAcceptance');
+  static String get awaitingAcceptanceMulti => _t('awaitingAcceptanceMulti');
+  static String get pendingStudentLabel => _t('pendingStudentLabel');
   static String get suggestedStudents => _t('suggestedStudents');
   static String assignConfirm(String student) =>
       _t('assignConfirm', params: {'student': student});
@@ -1396,6 +1449,7 @@ class AppStrings {
   static String get adminNoteEdited => _t('adminNoteEdited');
   static String get assignShort => _t('assignShort');
   static String get assignSuccess => _t('assignSuccess');
+  static String get allSchedulesCovered => _t('allSchedulesCovered');
   static String get hours => _t('hours');
 
   // ── Session Preview ──
@@ -1682,7 +1736,14 @@ class AppStrings {
   // ── Postavke ──
   static String get settingsTitle => _t('settingsTitle');
   static String get settingsPricing => _t('settingsPricing');
+  static String get settingsRestrictions => _t('settingsRestrictions');
   static String get settingsCancelRules => _t('settingsCancelRules');
+  static String get settingsAvailabilityRules =>
+      _t('settingsAvailabilityRules');
+  static String get studentCancelEnabled => _t('studentCancelEnabled');
+  static String get availabilityChangeEnabled =>
+      _t('availabilityChangeEnabled');
+  static String get availabilityChangeCutoff => _t('availabilityChangeCutoff');
   static String get settingsOperational => _t('settingsOperational');
   static String get settingsStudentRates => _t('settingsStudentRates');
   static String get settingsEarnings => _t('settingsEarnings');

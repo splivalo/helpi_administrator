@@ -130,10 +130,25 @@ class SignalRNotificationService {
   }
 
   void _onEntityChanged(List<Object?>? args) {
-    final entityType = (args != null && args.isNotEmpty)
-        ? args[0]?.toString() ?? 'unknown'
-        : 'unknown';
+    // Backend sends Map {entityType: "X", timestamp: "..."}
+    String entityType = 'unknown';
+    if (args != null && args.isNotEmpty) {
+      final first = args.first;
+      if (first is Map) {
+        entityType = first['entityType']?.toString() ?? 'unknown';
+      } else {
+        entityType = first?.toString() ?? 'unknown';
+      }
+    }
     debugPrint('[SignalR] EntityChanged ($entityType) — debounced refresh');
+
+    // Bump sessionsVersion for session-related entities (instant refresh)
+    const sessionEntities = {'JobInstances', 'Orders', 'Sessions'};
+    if (_ref != null && sessionEntities.contains(entityType)) {
+      _ref!.read(sessionsVersionProvider.notifier).state++;
+      debugPrint('[SignalR] sessionsVersion bumped');
+    }
+
     _entityChangedDebounce?.cancel();
     _entityChangedDebounce = Timer(const Duration(milliseconds: 500), () {
       if (_ref != null) {
@@ -197,6 +212,8 @@ class SignalRNotificationService {
     NotificationType.jobRescheduled,
     NotificationType.availabilityChanged,
     NotificationType.orderBackToProcessing,
+    NotificationType.assignmentAccepted,
+    NotificationType.assignmentDeclined,
   };
 
   bool _isDataChangingType(NotificationType type) =>

@@ -157,7 +157,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
         .toSet();
   }
 
-  // ── Check if availability slot overlaps with time range ──
+  // ── Check if availability slot fully covers the requested time range ──
   bool _matchesTimeRange(DayAvailability a) {
     final slotFromMin = a.from.hour * 60 + a.from.minute;
     final slotToMin = a.to.hour * 60 + a.to.minute;
@@ -167,8 +167,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
     final toMin = _availableTo != null
         ? _availableTo!.hour * 60 + _availableTo!.minute
         : 24 * 60;
-    // Overlap: slot starts before filter ends AND slot ends after filter starts
-    return slotFromMin < toMin && slotToMin > fromMin;
+    // Full-containment: slot must start at or before filter start AND end at or after filter end
+    return slotFromMin <= fromMin && slotToMin >= toMin;
   }
 
   // ── Apply all filters ──
@@ -1388,7 +1388,6 @@ class _FilterPanelState extends State<_FilterPanel> {
                 AppStrings.filterAvailHint,
                 style: TextStyle(
                   fontSize: 12,
-                  fontStyle: FontStyle.italic,
                   color: HelpiColors.of(context).textSecondary,
                 ),
               ),
@@ -1422,20 +1421,21 @@ class _FilterPanelState extends State<_FilterPanel> {
               // ──────────────────────────────────
               // 7b. Exclude busy students
               // ──────────────────────────────────
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                title: Text(
-                  AppStrings.excludeBusy,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: HelpiColors.of(context).textPrimary,
+              Row(
+                children: [
+                  HelpiSwitch(
+                    value: _excludeBusy,
+                    onChanged: (v) => setState(() => _excludeBusy = v),
                   ),
-                ),
-                activeColor: HelpiTheme.accent,
-                value: _excludeBusy,
-                onChanged: (v) => setState(() => _excludeBusy = v),
+                  const SizedBox(width: 8),
+                  Text(
+                    AppStrings.excludeBusy,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: HelpiColors.of(context).textSecondary,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
 

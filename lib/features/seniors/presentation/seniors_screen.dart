@@ -53,6 +53,7 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
   bool _isGridView = false;
   String? _cityFilter;
   List<String> _cityOptions = const [];
+  List<Map<String, dynamic>> _pendingAssignments = [];
 
   static const _tabFilters = _SeniorStatusFilter.values;
 
@@ -61,6 +62,7 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
     super.initState();
     SuspensionStateManager.instance.addListener(_onSuspensionChanged);
     _loadCityOptions();
+    _loadPendingAssignments();
 
     // Restore saved preferences
     _isGridView = _prefs.getGridView(_screenKey);
@@ -83,6 +85,22 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
         setState(() {});
         _prefs.setTab(_screenKey, _tabCtrl.index);
       }
+    });
+
+    // Refresh pending banner when accept/decline notifications arrive
+    ref.listenManual(notificationsProvider, (prev, next) {
+      if (next.isEmpty) return;
+      final latest = next.first;
+      if (latest.type == NotificationType.assignmentAccepted ||
+          latest.type == NotificationType.assignmentDeclined) {
+        _loadPendingAssignments();
+      }
+    });
+
+    // Refresh pending banner when DataLoader updates pending IDs
+    // (triggered by EntityChanged → DataLoader.loadAll or optimistic update)
+    ref.listenManual(pendingAcceptanceOrderIdsProvider, (prev, next) {
+      _loadPendingAssignments();
     });
   }
 
@@ -125,10 +143,241 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
     }
   }
 
-  List<SeniorModel> _filteredSeniors(_SeniorStatusFilter filter) {
-    var seniors = ref.read(seniorsProvider).toList();
+  Future<void> _loadPendingAssignments() async {
+    try {
+      final response = await _cityApi.get(ApiEndpoints.adminPending);
+      final list = (response.data as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      if (!mounted) return;
+      setState(() => _pendingAssignments = list);
+      ref.read(pendingAcceptanceOrderIdsProvider.notifier).state = list
+          .map((e) => (e['orderId'] as num).toInt())
+          .toSet();
+      // Build per-order map: first entry wins (all have same student)
+      final dataMap = <int, Map<String, dynamic>>{};
+      for (final e in list) {
+        final oid = (e['orderId'] as num).toInt();
+        dataMap.putIfAbsent(oid, () => e);
+      }
+      ref.read(pendingAcceptanceDataProvider.notifier).state = dataMap;
+    } catch (_) {
+      // silent
+    }
+  }
 
-    final allOrders = ref.read(ordersProvider);
+  String _formatPendingTime(int minutes) {
+    if (minutes < 60) return AppStrings.pendingAcceptanceMinutes(minutes);
+    final hours = minutes ~/ 60;
+    if (hours < 24) {
+      return AppStrings.pendingAcceptanceHours(hours, minutes % 60);
+    }
+    return AppStrings.pendingAcceptanceDays(hours ~/ 24, hours % 24);
+  }
+
+  void _openPendingSheet() {
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    if (isWide) {
+      showDialog(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+          ),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560, maxHeight: 600),
+            child: _buildPendingContent(isDialog: true, ctx: ctx),
+          ),
+        ),
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.9,
+          builder: (_, scrollCtrl) => Container(
+            decoration: BoxDecoration(
+              color: HelpiColors.of(context).surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+            ),
+            child: _buildPendingContent(scrollController: scrollCtrl, ctx: ctx),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildPendingContent({
+    bool isDialog = false,
+    ScrollController? scrollController,
+    required BuildContext ctx,
+  }) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (!isDialog)
+          Padding(
+            padding: const EdgeInsets.only(top: 12, bottom: 4),
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: HelpiColors.of(context).border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.hourglass_top,
+                color: HelpiTheme.statusProcessingText,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  AppStrings.pendingAcceptanceTitle,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        if (_pendingAssignments.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(32),
+            child: Text(
+              AppStrings.pendingAcceptanceEmpty,
+              style: TextStyle(color: HelpiColors.of(context).textSecondary),
+            ),
+          )
+        else
+          Flexible(
+            child: Builder(
+              builder: (_) {
+                // Group by orderId — collect ALL students per order
+                final grouped = <int, Map<String, dynamic>>{};
+                for (final a in _pendingAssignments) {
+                  final oid = (a['orderId'] as num?)?.toInt() ?? 0;
+                  if (!grouped.containsKey(oid)) {
+                    grouped[oid] = Map<String, dynamic>.from(a);
+                    grouped[oid]!['_allStudents'] = <String>[
+                      a['studentName'] as String? ?? '—',
+                    ];
+                  } else {
+                    final name = a['studentName'] as String? ?? '—';
+                    final existing =
+                        grouped[oid]!['_allStudents'] as List<String>;
+                    if (!existing.contains(name)) {
+                      existing.add(name);
+                    }
+                  }
+                }
+                final items = grouped.values.toList();
+                return ListView.separated(
+                  controller: scrollController,
+                  shrinkWrap: isDialog,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  itemCount: items.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (_, i) {
+                    final a = items[i];
+                    final minutes = (a['minutesPending'] as num?)?.toInt() ?? 0;
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: dark
+                            ? HelpiTheme.statusProcessingText.withValues(
+                                alpha: 0.15,
+                              )
+                            : HelpiTheme.statusProcessingBg,
+                        child: const Icon(
+                          Icons.hourglass_bottom,
+                          color: HelpiTheme.statusProcessingText,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(
+                        a['seniorName'] as String? ?? '—',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Text(
+                        '${AppStrings.pendingAcceptanceStudent}: '
+                        '${(a['_allStudents'] as List<String>?)?.join(', ') ?? a['studentName'] ?? '—'}',
+                      ),
+                      trailing: Text(
+                        _formatPendingTime(minutes),
+                        style: TextStyle(
+                          color: minutes > 120
+                              ? HelpiTheme.primary
+                              : HelpiTheme.statusProcessingText,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        _navigateToOrder(a['orderId'] as int?);
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _navigateToOrder(int? orderId) async {
+    if (orderId == null) {
+      debugPrint('[Pending] orderId is null — aborting navigation');
+      return;
+    }
+    debugPrint('[Pending] navigating to order $orderId');
+    var orders = ref.read(ordersProvider);
+    var order = orders.where((o) => int.tryParse(o.id) == orderId).firstOrNull;
+    if (order == null) {
+      debugPrint('[Pending] order $orderId not in provider — reloading');
+      await DataLoader.loadAll(ref: ref);
+      if (!mounted) return;
+      orders = ref.read(ordersProvider);
+      order = orders.where((o) => int.tryParse(o.id) == orderId).firstOrNull;
+    }
+    if (order == null) {
+      debugPrint('[Pending] order $orderId still not found after reload');
+      return;
+    }
+    if (!mounted) return;
+    debugPrint('[Pending] pushing OrderDetailScreen for order $orderId');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order!)),
+    );
+  }
+
+  List<SeniorModel> _filteredSeniors(_SeniorStatusFilter filter) {
+    var seniors = ref.watch(seniorsProvider).toList();
+
+    final allOrders = ref.watch(ordersProvider);
 
     // Samo aktivne narudžbe (processing/active) — isključi otkazane/završene
     final liveOrders = allOrders
@@ -355,6 +604,67 @@ class _SeniorsScreenState extends ConsumerState<SeniorsScreen>
               },
             ),
           ),
+          // ── Pending acceptance banner ──
+          if (_pendingAssignments.isNotEmpty)
+            Builder(
+              builder: (context) {
+                final dark = Theme.of(context).brightness == Brightness.dark;
+                final bg = dark
+                    ? HelpiTheme.statusProcessingText.withValues(alpha: 0.15)
+                    : HelpiTheme.statusProcessingBg;
+                final borderC = HelpiTheme.statusProcessingText.withValues(
+                  alpha: 0.3,
+                );
+                return GestureDetector(
+                  onTap: _openPendingSheet,
+                  child: Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: bg,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: borderC),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.hourglass_top,
+                          size: 20,
+                          color: HelpiTheme.statusProcessingText,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            AppStrings.pendingAcceptanceBanner(
+                              _pendingAssignments
+                                  .map(
+                                    (e) => (e['orderId'] as num?)?.toInt() ?? 0,
+                                  )
+                                  .toSet()
+                                  .length,
+                            ),
+                            style: const TextStyle(
+                              color: HelpiTheme.statusProcessingText,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.chevron_right,
+                          size: 20,
+                          color: HelpiTheme.statusProcessingText,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           // ── Status filter tabs ──
           TabBar(
             controller: _tabCtrl,
@@ -604,7 +914,7 @@ class _SeniorCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final liveOrders = ref
-        .read(ordersProvider)
+        .watch(ordersProvider)
         .where(
           (o) =>
               o.senior.id == senior.id &&

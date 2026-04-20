@@ -417,7 +417,9 @@ class _NotificationsDrawerState extends ConsumerState<_NotificationsDrawer> {
             type == NotificationType.orderScheduleCancelled ||
             type == NotificationType.scheduleAssignmentCancelled ||
             type == NotificationType.jobCancelled ||
-            type == NotificationType.jobRescheduled)) {
+            type == NotificationType.jobRescheduled ||
+            type == NotificationType.assignmentAccepted ||
+            type == NotificationType.assignmentDeclined)) {
       final order = ref
           .read(ordersProvider)
           .where((o) => o.id == '${n.orderId}')
@@ -609,6 +611,8 @@ class _NotificationTile extends StatelessWidget {
       NotificationType.adminDeleted => Icons.admin_panel_settings_outlined,
       NotificationType.availabilityChanged => Icons.schedule_outlined,
       NotificationType.orderBackToProcessing => Icons.pending_actions_outlined,
+      NotificationType.assignmentAccepted => Icons.check_circle_outline,
+      NotificationType.assignmentDeclined => Icons.cancel_outlined,
       _ => Icons.info_outline,
     };
   }
@@ -640,6 +644,9 @@ class _NotificationTile extends StatelessWidget {
       NotificationType.contractAboutToExpire => const Color(0xFFE65100),
       NotificationType.availabilityChanged => const Color(0xFFE65100),
       NotificationType.jobRescheduled => const Color(0xFFE65100),
+      // Assignment accepted (green) / declined (red)
+      NotificationType.assignmentAccepted => HelpiTheme.statusActiveText,
+      NotificationType.assignmentDeclined => HelpiTheme.statusCancelledText,
       // Info
       NotificationType.orderBackToProcessing => HelpiTheme.primary,
       _ => HelpiTheme.textSecondary,
@@ -673,6 +680,9 @@ class _NotificationTile extends StatelessWidget {
       NotificationType.contractAboutToExpire => const Color(0xFFFFF3E0),
       NotificationType.availabilityChanged => const Color(0xFFFFF3E0),
       NotificationType.jobRescheduled => const Color(0xFFFFF3E0),
+      // Assignment accepted (green bg) / declined (red bg)
+      NotificationType.assignmentAccepted => HelpiTheme.statusActiveBg,
+      NotificationType.assignmentDeclined => HelpiTheme.statusCancelledBg,
       // Info (light blue bg)
       NotificationType.orderBackToProcessing => const Color(0xFFE3F2FD),
       _ => const Color(0xFFF5F5F5),

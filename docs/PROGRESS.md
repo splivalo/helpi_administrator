@@ -1,35 +1,35 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-04-18
+> Zadnja izmjena: 2026-04-19
 
 ## Ukupno stanje
 
-| Modul                 | Status                                                                                                                                                                                  | Dovršenost |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| Auth (Login)          | ✅ UI gotov, pravi backend auth, forgot/reset password flow, server reachability detection (3-way logic)                                                                                | 100%       |
-| Analitika             | ✅ GA-style: line chart (fl_chart), date range picker (7d/mjesec/custom), 4 metrike (narudžbe/prihod/seniori/zarada), usporedba perioda, KPI kartice, Excel export, SignalR reaktivnost | 100%       |
-| Postavke              | ✅ 6 sekcija: Cijena usluge, Studentska satnica, Pravila otkazivanja, Operativno, Zarada (marža+PDV), Jezik — API CRUD, SignalR reaktivnost                                             | 100%       |
-| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                                                                                                | 100%       |
-| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                                                                                              | 100%       |
-| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                                                                                                   | 100%       |
-| Seniori – Detalj      | ✅ Profil, narudžbe (sortirano najnovije), "Dodaj narudžbu", centralizirani status badge                                                                                                | 100%       |
-| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                                                                                                        | 100%       |
-| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                                                                                             | 100%       |
-| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje (3-branch), uređivanje, promo kod, udaljenost, planirani termini                                                                  | 100%       |
-| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                                                                                              | 100%       |
-| Chat (Moderacija)     | ✅ Real-time chat s backendom (API + SignalR), split-view moderacija, WhatsApp-style bubbles, unread badge na navigaciji (3 layouta), auto-create admin room, welcome message           | 100%       |
-| Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + backend-only feed bez demo seedanja + reschedule/reassignment refresh hooks                                                          | 100%       |
-| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild, ConsumerStatefulWidget, chat badge                                                                                               | 100%       |
-| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                                                                                                       | 100%       |
-| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                                                                                             | 100%       |
-| Mock/Fallback Data    | ✅ Backend-first učitavanje za sve podatke; mock fallback ostaje samo za offline/dev scenarij                                                                                           | 100%       |
-| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                                                                                                    | 100%       |
-| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveChatMessage + SettingsChanged handlers, Riverpod sync                                                           | 100%       |
-| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                                                                                           | 100%       |
-| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                                                                                            | 100%       |
-| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                                                                                            | 100%       |
-| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                                                                                                   | 100%       |
-| Backend integracija   | ✅ Kompletna admin backend integracija: auth, students, seniors, orders, reviews, notifications, sessions, settings, assign/reschedule, cities, dashboard API, chat (real-time + REST)  | 100%       |
+| Modul                 | Status                                                                                                                                                                                       | Dovršenost |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Auth (Login)          | ✅ UI gotov, pravi backend auth, forgot/reset password flow, server reachability detection (3-way logic)                                                                                     | 100%       |
+| Analitika             | ✅ GA-style: line chart (fl_chart), date range picker (7d/mjesec/custom), 4 metrike (narudžbe/prihod/seniori/zarada), usporedba perioda, KPI kartice, Excel export, SignalR reaktivnost      | 100%       |
+| Postavke              | ✅ 7 sekcija: Cijena usluge, Studentska satnica, Otkazivanje sesije (toggle+sati), Promjena dostupnosti (toggle+sati), Operativno, Zarada (marža+PDV), Jezik — API CRUD, SignalR reaktivnost | 100%       |
+| Studenti – Lista      | ✅ 6 tabova, pretraga, napredni filteri, sort, grid/list                                                                                                                                     | 100%       |
+| Studenti – Detalj     | ✅ Profil, ugovor, obračun, dostupnost, narudžbe, sesije, dodjela studenta                                                                                                                   | 100%       |
+| Seniori – Lista       | ✅ 5 tabova, pretraga, sort, grid/list, inline detalj                                                                                                                                        | 100%       |
+| Seniori – Detalj      | ✅ Profil, narudžbe (sortirano najnovije), "Dodaj narudžbu", centralizirani status badge                                                                                                     | 100%       |
+| Seniori – Dodaj/Uredi | ✅ Forme kompletne, shared mixin                                                                                                                                                             | 100%       |
+| Narudžbe – Lista      | ✅ 5 tabova, pretraga, sort, grid/list, FAB                                                                                                                                                  | 100%       |
+| Narudžbe – Detalj     | ✅ Sesije, dodjela/promjena studenta, reprogramiranje (3-branch), uređivanje, promo kod, udaljenost, planirani termini                                                                       | 100%       |
+| Narudžbe – Kreiranje  | ✅ Kompletna forma, senior pre-assignment, session preview                                                                                                                                   | 100%       |
+| Chat (Moderacija)     | ✅ Real-time chat s backendom (API + SignalR), split-view moderacija, WhatsApp-style bubbles, unread badge na navigaciji (3 layouta), auto-create admin room, welcome message                | 100%       |
+| Notifikacije          | ✅ NotificationBell + drawer + SignalR real-time + backend-only feed bez demo seedanja + reschedule/reassignment refresh hooks                                                               | 100%       |
+| Responsive Shell      | ✅ Mobile/Tablet/Desktop layout, locale-aware rebuild, ConsumerStatefulWidget, chat badge                                                                                                    | 100%       |
+| i18n (HR/EN)          | ✅ AppStrings Gemini Hybrid, locale switching rebuilda sve ekrane                                                                                                                            | 100%       |
+| Tema (HelpiTheme)     | ✅ Material 3, datePickerTheme, sve boje/dimenzije/radijusi                                                                                                                                  | 100%       |
+| Mock/Fallback Data    | ✅ Backend-first učitavanje za sve podatke; mock fallback ostaje samo za offline/dev scenarij                                                                                                | 100%       |
+| State Management      | ✅ Riverpod (flutter_riverpod ^2.6.1) — svi ekrani, reaktivni UI bez manual refresha                                                                                                         | 100%       |
+| SignalR Real-time     | ✅ signalr_netcore ^1.4.4, auto-reconnect, ReceiveNotification + ReceiveChatMessage + SettingsChanged handlers, Riverpod sync                                                                | 100%       |
+| DRY / Shared Widgets  | ✅ Kompletno refaktorirano, session_preview_sheet, ActionChipButton size enum                                                                                                                | 100%       |
+| SharedPreferences     | ✅ Grid/sort/tab persistencija po ekranu (web-safe fallback)                                                                                                                                 | 100%       |
+| UI Consistency        | ✅ AlertDialogs (SizedBox 400), modali, DatePicker, TextButton hover, badges                                                                                                                 | 100%       |
+| Web deploy            | ✅ Flutter Web build, deploy na kungfu.digital/helpi/                                                                                                                                        | 100%       |
+| Backend integracija   | ✅ Kompletna admin backend integracija: auth, students, seniors, orders, reviews, notifications, sessions, settings, assign/reschedule, cities, dashboard API, chat (real-time + REST)       | 100%       |
 
 **Ukupna dovršenost frontenda: ~100%**
 **28 Dart fajlova, ~18.400 linija koda**
@@ -469,4 +469,19 @@
 - [x] `OrderModel.promoCode` → `couponCode`
 - [x] `admin_api_service.dart`: `updateOrderPromoCode` → `updateOrderCoupon`, `validatePromoCode` → `validateCoupon`
 - [x] AppStrings: uklonjeni dupli `couponCode` ključevi (promo sekcija) — existing coupon CRUD ključevi dovoljni
+- [x] Verifikacija: `flutter analyze` = 0 issues
+
+---
+
+## 2026-04-20 — SignalR instant session refresh + session date range filter
+
+### sessionsVersionProvider + EntityChanged fix
+- `data_providers.dart` — novi `sessionsVersionProvider` (`StateProvider<int>`)
+- `signalr_notification_service.dart` — `_onEntityChanged()` prepisano: prethodno koristilo `args[0]?.toString()` na Map objektu što je davalo cijeli Map kao string umjesto entitetskog tipa; sada ispravno parsira `{entityType: "Sessions", timestamp: ...}` format; bumpa `sessionsVersionProvider` za Sessions/Orders/JobInstances entitete
+- `order_detail_screen.dart` — sluša `sessionsVersionProvider` via `ref.listenManual`, auto-poziva `_loadSessions()` kad se verzija promijeni bez izlaska iz ekrana
+- **Rezultat:** kad senior otkaže termin u mob app-u, admin odmah vidi promjenu u real-time bez ručnog refresha
+
+### Session date range filter
+- `order_detail_screen.dart` — `_monthRange()` vraća range za SVE tipove narudžbi (prethodno samo za recurring); admin uvijek fetcha samo sesije tekućeg mjeseca
+
 - [x] Verifikacija: `flutter analyze` = 0 issues

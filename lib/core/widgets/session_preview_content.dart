@@ -56,22 +56,26 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
 
   // ── Helpers ─────────────────────────────────────────────────
 
-  int get _freeCount =>
-      _sessions.where((s) => s.conflictType == SessionConflictType.free).length;
+  int get _freeCount => _sessions
+      .where((s) => s.conflictType == SessionConflictType.free)
+      .fold<int>(0, (sum, s) => sum + s.sessionCount);
   int get _conflictCount => _sessions
       .where((s) => s.conflictType == SessionConflictType.conflict)
-      .length;
-  int get _unresolvedCount =>
-      _sessions.where((s) => s.hasUnresolvedConflict).length;
+      .fold<int>(0, (sum, s) => sum + s.sessionCount);
+  int get _unresolvedCount => _sessions
+      .where((s) => s.hasUnresolvedConflict)
+      .fold<int>(0, (sum, s) => sum + s.sessionCount);
+  int get _totalSessionCount =>
+      _sessions.fold<int>(0, (sum, s) => sum + s.sessionCount);
 
-  static const _dayLabelsShort = [
-    'Pon',
-    'Uto',
-    'Sri',
-    'Čet',
-    'Pet',
-    'Sub',
-    'Ned',
+  static const _dayLabelsFull = [
+    'Ponedjeljak',
+    'Utorak',
+    'Srijeda',
+    'Četvrtak',
+    'Petak',
+    'Subota',
+    'Nedjelja',
   ];
 
   // ── Actions ─────────────────────────────────────────────────
@@ -208,7 +212,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
         ],
         _statChip(
           Icons.event_note,
-          AppStrings.sessionCountChip(_sessions.length),
+          AppStrings.sessionCountChip(_totalSessionCount),
           HelpiColors.of(context).chipBg,
           HelpiColors.of(context).textSecondary,
         ),
@@ -279,7 +283,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Row 1: Date + Status
+          // Row 1: Weekday + Time + Count + Status
           Row(
             children: [
               Builder(
@@ -304,7 +308,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      _dayLabelsShort[s.weekday - 1],
+                      _dayLabelsFull[s.weekday - 1],
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -316,7 +320,7 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
               ),
               const SizedBox(width: 8),
               Text(
-                formatDate(s.date),
+                '${formatTimeOfDay(displayStart)} – ${formatTimeOfDay(endTime)}',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -326,17 +330,16 @@ class _SessionPreviewContentState extends State<SessionPreviewContent> {
                       : null,
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                '${formatTimeOfDay(displayStart)} – ${formatTimeOfDay(endTime)}',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: s.isSkipped
-                      ? HelpiColors.of(context).textSecondary
-                      : null,
-                  decoration: s.isSkipped ? TextDecoration.lineThrough : null,
+              if (s.sessionCount > 1) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '(${s.sessionCount}x)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: HelpiColors.of(context).textSecondary,
+                  ),
                 ),
-              ),
+              ],
               const Spacer(),
               _buildBadge(s),
             ],

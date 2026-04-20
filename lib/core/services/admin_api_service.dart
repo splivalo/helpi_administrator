@@ -304,10 +304,18 @@ class AdminApiService {
     }
   }
 
-  Future<ApiResult<List<SessionModel>>> getSessionsByOrder(int orderId) async {
+  Future<ApiResult<List<SessionModel>>> getSessionsByOrder(
+    int orderId, {
+    String? from,
+    String? to,
+  }) async {
     try {
+      final queryParams = <String, dynamic>{};
+      if (from != null) queryParams['from'] = from;
+      if (to != null) queryParams['to'] = to;
       final response = await _api.dio.get<String>(
         ApiEndpoints.sessionsByOrder(orderId),
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
         options: Options(responseType: ResponseType.plain),
       );
       final decoded = jsonDecode(response.data!) as List<dynamic>;
@@ -622,6 +630,15 @@ class AdminApiService {
         ApiEndpoints.adminAssign,
         data: {'orderScheduleId': orderScheduleId, 'studentId': studentId},
       );
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> adminTerminate(int orderScheduleId) async {
+    try {
+      await _api.post(ApiEndpoints.adminTerminate(orderScheduleId));
       return const ApiResult._(success: true);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
@@ -2026,6 +2043,20 @@ class AdminApiService {
   String _extractError(DioException e) {
     if (e.response?.data is Map<String, dynamic>) {
       final body = e.response!.data as Map<String, dynamic>;
+      // Extract validation error details if present
+      if (body.containsKey('errors') && body['errors'] is Map) {
+        final errors = body['errors'] as Map;
+        final messages = <String>[];
+        for (final entry in errors.entries) {
+          final vals = entry.value;
+          if (vals is List) {
+            for (final v in vals) {
+              messages.add(v.toString());
+            }
+          }
+        }
+        if (messages.isNotEmpty) return messages.join('\n');
+      }
       return body['message'] as String? ??
           body['title'] as String? ??
           'Greška na serveru';

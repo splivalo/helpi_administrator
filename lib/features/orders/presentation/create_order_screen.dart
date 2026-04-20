@@ -944,10 +944,11 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     required ValueChanged<DateTime> onPicked,
   }) async {
     final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
     final picked = await showDatePicker(
       context: context,
-      initialDate: initial ?? now,
-      firstDate: firstDate ?? now,
+      initialDate: initial ?? tomorrow,
+      firstDate: firstDate ?? tomorrow,
       lastDate: DateTime(now.year + 2),
       confirmText: AppStrings.ok,
       cancelText: AppStrings.cancel,
@@ -1089,7 +1090,13 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       'startDate': scheduledDate.toIso8601String().split('T').first,
       'endDate': _endDate != null
           ? _endDate!.toIso8601String().split('T').first
-          : scheduledDate.toIso8601String().split('T').first,
+          : freq == FrequencyType.oneTime
+          ? scheduledDate.toIso8601String().split('T').first
+          : DateTime(
+              scheduledDate.year + 1,
+              scheduledDate.month,
+              scheduledDate.day,
+            ).toIso8601String().split('T').first,
       'schedulesToAdd': schedulesToAdd,
       'servicesToAdd': servicesToAdd,
     };
@@ -1157,14 +1164,23 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     final orderData = <String, dynamic>{
       'seniorId': seniorId,
       'isRecurring': freq != FrequencyType.oneTime,
+      if (freq != FrequencyType.oneTime) 'recurrencePattern': 0,
       'startDate': scheduledDate.toIso8601String().split('T').first,
       'endDate': _endDate != null
           ? _endDate!.toIso8601String().split('T').first
-          : scheduledDate.toIso8601String().split('T').first,
+          : freq == FrequencyType.oneTime
+          ? scheduledDate.toIso8601String().split('T').first
+          : DateTime(
+              scheduledDate.year + 1,
+              scheduledDate.month,
+              scheduledDate.day,
+            ).toIso8601String().split('T').first,
       if (_notesCtrl.text.trim().isNotEmpty) 'notes': _notesCtrl.text.trim(),
       'services': services,
       'schedules': schedules,
     };
+
+    debugPrint('[CreateOrder] payload: $orderData');
 
     final result = await api.createOrder(orderData);
     if (!mounted) return;

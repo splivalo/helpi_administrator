@@ -116,34 +116,23 @@ class _ServerUnavailableScreenState extends State<ServerUnavailableScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
-                  if (_isRetrying)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          AppStrings.serverUnavailableRetrying,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: helpiColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    const SizedBox(height: 16),
-                  const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
                     height: 48,
                     child: OutlinedButton.icon(
                       onPressed: _isRetrying ? null : _checkHealth,
-                      icon: const Icon(Icons.refresh, size: 18),
-                      label: Text(AppStrings.serverUnavailableRetry),
+                      icon: _isRetrying
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.refresh, size: 18),
+                      label: Text(
+                        _isRetrying
+                            ? AppStrings.serverUnavailableRetrying
+                            : AppStrings.serverUnavailableRetry,
+                      ),
                     ),
                   ),
                 ],

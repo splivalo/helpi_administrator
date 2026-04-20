@@ -274,3 +274,19 @@ final unreadMessagesProvider =
 // ═══════════════════════════════════════════════════════════════
 
 final pricingVersionProvider = StateProvider<int>((ref) => 0);
+
+// ═══════════════════════════════════════════════════════════════
+//  PENDING ACCEPTANCE DATA (populated by SeniorsScreen)
+//  Key = orderId, Value = {studentName, studentId, minutesPending}
+// ═══════════════════════════════════════════════════════════════
+
+final pendingAcceptanceOrderIdsProvider = StateProvider<Set<int>>((ref) => {});
+
+final pendingAcceptanceDataProvider =
+    StateProvider<Map<int, Map<String, dynamic>>>((ref) => {});
+
+// ═══════════════════════════════════════════════════════════════
+//  SESSIONS VERSION (incremented on EntityChanged for Sessions/Orders)
+// ═══════════════════════════════════════════════════════════════
+
+final sessionsVersionProvider = StateProvider<int>((ref) => 0);

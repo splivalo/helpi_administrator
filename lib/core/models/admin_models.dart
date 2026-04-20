@@ -71,6 +71,10 @@ enum NotificationType {
   newOrderAdded, // 30
   availabilityChanged, // 31
   orderBackToProcessing, // 32
+  assignmentPending, // 33
+  assignmentAccepted, // 34
+  assignmentDeclined, // 35
+  assignmentRevoked, // 36
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -470,6 +474,9 @@ class SessionInstancePreview {
   final SessionConflictType conflictType;
   final OrderModel? conflictingOrder;
 
+  /// Number of sessions this weekday covers (e.g. 8 Mondays).
+  final int sessionCount;
+
   /// Whether admin chose to skip this conflicted session.
   bool isSkipped;
 
@@ -486,6 +493,7 @@ class SessionInstancePreview {
     required this.durationHours,
     required this.conflictType,
     this.conflictingOrder,
+    this.sessionCount = 1,
     this.isSkipped = false,
     this.rescheduledStart,
     this.substituteStudent,

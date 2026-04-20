@@ -68,6 +68,9 @@ class ApiEndpoints {
   // Schedule Assignments
   static const String scheduleAssignments = '/api/schedule-assignments';
   static const String adminAssign = '/api/schedule-assignments/admin-assign';
+  static String adminTerminate(int orderScheduleId) =>
+      '/api/schedule-assignments/admin-terminate/$orderScheduleId';
+  static const String adminPending = '/api/schedule-assignments/admin-pending';
 
   // Reviews
   static const String reviews = '/api/reviews';

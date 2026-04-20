@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/core/models/admin_models.dart';
+import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
@@ -102,9 +103,18 @@ class DataLoader {
     }
 
     if (notifResult.success && notifResult.data != null) {
+      // Merge: keep any SignalR-prepended notifications that the backend
+      // hasn't returned yet (race condition on quick successive calls).
+      final freshIds = notifResult.data!.map((n) => n.id).toSet();
+      final signalROnly = AppData.notifications
+          .where((n) => !freshIds.contains(n.id))
+          .toList();
       AppData.notifications
         ..clear()
+        ..addAll(signalROnly)
         ..addAll(notifResult.data!);
+      // Sort newest first
+      AppData.notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     } else {
       debugPrint('[DataLoader] notifications failed: ${notifResult.error}');
       allOk = false;
@@ -135,6 +145,20 @@ class DataLoader {
       allOk = false;
     }
 
+    // Load pending acceptance assignments
+    List<Map<String, dynamic>> pendingList = [];
+    try {
+      final pendingResp = await ApiClient().get(ApiEndpoints.adminPending);
+      pendingList = (pendingResp.data as List<dynamic>)
+          .map((e) => e as Map<String, dynamic>)
+          .toList();
+      debugPrint(
+        '[DataLoader] pending assignments loaded: ${pendingList.length}',
+      );
+    } catch (e) {
+      debugPrint('[DataLoader] pending assignments failed: $e');
+    }
+
     // Sync Riverpod providers for reactive UI updates
     if (ref != null) {
       try {
@@ -143,6 +167,18 @@ class DataLoader {
         ref.read(ordersProvider.notifier).setAll(AppData.orders);
         ref.read(reviewsProvider.notifier).setAll(AppData.reviews);
         ref.read(notificationsProvider.notifier).setAll(AppData.notifications);
+
+        // Pending acceptance providers
+        ref.read(pendingAcceptanceOrderIdsProvider.notifier).state = pendingList
+            .map((e) => (e['orderId'] as num).toInt())
+            .toSet();
+        final dataMap = <int, Map<String, dynamic>>{};
+        for (final e in pendingList) {
+          final oid = (e['orderId'] as num).toInt();
+          dataMap.putIfAbsent(oid, () => e);
+        }
+        ref.read(pendingAcceptanceDataProvider.notifier).state = dataMap;
+
         // Chat rooms loaded from API
         await ref.read(adminChatRoomsProvider.notifier).loadRooms();
         await ref.read(unreadMessagesProvider.notifier).refresh();

@@ -32,6 +32,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   late List<int> _sectionOrder;
   List<Map<String, dynamic>> _seniorCoupons = [];
   bool _couponsLoading = false;
+  bool _isAssigning = false;
 
   @override
   void initState() {
@@ -47,7 +48,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     _loadSeniorCoupons();
 
     // Auto-refresh when SignalR updates ordersProvider (EntityChanged).
+    // Suppress during active assignment to avoid race conditions.
     ref.listenManual(ordersProvider, (prev, next) {
+      if (_isAssigning) return;
       final updated = next.where((o) => o.id == _order.id).firstOrNull;
       if (updated == null) return;
       if (updated.status != _order.status ||
@@ -55,12 +58,42 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         _refreshOrder();
       }
     });
+
+    // Auto-refresh sessions when SignalR sends EntityChanged for Sessions/Orders
+    ref.listenManual(sessionsVersionProvider, (prev, next) {
+      if (prev != null && next != prev) {
+        debugPrint(
+          '[OrderDetailScreen] sessionsVersion changed $prev → $next, reloading sessions',
+        );
+        _loadSessions();
+      }
+    });
+  }
+
+  /// ISO date string for current month boundary queries.
+  String _isoDate(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  /// Returns (from, to) for current month to cap visible sessions.
+  /// Applied to ALL order types — one-time orders have max 1 session
+  /// so the cap doesn't affect them, but recurring/processing are limited.
+  ({String from, String to}) _monthRange() {
+    final now = DateTime.now();
+    return (
+      from: _isoDate(DateTime(now.year, now.month)),
+      to: _isoDate(DateTime(now.year, now.month + 1, 0)),
+    );
   }
 
   Future<void> _loadSessions() async {
     final orderId = int.tryParse(_order.id);
     if (orderId == null) return;
-    final result = await AdminApiService().getSessionsByOrder(orderId);
+    final range = _monthRange();
+    final result = await AdminApiService().getSessionsByOrder(
+      orderId,
+      from: range.from,
+      to: range.to,
+    );
     if (!mounted) return;
     setState(() {
       _sessionsLoading = false;
@@ -87,13 +120,15 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   /// Lightweight reload: fetch only this order + its sessions.
   /// Falls back to full reload if the single-order fetch fails.
   Future<void> _refreshOrder() async {
+    if (_isAssigning) return; // Suppress during multi-schedule assignment
     final orderId = int.tryParse(_order.id);
     if (orderId == null) return;
 
     final api = AdminApiService();
+    final range = _monthRange();
     final results = await Future.wait([
       api.getOrder(orderId),
-      api.getSessionsByOrder(orderId),
+      api.getSessionsByOrder(orderId, from: range.from, to: range.to),
     ]);
     if (!mounted) return;
 
@@ -540,11 +575,18 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   //  STUDENT SECTION
   // ---------------------------------------------------------
   Widget _buildStudentSection() {
+    final pendingIds = ref.watch(pendingAcceptanceOrderIdsProvider);
+    final pendingData = ref.watch(pendingAcceptanceDataProvider);
+    final orderId = int.tryParse(_order.id);
+    final isPending = pendingIds.contains(orderId);
+    final pendingInfo = orderId != null ? pendingData[orderId] : null;
+
     return SectionCard(
       title: AppStrings.orderStudent,
       icon: Icons.school,
       children: [
-        if (_order.student != null) ...[
+        if (_order.student != null && !isPending) ...[
+          // ── Case A: Student assigned & accepted ──
           ResponsiveFieldGrid(
             children: [
               InfoField(
@@ -581,7 +623,50 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               outlined: true,
               onTap: () => _showAssignSheet(),
             ),
+        ] else if (isPending) ...[
+          // ── Case B: Student assigned but awaiting acceptance ──
+          _buildPendingBanner(),
+          const SizedBox(height: 8),
+          ResponsiveFieldGrid(
+            children: [
+              InfoField(
+                label: AppStrings.studentFirstName,
+                value:
+                    _order.student?.firstName ??
+                    (pendingInfo?['studentName'] as String?)
+                        ?.split(' ')
+                        .first ??
+                    '—',
+              ),
+              InfoField(
+                label: AppStrings.studentLastName,
+                value:
+                    _order.student?.lastName ??
+                    (pendingInfo?['studentName'] as String?)
+                        ?.split(' ')
+                        .skip(1)
+                        .join(' ') ??
+                    '—',
+              ),
+              if (_order.student != null) ...[
+                InfoField(
+                  label: AppStrings.studentRating,
+                  value:
+                      '${_order.student!.avgRating.toStringAsFixed(1)}/5 (${_order.student!.totalReviews})',
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          ActionChipButton(
+            icon: Icons.swap_horiz,
+            label: AppStrings.reassignStudent,
+            color: HelpiTheme.accent,
+            outlined: true,
+            onTap: () => _showAssignSheet(),
+          ),
         ] else ...[
+          // ── Case C: No student at all ──
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(
@@ -615,6 +700,94 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         ],
       ],
     );
+  }
+
+  Widget _buildPendingBanner() {
+    // Collect unique students from scheduled sessions
+    final studentDays = <String, List<String>>{};
+    for (final s in _order.sessions) {
+      if (s.studentName != null && s.status == SessionStatus.scheduled) {
+        studentDays.putIfAbsent(s.studentName!, () => []);
+        final day = _dayName(s.weekday, short: true);
+        if (!studentDays[s.studentName!]!.contains(day)) {
+          studentDays[s.studentName!]!.add(day);
+        }
+      }
+    }
+
+    final String bannerText;
+    if (studentDays.length > 1) {
+      final parts = studentDays.entries
+          .map((e) => '${e.key} (${e.value.join(', ')})')
+          .join(', ');
+      bannerText = '${AppStrings.awaitingAcceptanceMulti}: $parts';
+    } else {
+      bannerText = AppStrings.studentAwaitingAcceptance;
+    }
+
+    return Builder(
+      builder: (context) {
+        final dark = Theme.of(context).brightness == Brightness.dark;
+        final bg = dark
+            ? HelpiTheme.statusProcessingText.withValues(alpha: 0.15)
+            : HelpiTheme.statusProcessingBg;
+        final borderC = HelpiTheme.statusProcessingText.withValues(alpha: 0.3);
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: borderC),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.hourglass_top,
+                size: 18,
+                color: HelpiTheme.statusProcessingText,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  bannerText,
+                  style: const TextStyle(
+                    color: HelpiTheme.statusProcessingText,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Refresh pending acceptance providers after admin assigns a student.
+  Future<void> _refreshPendingData(String studentName) async {
+    final orderId = int.tryParse(_order.id);
+    if (orderId == null) return;
+
+    // Optimistic update — add this order to pending immediately
+    final currentIds = ref.read(pendingAcceptanceOrderIdsProvider);
+    ref.read(pendingAcceptanceOrderIdsProvider.notifier).state = {
+      ...currentIds,
+      orderId,
+    };
+
+    final currentData = ref.read(pendingAcceptanceDataProvider);
+    ref.read(pendingAcceptanceDataProvider.notifier).state = {
+      ...currentData,
+      orderId: <String, dynamic>{
+        'orderId': orderId,
+        'studentName': studentName,
+        'seniorName': _order.senior.fullName,
+        'minutesPending': 0,
+      },
+    };
   }
 
   // -------------------------------------------------------------
@@ -1921,6 +2094,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     ) async {
       if (!context.mounted) return;
 
+      _isAssigning = true;
+
       // -- Backend assign per schedule --
       final assignApi = AdminApiService();
       final studentId = int.tryParse(student.id) ?? 0;
@@ -1955,9 +2130,32 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         final scheduleId = entry.value;
         if (skippedWeekdays.contains(weekday)) continue;
 
-        final result = await assignApi.adminAssign(scheduleId, studentId);
+        // Check if a substitute student was chosen for this weekday
+        final sub = previewSessions
+            .where((p) => p.weekday == weekday && p.substituteStudent != null)
+            .map((p) => p.substituteStudent!)
+            .firstOrNull;
+        final assignId = sub != null ? int.parse(sub.id) : studentId;
+
+        final result = await assignApi.adminAssign(scheduleId, assignId);
         if (!mounted) return;
         if (!result.success) {
+          _isAssigning = false;
+          showErrorSnack(context, result.error ?? 'Error');
+          return;
+        }
+      }
+
+      // Terminate old assignments on skipped schedules
+      for (final entry in weekdayToSchedule.entries) {
+        final weekday = entry.key;
+        final scheduleId = entry.value;
+        if (!skippedWeekdays.contains(weekday)) continue;
+
+        final result = await assignApi.adminTerminate(scheduleId);
+        if (!mounted) return;
+        if (!result.success) {
+          _isAssigning = false;
           showErrorSnack(context, result.error ?? 'Error');
           return;
         }
@@ -2013,8 +2211,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           id: _order.id,
           orderNumber: _order.orderNumber,
           senior: _order.senior,
-          student: student,
-          status: OrderStatus.active,
+          student: student, // show newly assigned student immediately
+          status: _order
+              .status, // keep current — backend doesn't change until accept
           frequency: _order.frequency,
           services: _order.services,
           createdAt: _order.createdAt,
@@ -2034,13 +2233,45 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
       // Sync updated order back to provider for reactive UI
       ref.read(ordersProvider.notifier).updateItem(_order);
 
+      // Refresh pending acceptance data for banner + this screen
+      await _refreshPendingData(student.fullName);
+
+      // All schedules assigned — allow refresh and fetch final state
+      _isAssigning = false;
+      await _refreshOrder();
+
       if (!mounted) return;
       showSuccessSnack(context, AppStrings.assignSuccess);
     }
 
     // Fetch available students per schedule and classify by coverage
     final api = AdminApiService();
-    final scheduleIds = _order.scheduleIds;
+    final allScheduleIds = _order.scheduleIds;
+
+    // Determine which weekdays already have a student (pending/accepted)
+    final coveredWeekdays = <int>{};
+    for (final s in _order.sessions) {
+      if (s.studentId != null && s.status == SessionStatus.scheduled) {
+        coveredWeekdays.add(s.weekday);
+      }
+    }
+
+    // Only fetch available students for UNCOVERED schedules
+    var scheduleIds = <int>[];
+    for (
+      var i = 0;
+      i < allScheduleIds.length && i < _order.dayEntries.length;
+      i++
+    ) {
+      if (!coveredWeekdays.contains(_order.dayEntries[i].dayOfWeek)) {
+        scheduleIds.add(allScheduleIds[i]);
+      }
+    }
+
+    // If all schedules are covered, use ALL schedules (admin wants to replace)
+    if (scheduleIds.isEmpty && coveredWeekdays.isNotEmpty) {
+      scheduleIds = allScheduleIds.toList();
+    }
 
     final Map<String, StudentModel> allStudents = {};
     final Map<String, int> studentScheduleHits = {};
@@ -2197,8 +2428,25 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               final api = AdminApiService();
               final studentId = int.tryParse(student.id) ?? 0;
 
-              // Assign student to each schedule of this order
-              for (final scheduleId in _order.scheduleIds) {
+              // Skip schedules that already have a student assigned
+              final coveredDays = <int>{};
+              for (final s in _order.sessions) {
+                if (s.studentId != null &&
+                    s.status == SessionStatus.scheduled) {
+                  coveredDays.add(s.weekday);
+                }
+              }
+
+              // Assign student only to uncovered schedules
+              for (
+                var i = 0;
+                i < _order.scheduleIds.length && i < _order.dayEntries.length;
+                i++
+              ) {
+                if (coveredDays.contains(_order.dayEntries[i].dayOfWeek)) {
+                  continue;
+                }
+                final scheduleId = _order.scheduleIds[i];
                 final result = await api.adminAssign(scheduleId, studentId);
                 if (!result.success) {
                   if (!mounted) return;
@@ -2223,7 +2471,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   orderNumber: _order.orderNumber,
                   senior: _order.senior,
                   student: student,
-                  status: OrderStatus.active,
+                  status: _order.status,
                   frequency: _order.frequency,
                   services: _order.services,
                   createdAt: _order.createdAt,
@@ -2977,6 +3225,8 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
   List<SessionInstancePreview> generateSessions() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
+    // Sessions only up to end of current month (student contracts expire monthly)
+    final endOfMonth = DateTime(now.year, now.month + 1, 0);
 
     final studentOrders = allOrders
         .where(
@@ -2988,7 +3238,7 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
         )
         .toList();
 
-    // One-time order ? single session
+    // One-time order → single session
     if (order.frequency == FrequencyType.oneTime) {
       final startMin = toMinutes(order.scheduledStart);
       final endMin = startMin + order.durationHours * 60;
@@ -3015,50 +3265,63 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
               ? SessionConflictType.conflict
               : SessionConflictType.free,
           conflictingOrder: schedConflict,
+          sessionCount: 1,
         ),
       ];
     }
 
-    // Recurring order ? generate from dayEntries for next 8 weeks
+    // Recurring order → ONE row per weekday (not per date)
     final List<SessionInstancePreview> result = [];
+    final effectiveEnd =
+        order.endDate != null && order.endDate!.isBefore(endOfMonth)
+        ? order.endDate!
+        : endOfMonth;
+
     for (final entry in order.dayEntries) {
+      // Find first occurrence from today
       var nextDate = today;
       while (nextDate.weekday != entry.dayOfWeek) {
         nextDate = nextDate.add(const Duration(days: 1));
       }
-      for (int week = 0; week < 8; week++) {
-        final sessionDate = nextDate.add(Duration(days: week * 7));
-        if (order.endDate != null && sessionDate.isAfter(order.endDate!)) break;
 
-        final startMin = toMinutes(entry.startTime);
-        final endMin = startMin + entry.durationHours * 60;
-
-        final availConflict = _checkAvailability(entry.dayOfWeek, startMin);
-        final schedConflict = availConflict
-            ? null
-            : findConflict(
-                date: sessionDate,
-                weekday: entry.dayOfWeek,
-                startMin: startMin,
-                endMin: endMin,
-                studentOrders: studentOrders,
-              );
-
-        result.add(
-          SessionInstancePreview(
-            date: sessionDate,
-            weekday: entry.dayOfWeek,
-            startTime: entry.startTime,
-            durationHours: entry.durationHours,
-            conflictType: (availConflict || schedConflict != null)
-                ? SessionConflictType.conflict
-                : SessionConflictType.free,
-            conflictingOrder: schedConflict,
-          ),
-        );
+      // Count sessions until end
+      int count = 0;
+      var d = nextDate;
+      while (!d.isAfter(effectiveEnd)) {
+        count++;
+        d = d.add(const Duration(days: 7));
       }
+
+      final startMin = toMinutes(entry.startTime);
+      final endMin = startMin + entry.durationHours * 60;
+
+      // Conflict detection at weekday level (same conflict every week)
+      final availConflict = _checkAvailability(entry.dayOfWeek, startMin);
+      final schedConflict = availConflict
+          ? null
+          : findConflict(
+              date: nextDate,
+              weekday: entry.dayOfWeek,
+              startMin: startMin,
+              endMin: endMin,
+              studentOrders: studentOrders,
+            );
+
+      result.add(
+        SessionInstancePreview(
+          date: nextDate,
+          weekday: entry.dayOfWeek,
+          startTime: entry.startTime,
+          durationHours: entry.durationHours,
+          conflictType: (availConflict || schedConflict != null)
+              ? SessionConflictType.conflict
+              : SessionConflictType.free,
+          conflictingOrder: schedConflict,
+          sessionCount: count,
+        ),
+      );
     }
-    result.sort((a, b) => a.date.compareTo(b.date));
+    result.sort((a, b) => a.weekday.compareTo(b.weekday));
     return result;
   }
 

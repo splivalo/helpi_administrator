@@ -46,6 +46,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // ── Cancel rules ──
   final _studentCutoffCtrl = TextEditingController();
   final _seniorCutoffCtrl = TextEditingController();
+  bool _studentCancelEnabled = true;
+
+  // ── Availability change rules ──
+  bool _availabilityChangeEnabled = true;
+  final _availabilityChangeCutoffCtrl = TextEditingController();
 
   // ── Operational ──
   final _travelBufferCtrl = TextEditingController();
@@ -74,6 +79,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _savingSponsor = false;
   bool _editingSponsor = false;
 
+  // ── Rules section (Ograničenja) ──
+  bool _editingRules = false;
+  bool _savingRules = false;
+  Map<String, String> _rulesSnapshot = {};
+
   // Snapshot for cancel/revert
   Map<String, String> _snapshot = {};
   Map<String, dynamic> _sponsorSnapshot = {};
@@ -93,6 +103,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _sundayRateCtrl.dispose();
     _studentCutoffCtrl.dispose();
     _seniorCutoffCtrl.dispose();
+    _availabilityChangeCutoffCtrl.dispose();
     _travelBufferCtrl.dispose();
     _paymentTimingCtrl.dispose();
     _studentRateCtrl.dispose();
@@ -138,12 +149,81 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     setState(() => _editingSponsor = false);
   }
 
+  void _takeRulesSnapshot() {
+    _rulesSnapshot = {
+      'studentCutoff': _studentCutoffCtrl.text,
+      'seniorCutoff': _seniorCutoffCtrl.text,
+      'studentCancelEnabled': _studentCancelEnabled ? '1' : '0',
+      'availabilityChangeEnabled': _availabilityChangeEnabled ? '1' : '0',
+      'availabilityChangeCutoff': _availabilityChangeCutoffCtrl.text,
+    };
+  }
+
+  void _restoreRulesSnapshot() {
+    _studentCutoffCtrl.text = _rulesSnapshot['studentCutoff'] ?? '';
+    _seniorCutoffCtrl.text = _rulesSnapshot['seniorCutoff'] ?? '';
+    _studentCancelEnabled = _rulesSnapshot['studentCancelEnabled'] == '1';
+    _availabilityChangeEnabled =
+        _rulesSnapshot['availabilityChangeEnabled'] == '1';
+    _availabilityChangeCutoffCtrl.text =
+        _rulesSnapshot['availabilityChangeCutoff'] ?? '';
+  }
+
+  void _startEditingRules() {
+    _takeRulesSnapshot();
+    setState(() => _editingRules = true);
+  }
+
+  void _cancelEditingRules() {
+    _restoreRulesSnapshot();
+    setState(() => _editingRules = false);
+  }
+
+  Future<void> _saveRules() async {
+    setState(() => _savingRules = true);
+    try {
+      await _api.put(
+        '${ApiEndpoints.pricingConfigurations}/$_configId',
+        data: {
+          'id': _configId,
+          'jobHourlyRate': double.tryParse(_weekdayRateCtrl.text) ?? 0,
+          'sundayHourlyRate': double.tryParse(_sundayRateCtrl.text) ?? 0,
+          'studentCancelCutoffHours':
+              int.tryParse(_studentCutoffCtrl.text) ?? 6,
+          'seniorCancelCutoffHours': int.tryParse(_seniorCutoffCtrl.text) ?? 1,
+          'studentCancelEnabled': _studentCancelEnabled,
+          'availabilityChangeEnabled': _availabilityChangeEnabled,
+          'availabilityChangeCutoffHours':
+              int.tryParse(_availabilityChangeCutoffCtrl.text) ?? 24,
+          'travelBufferMinutes': int.tryParse(_travelBufferCtrl.text) ?? 15,
+          'paymentTimingMinutes': int.tryParse(_paymentTimingCtrl.text) ?? 30,
+          'studentHourlyRate': double.tryParse(_studentRateCtrl.text) ?? 7.40,
+          'studentSundayHourlyRate':
+              double.tryParse(_studentSundayRateCtrl.text) ?? 11.10,
+          'intermediaryPercentage':
+              double.tryParse(_intermediaryPctCtrl.text) ?? 18,
+          'vatEnabled': (double.tryParse(_vatCtrl.text) ?? 0) > 0,
+          'vatPercentage': double.tryParse(_vatCtrl.text) ?? 0,
+        },
+        queryParameters: {'reason': 'Admin rules update'},
+      );
+      if (!mounted) return;
+      ref.read(pricingVersionProvider.notifier).state++;
+      if (!mounted) return;
+      setState(() => _editingRules = false);
+      _showSnack(AppStrings.settingsSaved);
+    } catch (_) {
+      if (!mounted) return;
+      _showSnack(AppStrings.settingsSaveFailed, isError: true);
+    }
+    if (!mounted) return;
+    setState(() => _savingRules = false);
+  }
+
   void _takeSnapshot() {
     _snapshot = {
       'weekday': _weekdayRateCtrl.text,
       'sunday': _sundayRateCtrl.text,
-      'studentCutoff': _studentCutoffCtrl.text,
-      'seniorCutoff': _seniorCutoffCtrl.text,
       'travelBuffer': _travelBufferCtrl.text,
       'paymentTiming': _paymentTimingCtrl.text,
       'studentRate': _studentRateCtrl.text,
@@ -156,8 +236,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   void _restoreSnapshot() {
     _weekdayRateCtrl.text = _snapshot['weekday'] ?? '';
     _sundayRateCtrl.text = _snapshot['sunday'] ?? '';
-    _studentCutoffCtrl.text = _snapshot['studentCutoff'] ?? '';
-    _seniorCutoffCtrl.text = _snapshot['seniorCutoff'] ?? '';
     _travelBufferCtrl.text = _snapshot['travelBuffer'] ?? '';
     _paymentTimingCtrl.text = _snapshot['paymentTiming'] ?? '';
     _studentRateCtrl.text = _snapshot['studentRate'] ?? '';
@@ -180,6 +258,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             '${(cfg['studentCancelCutoffHours'] as num?) ?? 6}';
         _seniorCutoffCtrl.text =
             '${(cfg['seniorCancelCutoffHours'] as num?) ?? 1}';
+        _studentCancelEnabled = (cfg['studentCancelEnabled'] as bool?) ?? true;
+        _availabilityChangeEnabled =
+            (cfg['availabilityChangeEnabled'] as bool?) ?? true;
+        _availabilityChangeCutoffCtrl.text =
+            '${(cfg['availabilityChangeCutoffHours'] as num?) ?? 24}';
         _travelBufferCtrl.text =
             '${(cfg['travelBufferMinutes'] as num?) ?? 15}';
         _paymentTimingCtrl.text =
@@ -334,6 +417,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           'studentCancelCutoffHours':
               int.tryParse(_studentCutoffCtrl.text) ?? 6,
           'seniorCancelCutoffHours': int.tryParse(_seniorCutoffCtrl.text) ?? 1,
+          'studentCancelEnabled': _studentCancelEnabled,
+          'availabilityChangeEnabled': _availabilityChangeEnabled,
+          'availabilityChangeCutoffHours':
+              int.tryParse(_availabilityChangeCutoffCtrl.text) ?? 24,
           'travelBufferMinutes': int.tryParse(_travelBufferCtrl.text) ?? 15,
           'paymentTimingMinutes': int.tryParse(_paymentTimingCtrl.text) ?? 30,
           'studentHourlyRate': double.tryParse(_studentRateCtrl.text) ?? 7.40,
@@ -365,7 +452,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final pv = ref.watch(pricingVersionProvider);
     if (pv != _lastPricingVersion) {
       _lastPricingVersion = pv;
-      if (pv > 0 && !_editing) _loadSettings();
+      if (pv > 0 && !_editing && !_editingRules) _loadSettings();
     }
 
     if (_loading) {
@@ -377,457 +464,527 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         title: Text(AppStrings.settingsTitle),
         actions: const [NotificationBell()],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final wide = constraints.maxWidth >= 600;
-              return ListView(
-                children: [
-                  // ═══════════════════════════════════════════
-                  //  CONFIGURATION (locked under Edit)
-                  // ═══════════════════════════════════════════
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: HelpiColors.of(context).surface,
-                      borderRadius: BorderRadius.circular(
-                        HelpiTheme.cardRadius,
-                      ),
-                      border: Border.all(color: HelpiColors.of(context).border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // ── Header: title + Edit/Save/Cancel ──
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.settings,
-                              size: 22,
-                              color: HelpiTheme.accent,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                AppStrings.settingsConfiguration,
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w600,
-                                  color: HelpiColors.of(context).textPrimary,
-                                ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth >= 600;
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ═══════════════════════════════════════════
+                //  CONFIGURATION (locked under Edit)
+                // ═══════════════════════════════════════════
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: HelpiColors.of(context).surface,
+                    borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
+                    border: Border.all(color: HelpiColors.of(context).border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Header: title + Edit/Save/Cancel ──
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.settings,
+                            size: 22,
+                            color: HelpiTheme.accent,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              AppStrings.settingsConfiguration,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                                color: HelpiColors.of(context).textPrimary,
                               ),
                             ),
-                            if (_editing)
-                              SizedBox(
-                                height: 36,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    TextButton(
-                                      onPressed: _saving
-                                          ? null
-                                          : _cancelEditing,
-                                      child: Text(AppStrings.cancel),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    _saving
-                                        ? const SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                        : TextButton.icon(
-                                            onPressed: _saveSettings,
-                                            icon: const Icon(
-                                              Icons.save,
-                                              size: 18,
-                                            ),
-                                            label: Text(AppStrings.save),
-                                            style: TextButton.styleFrom(
-                                              foregroundColor:
-                                                  HelpiTheme.accent,
-                                            ),
+                          ),
+                          if (_editing)
+                            SizedBox(
+                              height: 36,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  TextButton(
+                                    onPressed: _saving ? null : _cancelEditing,
+                                    child: Text(AppStrings.cancel),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  _saving
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
                                           ),
-                                  ],
-                                ),
-                              )
-                            else
-                              SizedBox(
-                                width: 36,
-                                height: 36,
-                                child: IconButton(
-                                  icon: const Icon(Icons.edit, size: 20),
-                                  tooltip: AppStrings.edit,
-                                  onPressed: _startEditing,
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                ),
+                                        )
+                                      : TextButton.icon(
+                                          onPressed: _saveSettings,
+                                          icon: const Icon(
+                                            Icons.save,
+                                            size: 18,
+                                          ),
+                                          label: Text(AppStrings.save),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: HelpiTheme.accent,
+                                          ),
+                                        ),
+                                ],
                               ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
+                            )
+                          else
+                            SizedBox(
+                              width: 36,
+                              height: 36,
+                              child: IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                tooltip: AppStrings.edit,
+                                onPressed: _startEditing,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
 
-                        // ── Pricing ──
-                        _subSectionHeader(AppStrings.settingsPricing),
-                        const SizedBox(height: 8),
-                        _fieldPair(
-                          wide: wide,
-                          first: _numField(
-                            _weekdayRateCtrl,
-                            AppStrings.weekdayRate,
-                            suffix: '€',
-                            decimal: true,
+                      // ── Pricing ──
+                      _subSectionHeader(AppStrings.settingsPricing),
+                      const SizedBox(height: 8),
+                      _fieldPair(
+                        wide: wide,
+                        first: _numField(
+                          _weekdayRateCtrl,
+                          AppStrings.weekdayRate,
+                          suffix: '€',
+                          decimal: true,
+                        ),
+                        second: _numField(
+                          _sundayRateCtrl,
+                          AppStrings.sundayRate,
+                          suffix: '€',
+                          decimal: true,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // ── Student rates ──
+                      _subSectionHeader(AppStrings.settingsStudentRates),
+                      const SizedBox(height: 8),
+                      _fieldPair(
+                        wide: wide,
+                        first: _numField(
+                          _studentRateCtrl,
+                          AppStrings.studentHourlyRate,
+                          suffix: '€',
+                          decimal: true,
+                        ),
+                        second: _numField(
+                          _studentSundayRateCtrl,
+                          AppStrings.studentSundayRate,
+                          suffix: '€',
+                          decimal: true,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // ── Operational ──
+                      _subSectionHeader(AppStrings.settingsOperational),
+                      const SizedBox(height: 8),
+                      _fieldPair(
+                        wide: wide,
+                        first: _numField(
+                          _travelBufferCtrl,
+                          AppStrings.travelBuffer,
+                          suffix: 'min',
+                        ),
+                        second: _numField(
+                          _paymentTimingCtrl,
+                          AppStrings.paymentTiming,
+                          suffix: 'min prije',
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // ── Earnings ──
+                      _subSectionHeader(AppStrings.settingsEarnings),
+                      const SizedBox(height: 8),
+                      _fieldPair(
+                        wide: wide,
+                        first: _numField(
+                          _intermediaryPctCtrl,
+                          AppStrings.intermediaryPercentage,
+                          suffix: '%',
+                          decimal: true,
+                        ),
+                        second: _numField(
+                          _vatCtrl,
+                          AppStrings.vatPercentage,
+                          suffix: '%',
+                          decimal: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // ═══════════════════════════════════════════
+                //  OGRANIČENJA (rules — own Edit/Save/Cancel)
+                // ═══════════════════════════════════════════
+                _sectionCard(
+                  icon: Icons.rule,
+                  title: AppStrings.settingsRestrictions,
+                  trailing: _editingRules
+                      ? SizedBox(
+                          height: 36,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                onPressed: _savingRules
+                                    ? null
+                                    : _cancelEditingRules,
+                                child: Text(AppStrings.cancel),
+                              ),
+                              const SizedBox(width: 4),
+                              _savingRules
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : TextButton.icon(
+                                      onPressed: _saveRules,
+                                      icon: const Icon(Icons.save, size: 18),
+                                      label: Text(AppStrings.save),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: HelpiTheme.accent,
+                                      ),
+                                    ),
+                            ],
                           ),
-                          second: _numField(
-                            _sundayRateCtrl,
-                            AppStrings.sundayRate,
-                            suffix: '€',
-                            decimal: true,
+                        )
+                      : SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: IconButton(
+                            icon: const Icon(Icons.edit, size: 20),
+                            tooltip: AppStrings.edit,
+                            onPressed: _startEditingRules,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
                           ),
                         ),
-                        const SizedBox(height: 20),
-
-                        // ── Student rates ──
-                        _subSectionHeader(AppStrings.settingsStudentRates),
-                        const SizedBox(height: 8),
-                        _fieldPair(
-                          wide: wide,
-                          first: _numField(
-                            _studentRateCtrl,
-                            AppStrings.studentHourlyRate,
-                            suffix: '€',
-                            decimal: true,
-                          ),
-                          second: _numField(
-                            _studentSundayRateCtrl,
-                            AppStrings.studentSundayRate,
-                            suffix: '€',
-                            decimal: true,
+                  children: [
+                    // ── Cancel rules ──
+                    _subSectionHeader(AppStrings.settingsCancelRules),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Opacity(
+                          opacity: _editingRules ? 1.0 : 0.5,
+                          child: HelpiSwitch(
+                            value: _studentCancelEnabled,
+                            onChanged: _editingRules
+                                ? (v) =>
+                                      setState(() => _studentCancelEnabled = v)
+                                : (_) {},
                           ),
                         ),
-                        const SizedBox(height: 20),
-
-                        // ── Cancel rules ──
-                        _subSectionHeader(AppStrings.settingsCancelRules),
-                        const SizedBox(height: 8),
-                        _fieldPair(
-                          wide: wide,
-                          first: _numField(
-                            _studentCutoffCtrl,
-                            AppStrings.studentCancelCutoff,
-                            suffix: 'sati prije',
-                          ),
-                          second: _numField(
-                            _seniorCutoffCtrl,
-                            AppStrings.seniorCancelCutoff,
-                            suffix: 'sati prije',
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // ── Operational ──
-                        _subSectionHeader(AppStrings.settingsOperational),
-                        const SizedBox(height: 8),
-                        _fieldPair(
-                          wide: wide,
-                          first: _numField(
-                            _travelBufferCtrl,
-                            AppStrings.travelBuffer,
-                            suffix: 'min',
-                          ),
-                          second: _numField(
-                            _paymentTimingCtrl,
-                            AppStrings.paymentTiming,
-                            suffix: 'min prije',
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // ── Earnings ──
-                        _subSectionHeader(AppStrings.settingsEarnings),
-                        const SizedBox(height: 8),
-                        _fieldPair(
-                          wide: wide,
-                          first: _numField(
-                            _intermediaryPctCtrl,
-                            AppStrings.intermediaryPercentage,
-                            suffix: '%',
-                            decimal: true,
-                          ),
-                          second: _numField(
-                            _vatCtrl,
-                            AppStrings.vatPercentage,
-                            suffix: '%',
-                            decimal: true,
+                        const SizedBox(width: 8),
+                        Text(
+                          AppStrings.studentCancelEnabled,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: HelpiColors.of(context).textSecondary,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 10),
+                    const SizedBox(height: 12),
+                    if (_studentCancelEnabled)
+                      _fieldPair(
+                        wide: wide,
+                        first: _numField(
+                          _seniorCutoffCtrl,
+                          AppStrings.seniorCancelCutoff,
+                          suffix: 'sati prije',
+                          editing: _editingRules,
+                        ),
+                        second: _numField(
+                          _studentCutoffCtrl,
+                          AppStrings.studentCancelCutoff,
+                          suffix: 'sati prije',
+                          editing: _editingRules,
+                        ),
+                      )
+                    else
+                      _numField(
+                        _seniorCutoffCtrl,
+                        AppStrings.seniorCancelCutoff,
+                        suffix: 'sati prije',
+                        editing: _editingRules,
+                      ),
+                    const SizedBox(height: 20),
 
-                  // ═══════════════════════════════════════════
-                  //  PREFERENCES (always interactive)
-                  // ═══════════════════════════════════════════
+                    // ── Availability change rules ──
+                    _subSectionHeader(AppStrings.settingsAvailabilityRules),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Opacity(
+                          opacity: _editingRules ? 1.0 : 0.5,
+                          child: HelpiSwitch(
+                            value: _availabilityChangeEnabled,
+                            onChanged: _editingRules
+                                ? (v) => setState(
+                                    () => _availabilityChangeEnabled = v,
+                                  )
+                                : (_) {},
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          AppStrings.availabilityChangeEnabled,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: HelpiColors.of(context).textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_availabilityChangeEnabled) ...[
+                      const SizedBox(height: 12),
+                      _numField(
+                        _availabilityChangeCutoffCtrl,
+                        AppStrings.availabilityChangeCutoff,
+                        suffix: 'sati prije',
+                        editing: _editingRules,
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 10),
 
-                  // ── Sponsor ──
-                  _sectionCard(
-                    icon: Icons.handshake_outlined,
-                    title: AppStrings.settingsSponsor,
-                    trailing: _editingSponsor
-                        ? SizedBox(
-                            height: 36,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                TextButton(
-                                  onPressed: _savingSponsor
-                                      ? null
-                                      : _cancelEditingSponsor,
-                                  child: Text(AppStrings.cancel),
-                                ),
-                                const SizedBox(width: 4),
-                                _savingSponsor
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : TextButton.icon(
-                                        onPressed: _saveSponsorOnly,
-                                        icon: const Icon(Icons.save, size: 18),
-                                        label: Text(AppStrings.save),
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: HelpiTheme.accent,
-                                        ),
+                // ═══════════════════════════════════════════
+                //  PREFERENCES (always interactive)
+                // ═══════════════════════════════════════════
+
+                // ── Sponsor ──
+                _sectionCard(
+                  icon: Icons.handshake_outlined,
+                  title: AppStrings.settingsSponsor,
+                  trailing: _editingSponsor
+                      ? SizedBox(
+                          height: 36,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton(
+                                onPressed: _savingSponsor
+                                    ? null
+                                    : _cancelEditingSponsor,
+                                child: Text(AppStrings.cancel),
+                              ),
+                              const SizedBox(width: 4),
+                              _savingSponsor
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
                                       ),
-                              ],
-                            ),
-                          )
-                        : SizedBox(
-                            width: 36,
-                            height: 36,
-                            child: IconButton(
-                              icon: const Icon(Icons.edit, size: 20),
-                              tooltip: AppStrings.edit,
-                              onPressed: _startEditingSponsor,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
+                                    )
+                                  : TextButton.icon(
+                                      onPressed: _saveSponsorOnly,
+                                      icon: const Icon(Icons.save, size: 18),
+                                      label: Text(AppStrings.save),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: HelpiTheme.accent,
+                                      ),
+                                    ),
+                            ],
+                          ),
+                        )
+                      : SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: IconButton(
+                            icon: const Icon(Icons.edit, size: 20),
+                            tooltip: AppStrings.edit,
+                            onPressed: _startEditingSponsor,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ),
+                  children: _sponsorLoading
+                      ? [
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
                           ),
-                    children: _sponsorLoading
-                        ? [
-                            const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16),
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
+                        ]
+                      : [
+                          // Switch on top
+                          Row(
+                            children: [
+                              Opacity(
+                                opacity: _editingSponsor ? 1.0 : 0.5,
+                                child: HelpiSwitch(
+                                  value: _sponsorActive,
+                                  onChanged: _editingSponsor
+                                      ? (v) =>
+                                            setState(() => _sponsorActive = v)
+                                      : (_) {},
                                 ),
                               ),
+                              const SizedBox(width: 8),
+                              Text(
+                                AppStrings.sponsorActive,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: HelpiColors.of(context).textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          // Label field below (greyed out when inactive)
+                          Opacity(
+                            opacity: _sponsorActive ? 1.0 : 0.5,
+                            child: _sponsorTextField(
+                              _sponsorLabelCtrl,
+                              AppStrings.sponsorLabel,
                             ),
-                          ]
-                        : [
-                            // Switch + Label text field
-                            if (wide)
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Opacity(
-                                          opacity: _editingSponsor ? 1.0 : 0.5,
-                                          child: HelpiSwitch(
-                                            value: _sponsorActive,
-                                            onChanged: _editingSponsor
-                                                ? (v) => setState(
-                                                    () => _sponsorActive = v,
-                                                  )
-                                                : (_) {},
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          AppStrings.sponsorActive,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: HelpiColors.of(
-                                              context,
-                                            ).textSecondary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: _sponsorTextField(
-                                      _sponsorLabelCtrl,
-                                      AppStrings.sponsorLabel,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            else ...[
-                              Row(
-                                children: [
-                                  Opacity(
-                                    opacity: _editingSponsor ? 1.0 : 0.5,
-                                    child: HelpiSwitch(
-                                      value: _sponsorActive,
-                                      onChanged: _editingSponsor
-                                          ? (v) => setState(
-                                              () => _sponsorActive = v,
-                                            )
-                                          : (_) {},
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    AppStrings.sponsorActive,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: HelpiColors.of(
-                                        context,
-                                      ).textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              _sponsorTextField(
-                                _sponsorLabelCtrl,
-                                AppStrings.sponsorLabel,
-                              ),
-                            ],
-                            const SizedBox(height: 16),
+                          ),
+                          const SizedBox(height: 16),
 
-                            // Logo cards
-                            if (wide)
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: _logoCard(
-                                      label: AppStrings.sponsorLogoUrl,
-                                      currentUrl: _sponsorLogoCtrl.text,
-                                      uploading: _uploadingLight,
-                                      buttonLabel: AppStrings.sponsorChooseLogo,
-                                      onPick: () => _pickAndUploadLogo('light'),
-                                      onDelete: () => _deleteLogo('light'),
-                                      canDelete: !_sponsorActive,
-                                      enabled: _editingSponsor,
-                                    ),
+                          // Logo cards
+                          if (wide)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _logoCard(
+                                    label: AppStrings.sponsorLogoUrl,
+                                    currentUrl: _sponsorLogoCtrl.text,
+                                    uploading: _uploadingLight,
+                                    buttonLabel: AppStrings.sponsorChooseLogo,
+                                    onPick: () => _pickAndUploadLogo('light'),
+                                    onDelete: () => _deleteLogo('light'),
+                                    canDelete: !_sponsorActive,
+                                    enabled: _editingSponsor,
                                   ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: _logoCard(
-                                      label: AppStrings.sponsorDarkLogoUrl,
-                                      currentUrl: _sponsorDarkLogoCtrl.text,
-                                      uploading: _uploadingDark,
-                                      buttonLabel:
-                                          AppStrings.sponsorChooseDarkLogo,
-                                      onPick: () => _pickAndUploadLogo('dark'),
-                                      onDelete: () => _deleteLogo('dark'),
-                                      canDelete: true,
-                                      enabled: _editingSponsor,
-                                    ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _logoCard(
+                                    label: AppStrings.sponsorDarkLogoUrl,
+                                    currentUrl: _sponsorDarkLogoCtrl.text,
+                                    uploading: _uploadingDark,
+                                    buttonLabel:
+                                        AppStrings.sponsorChooseDarkLogo,
+                                    onPick: () => _pickAndUploadLogo('dark'),
+                                    onDelete: () => _deleteLogo('dark'),
+                                    canDelete: true,
+                                    enabled: _editingSponsor,
                                   ),
-                                ],
-                              )
-                            else ...[
-                              _logoCard(
-                                label: AppStrings.sponsorLogoUrl,
-                                currentUrl: _sponsorLogoCtrl.text,
-                                uploading: _uploadingLight,
-                                buttonLabel: AppStrings.sponsorChooseLogo,
-                                onPick: () => _pickAndUploadLogo('light'),
-                                onDelete: () => _deleteLogo('light'),
-                                canDelete: !_sponsorActive,
-                                enabled: _editingSponsor,
-                              ),
-                              const SizedBox(height: 12),
-                              _logoCard(
-                                label: AppStrings.sponsorDarkLogoUrl,
-                                currentUrl: _sponsorDarkLogoCtrl.text,
-                                uploading: _uploadingDark,
-                                buttonLabel: AppStrings.sponsorChooseDarkLogo,
-                                onPick: () => _pickAndUploadLogo('dark'),
-                                onDelete: () => _deleteLogo('dark'),
-                                canDelete: true,
-                                enabled: _editingSponsor,
-                              ),
-                            ],
+                                ),
+                              ],
+                            )
+                          else ...[
+                            _logoCard(
+                              label: AppStrings.sponsorLogoUrl,
+                              currentUrl: _sponsorLogoCtrl.text,
+                              uploading: _uploadingLight,
+                              buttonLabel: AppStrings.sponsorChooseLogo,
+                              onPick: () => _pickAndUploadLogo('light'),
+                              onDelete: () => _deleteLogo('light'),
+                              canDelete: !_sponsorActive,
+                              enabled: _editingSponsor,
+                            ),
+                            const SizedBox(height: 12),
+                            _logoCard(
+                              label: AppStrings.sponsorDarkLogoUrl,
+                              currentUrl: _sponsorDarkLogoCtrl.text,
+                              uploading: _uploadingDark,
+                              buttonLabel: AppStrings.sponsorChooseDarkLogo,
+                              onPick: () => _pickAndUploadLogo('dark'),
+                              onDelete: () => _deleteLogo('dark'),
+                              canDelete: true,
+                              enabled: _editingSponsor,
+                            ),
                           ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  // ── Language ──
-                  _sectionCard(
-                    icon: Icons.language,
-                    title: AppStrings.settingsLanguage,
-                    children: [
-                      DropdownButtonFormField<String>(
-                        value: AppStrings.currentLocale,
-                        isExpanded: true,
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'hr',
-                            child: Text('Hrvatski'),
-                          ),
-                          DropdownMenuItem(value: 'en', child: Text('English')),
                         ],
-                        onChanged: (v) {
-                          if (v != null) {
-                            widget.localeNotifier.setLocale(v);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
+                ),
+                const SizedBox(height: 10),
 
-                  // ── Theme ──
-                  _sectionCard(
-                    icon: Icons.brightness_6,
-                    title: AppStrings.settingsTheme,
-                    children: [
-                      DropdownButtonFormField<ThemeMode>(
-                        value: widget.themeNotifier.value,
-                        isExpanded: true,
-                        items: [
-                          DropdownMenuItem(
-                            value: ThemeMode.system,
-                            child: Text(AppStrings.themeSystem),
-                          ),
-                          DropdownMenuItem(
-                            value: ThemeMode.light,
-                            child: Text(AppStrings.themeLight),
-                          ),
-                          DropdownMenuItem(
-                            value: ThemeMode.dark,
-                            child: Text(AppStrings.themeDark),
-                          ),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) {
-                            widget.themeNotifier.setThemeMode(v);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              );
-            },
-          ),
-        ),
+                // ── Language ──
+                _sectionCard(
+                  icon: Icons.language,
+                  title: AppStrings.settingsLanguage,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      value: AppStrings.currentLocale,
+                      isExpanded: true,
+                      items: const [
+                        DropdownMenuItem(value: 'hr', child: Text('Hrvatski')),
+                        DropdownMenuItem(value: 'en', child: Text('English')),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          widget.localeNotifier.setLocale(v);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // ── Theme ──
+                _sectionCard(
+                  icon: Icons.brightness_6,
+                  title: AppStrings.settingsTheme,
+                  children: [
+                    DropdownButtonFormField<ThemeMode>(
+                      value: widget.themeNotifier.value,
+                      isExpanded: true,
+                      items: [
+                        DropdownMenuItem(
+                          value: ThemeMode.system,
+                          child: Text(AppStrings.themeSystem),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.light,
+                          child: Text(AppStrings.themeLight),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.dark,
+                          child: Text(AppStrings.themeDark),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          widget.themeNotifier.setThemeMode(v);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -910,11 +1067,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     String? suffix,
     bool decimal = false,
     double step = 1,
+    bool? editing,
   }) {
+    final isEditing = editing ?? _editing;
     return TextField(
       controller: ctrl,
-      readOnly: !_editing,
-      enabled: _editing,
+      readOnly: !isEditing,
+      enabled: isEditing,
       keyboardType: TextInputType.numberWithOptions(decimal: decimal),
       inputFormatters: [
         if (decimal)
@@ -924,12 +1083,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ],
       decoration: InputDecoration(
         labelText: label,
-        fillColor: _editing ? null : HelpiColors.of(context).chipBg,
+        fillColor: isEditing ? null : HelpiColors.of(context).chipBg,
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
           borderSide: BorderSide(color: HelpiColors.of(context).border),
         ),
-        suffixIcon: (suffix != null || _editing)
+        suffixIcon: (suffix != null || isEditing)
             ? Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: Row(
@@ -943,7 +1102,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           color: HelpiColors.of(context).textSecondary,
                         ),
                       ),
-                    if (_editing) ...[
+                    if (isEditing) ...[
                       const SizedBox(width: 4),
                       SizedBox(
                         width: 24,
