@@ -167,44 +167,43 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   // ── Error message ──
                   if (_errorMessage != null) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _isServerError
-                            ? Colors.orange.shade50
-                            : Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: _isServerError
-                              ? Colors.orange.shade200
-                              : Colors.red.shade200,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          if (_isServerError)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Icon(
-                                Icons.cloud_off_outlined,
-                                color: Colors.orange.shade700,
-                                size: 20,
-                              ),
-                            ),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: TextStyle(
-                                color: _isServerError
-                                    ? Colors.orange.shade700
-                                    : Colors.red.shade700,
-                                fontSize: 14,
-                              ),
+                    Builder(
+                      builder: (context) {
+                        final theme = Theme.of(context);
+                        final fg = _isServerError
+                            ? const Color(0xFFE65100) // amber-800, server error
+                            : theme.colorScheme.error;
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: fg.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: fg.withValues(alpha: 0.3),
                             ),
                           ),
-                        ],
-                      ),
+                          child: Row(
+                            children: [
+                              if (_isServerError)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: Icon(
+                                    Icons.cloud_off_outlined,
+                                    color: fg,
+                                    size: 20,
+                                  ),
+                                ),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: TextStyle(color: fg, fontSize: 14),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 16),
                   ],
