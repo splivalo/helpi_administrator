@@ -473,7 +473,16 @@
 
 ---
 
-## 2026-04-20 — SignalR instant session refresh + session date range filter
+## 2026-04-20 — Student settings permissions, SignalR instant session refresh + session date range filter
+
+### Student settings iz PricingConfiguration
+
+- Admin settings screen — nova sekcija "Studentske opcije":
+  - Toggle `StudentCancelEnabled` — uključuje/isključuje mogućnost otkazivanja termina od strane studenta
+  - Toggle `AvailabilityChangeEnabled` — uključuje/isključuje promjenu rasporeda dostupnosti od strane studenta
+  - Input `AvailabilityChangeCutoffHours` — cutoff u satima (unutar kojih student ne smije mijenjati dostupnost)
+- Podaci se čitaju i šalju kroz postojeći `GET/PUT /api/PricingConfiguration/{id}` endpoint
+- AppStrings — dodani novi i18n ključevi za student settings sekciju
 
 ### sessionsVersionProvider + EntityChanged fix
 
