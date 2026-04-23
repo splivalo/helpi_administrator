@@ -1251,6 +1251,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           : Image.network(
                               fullUrl,
                               fit: BoxFit.contain,
+                              gaplessPlayback: true,
                               errorBuilder: (_, _, _) =>
                                   const Icon(Icons.broken_image, size: 28),
                             ),

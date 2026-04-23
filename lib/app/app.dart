@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:helpi_admin/app/responsive_shell.dart';
 import 'package:helpi_admin/app/theme.dart';
@@ -145,6 +146,21 @@ class _HelpiAdminAppState extends ConsumerState<HelpiAdminApp> {
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
+              // Offstage SVGs force flutter_svg to parse + cache on first
+              // frame, eliminating the pop-in delay on actual screens.
+              builder: (context, child) => Stack(
+                children: [
+                  child!,
+                  Offstage(
+                    child: Row(
+                      children: [
+                        SvgPicture.asset('assets/images/logo.svg'),
+                        SvgPicture.asset('assets/images/h_logo.svg'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
               home: _isCheckingAuth || _isLoadingData
                   ? const Scaffold(
                       body: Center(child: CircularProgressIndicator()),
