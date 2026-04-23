@@ -49,14 +49,15 @@ class DataLoader {
     final userId = await TokenStorage().getUserId() ?? 0;
     var allOk = true;
 
-    // Fire all requests in parallel
+    // Fire all requests in parallel.
+    // Sessions (JobInstances) are NOT loaded here — order_detail_screen fetches
+    // them on-demand with a month filter, preventing "all sessions" from loading.
     final results = await Future.wait([
       api.getStudents(), // 0
       api.getSeniors(), // 1
       api.getOrders(), // 2
       api.getReviews(), // 3
       api.getNotifications(userId), // 4
-      api.getSessions(), // 5
     ]);
 
     final studentsResult = results[0] as ApiResult<List<StudentModel>>;
@@ -64,7 +65,6 @@ class DataLoader {
     final ordersResult = results[2] as ApiResult<List<OrderModel>>;
     final reviewsResult = results[3] as ApiResult<List<ReviewModel>>;
     final notifResult = results[4] as ApiResult<List<NotificationModel>>;
-    final sessionsResult = results[5] as ApiResult<List<SessionModel>>;
 
     if (studentsResult.success && studentsResult.data != null) {
       AppData.students
@@ -120,31 +120,6 @@ class DataLoader {
       allOk = false;
     }
 
-    // Merge sessions into orders
-    if (sessionsResult.success && sessionsResult.data != null) {
-      final sessionsByOrder = <String, List<SessionModel>>{};
-      for (final s in sessionsResult.data!) {
-        final oid = s.orderId;
-        if (oid != null) {
-          sessionsByOrder.putIfAbsent(oid, () => []).add(s);
-        }
-      }
-      for (var i = 0; i < AppData.orders.length; i++) {
-        final order = AppData.orders[i];
-        final orderSessions = sessionsByOrder[order.id];
-        if (orderSessions != null && orderSessions.isNotEmpty) {
-          AppData.orders[i] = order.copyWith(sessions: orderSessions);
-        }
-      }
-      debugPrint(
-        '[DataLoader] sessions merged: ${sessionsResult.data!.length} total, '
-        '${sessionsByOrder.length} orders with sessions',
-      );
-    } else {
-      debugPrint('[DataLoader] sessions failed: ${sessionsResult.error}');
-      allOk = false;
-    }
-
     // Load pending acceptance assignments
     List<Map<String, dynamic>> pendingList = [];
     try {
@@ -160,13 +135,27 @@ class DataLoader {
     }
 
     // Sync Riverpod providers for reactive UI updates
+    // Only update each provider if the corresponding API call succeeded —
+    // prevents overwriting fresh in-memory data with stale AppData on partial failures.
     if (ref != null) {
       try {
-        ref.read(studentsProvider.notifier).setAll(AppData.students);
-        ref.read(seniorsProvider.notifier).setAll(AppData.seniors);
-        ref.read(ordersProvider.notifier).setAll(AppData.orders);
-        ref.read(reviewsProvider.notifier).setAll(AppData.reviews);
-        ref.read(notificationsProvider.notifier).setAll(AppData.notifications);
+        if (studentsResult.success && studentsResult.data != null) {
+          ref.read(studentsProvider.notifier).setAll(AppData.students);
+        }
+        if (seniorsResult.success && seniorsResult.data != null) {
+          ref.read(seniorsProvider.notifier).setAll(AppData.seniors);
+        }
+        if (ordersResult.success && ordersResult.data != null) {
+          ref.read(ordersProvider.notifier).setAll(AppData.orders);
+        }
+        if (reviewsResult.success && reviewsResult.data != null) {
+          ref.read(reviewsProvider.notifier).setAll(AppData.reviews);
+        }
+        if (notifResult.success && notifResult.data != null) {
+          ref
+              .read(notificationsProvider.notifier)
+              .setAll(AppData.notifications);
+        }
 
         // Pending acceptance providers
         ref.read(pendingAcceptanceOrderIdsProvider.notifier).state = pendingList
