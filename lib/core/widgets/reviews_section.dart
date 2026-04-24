@@ -47,7 +47,7 @@ class ReviewsSection extends StatelessWidget {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: HelpiTheme.starYellow.withValues(alpha: 0.15),
                 border: Border.all(
@@ -62,7 +62,7 @@ class ReviewsSection extends StatelessWidget {
                 children: [
                   const Icon(
                     Icons.star,
-                    size: 18,
+                    size: 14,
                     color: HelpiTheme.starYellow,
                   ),
                   const SizedBox(width: 4),
@@ -70,13 +70,13 @@ class ReviewsSection extends StatelessWidget {
                     avgRating.toStringAsFixed(1),
                     style: const TextStyle(
                       fontWeight: FontWeight.w700,
-                      fontSize: 18,
+                      fontSize: 14,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Text(
               '${AppStrings.studentTotalRatings}: ${reviews.length}',
               style: TextStyle(
