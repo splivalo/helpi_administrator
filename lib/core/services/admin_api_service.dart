@@ -1190,7 +1190,7 @@ class AdminApiService {
   }) async {
     try {
       final response = await _api.post(
-        ApiEndpoints.adminNotes(entityType, entityId),
+        ApiEndpoints.adminNotesCreate,
         data: {'entityType': entityType, 'entityId': entityId, 'text': text},
       );
       return ApiResult.ok(response.data as Map<String, dynamic>);

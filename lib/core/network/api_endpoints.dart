@@ -137,6 +137,7 @@ class ApiEndpoints {
   // Admin Notes
   static String adminNotes(String entityType, int entityId) =>
       '/api/admin-notes/$entityType/$entityId';
+  static const String adminNotesCreate = '/api/admin-notes';
   static String adminNoteById(int id) => '/api/admin-notes/$id';
 
   // Chat
