@@ -10,6 +10,7 @@ import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/utils/session_preview_helper.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/orders/presentation/create_order_screen.dart';
+import 'package:helpi_admin/features/students/presentation/student_detail_screen.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
 
@@ -2595,7 +2596,7 @@ enum _StudentAvail { full, differentTimes }
 // ---------------------------------------------------------------
 //  STUDENT ASSIGN CARD (bottom sheet)
 // ---------------------------------------------------------------
-class _StudentAssignCard extends StatelessWidget {
+class _StudentAssignCard extends StatefulWidget {
   const _StudentAssignCard({
     required this.student,
     required this.avail,
@@ -2608,7 +2609,111 @@ class _StudentAssignCard extends StatelessWidget {
   final double? distanceKm;
 
   @override
+  State<_StudentAssignCard> createState() => _StudentAssignCardState();
+}
+
+class _StudentAssignCardState extends State<_StudentAssignCard> {
+  List<AdminNote>? _notes;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotes();
+  }
+
+  Future<void> _loadNotes() async {
+    final studentId = int.tryParse(widget.student.id);
+    if (studentId == null) return;
+    final result = await AdminApiService().getAdminNotes('Student', studentId);
+    if (!mounted) return;
+    if (result.success && result.data != null) {
+      setState(() {
+        _notes = result.data!.map((j) => AdminNote.fromJson(j)).toList();
+      });
+    } else {
+      setState(() => _notes = []);
+    }
+  }
+
+  void _showNotesDialog() {
+    final notes = _notes ?? [];
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.comment_outlined, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                widget.student.fullName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 420,
+          child: notes.isEmpty
+              ? Text(
+                  AppStrings.adminNoNotes,
+                  style: TextStyle(color: HelpiColors.of(ctx).textSecondary),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: notes
+                      .map(
+                        (n) => Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: HelpiColors.of(ctx).chipBg,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: HelpiColors.of(ctx).border,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                n.text,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                formatDate(n.updatedAt),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: HelpiColors.of(ctx).textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(AppStrings.adminNoteCancel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final student = widget.student;
+    final avail = widget.avail;
+    final distanceKm = widget.distanceKm;
     final String availLabel;
     final Color availColor;
     final IconData availIcon;
@@ -2649,12 +2754,23 @@ class _StudentAssignCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // -- Avatar --
-          ProfileAvatar(
-            initials: student.firstName[0] + student.lastName[0],
-            profileImageUrl: student.profileImageUrl,
-            radius: 22,
-            fontSize: 16,
+          // -- Avatar (klikabilan → profil studenta) --
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => StudentDetailScreen(student: student),
+                ),
+              ),
+              child: ProfileAvatar(
+                initials: student.firstName[0] + student.lastName[0],
+                profileImageUrl: student.profileImageUrl,
+                radius: 22,
+                fontSize: 16,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
 
@@ -2663,14 +2779,38 @@ class _StudentAssignCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  student.fullName,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        student.fullName,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    if (_notes != null && _notes!.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Tooltip(
+                        message: AppStrings.adminNotes,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
+                          onTap: _showNotesDialog,
+                          child: Padding(
+                            padding: const EdgeInsets.all(2),
+                            child: Icon(
+                              Icons.comment_outlined,
+                              size: 15,
+                              color: HelpiColors.of(context).textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Row(
@@ -2697,7 +2837,7 @@ class _StudentAssignCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 2),
                       Text(
-                        '${distanceKm!.toStringAsFixed(1)} km',
+                        '${distanceKm.toStringAsFixed(1)} km',
                         style: TextStyle(
                           fontSize: 13,
                           color: HelpiColors.of(context).textSecondary,
@@ -2750,7 +2890,7 @@ class _StudentAssignCard extends StatelessWidget {
               hoverColor: availColor.withValues(alpha: 0.15),
               splashColor: availColor.withValues(alpha: 0.2),
               mouseCursor: SystemMouseCursors.click,
-              onTap: onAssign,
+              onTap: widget.onAssign,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,

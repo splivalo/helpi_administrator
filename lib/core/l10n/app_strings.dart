@@ -358,6 +358,7 @@ class AppStrings {
       'adminNoteEdit': 'Uredi bilješku',
       'adminNoteSave': 'Spremi',
       'adminNoteCancel': 'Odustani',
+      'adminNoNotes': 'Nema zabilješki za ovog studenta.',
       'adminNoteDelete': 'Obriši bilješku',
       'adminNoteDeleteConfirm':
           'Jeste li sigurni da želite obrisati ovu bilješku?',
@@ -946,6 +947,7 @@ class AppStrings {
       'adminNoteEdit': 'Edit note',
       'adminNoteSave': 'Save',
       'adminNoteCancel': 'Cancel',
+      'adminNoNotes': 'No notes for this student.',
       'adminNoteDelete': 'Delete note',
       'adminNoteDeleteConfirm': 'Are you sure you want to delete this note?',
       'adminNotePlaceholder': 'Enter note...',
@@ -1445,6 +1447,7 @@ class AppStrings {
   static String get adminNoteEdit => _t('adminNoteEdit');
   static String get adminNoteSave => _t('adminNoteSave');
   static String get adminNoteCancel => _t('adminNoteCancel');
+  static String get adminNoNotes => _t('adminNoNotes');
   static String get adminNoteDelete => _t('adminNoteDelete');
   static String get adminNoteDeleteConfirm => _t('adminNoteDeleteConfirm');
   static String get adminNotePlaceholder => _t('adminNotePlaceholder');
