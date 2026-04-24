@@ -223,7 +223,9 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
     } catch (e) {
       debugPrint('[CouponForm] exception: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.error)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(AppStrings.error)));
     } finally {
       if (mounted) setState(() => _saving = false);
     }

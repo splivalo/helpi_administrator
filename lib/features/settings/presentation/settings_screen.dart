@@ -938,8 +938,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       value: AppStrings.currentLocale,
                       isExpanded: true,
                       items: [
-                        DropdownMenuItem(value: 'hr', child: Text(AppStrings.langHr)),
-                        DropdownMenuItem(value: 'en', child: Text(AppStrings.langEn)),
+                        DropdownMenuItem(
+                          value: 'hr',
+                          child: Text(AppStrings.langHr),
+                        ),
+                        DropdownMenuItem(
+                          value: 'en',
+                          child: Text(AppStrings.langEn),
+                        ),
                       ],
                       onChanged: (v) {
                         if (v != null) {
