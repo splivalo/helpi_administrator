@@ -517,3 +517,12 @@
 
 - [x] **`admin_api_service.dart`** — Uklonjen `debugPrint('[createCoupon] payload: $payload')` koji je logirao financijske podatke u debug konzolu
 - [x] Verifikacija: `flutter analyze` = 0 issues
+### Sponzor sustav — Kompletna implementacija
+
+- [x] **Backend entity & controller** — `Sponsor` entity s logotipijem (string path), `SponsorsController` s CRUD endpointima + file upload (`/sponsors/{id}/upload-logo`, `/sponsors/{id}/delete-logo`)
+- [x] **Admin UI settings sekcija** — `_loadSponsor()`, `_saveSponsor()`, `_pickAndUploadLogo()`, `_deleteLogo()` s `file_selector` integracijom i progress indikator tijekom uploada
+- [x] **App widget** — `SponsorBanner` s SVG+PNG/JPG/WebP podrskom, dark mode support, koristi se na 2 lokacije:
+  - `order_detail_screen.dart` (student view)
+  - `job_detail_screen.dart` (senior view; student plaćanja mogu biti veće)
+- [x] **AppStrings lokalizacija** — sponsor sekcija u `_localizedValues` (HR/EN): `sponsorBannerTooltip`, `noSponsor`, `uploadSponsorLogo`, itd.
+- [x] Verifikacija: Backend i app codebase audit potvrdio 100% kompletnost, sve AppStrings preslikane, widget koristan na pravi 2 mjesta
