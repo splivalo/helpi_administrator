@@ -2665,38 +2665,30 @@ class _StudentAssignCardState extends State<_StudentAssignCard> {
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: notes
-                      .map(
-                        (n) => Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: HelpiColors.of(ctx).chipBg,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: HelpiColors.of(ctx).border,
+                  children: [
+                    for (int i = 0; i < notes.length; i++) ...[
+                      if (i > 0) const Divider(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              notes[i].text,
+                              style: const TextStyle(fontSize: 13),
                             ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                n.text,
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                formatDate(n.updatedAt),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: HelpiColors.of(ctx).textSecondary,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 12),
+                          Text(
+                            formatDate(notes[i].updatedAt),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: HelpiColors.of(ctx).textSecondary,
+                            ),
                           ),
-                        ),
-                      )
-                      .toList(),
+                        ],
+                      ),
+                    ],
+                  ],
                 ),
         ),
         actions: [
