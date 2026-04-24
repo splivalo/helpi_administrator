@@ -1,6 +1,6 @@
 # Helpi Admin – Progress
 
-> Zadnja izmjena: 2026-04-19
+> Zadnja izmjena: 2026-04-24
 
 ## Ukupno stanje
 
@@ -495,4 +495,25 @@
 
 - `order_detail_screen.dart` — `_monthRange()` vraća range za SVE tipove narudžbi (prethodno samo za recurring); admin uvijek fetcha samo sesije tekućeg mjeseca
 
+- [x] Verifikacija: `flutter analyze` = 0 issues
+
+---
+
+## 2026-04-24 — Security audit & code quality fixes
+
+### Hardcoded strings (i18n fix)
+
+- [x] **`langHr` + `langEn` AppStrings** — Dodani HR/EN getter-i za nazive jezika u `app_strings.dart`
+- [x] **`login_screen.dart`** — `Text('Hrvatski')` / `Text('English')` → `Text(AppStrings.langHr)` / `Text(AppStrings.langEn)`, uklonjen `const`
+- [x] **`settings_screen.dart`** — isti fix na language dropdown-u
+- [x] Verifikacija: `flutter analyze` = 0 issues
+
+### Raw exception exposure fix
+
+- [x] **`coupon_form_dialog.dart`** — `Text('$e')` u catch bloku → `Text(AppStrings.error)` (interni error message se ne prikazuje korisniku)
+- [x] Verifikacija: `flutter analyze` = 0 issues
+
+### Sensitive data leak fix
+
+- [x] **`admin_api_service.dart`** — Uklonjen `debugPrint('[createCoupon] payload: $payload')` koji je logirao financijske podatke u debug konzolu
 - [x] Verifikacija: `flutter analyze` = 0 issues

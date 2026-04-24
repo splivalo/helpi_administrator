@@ -2,6 +2,17 @@
 
 > Kronologija ključnih odluka i promjena.
 
+## 2026-04-24 — Security audit & bug fixes
+
+- **IDOR fix (ScheduleAssignmentsController)** — `GetByStudent(int studentId)` nije imao auth provjeru — svaki student mogao čitati tuđe dodjele. Fix: caller mora biti Admin ILI caller's userId mora matchati studentId. Sve `int.Parse(claim!)` → `int.TryParse` s Unauthorized fallbackom.
+- **ExceptionHandlingMiddleware info leak** — `details` i `source` uvijek vraćali internu grešku klijentima. Fix: `details = _env.IsDevelopment() ? exception.Message : "Please contact support."`, `source` uklonjen.
+- **DomainException unifikacija** — `ChatService` i `ContactInfoService` koristili `KeyNotFoundException`/generic `Exception` umjesto `DomainException` → bubblali kao 500 umjesto 400.
+- **Hardcoded strings (i18n)** — `'Hrvatski'`/`'English'` direktno u `login_screen.dart` i `settings_screen.dart` → `AppStrings.langHr`/`AppStrings.langEn`. Dodani `langHr`/`langEn` ključevi u `app_strings.dart`.
+- **Raw exception exposure** — `Text('$e')` u `coupon_form_dialog.dart` → `Text(AppStrings.error)`.
+- **Sensitive debugPrint** — `admin_api_service.dart` logirao cijeli coupon payload s financijskim podacima → `debugPrint` uklonjen.
+- **Dead code cleanup** — `PaymentTransactionService` commented-out metode uklonjene; `OrdersController` useless `catch{throw}` uklonjen.
+- **0 issues maintained** — `flutter analyze` = 0 issues (admin + app), `dotnet build` = 0 errors.
+
 ## 2026-04-18 — CouponType simplifikacija + UI konzistentnost
 
 - **Percentage + FixedPerSession uklonjeni** — CouponType enum smanjen na 3 sat-based tipa: MonthlyHours, WeeklyHours, OneTimeHours. Uklonjeno iz `coupon_model.dart` (enum + label switch), `coupon_form_dialog.dart` (`_valueSuffix`), `coupons_screen.dart` (`_formatTypeValue`), `app_strings.dart` (HR/EN stringovi + getteri).

@@ -1,16 +1,16 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-04-12
+> Zadnja izmjena: 2026-04-24
 
 ## 📖 Za Sidney-a — Što čitati
 
 | GitHub repo (splivalo/) | Fajl                            | Sadržaj                                          |
 | ----------------------- | ------------------------------- | ------------------------------------------------ |
 | **helpi_administrator** | **docs/ROADMAP.md** (ovaj fajl) | **Svi preostali TODO-ovi (START HERE)**          |
-| helpi_administrator     | docs/PROGRESS.md                | Admin app status (98% frontend done)             |
+| helpi_administrator     | docs/PROGRESS.md                | Admin app status (100% frontend done)            |
 | helpi_administrator     | docs/ARCHITECTURE.md            | Admin tech stack, folder structure, UI standardi |
 | helpi_administrator     | docs/PROJECT_HISTORY.md         | Kronologija odluka (Feb→Mart 2026)               |
-| helpi_backend_v2        | docs/PROGRESS.md                | Backend task tracking (16 taskova ✅)            |
+| helpi_backend_v2        | docs/PROGRESS.md                | Backend task tracking (38 taskova ✅)            |
 | helpi_backend_v2        | README.md                       | DB schema, use case flows, 19 LINQ queries       |
 | helpi_backend_v2        | seeds/README.md                 | Test data, login credentials, promo codes        |
 | helpi_apps              | README.md                       | App tech stack, Riverpod/SignalR info            |

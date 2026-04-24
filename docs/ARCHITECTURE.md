@@ -1,6 +1,6 @@
 # Helpi Admin – Architecture
 
-> Tehnička istina o sustavu. Zadnja izmjena: 2026-04-12
+> Tehnička istina o sustavu. Zadnja izmjena: 2026-04-24
 
 ---
 
@@ -90,9 +90,13 @@ lib/
         │   └── chat_api_service.dart   # Chat API service + models (ApiChatRoom, ApiChatMessage) (~180 linija)
         └── presentation/
             └── chat_screen.dart        # Chat moderacija — real API, WhatsApp-style bubbles, split-view (~560 linija)
+    └── coupons/
+        └── presentation/
+            ├── coupons_screen.dart    # Lista kupona + CRUD (~650 linija)
+            └── coupon_form_dialog.dart # Forma za kreiranje/uređivanje kupona (~350 linija)
 ```
 
-**29 Dart fajlova, ~19.000 linija koda**
+**31 Dart fajlova, ~19.000 linija koda**
 
 ### Shared widgeti/utilitiji (core/)
 
