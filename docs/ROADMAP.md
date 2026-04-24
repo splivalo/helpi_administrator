@@ -1,133 +1,159 @@
 # Helpi Admin – Roadmap
 
-> Zadnja izmjena: 2026-04-24
+> Last updated: 2026-04-24
 
-## 📖 Za Sidney-a — Što čitati
+## 📖 For Sidney — What to Read
 
-| GitHub repo (splivalo/) | Fajl                            | Sadržaj                                          |
-| ----------------------- | ------------------------------- | ------------------------------------------------ |
-| **helpi_administrator** | **docs/ROADMAP.md** (ovaj fajl) | **Svi preostali TODO-ovi (START HERE)**          |
-| helpi_administrator     | docs/PROGRESS.md                | Admin app status (100% frontend done)            |
-| helpi_administrator     | docs/ARCHITECTURE.md            | Admin tech stack, folder structure, UI standardi |
-| helpi_administrator     | docs/PROJECT_HISTORY.md         | Kronologija odluka (Feb→Mart 2026)               |
-| helpi_backend_v2        | docs/PROGRESS.md                | Backend task tracking (38 taskova ✅)            |
-| helpi_backend_v2        | README.md                       | DB schema, use case flows, 19 LINQ queries       |
-| helpi_backend_v2        | seeds/README.md                 | Test data, login credentials, promo codes        |
-| helpi_apps              | README.md                       | App tech stack, Riverpod/SignalR info            |
-| helpi_apps              | docs/ARCHITECTURE.md            | Folder structure, 64 fajlova, providers          |
+### Step 1 — This file (ROADMAP.md) — that's all you need
+
+This file contains all remaining TODOs for all 3 repositories. **Read only this** — the rest are details for when you need them.
+
+### Step 2 — If you're working on a specific module, open the corresponding file
+
+| What you're doing                                | Open                                      |
+| ---------------------------------------------- | ----------------------------------------- |
+| Backend (C#) — don't know what's implemented   | `helpi_backend / docs/PROGRESS.md`        |
+| Backend — don't know DB schema or use cases    | `helpi_backend / README.md`                |
+| Backend — need test data / login credentials   | `helpi_backend / seeds/README.md`          |
+| Admin app (Flutter web) — don't know structure | `helpi_administrator / docs/ARCHITECTURE.md` |
+| Mobile app (Flutter) — don't know structure    | `helpi_apps / docs/ARCHITECTURE.md`       |
+| Asking "why is this solved this way?"          | `helpi_administrator / docs/PROJECT_HISTORY.md` |
+
+### Never need to read (unless interested in history)
+
+- `helpi_administrator / docs/PROGRESS.md` — just tracking completed tasks
+- `helpi_apps / docs/PROJECT_HISTORY.md` — chronology of mobile app decisions
 
 ---
 
-## TODO (čeka potvrdu)
+## TODO (awaiting confirmation)
 
-### Integracije (backend kod postoji, treba credentials + testiranje)
+### Integrations (backend code exists, need credentials + testing)
 
-- [ ] **Stripe — produkcijski ključevi + e2e test** — Backend `StripePaymentService` potpuno implementiran (CreateCustomer, ChargePayment, SetupIntent, SavePaymentMethod). Credentials `credentials/stripe.json` imaju DUMMY test ključeve. Treba: (1) nabaviti prave Stripe test ključeve, (2) testirati payment flow end-to-end (setup intent → save card → charge), (3) konfigurirati webhook endpoint u Stripe Dashboard, (4) Flutter app već ima `StripePaymentController` integraciju.
-- [ ] **Minimax — produkcijski credentials + e2e test** — Backend `MinimaxService` potpuno implementiran (OAuth2, CreateCustomer, CreateIssuedInvoice, ProcessIssuedInvoice). Credentials `credentials/minimax.json` imaju DUMMY podatke. Treba: (1) nabaviti prave Minimax HR portal credentials (clientId, clientSecret, username, password), (2) verificirati organizationId, (3) testirati invoice generation flow, (4) pregledati VAT rate (0%) i currency (EUR) postavke.
-- [ ] **Mailgun — produkcijski credentials + verified domain** — Backend `MailgunService` potpuno implementiran (SendEmailAsync s HTML body + PDF attachments). Credentials `credentials/mailgun.json` imaju sandbox domain. Treba: (1) nabaviti pravi API key, (2) verificirati sending domain u Mailgun, (3) testirati slanje emaila s invoice PDF-om, (4) pregledati email template.
-- [ ] **MailerLite — produkcijski API key + grupe** — Backend `MailerLiteService` potpuno implementiran (AddSubscriberAsync s group assignment). Credentials `credentials/mailerlite.json` imaju DUMMY key. Treba: (1) nabaviti pravi API key iz MailerLite dashboarda, (2) kreirati grupe u MailerLite (welcome, contractNotifications), (3) testirati subscriber flow pri registraciji.
-- [ ] **Firebase — produkcijski service account + FCM test** — Backend `FirebaseService` potpuno implementiran (GenerateCustomToken, SendPushNotification, AnonymizeUser). Credentials `credentials/helpi-firebase-service-account.json` imaju DUMMY service account (init se preskače u Development modu). Treba: (1) kreirati Firebase projekt (ili koristiti postojeći), (2) download-ati pravi service account JSON, (3) testirati FCM push notifikacije na uređaju, (4) konfigurirati Firestore rules.
-- [x] **Google Drive — student contract upload** — Backend `GoogleDriveService` implementiran. Pravi credentials kreirani, upload ugovora testiran i radi (naming: contractNumber-userId-year). ✅
+- [ ] **Stripe — production keys + e2e test** — Backend `StripePaymentService` fully implemented (CreateCustomer, ChargePayment, SetupIntent, SavePaymentMethod). Credentials `credentials/stripe.json` have DUMMY test keys. Need: (1) obtain real Stripe test keys, (2) test payment flow end-to-end (setup intent → save card → charge), (3) configure webhook endpoint in Stripe Dashboard, (4) Flutter app already has `StripePaymentController` integration.
 
-### Suspenzija
+- [ ] **Minimax — production credentials + e2e test** — Backend `MinimaxService` fully implemented (OAuth2, CreateCustomer, CreateIssuedInvoice, ProcessIssuedInvoice). Credentials `credentials/minimax.json` have DUMMY data. Need: (1) obtain real Minimax HR portal credentials (clientId, clientSecret, username, password), (2) verify organizationId, (3) test invoice generation flow, (4) review VAT rate (0%) and currency (EUR) settings.
 
-- [x] **Suspenzija — auto-otkazivanje narudžbi (backend)** — Backend `SuspendUserAsync` VEĆ poziva `CancelAllOrdersForCustomerAsync(userId)` za seniore i `ReassignExpiredContractJobs` za studente. ✅
-- [x] **Suspenzija — API middleware blokada (backend)** — `SuspensionCheckMiddleware.cs` vraća 403 za suspendirane korisnike. Preskače auth/suspensions endpointe i admine. ✅ (2026-03-22, commit `a652bff`)
-- [ ] **Suspenzija — notifikacije (backend + app)** — Kad se korisnik suspendira: (1) push notifikacija korisniku, (2) notifikacija povezanim korisnicima (npr. senioru čiji je student suspendiran), (3) email obavijest. ⚠️ Push ovisi o Firebase credentials.
-- [x] **Suspenzija — "suspendirani" ekran u helpi_app** — `suspended_screen.dart` prikazuje razlog suspenzije + kontakt info + delete account. `ApiClient` interceptor hvata 403 i trigera suspension state. ✅ (2026-03-22, commit `5ca6a13`)
-- [x] **Suspenzija — provjera prije kreiranja narudžbe (backend)** — `OrdersService.CreateOrderAsync()` provjerava `Senior→Customer→User→IsSuspended` na vrhu. Throw-a `ForbiddenException` ako je suspendiran. ✅ (2026-03-22, commit `a652bff`)
+- [ ] **Mailgun — production credentials + verified domain** — Backend `MailgunService` fully implemented (SendEmailAsync with HTML body + PDF attachments). Credentials `credentials/mailgun.json` have sandbox domain. Need: (1) obtain real API key, (2) verify sending domain in Mailgun, (3) test sending emails with invoice PDF, (4) review email template.
 
-### Admin app & infrastruktura
+- [ ] **MailerLite — production API key + groups** — Backend `MailerLiteService` fully implemented (AddSubscriberAsync with group assignment). Credentials `credentials/mailerlite.json` have DUMMY key. Need: (1) obtain real API key from MailerLite dashboard, (2) create groups in MailerLite (welcome, contractNotifications), (3) test subscriber flow on registration.
 
-- [ ] **Stripe fee iz webhoooka (backend + frontend)** — Trenutno admin analytics "Helpi neto" koristi formulu `1.5% + €0.25` (EEA standard). Za non-EEA kartice (Revolut UK i sl.) Stripe uzima 3.25% + €0.25, pa formula podcjenjuje fee za te transakcije. **Plan**:
-  1. Backend: dodati `StripeFee` (decimal) kolonu u `PaymentTransaction` entitet + migracija
-  2. Backend: u `StripeWebhookController` dodati handler za `charge.succeeded` event — iz `Charge.BalanceTransaction.Fee` izvući egzaktni fee i spremiti ga
-  3. API: u session/payment DTO vratiti `stripeFee` polje
-  4. Frontend: čitati stvarni fee iz API-ja umjesto formule u `analytics_screen.dart` (vidjeti `TODO(neto-egzaktno)` komentar)
-  - **Referenca**: Order #30 (€42) i Order #24 (€56) u Stripe dashboardu imaju veći fee → non-EEA kartice
-  - **Utjecaj**: Razlika je minimalna (~€0.74 po non-EEA transakciji), ali za 100% točnost treba ovo
+- [ ] **Firebase — production service account + FCM test** — Backend `FirebaseService` fully implemented (GenerateCustomToken, SendPushNotification, AnonymizeUser). Credentials `credentials/helpi-firebase-service-account.json` have DUMMY service account (init skipped in Development mode). Need: (1) create Firebase project (or use existing), (2) download real service account JSON, (3) test FCM push notifications on device, (4) configure Firestore rules.
 
-- [ ] **Per-user preferencije** — Kad se doda auth, SharedPreferences ključeve proširiti s userId (npr. `gridView_orders_userId123`) tako da svaki admin ima svoje postavke.
-- [x] **Backend integracija** — DataLoader dohvaća sve podatke s REST API-ja u parallel, puni Riverpod providere. AppData služi samo kao static cache/intermediary. UI sloj čita isključivo iz providera. ✅ (odavno gotovo)
-- [x] **Blagdani (javni praznici)** — `CroatianHolidays.cs` (backend) + `croatian_holidays.dart` (admin) — 13 fiksnih praznika + Computus algoritam za Uskrsni ponedjeljak i Tijelovo. `HangfireRecurringJobService` koristi `isOvertimeDay = Sunday || CroatianHolidays.IsPublicHoliday(date)`. Label: "Povećana satnica" (ne "Nedjeljna"). ✅ (2026-03-22, commit backend `a652bff`, admin `742ff07`)
-- [x] **Admin notifikacije (SignalR)** — 7 backend notifikacija (newStudent, newSenior, orderCancel, jobCancel, contractExpired, paymentSuccess, paymentFailed) + SignalR real-time delivery u admin app + icon/color mapping za svaki tip. NE ovisi o Firebase — koristi SignalR WebSocket. ✅ (2026-03-23, backend commit `69aec15`, admin commit `adcad0f`)
-- [x] **Filter & Assignment safety** — Block assignment on cancelled/completed orders, suspended students excluded from substitutes, "Zamjena" hidden when no subs, faculty dropdown always visible, 60-day filter removed, availability labels updated. ✅ (2026-03-30)
+- [x] **Google Drive — student contract upload** — Backend `GoogleDriveService` implemented. Real credentials created, contract upload tested and working (naming: contractNumber-userId-year). ✅
+
+### Suspension
+
+- [x] **Suspension — auto-cancel orders (backend)** — Backend `SuspendUserAsync` ALREADY calls `CancelAllOrdersForCustomerAsync(userId)` for seniors and `ReassignExpiredContractJobs` for students. ✅
+
+- [x] **Suspension — API middleware block (backend)** — `SuspensionCheckMiddleware.cs` returns 403 for suspended users. Skips auth/suspensions endpoints and admins. ✅ (2026-03-22, commit `a652bff`)
+
+- [ ] **Suspension — notifications (backend + app)** — When user suspended: (1) push notification to user, (2) notification to related users (e.g., senior whose student is suspended), (3) email notice. ⚠️ Push depends on Firebase credentials.
+
+- [x] **Suspension — "suspended" screen in helpi_app** — `suspended_screen.dart` shows suspension reason + contact info + delete account. `ApiClient` interceptor catches 403 and triggers suspension state. ✅ (2026-03-22, commit `5ca6a13`)
+
+- [x] **Suspension — check before creating order (backend)** — `OrdersService.CreateOrderAsync()` checks `Senior→Customer→User→IsSuspended` at top. Throws `ForbiddenException` if suspended. ✅ (2026-03-22, commit `a652bff`)
+
+### Admin app & infrastructure
+
+- [ ] **Stripe fee from webhook (backend + frontend)** — Currently admin analytics "Helpi net" uses formula `1.5% + €0.25` (EEA standard). For non-EEA cards (Revolut UK etc.) Stripe charges 3.25% + €0.25, so formula underestimates fee for those transactions. **Plan**:
+  1. Backend: add `StripeFee` (decimal) column to `PaymentTransaction` entity + migration
+  2. Backend: in `StripeWebhookController` add handler for `charge.succeeded` event — extract actual fee from `Charge.BalanceTransaction.Fee` and save it
+  3. API: return `stripeFee` field in session/payment DTO
+  4. Frontend: read actual fee from API instead of formula in `analytics_screen.dart` (see `TODO(neto-exact)` comment)
+  - **Reference**: Order #30 (€42) and Order #24 (€56) in Stripe dashboard have higher fee → non-EEA cards
+  - **Impact**: Difference is minimal (~€0.74 per non-EEA transaction), but for 100% accuracy need this
+
+- [ ] **Per-user preferences** — When auth is added, extend SharedPreferences keys with userId (e.g., `gridView_orders_userId123`) so each admin has their own settings.
+
+- [x] **Backend integration** — DataLoader fetches all data from REST API in parallel, populates Riverpod providers. AppData serves only as static cache/intermediary. UI layer reads exclusively from providers. ✅ (long complete)
+
+- [x] **Holidays (public holidays)** — `CroatianHolidays.cs` (backend) + `croatian_holidays.dart` (admin) — 13 fixed holidays + Computus algorithm for Easter Monday and Corpus Christi. `HangfireRecurringJobService` uses `isOvertimeDay = Sunday || CroatianHolidays.IsPublicHoliday(date)`. Label: "Increased rate" (not "Sunday"). ✅ (2026-03-22, commit backend `a652bff`, admin `742ff07`)
+
+- [x] **Admin notifications (SignalR)** — 7 backend notifications (newStudent, newSenior, orderCancel, jobCancel, contractExpired, paymentSuccess, paymentFailed) + SignalR real-time delivery in admin app + icon/color mapping for each type. Does NOT depend on Firebase — uses SignalR WebSocket. ✅ (2026-03-23, backend commit `69aec15`, admin commit `adcad0f`)
+
+- [x] **Filter & Assignment safety** — Block assignment on cancelled/completed orders, suspended students excluded from substitutes, "Substitute" hidden when no subs, faculty dropdown always visible, 60-day filter removed, availability labels updated. ✅ (2026-03-30)
+
 - [x] **Chat unread badge infrastructure** — `unreadMessagesProvider`, SignalR `ReceiveMessage` handler, `Badge.count` on all 3 nav layouts (desktop/tablet/mobile), reset on chat tap. ✅ (2026-03-30)
-- [x] **Reschedule flow rewrite (backend + frontend)** — 3-branch ManageJobInstance routing (simple/student-change/reassign), backend available-students endpoint, frontend async fetch, lightweight \_refreshOrder (2→6 calls), student sort by distance fix. ✅ (2026-03-31)
+
+- [x] **Reschedule flow rewrite (backend + frontend)** — 3-branch ManageJobInstance routing (simple/student-change/reassign), backend available-students endpoint, frontend async fetch, lightweight `_refreshOrder` (2→6 calls), student sort by distance fix. ✅ (2026-03-31)
+
 - [x] **Server reachability detection** — `DataLoader.isServerReachable()`, 3-way `_checkExistingSession` (server-down vs expired-token vs OK), `_handleLogin`/`_handleServerBack` always proceed. ✅ (2026-03-31)
-- [x] **Senior status centralization** — `seniorStatusStyle()` + `StatusBadge.senior()` factory, fixed AppBar bug (checked all orders instead of live only), orders sorted newest first, "Planirano" badge per card. ✅ (2026-03-31)
-- [ ] **Push notifikacije (Firebase FCM)** — Push notifikacije za mobilne korisnike (student app, senior app). ⚠️ Ovisi o Firebase credentials.
 
-### Sponzor sustav (branding na platformi)
+- [x] **Senior status centralization** — `seniorStatusStyle()` + `StatusBadge.senior()` factory, fixed AppBar bug (checked all orders instead of live only), orders sorted newest first, "Planned" badge per card. ✅ (2026-03-31)
 
-- [ ] **Backend: SponsorConfiguration entitet + migracija** — Tablica `sponsor_configurations`: logo_url, logo_dark_url (opcijski), sponsor_name, display_text, is_active, created_at. CRUD controller `api/sponsor-config`.
-- [ ] **Backend: SVG upload endpoint** — Upload SVG logo na disk/storage, vraća URL. Podržava 2 varijante: light (obavezan) + dark (opcionalan).
-- [ ] **Admin: Sponzor sekcija u Settings** — File picker za SVG (light + opcionalno dark), text field za tekst (npr. "Omogućio HT"), toggle aktivan/neaktivan, preview prikaz.
-- [ ] **helpi_app: Sponzor badge na 3 mjesta** — (1) Home Screen — logo + "Omogućio [Sponzor]", (2) završni ekran narudžbe — "Ovu uslugu omogućio [Logo]", (3) student job detail — manji badge. App dohvaća config pri startu i cacheira. Ako dark varijanta nije uploadana, logo se prikazuje u svijetlom containeru. Ako nema aktivnog sponzora — ništa se ne prikazuje.
+- [ ] **Push notifications (Firebase FCM)** — Push notifications for mobile users (student app, senior app). ⚠️ Depends on Firebase credentials.
 
-### Chat / Poruke sustav ✅ KOMPLETNO (2026-04-12)
+### Chat / Messages system ✅ COMPLETE (2026-04-12)
 
-- [x] **Backend: Chat entiteti + migracija** — `ChatRoom` i `ChatMessage` entiteti, DB migracija primijenjena.
-- [x] **Backend: ChatController + ChatService** — CRUD za chat rooms, send/receive poruke, auto-create admin room, welcome message. Endpoint: `api/chat`.
-- [x] **Backend: ChatHub (SignalR)** — Real-time poruke. `ChatHub` kreiran + broadcast via `NotificationHub` (oba app-a spajaju se na NotificationHub).
-- [x] **Admin app: wiring** — `ChatModScreen` potpuno prepisana. `chat_api_service.dart` kreiran. Provideri prepisani (`AdminChatRoomsNotifier`, `AdminChatMessagesNotifier`). Mock data uklonjen.
-- [x] **Admin app: chat unread badge** — `UnreadMessagesNotifier`, SignalR `ReceiveChatMessage` listener, `Badge.count` na sva 3 nav layouta, reset on chat tap. ✅
-- [x] **helpi_app: zamjena mock chata** — `DirectChatScreen` (auto-open admin room), `ChatApiService`, `chatRoomsProvider`/`chatMessagesProvider`/`chatUnreadCountProvider`. Unread badge na oba shell-a. WhatsApp-style bubbles. Sender name ("Helpi") prikazan.
+- [x] **Backend: Chat entities + migration** — `ChatRoom` and `ChatMessage` entities, DB migration applied.
 
-## Dovršeno
+- [x] **Backend: ChatController + ChatService** — CRUD for chat rooms, send/receive messages, auto-create admin room, welcome message. Endpoint: `api/chat`.
 
-- [x] **Projekt scaffold** — Flutter 3.10.7+, Material 3, responzivni shell (2026-02)
-- [x] **Svih 5 ekrana** — Dashboard, Studenti, Seniori, Narudžbe, Chat (2026-02)
-- [x] **i18n sustav** — AppStrings Gemini Hybrid pattern, HR + EN, locale switching rebuilda ekrane (2026-02 → 2026-03-05)
-- [x] **Mock podaci** — Kompletni mock podaci za sve entitete uklj. 6 seniora i notifikacije (2026-02 → 2026-03-04)
-- [x] **Responzivni gumbi** — 1/3 širine na ≥800px, full-width na mobilnom (2026-03-04)
-- [x] **Date picker optimizacija** — Zamjena showDateRangePicker s dva showDatePicker (2026-03-04)
-- [x] **UI polish** — Order kartice styling, italic fix, boja ikone (2026-03-04)
-- [x] **Dead code cleanup** — Uklonjeno 10 nekorištenih konstanti/stringova, 0 errors (2026-03-04)
-- [x] **Dokumentacija** — docs/ folder s PROGRESS, ROADMAP, ARCHITECTURE, PROJECT_HISTORY (2026-03-04)
-- [x] **DRY refactor cijele aplikacije** — 7 ekrana refaktorirano, 6 shared fajlova kreirano, ~1000+ linija duplikata uklonjeno (2026-03-04)
-- [x] **Contact actions fix** — PhoneCallButton/EmailCopyButton trailing uz tekst, GestureDetector fix (2026-03-04)
-- [x] **CreateOrderScreen** — Kompletna single-page forma za kreiranje narudžbe (1223 linija), senior pre-assignment, auto-scroll, session preview (2026-03-04)
-- [x] **FAB "Dodaj narudžbu"** — Na listi narudžbi + "Dodaj narudžbu" gumb na senior detail ekranu (2026-03-04)
-- [x] **Senior status business logika** — "U obradi" dok nema studenta → "Aktivan" kad ima (hasStudentAssigned) (2026-03-04)
-- [x] **Studenti 7 tabova** — Prošireno s 3 na 7 (Svi/Aktivni/Ističe/Istekao/Bez/Deaktivirani/Arhivirani) (2026-03-04)
-- [x] **Seniori 5 tabova** — Svi/U obradi/Aktivni/Neaktivni/Arhivirani (2026-03-04)
-- [x] **Narudžbe 5 tabova** — Svi/U obradi/Aktivne/Završene/Otkazane + sortiranje (2026-03-04)
-- [x] **Filter panel redesign** — DropdownButtonFormField, day chips full-width, konzistentni borderRadius/padding (2026-03-04)
-- [x] **bodyLarge font unifikacija** — 18px → 16px za konzistentne TextField/Dropdown (2026-03-04)
-- [x] **NotificationBell widget** — Bell ikona s badge + drawer s mock notifikacijama (2026-03-04)
-- [x] **SharedPreferences persistencija** — Grid/sort/tab per screen, web-safe fallback, wired u 4 ekrana (2026-03-04)
-- [x] **SessionPreviewSheet** — Shared widget za prikaz generiranih sesija i dodjelu studenta (851 linija) (2026-03-05)
-- [x] **Edit Order modal** — Uređivanje narudžbi (usluga, frekvencija, datum, sati) (2026-03-05)
-- [x] **Assign flow** — 2-step dodjela studenta s ClipRRect zaobljenim rubovima (2026-03-05)
-- [x] **AlertDialog konzistentnost** — Svih 14 dialoga: dialogTheme, SizedBox(width:400), TextButton, AppStrings.ok (2026-03-05 → 2026-03-08)
-- [x] **TextButton hover shape** — Globalni RoundedRectangleBorder(buttonRadius) umjesto stadium (2026-03-05)
-- [x] **Reorder sheet spacing** — Uklonjen suvišni padding, header pattern ujednačen (2026-03-05)
-- [x] **StatusBadge size** — Konzistentni mali badgevi u svim AppBarima (2026-03-05)
-- [x] **ActionChipButton size enum** — small/medium za inline vs modal akcije (2026-03-05)
-- [x] **Locale switching fix** — ValueKey rebuild za IndexedStack ekrane (2026-03-05)
-- [x] **DatePicker globalna tema** — datePickerTheme: teal boje, manji header (20px), cardRadius, "U redu" umjesto "U REDU" (2026-03-05)
-- [x] **Flutter Web deploy** — Build s `--base-href /helpi/`, deploy na kungfu.digital/helpi/ (2026-03-05)
-- [x] **Promo kod (Stripe priprema)** — promoCode polje u OrderModel, AppStrings, prikaz u detaljima, admin akcija s dijalogom (2026-03-08)
-- [x] **Dialog unifikacija** — dialogTheme u theme.dart, SizedBox(width:400) na svih 14 AlertDialoga (2026-03-08)
-- [x] **Review comment scroll** — ConstrainedBox + SingleChildScrollView umjesto truncation (2026-03-15)
-- [x] **Admin Notes (NotesSection)** — add/edit/delete bilješke u StudentDetail i SeniorDetail (2026-03-15)
-- [x] **Suspension warning + auto-cancel** — Upozorenje o aktivnim narudžbama + automatsko otkazivanje pri suspenziji (2026-03-15)
-- [x] **SuspensionStateManager listener fix** — addListener u initState() na list ekranima (2026-03-15)
-- [x] **Tab hover boja** — tabBarTheme s neutralnim sivim overlayColor (2026-03-15)
-- [x] **ContractStatus cleanup** — Uklonjeni deactivated + expiring tabovi/enum/filteri/badge (2026-03-15)
-- [x] **Dashboard expiring → date-based** — active + expiryDate < 30 dana umjesto enum-based (2026-03-15)
-- [x] **Haversine udaljenost** — Izračun km udaljenosti student↔senior, prikaz u assign modalu i reschedule pickeru (2026-03-18→19)
-- [x] **Sortiranje studenata po udaljenosti** — 3-level sort: dostupnost → udaljenost → ocjena (2026-03-19)
-- [x] **Rating decimal fix** — toStringAsFixed(1) na svih 8 lokacija u 5 fajlova (2026-03-19)
-- [x] **Planirani termini (projected sessions)** — Prikaz planiranih sesija za Pending narudžbe iz rasporeda prije dodjele studenta (2026-03-20)
-- [x] **Order Details cleanup** — Uklonjene redundantne sekcije (vrijeme, trajanje, raspored, adresa) iz detalja narudžbe (2026-03-21)
-- [x] **Riverpod state management** — flutter_riverpod ^2.6.1, 6 StateNotifier providera, 17 widgeta migrirano, reaktivni UI bez manual refresha, 0 AppData referenci u UI sloju (2026-03-22)
-- [x] **Admin notifikacije + SignalR real-time** — signalr_netcore ^1.4.4, NotificationType enum 30 tipova, SignalRNotificationService s auto-reconnect, 7 icon/color mappinga, notification parser fix (2026-03-23)
-- [x] **Notification overhaul** — Backend FormatSafe fix, TranslateNotifications refactor (specijalizirane grane za svaki tip), NewOrderAdded lokalizacija, NotificationsFactory OrderId fix, translation key fix u bazi (2026-04-05)
-- [x] **Notification archive to Google Drive** — Single master `notifications-archive.csv`, find/download/append/update flow, 3 nove GoogleDriveService metode, DI binding fix, CSV format Datum/Naslov/Poruka (2026-04-05)
-- [x] **Notification pill bar redesign** — Unified pill (✓✓|☁ Arhiviraj), hover animation (AnimatedSlide+AnimatedOpacity), tile interaction split (tap=read, icon=navigate), ListView bottom padding (2026-04-05)
+- [x] **Backend: ChatHub (SignalR)** — Real-time messages. `ChatHub` created + broadcast via `NotificationHub` (both apps connect to NotificationHub).
+
+- [x] **Admin app: wiring** — `ChatModScreen` completely rewritten. `chat_api_service.dart` created. Providers rewritten (`AdminChatRoomsNotifier`, `AdminChatMessagesNotifier`). Mock data removed.
+
+- [x] **Admin app: chat unread badge** — `UnreadMessagesNotifier`, SignalR `ReceiveChatMessage` listener, `Badge.count` on all 3 nav layouts, reset on chat tap. ✅
+
+- [x] **helpi_app: replace mock chat** — `DirectChatScreen` (auto-open admin room), `ChatApiService`, `chatRoomsProvider`/`chatMessagesProvider`/`chatUnreadCountProvider`. Unread badge on both shells. WhatsApp-style bubbles. Sender name ("Helpi") displayed.
+
+## Complete ✅
+
+- [x] **Project scaffold** — Flutter 3.10.7+, Material 3, responsive shell (2026-02)
+- [x] **All 5 screens** — Dashboard, Students, Seniors, Orders, Chat (2026-02)
+- [x] **i18n system** — AppStrings Gemini Hybrid pattern, HR + EN, locale switching rebuilds screens (2026-02 → 2026-03-05)
+- [x] **Mock data** — Complete mock data for all entities incl. 6 seniors and notifications (2026-02 → 2026-03-04)
+- [x] **Responsive buttons** — 1/3 width on ≥800px, full-width on mobile (2026-03-04)
+- [x] **Date picker optimization** — Replace showDateRangePicker with two showDatePicker (2026-03-04)
+- [x] **UI polish** — Order card styling, italic fix, icon color (2026-03-04)
+- [x] **Dead code cleanup** — Removed 10 unused constants/strings, 0 errors (2026-03-04)
+- [x] **Documentation** — docs/ folder with PROGRESS, ROADMAP, ARCHITECTURE, PROJECT_HISTORY (2026-03-04)
+- [x] **DRY refactor entire app** — 7 screens refactored, 6 shared files created, ~1000+ duplicate lines removed (2026-03-04)
+- [x] **Contact actions fix** — PhoneCallButton/EmailCopyButton trailing text, GestureDetector fix (2026-03-04)
+- [x] **CreateOrderScreen** — Complete single-page form for creating orders (1223 lines), senior pre-assignment, auto-scroll, session preview (2026-03-04)
+- [x] **FAB "Add Order"** — On orders list + "Add Order" button on senior detail screen (2026-03-04)
+- [x] **Senior status business logic** — "Processing" until no student → "Active" when has (hasStudentAssigned) (2026-03-04)
+- [x] **Students 7 tabs** — Expanded from 3 to 7 (All/Active/Expiring/Expired/No Contract/Deactivated/Archived) (2026-03-04)
+- [x] **Seniors 5 tabs** — All/Processing/Active/Inactive/Archived (2026-03-04)
+- [x] **Orders 5 tabs** — All/Processing/Active/Completed/Cancelled + sorting (2026-03-04)
+- [x] **Filter panel redesign** — DropdownButtonFormField, day chips full-width, consistent borderRadius/padding (2026-03-04)
+- [x] **bodyLarge font unification** — 18px → 16px for consistent TextField/Dropdown (2026-03-04)
+- [x] **NotificationBell widget** — Bell icon with badge + drawer with mock notifications (2026-03-04)
+- [x] **SharedPreferences persistence** — Grid/sort/tab per screen, web-safe fallback, wired in 4 screens (2026-03-04)
+- [x] **SessionPreviewSheet** — Shared widget for displaying generated sessions and student assignment (851 lines) (2026-03-05)
+- [x] **Edit Order modal** — Edit orders (service, frequency, date, hours) (2026-03-05)
+- [x] **Assign flow** — 2-step student assignment with ClipRRect rounded corners (2026-03-05)
+- [x] **AlertDialog consistency** — All 14 dialogs: dialogTheme, SizedBox(width:400), TextButton, AppStrings.ok (2026-03-05 → 2026-03-08)
+- [x] **TextButton hover shape** — Global RoundedRectangleBorder(buttonRadius) instead of stadium (2026-03-05)
+- [x] **Reorder sheet spacing** — Removed excess padding, header pattern unified (2026-03-05)
+- [x] **StatusBadge size** — Consistent small badges in all AppBars (2026-03-05)
+- [x] **ActionChipButton size enum** — small/medium for inline vs modal actions (2026-03-05)
+- [x] **Locale switching fix** — ValueKey rebuild for IndexedStack screens (2026-03-05)
+- [x] **DatePicker global theme** — datePickerTheme: teal colors, smaller header (20px), cardRadius, "OK" instead of "OK" (2026-03-05)
+- [x] **Flutter Web deploy** — Build with `--base-href /helpi/`, deploy to kungfu.digital/helpi/ (2026-03-05)
+- [x] **Promo code (Stripe prep)** — promoCode field in OrderModel, AppStrings, display in details, admin action with dialog (2026-03-08)
+- [x] **Dialog unification** — dialogTheme in theme.dart, SizedBox(width:400) on all 14 AlertDialogs (2026-03-08)
+- [x] **Review comment scroll** — ConstrainedBox + SingleChildScrollView instead of truncation (2026-03-15)
+- [x] **Admin Notes (NotesSection)** — add/edit/delete notes in StudentDetail and SeniorDetail (2026-03-15)
+- [x] **Suspension warning + auto-cancel** — Warning about active orders + automatic cancellation on suspension (2026-03-15)
+- [x] **SuspensionStateManager listener fix** — addListener in initState() on list screens (2026-03-15)
+- [x] **Tab hover color** — tabBarTheme with neutral grey overlayColor (2026-03-15)
+- [x] **ContractStatus cleanup** — Removed deactivated + expiring tabs/enum/filters/badge (2026-03-15)
+- [x] **Dashboard expiring → date-based** — active + expiryDate < 30 days instead of enum-based (2026-03-15)
+- [x] **Haversine distance** — Calculate km distance student↔senior, display in assign modal and reschedule picker (2026-03-18→19)
+- [x] **Sort students by distance** — 3-level sort: availability → distance → rating (2026-03-19)
+- [x] **Rating decimal fix** — toStringAsFixed(1) on all 8 locations in 5 files (2026-03-19)
+- [x] **Planned sessions (projected sessions)** — Display planned sessions for Pending orders from schedule before student assignment (2026-03-20)
+- [x] **Order Details cleanup** — Removed redundant sections (time, duration, schedule, address) from order details (2026-03-21)
+- [x] **Riverpod state management** — flutter_riverpod ^2.6.1, 6 StateNotifier providers, 17 widgets migrated, reactive UI without manual refresh, 0 AppData references in UI layer (2026-03-22)
+- [x] **Admin notifications + SignalR real-time** — signalr_netcore ^1.4.4, NotificationType enum 30 types, SignalRNotificationService with auto-reconnect, 7 icon/color mappings, notification parser fix (2026-03-23)
+- [x] **Notification overhaul** — Backend FormatSafe fix, TranslateNotifications refactor (specialized branches for each type), NewOrderAdded localization, NotificationsFactory OrderId fix, translation key fix in DB (2026-04-05)
+- [x] **Notification archive to Google Drive** — Single master `notifications-archive.csv`, find/download/append/update flow, 3 new GoogleDriveService methods, DI binding fix, CSV format Date/Title/Message (2026-04-05)
+- [x] **Notification pill bar redesign** — Unified pill (✓✓|☁ Archive), hover animation (AnimatedSlide+AnimatedOpacity), tile interaction split (tap=read, icon=navigate), ListView bottom padding (2026-04-05)
+- [x] **Sponsor system** — Backend entity + SponsorsController CRUD + file upload, Admin settings UI with file picker, App SponsorBanner widget on 2 screens (order_detail + job_detail), dark mode support, SVG+PNG/JPG/WebP support, AppStrings localization (2026-04-24) ✅
 
 ---
 
-> ⚠️ **STROGO ZABRANJENO** samoinicijativno započeti bilo koji zadatak s ovog Roadmapa. Svaki novi korak zahtijeva izričitu potvrdu korisnika.
+> ⚠️ **STRICTLY FORBIDDEN** to independently start any task from this Roadmap. Each new step requires explicit user confirmation.
+
