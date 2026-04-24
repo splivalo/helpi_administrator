@@ -10,13 +10,13 @@ This file contains all remaining TODOs for all 3 repositories. **Read only this*
 
 ### Step 2 — If you're working on a specific module, open the corresponding file
 
-| What you're doing                                | Open                                      |
-| ---------------------------------------------- | ----------------------------------------- |
-| Backend (C#) — don't know what's implemented   | `helpi_backend / docs/PROGRESS.md`        |
-| Backend — don't know DB schema or use cases    | `helpi_backend / README.md`                |
-| Backend — need test data / login credentials   | `helpi_backend / seeds/README.md`          |
-| Admin app (Flutter web) — don't know structure | `helpi_administrator / docs/ARCHITECTURE.md` |
-| Mobile app (Flutter) — don't know structure    | `helpi_apps / docs/ARCHITECTURE.md`       |
+| What you're doing                              | Open                                            |
+| ---------------------------------------------- | ----------------------------------------------- |
+| Backend (C#) — don't know what's implemented   | `helpi_backend / docs/PROGRESS.md`              |
+| Backend — don't know DB schema or use cases    | `helpi_backend / README.md`                     |
+| Backend — need test data / login credentials   | `helpi_backend / seeds/README.md`               |
+| Admin app (Flutter web) — don't know structure | `helpi_administrator / docs/ARCHITECTURE.md`    |
+| Mobile app (Flutter) — don't know structure    | `helpi_apps / docs/ARCHITECTURE.md`             |
 | Asking "why is this solved this way?"          | `helpi_administrator / docs/PROJECT_HISTORY.md` |
 
 ### Never need to read (unless interested in history)
@@ -156,4 +156,3 @@ This file contains all remaining TODOs for all 3 repositories. **Read only this*
 ---
 
 > ⚠️ **STRICTLY FORBIDDEN** to independently start any task from this Roadmap. Each new step requires explicit user confirmation.
-
