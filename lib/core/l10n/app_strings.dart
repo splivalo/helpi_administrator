@@ -458,7 +458,8 @@ class AppStrings {
 
       // ── Termini ──────────────────────────────────
       'sessionsTitle': 'Termini',
-      'sessionsMonthlySubtitle': 'Prikazani termini za tekući mjesec.',
+      'sessionsTitleSingular': 'Termin',
+      'sessionsMonthlySubtitle': 'Prikazani termini za {month} {year}.',
       'sessionsPlannedSubtitle': 'Čeka se dodjela studenta.',
       'sessionsCancelledSubtitle': 'Narudžba je otkazana.',
       'sessionStatusPlanned': 'Planirano',
@@ -1044,7 +1045,8 @@ class AppStrings {
 
       // ── Termini ──────────────────────────────────
       'sessionsTitle': 'Sessions',
-      'sessionsMonthlySubtitle': 'Sessions for the current month.',
+      'sessionsTitleSingular': 'Session',
+      'sessionsMonthlySubtitle': 'Showing sessions for {month} {year}.',
       'sessionsPlannedSubtitle': 'Awaiting student assignment.',
       'sessionsCancelledSubtitle': 'Order has been cancelled.',
       'sessionStatusPlanned': 'Planned',
@@ -1648,7 +1650,28 @@ class AppStrings {
 
   // ── Termini ──
   static String get sessionsTitle => _t('sessionsTitle');
-  static String get sessionsMonthlySubtitle => _t('sessionsMonthlySubtitle');
+  static String get sessionsTitleSingular => _t('sessionsTitleSingular');
+  static String sessionsMonthlySubtitle(String month, int year) =>
+      _t('sessionsMonthlySubtitle', params: {'month': month, 'year': '$year'});
+  static String monthName(int month) {
+    const keys = [
+      '',
+      'monthJan',
+      'monthFeb',
+      'monthMar',
+      'monthApr',
+      'monthMay',
+      'monthJun',
+      'monthJul',
+      'monthAug',
+      'monthSep',
+      'monthOct',
+      'monthNov',
+      'monthDec',
+    ];
+    return _t(keys[month.clamp(1, 12)]);
+  }
+
   static String get sessionsPlannedSubtitle => _t('sessionsPlannedSubtitle');
   static String get sessionsCancelledSubtitle =>
       _t('sessionsCancelledSubtitle');

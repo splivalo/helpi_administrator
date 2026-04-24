@@ -74,25 +74,29 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   String _isoDate(DateTime d) =>
       '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
-  /// Returns (from, to) for current month to cap visible sessions.
-  /// Applied to ALL order types — one-time orders have max 1 session
-  /// so the cap doesn't affect them, but recurring/processing are limited.
+  /// Returns (from, to) capped to the relevant month.
+  /// For orders starting in the future, uses that start month.
+  /// For one-time orders this is unused — no filter is applied.
   ({String from, String to}) _monthRange() {
     final now = DateTime.now();
+    final ref = _order.scheduledDate.isAfter(now) ? _order.scheduledDate : now;
     return (
-      from: _isoDate(DateTime(now.year, now.month)),
-      to: _isoDate(DateTime(now.year, now.month + 1, 0)),
+      from: _isoDate(DateTime(ref.year, ref.month)),
+      to: _isoDate(DateTime(ref.year, ref.month + 1, 0)),
     );
   }
 
   Future<void> _loadSessions() async {
     final orderId = int.tryParse(_order.id);
     if (orderId == null) return;
-    final range = _monthRange();
+    // One-time orders have at most 1 session — skip date filter so it's
+    // always returned regardless of which month it falls in.
+    final isOneTime = _order.frequency == FrequencyType.oneTime;
+    final range = isOneTime ? null : _monthRange();
     final result = await AdminApiService().getSessionsByOrder(
       orderId,
-      from: range.from,
-      to: range.to,
+      from: range?.from,
+      to: range?.to,
     );
     if (!mounted) return;
     setState(() {
@@ -125,10 +129,11 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     if (orderId == null) return;
 
     final api = AdminApiService();
-    final range = _monthRange();
+    final isOneTime = _order.frequency == FrequencyType.oneTime;
+    final range = isOneTime ? null : _monthRange();
     final results = await Future.wait([
       api.getOrder(orderId),
-      api.getSessionsByOrder(orderId, from: range.from, to: range.to),
+      api.getSessionsByOrder(orderId, from: range?.from, to: range?.to),
     ]);
     if (!mounted) return;
 
@@ -936,7 +941,9 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                AppStrings.sessionsTitle,
+                _order.frequency == FrequencyType.oneTime
+                    ? AppStrings.sessionsTitleSingular
+                    : AppStrings.sessionsTitle,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -945,20 +952,36 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            isOrderCancelled
-                ? AppStrings.sessionsCancelledSubtitle
-                : isProjected && !hasStudent
-                ? AppStrings.sessionsPlannedSubtitle
-                : _order.frequency != FrequencyType.oneTime
-                ? AppStrings.sessionsMonthlySubtitle
-                : '',
-            style: TextStyle(
-              fontSize: 12,
-              color: HelpiColors.of(context).textSecondary,
+          if (_order.frequency != FrequencyType.oneTime &&
+              !isOrderCancelled) ...[
+            const SizedBox(height: 6),
+            Text(
+              () {
+                final now = DateTime.now();
+                final ref = _order.scheduledDate.isAfter(now)
+                    ? _order.scheduledDate
+                    : now;
+                return AppStrings.sessionsMonthlySubtitle(
+                  AppStrings.monthName(ref.month),
+                  ref.year,
+                );
+              }(),
+              style: TextStyle(
+                fontSize: 12,
+                color: HelpiColors.of(context).textSecondary,
+              ),
             ),
-          ),
+          ],
+          if (isOrderCancelled) ...[
+            const SizedBox(height: 6),
+            Text(
+              AppStrings.sessionsCancelledSubtitle,
+              style: TextStyle(
+                fontSize: 12,
+                color: HelpiColors.of(context).textSecondary,
+              ),
+            ),
+          ],
           if (displaySessions.isNotEmpty) ...[
             const SizedBox(height: 16),
             ConstrainedBox(
@@ -1013,8 +1036,20 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     final now = DateTime.now();
     final effectiveStart = startDate.isAfter(now) ? startDate : now;
     final isRecurring = _order.frequency != FrequencyType.oneTime;
+    // Cap projected sessions to end of the month in which the order starts
+    // (effectiveStart month). This handles both:
+    //  - Orders starting this month → shows remainder of current month
+    //  - Orders starting next month → shows their first full month
+    // If order.endDate is earlier than that, use endDate instead.
+    final endOfStartMonth = DateTime(
+      effectiveStart.year,
+      effectiveStart.month + 1,
+      0,
+    );
     final horizonDate =
-        _order.endDate ?? DateTime(now.year, now.month + 3, now.day);
+        _order.endDate != null && _order.endDate!.isBefore(endOfStartMonth)
+        ? _order.endDate!
+        : endOfStartMonth;
 
     for (final entry in _order.dayEntries) {
       // Find first matching weekday on/after effectiveStart
