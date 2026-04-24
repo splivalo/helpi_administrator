@@ -253,14 +253,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               widget.localeNotifier.setLocale(v);
                             }
                           },
-                          items: const [
+                          items: [
                             DropdownMenuItem(
                               value: 'HR',
-                              child: Text('Hrvatski'),
+                              child: Text(AppStrings.langHr),
                             ),
                             DropdownMenuItem(
                               value: 'EN',
-                              child: Text('English'),
+                              child: Text(AppStrings.langEn),
                             ),
                           ],
                         ),

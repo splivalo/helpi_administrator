@@ -1392,7 +1392,6 @@ class AdminApiService {
         'validFrom': validFrom,
         'validUntil': validUntil,
       };
-      debugPrint('[createCoupon] payload: $payload');
       final response = await _api.post(ApiEndpoints.coupons, data: payload);
       return ApiResult.ok(response.data as Map<String, dynamic>);
     } on DioException catch (e) {

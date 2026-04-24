@@ -42,6 +42,8 @@ class AppStrings {
       'settingsStudentRates': 'Satnica',
       'settingsEarnings': 'Troškovi',
       'settingsLanguage': 'Jezik',
+      'langHr': 'Hrvatski',
+      'langEn': 'Engleski',
       'settingsTheme': 'Tema',
       'settingsPreferences': 'Preferencije',
       'settingsConfiguration': 'Konfiguracija',
@@ -632,6 +634,8 @@ class AppStrings {
       'settingsStudentRates': 'Rates',
       'settingsEarnings': 'Costs',
       'settingsLanguage': 'Language',
+      'langHr': 'Croatian',
+      'langEn': 'English',
       'settingsTheme': 'Theme',
       'settingsPreferences': 'Preferences',
       'settingsConfiguration': 'Configuration',
@@ -1774,6 +1778,8 @@ class AppStrings {
   static String get settingsStudentRates => _t('settingsStudentRates');
   static String get settingsEarnings => _t('settingsEarnings');
   static String get settingsLanguage => _t('settingsLanguage');
+  static String get langHr => _t('langHr');
+  static String get langEn => _t('langEn');
   static String get settingsTheme => _t('settingsTheme');
   static String get settingsPreferences => _t('settingsPreferences');
   static String get settingsConfiguration => _t('settingsConfiguration');

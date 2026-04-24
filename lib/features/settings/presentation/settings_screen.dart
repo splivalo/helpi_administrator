@@ -937,9 +937,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     DropdownButtonFormField<String>(
                       value: AppStrings.currentLocale,
                       isExpanded: true,
-                      items: const [
-                        DropdownMenuItem(value: 'hr', child: Text('Hrvatski')),
-                        DropdownMenuItem(value: 'en', child: Text('English')),
+                      items: [
+                        DropdownMenuItem(value: 'hr', child: Text(AppStrings.langHr)),
+                        DropdownMenuItem(value: 'en', child: Text(AppStrings.langEn)),
                       ],
                       onChanged: (v) {
                         if (v != null) {
