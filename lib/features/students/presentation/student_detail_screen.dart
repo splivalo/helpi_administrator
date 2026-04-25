@@ -108,15 +108,24 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
         ..sort((a, b) => a.dayOfWeek.compareTo(b.dayOfWeek));
       setState(() {
         _availability = slots;
-        // Rebuild _student with real availability so matching/preview use it
+        // Rebuild _student with real availability so matching/preview use it.
+        // IMPORTANT: preserve ALL fields including contactId, facultyId,
+        // googlePlaceId etc. — omitting them causes contactId to become null
+        // which silently skips updateContactInfo in EditStudentScreen.
         _student = StudentModel(
           id: _student.id,
+          contactId: _student.contactId,
+          facultyId: _student.facultyId,
+          googlePlaceId: _student.googlePlaceId,
+          profileImageUrl: _student.profileImageUrl,
           firstName: _student.firstName,
           lastName: _student.lastName,
           email: _student.email,
           phone: _student.phone,
           address: _student.address,
           city: _student.city,
+          latitude: _student.latitude,
+          longitude: _student.longitude,
           faculty: _student.faculty,
           dateOfBirth: _student.dateOfBirth,
           gender: _student.gender,
@@ -136,6 +145,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           availability: slots,
           hourlyRate: _student.hourlyRate,
           sundayHourlyRate: _student.sundayHourlyRate,
+          previousJobsWithSenior: _student.previousJobsWithSenior,
         );
       });
     }

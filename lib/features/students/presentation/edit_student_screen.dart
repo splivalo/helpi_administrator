@@ -7,7 +7,6 @@ import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/models/faculty.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
-import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/core/utils/formatters.dart';
 import 'package:helpi_admin/core/widgets/address_autocomplete_field.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
@@ -61,8 +60,10 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
     _phoneCtrl = TextEditingController(text: s.phone);
     _addressCtrl = TextEditingController(text: s.address);
     _gender = s.gender;
-    _dateOfBirth = s.dateOfBirth;
-    _selectedFaculty = Faculty.byAcronym(s.faculty);
+    _dateOfBirth = s.dateOfBirth.year >= 1900 ? s.dateOfBirth : null;
+    _selectedFaculty =
+        (s.facultyId != null ? Faculty.byId(s.facultyId!) : null) ??
+        Faculty.byFullName(s.faculty);
 
     _days = List.generate(7, (i) {
       final dayOfWeek = i + 1;
@@ -152,6 +153,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
             label: AppStrings.studentDateOfBirth,
             value: _dateOfBirth,
             onChanged: (d) => setState(() => _dateOfBirth = d),
+            defaultYear: 2000,
           ),
           const SizedBox(height: 12),
           // ── Fakultet ──
@@ -237,39 +239,41 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
           if (widget.isModal)
             Align(
               alignment: Alignment.centerRight,
-              child: _saving
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : ActionChipButton(
-                      icon: Icons.check,
-                      label: AppStrings.save,
-                      color: HelpiTheme.accent,
-                      size: ActionChipButtonSize.medium,
-                      onTap: _onSave,
-                    ),
+              child: ActionChipButton(
+                icon: Icons.check,
+                label: _saving ? AppStrings.saving : AppStrings.save,
+                color: HelpiTheme.accent,
+                size: ActionChipButtonSize.medium,
+                onTap: _saving ? () {} : _onSave,
+                loading: _saving,
+              ),
             )
           else
             SizedBox(
               width: double.infinity,
               height: 48,
-              child: _saving
-                  ? const Center(child: CircularProgressIndicator())
-                  : FilledButton.icon(
-                      onPressed: _onSave,
-                      icon: const Icon(Icons.check, size: 20),
-                      label: Text(AppStrings.save),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: HelpiTheme.accent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            HelpiTheme.buttonRadius,
-                          ),
+              child: FilledButton.icon(
+                onPressed: _saving ? null : _onSave,
+                icon: _saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
                         ),
-                      ),
+                      )
+                    : const Icon(Icons.check, size: 20),
+                label: Text(_saving ? AppStrings.saving : AppStrings.save),
+                style: FilledButton.styleFrom(
+                  backgroundColor: HelpiTheme.accent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      HelpiTheme.buttonRadius,
                     ),
+                  ),
+                ),
+              ),
             ),
           const SizedBox(height: 32),
         ],
@@ -388,20 +392,17 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
 
     // 2. Update faculty if changed
     if (studentId != null && _selectedFaculty != null) {
-      final currentFaculty = Faculty.byAcronym(widget.student.faculty);
-      if (currentFaculty?.acronym != _selectedFaculty!.acronym) {
-        final facIdx = Faculty.all.indexOf(_selectedFaculty!);
-        if (facIdx >= 0) {
-          final result = await api.updateStudentFaculty(
-            studentId: studentId,
-            facultyId: facIdx + 1,
-          );
-          if (!mounted) return;
-          if (!result.success) {
-            setState(() => _saving = false);
-            showErrorSnack(context, result.error ?? 'Error');
-            return;
-          }
+      final currentFacultyId = widget.student.facultyId;
+      if (currentFacultyId != _selectedFaculty!.id) {
+        final result = await api.updateStudentFaculty(
+          studentId: studentId,
+          facultyId: _selectedFaculty!.id,
+        );
+        if (!mounted) return;
+        if (!result.success) {
+          setState(() => _saving = false);
+          showErrorSnack(context, result.error ?? 'Error');
+          return;
         }
       }
     }
@@ -431,19 +432,31 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen>
       }
     }
 
-    // 4. Refresh all data from backend
-    await DataLoader.loadAll(ref: ref);
+    // 4. Refresh students from backend (targeted — no need to reload all data)
+    final sResult = await api.getStudents();
     if (!mounted) return;
+    if (sResult.success && sResult.data != null) {
+      AppData.students
+        ..clear()
+        ..addAll(sResult.data!);
+      ref.read(studentsProvider.notifier).setAll(sResult.data!);
+    }
 
     final refreshed = ref
         .read(studentsProvider)
         .where((s) => s.id == widget.student.id)
         .firstOrNull;
 
+    // Patch dateOfBirth locally — backend may return default 0001-01-01
+    // until the next GET reloads from DB. This ensures the UI shows what was saved.
+    final patched = (refreshed ?? widget.student).withDateOfBirth(
+      _dateOfBirth!,
+    );
+
     setState(() => _saving = false);
 
     showSuccessSnack(context, AppStrings.editStudentSuccess);
-    Navigator.pop(context, refreshed ?? widget.student);
+    Navigator.pop(context, patched);
   }
 }
 

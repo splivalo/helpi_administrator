@@ -219,6 +219,40 @@ class SeniorModel {
   String get contactName => hasOrderer ? ordererFullName : fullName;
   String get contactPhone => hasOrderer ? (ordererPhone ?? phone) : phone;
   String get contactEmail => hasOrderer ? (ordererEmail ?? email) : email;
+
+  SeniorModel withDateOfBirth(DateTime dob) => SeniorModel(
+    id: id,
+    userId: userId,
+    contactId: contactId,
+    ordererContactId: ordererContactId,
+    relationship: relationship,
+    googlePlaceId: googlePlaceId,
+    ordererGooglePlaceId: ordererGooglePlaceId,
+    profileImageUrl: profileImageUrl,
+    firstName: firstName,
+    lastName: lastName,
+    email: email,
+    phone: phone,
+    address: address,
+    city: city,
+    latitude: latitude,
+    longitude: longitude,
+    gender: gender,
+    dateOfBirth: dob,
+    isActive: isActive,
+    isArchived: isArchived,
+    isSuspended: isSuspended,
+    suspensionReason: suspensionReason,
+    createdAt: createdAt,
+    ordererFirstName: ordererFirstName,
+    ordererLastName: ordererLastName,
+    ordererEmail: ordererEmail,
+    ordererPhone: ordererPhone,
+    ordererAddress: ordererAddress,
+    ordererGender: ordererGender,
+    ordererDateOfBirth: ordererDateOfBirth,
+    creditCards: creditCards,
+  );
 }
 
 class StudentModel {
@@ -294,6 +328,42 @@ class StudentModel {
 
   String get fullName => '$firstName $lastName';
   int get totalJobs => completedJobs + cancelledJobs;
+
+  StudentModel withDateOfBirth(DateTime dob) => StudentModel(
+    id: id,
+    contactId: contactId,
+    facultyId: facultyId,
+    googlePlaceId: googlePlaceId,
+    profileImageUrl: profileImageUrl,
+    firstName: firstName,
+    lastName: lastName,
+    email: email,
+    phone: phone,
+    address: address,
+    city: city,
+    latitude: latitude,
+    longitude: longitude,
+    faculty: faculty,
+    dateOfBirth: dob,
+    gender: gender,
+    avgRating: avgRating,
+    totalReviews: totalReviews,
+    completedJobs: completedJobs,
+    cancelledJobs: cancelledJobs,
+    isVerified: isVerified,
+    isActive: isActive,
+    isArchived: isArchived,
+    isSuspended: isSuspended,
+    suspensionReason: suspensionReason,
+    createdAt: createdAt,
+    contractStatus: contractStatus,
+    contractStartDate: contractStartDate,
+    contractExpiryDate: contractExpiryDate,
+    availability: availability,
+    hourlyRate: hourlyRate,
+    sundayHourlyRate: sundayHourlyRate,
+    previousJobsWithSenior: previousJobsWithSenior,
+  );
 }
 
 class DayAvailability {

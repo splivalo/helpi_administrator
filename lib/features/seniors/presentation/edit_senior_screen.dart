@@ -6,7 +6,6 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
-import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/core/widgets/address_autocomplete_field.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 import 'package:helpi_admin/features/seniors/presentation/senior_form_helpers.dart';
@@ -70,7 +69,7 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
     _phoneCtrl = TextEditingController(text: s.phone);
     _addressCtrl = TextEditingController(text: s.address);
     _gender = s.gender;
-    _dateOfBirth = s.dateOfBirth;
+    _dateOfBirth = s.dateOfBirth.year >= 1900 ? s.dateOfBirth : null;
 
     _seniorGooglePlaceId = s.googlePlaceId ?? 'admin-manual-entry';
     _ordererGooglePlaceId = s.ordererGooglePlaceId ?? 'admin-manual-entry';
@@ -484,16 +483,26 @@ class _EditSeniorScreenState extends ConsumerState<EditSeniorScreen>
       }
     }
 
-    // 5. Refresh data from backend
-    await DataLoader.loadAll(ref: ref);
+    // 5. Refresh seniors from backend (targeted — no need to reload all data)
+    final sResult = await api.getSeniors();
     if (!mounted) return;
+    if (sResult.success && sResult.data != null) {
+      AppData.seniors
+        ..clear()
+        ..addAll(sResult.data!);
+      ref.read(seniorsProvider.notifier).setAll(sResult.data!);
+    }
 
     final refreshed = ref
         .read(seniorsProvider)
         .where((s) => s.id == widget.senior.id)
         .firstOrNull;
 
+    // Patch dateOfBirth locally — backend may return default 0001-01-01
+    // until the next GET reloads from DB. This ensures the UI shows what was saved.
+    final patched = (refreshed ?? widget.senior).withDateOfBirth(_dateOfBirth!);
+
     showSuccessSnack(context, AppStrings.editSeniorSuccess);
-    Navigator.pop(context, refreshed ?? widget.senior);
+    Navigator.pop(context, patched);
   }
 }

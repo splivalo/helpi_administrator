@@ -1,6 +1,6 @@
 ﻿# Helpi Admin - Progress
 
-> Last updated: 2026-04-24
+> Last updated: 2026-05-13
 
 ## Overall Status
 
@@ -24,6 +24,21 @@ Frontend implementation is functionally complete for core admin operations.
 - Localization and responsive shell support
 - Coupon management UI and backend integration
 - Sponsor system fully implemented and documented
+
+## 2026-05-13 - Admin Student/Senior Edit Bug Fixes
+
+- ✅ **Faculty dropdown fixed**: `Faculty.byFullName()` fallback added; all 34 faculties with correct backend IDs (1-34)
+- ✅ **Wrong faculty saved fixed**: `_selectedFaculty!.id` used directly (was using `indexOf+1`)
+- ✅ **contactId null bug fixed**: `_loadAvailability()` in `student_detail_screen.dart` now preserves all StudentModel fields
+- ✅ **Slow save fixed**: `DataLoader.loadAll()` → targeted `getStudents()` / `getSeniors()` (1 call vs 5)
+- ✅ **Save button fixed**: matches senior pattern with loading state
+- ✅ **DatePicker crash fixed (Flutter Web)**: `GestureDetector` → `InkWell`, `initialDate` guarded; separate `defaultYear` param (1950 seniors, 2000 students)
+- ✅ **DateOfBirth persistence fixed**:
+  - Backend returns `"0001-01-01T00:00:00"` for unset dates → new `_parseDateOfBirth()` treats pre-1900 as invalid (returns `DateTime(1800,1,1)`)
+  - `initState` guard: `year >= 1900 ? value : null` → displays "Odaberi datum" for invalid dates
+  - `buildDatePicker` display guard: `year >= 1900` check prevents showing "01.01.1800"
+  - Post-save patch: `withDateOfBirth()` method ensures UI shows saved date immediately (no wait for backend refresh)
+- ✅ All changes: **0 errors → 0 errors maintained**
 
 ## 2026-04-24 - Security & Code Quality
 

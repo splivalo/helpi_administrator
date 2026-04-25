@@ -1555,7 +1555,7 @@ class AdminApiService {
       latitude: (contact?['latitude'] as num?)?.toDouble(),
       longitude: (contact?['longitude'] as num?)?.toDouble(),
       faculty: _extractFacultyName(json['faculty']),
-      dateOfBirth: _parseDate(contact?['dateOfBirth']),
+      dateOfBirth: _parseDateOfBirth(contact?['dateOfBirth']),
       gender: _mapGender(contact?['gender']),
       avgRating: _toDouble(json['averageRating']),
       totalReviews: json['totalReviews'] as int? ?? 0,
@@ -1628,7 +1628,7 @@ class AdminApiService {
       latitude: (contact?['latitude'] as num?)?.toDouble(),
       longitude: (contact?['longitude'] as num?)?.toDouble(),
       gender: _mapGender(contact?['gender']),
-      dateOfBirth: _parseDate(contact?['dateOfBirth']),
+      dateOfBirth: _parseDateOfBirth(contact?['dateOfBirth']),
       createdAt: _parseDateTime(contact?['createdAt']),
       isActive: json['deletedAt'] == null,
       isArchived: json['deletedAt'] != null,
@@ -1990,9 +1990,25 @@ class AdminApiService {
     return DateTime.now();
   }
 
+  /// Parse dateOfBirth specifically — treats pre-1900 dates (e.g. 0001-01-01)
+  /// from backend as invalid and returns a sentinel value (1800-01-01).
+  DateTime _parseDateOfBirth(dynamic v) {
+    if (v == null) return DateTime(1800, 1, 1);
+    if (v is String) {
+      final parsed = DateTime.tryParse(v);
+      // Backend returns "0001-01-01T00:00:00" for unset dates
+      if (parsed != null && parsed.year >= 1900) return parsed;
+    }
+    return DateTime(1800, 1, 1);
+  }
+
   DateTime? _parseNullableDate(dynamic v) {
     if (v == null) return null;
-    if (v is String) return DateTime.tryParse(v);
+    if (v is String) {
+      final parsed = DateTime.tryParse(v);
+      // Treat pre-1900 dates (e.g. 0001-01-01 from backend default) as null
+      if (parsed != null && parsed.year >= 1900) return parsed;
+    }
     return null;
   }
 

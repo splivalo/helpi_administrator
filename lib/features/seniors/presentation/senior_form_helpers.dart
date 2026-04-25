@@ -90,21 +90,29 @@ mixin SeniorFormHelpers<T extends StatefulWidget> on State<T> {
     required String label,
     required DateTime? value,
     required ValueChanged<DateTime> onChanged,
+    int defaultYear = 1950,
   }) {
-    return GestureDetector(
+    final today = DateTime.now();
+    final firstDate = DateTime(1900);
+    final lastDate = DateTime(today.year, today.month, today.day);
+    final safeInitial =
+        (value != null &&
+            !value.isBefore(firstDate) &&
+            !value.isAfter(lastDate))
+        ? value
+        : DateTime(defaultYear, 1, 1);
+    return InkWell(
+      borderRadius: BorderRadius.circular(HelpiTheme.cardRadius),
       onTap: () async {
         final picked = await showDatePicker(
           context: context,
-          initialDate: value ?? DateTime(1945, 1, 1),
-          firstDate: DateTime(1900),
-          lastDate: DateTime.now(),
+          initialDate: safeInitial,
+          firstDate: firstDate,
+          lastDate: lastDate,
           confirmText: AppStrings.ok,
           cancelText: AppStrings.cancel,
         );
-        if (picked != null) {
-          if (!context.mounted) return;
-          onChanged(picked);
-        }
+        if (picked != null && context.mounted) onChanged(picked);
       },
       child: InputDecorator(
         decoration: InputDecoration(
@@ -119,7 +127,9 @@ mixin SeniorFormHelpers<T extends StatefulWidget> on State<T> {
           suffixIcon: const Icon(Icons.calendar_today, size: 20),
         ),
         child: Text(
-          value != null ? formatDateDot(value) : AppStrings.selectDate,
+          (value != null && value.year >= 1900)
+              ? formatDateDot(value)
+              : AppStrings.selectDate,
           style: TextStyle(
             fontSize: 14,
             color: value != null
