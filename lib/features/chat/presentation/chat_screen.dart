@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
+import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/network/token_storage.dart';
 import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/widgets/helpi_app_bar.dart';
@@ -144,7 +145,48 @@ class _ChatDetailPage extends ConsumerWidget {
 // ═══════════════════════════════════════════════════════════════
 //  CHAT ROOM LIST
 // ═══════════════════════════════════════════════════════════════
-class _ChatRoomList extends ConsumerWidget {
+
+/// Represents a row in the chat list — either an existing room or a user
+/// with no conversation yet.
+class _ChatEntry {
+  _ChatEntry.fromRoom({
+    required this.room,
+    required this.name,
+    required this.isSenior,
+    required this.otherUserId,
+    this.senior,
+    this.student,
+  });
+
+  _ChatEntry.fromSenior(SeniorModel s)
+    : room = null,
+      // When there's an orderer, we chat with them (they manage the phone).
+      // Display their name; add "za <seniorName>" as subtitle context.
+      name = s.hasOrderer
+          ? '${s.ordererFirstName ?? ''} ${s.ordererLastName ?? ''}'.trim()
+          : '${s.firstName} ${s.lastName}',
+      isSenior = true,
+      otherUserId = s.userId ?? 0,
+      senior = s,
+      student = null;
+
+  _ChatEntry.fromStudent(StudentModel s)
+    : room = null,
+      name = '${s.firstName} ${s.lastName}',
+      isSenior = false,
+      otherUserId = int.tryParse(s.id) ?? 0,
+      senior = null,
+      student = s;
+
+  final ApiChatRoom? room;
+  final String name;
+  final bool isSenior;
+  final int otherUserId;
+  final SeniorModel? senior;
+  final StudentModel? student;
+}
+
+class _ChatRoomList extends ConsumerStatefulWidget {
   const _ChatRoomList({
     required this.adminUserId,
     required this.selectedRoomId,
@@ -156,172 +198,323 @@ class _ChatRoomList extends ConsumerWidget {
   final ValueChanged<ApiChatRoom> onRoomSelected;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ChatRoomList> createState() => _ChatRoomListState();
+}
+
+class _ChatRoomListState extends ConsumerState<_ChatRoomList> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+  bool _startingConversation = false;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _openOrCreateRoom(int otherUserId) async {
+    setState(() => _startingConversation = true);
+    try {
+      final room = await ChatApiService().getOrCreateRoom(otherUserId);
+      if (room == null || !mounted) return;
+      ref.read(adminChatRoomsProvider.notifier).addRoom(room);
+      widget.onRoomSelected(room);
+    } finally {
+      if (mounted) setState(() => _startingConversation = false);
+    }
+  }
+
+  void _navigateToProfile(BuildContext ctx, _ChatEntry entry) {
+    if (entry.isSenior) {
+      final senior =
+          entry.senior ??
+          ref
+              .read(seniorsProvider)
+              .where((s) => s.userId == entry.otherUserId)
+              .firstOrNull;
+      if (senior == null) return;
+      final orders = ref
+          .read(ordersProvider)
+          .where((o) => o.senior.id == senior.id)
+          .toList();
+      Navigator.push(
+        ctx,
+        MaterialPageRoute(
+          builder: (_) => SeniorDetailScreen(senior: senior, orders: orders),
+        ),
+      );
+    } else {
+      final student =
+          entry.student ??
+          ref
+              .read(studentsProvider)
+              .where((s) => s.id == entry.otherUserId.toString())
+              .firstOrNull;
+      if (student == null) return;
+      Navigator.push(
+        ctx,
+        MaterialPageRoute(
+          builder: (_) => StudentDetailScreen(student: student),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final rooms = ref.watch(adminChatRoomsProvider);
+    final seniors = ref.watch(seniorsProvider);
+    final students = ref.watch(studentsProvider);
 
-    return ListView.separated(
-      padding: EdgeInsets.zero,
-      itemCount: rooms.length,
-      separatorBuilder: (context, index) => Divider(
-        height: 1,
-        indent: 16,
-        endIndent: 16,
-        color: HelpiColors.of(context).border,
-      ),
-      itemBuilder: (ctx, i) {
-        final room = rooms[i];
-        final isSelected = room.id == selectedRoomId;
-        final unread = room.unreadCount;
-        final otherRole = room.otherRole(adminUserId);
-        final isSenior = otherRole == 'customer';
+    // Build set of userIds that already have a room
+    final roomUserIds = rooms
+        .map((r) => r.otherUserId(widget.adminUserId))
+        .toSet();
 
-        return InkWell(
-          onTap: () => onRoomSelected(room),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: isSelected
-                ? HelpiColors.of(context).pastelTeal.withValues(alpha: 0.3)
-                : null,
-            child: Row(
-              children: [
-                // ── Avatar with icon — tap navigates to profile ──
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    final participantUserId = room.otherUserId(adminUserId);
-                    if (isSenior) {
-                      final senior = ref
-                          .read(seniorsProvider)
-                          .where((s) => s.userId == participantUserId)
-                          .firstOrNull;
-                      if (senior == null) return;
-                      final orders = ref
-                          .read(ordersProvider)
-                          .where((o) => o.senior.id == senior.id)
-                          .toList();
-                      Navigator.push(
-                        ctx,
-                        MaterialPageRoute(
-                          builder: (_) => SeniorDetailScreen(
-                            senior: senior,
-                            orders: orders,
-                          ),
-                        ),
-                      );
-                    } else {
-                      final student = ref
-                          .read(studentsProvider)
-                          .where((s) => s.id == participantUserId.toString())
-                          .firstOrNull;
-                      if (student == null) return;
-                      Navigator.push(
-                        ctx,
-                        MaterialPageRoute(
-                          builder: (_) => StudentDetailScreen(student: student),
-                        ),
-                      );
-                    }
-                  },
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: HelpiColors.of(context).pastelTeal,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isSenior ? Icons.elderly : Icons.school,
-                      size: 18,
-                      color: HelpiTheme.accent,
-                    ),
-                  ),
+    // Build combined list: existing rooms first, then users without rooms
+    final entries = <_ChatEntry>[
+      for (final r in rooms)
+        _ChatEntry.fromRoom(
+          room: r,
+          name: r.otherName(widget.adminUserId),
+          isSenior: r.otherRole(widget.adminUserId) == 'customer',
+          otherUserId: r.otherUserId(widget.adminUserId),
+          senior: seniors
+              .where((s) => s.userId == r.otherUserId(widget.adminUserId))
+              .firstOrNull,
+          student: students
+              .where(
+                (s) => s.id == r.otherUserId(widget.adminUserId).toString(),
+              )
+              .firstOrNull,
+        ),
+      for (final s in seniors)
+        if (s.userId != null && !roomUserIds.contains(s.userId))
+          _ChatEntry.fromSenior(s),
+      for (final s in students)
+        if (!roomUserIds.contains(int.tryParse(s.id) ?? -1))
+          _ChatEntry.fromStudent(s),
+    ];
+
+    // Filter by search query — also matches senior's own name when orderer exists
+    final filtered = _query.isEmpty
+        ? entries
+        : entries.where((e) {
+            final q = _query.toLowerCase();
+            if (e.name.toLowerCase().contains(q)) return true;
+            // When orderer manages the account, also search by senior's full name
+            if (e.senior?.hasOrderer == true) {
+              return e.senior!.fullName.toLowerCase().contains(q);
+            }
+            return false;
+          }).toList();
+
+    return Column(
+      children: [
+        // ── Search bar ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+          child: TextField(
+            controller: _searchCtrl,
+            onChanged: (v) => setState(() => _query = v),
+            decoration: InputDecoration(
+              hintText: AppStrings.chatSearchHint,
+              prefixIcon: const Icon(Icons.search, size: 20),
+              suffixIcon: _query.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 18),
+                      onPressed: () {
+                        _searchCtrl.clear();
+                        setState(() => _query = '');
+                      },
+                    )
+                  : null,
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide(color: HelpiColors.of(context).border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: BorderSide(color: HelpiColors.of(context).border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(24),
+                borderSide: const BorderSide(
+                  color: HelpiTheme.accent,
+                  width: 1.5,
                 ),
-                const SizedBox(width: 10),
-
-                // ── Name + last message ──
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        room.otherName(adminUserId),
-                        style: TextStyle(
-                          fontWeight: unread > 0
-                              ? FontWeight.w700
-                              : FontWeight.w500,
-                          fontSize: 15,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        room.lastMessageText ?? '',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: HelpiColors.of(context).textSecondary,
-                          fontWeight: unread > 0
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(width: 8),
-
-                // ── Date + Unread badge ──
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _formatTime(room.lastMessageAt ?? room.createdAt),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: HelpiColors.of(context).textSecondary,
-                      ),
-                    ),
-                    if (unread > 0) ...[
-                      const SizedBox(height: 4),
-                      Container(
-                        width: 22,
-                        height: 22,
-                        decoration: const BoxDecoration(
-                          color: HelpiTheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            '$unread',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
-        );
-      },
+        ),
+        if (_startingConversation)
+          const LinearProgressIndicator(minHeight: 2, color: HelpiTheme.accent),
+        // ── List ──
+        Expanded(
+          child: ListView.separated(
+            padding: EdgeInsets.zero,
+            itemCount: filtered.length,
+            separatorBuilder: (_, __) => Divider(
+              height: 1,
+              indent: 16,
+              endIndent: 16,
+              color: HelpiColors.of(context).border,
+            ),
+            itemBuilder: (ctx, i) {
+              final entry = filtered[i];
+              final hasRoom = entry.room != null;
+              final isSelected =
+                  hasRoom && entry.room!.id == widget.selectedRoomId;
+              final unread = entry.room?.unreadCount ?? 0;
+
+              return InkWell(
+                onTap: _startingConversation
+                    ? null
+                    : () {
+                        if (hasRoom) {
+                          widget.onRoomSelected(entry.room!);
+                        } else {
+                          _openOrCreateRoom(entry.otherUserId);
+                        }
+                      },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  color: isSelected
+                      ? HelpiColors.of(
+                          context,
+                        ).pastelTeal.withValues(alpha: 0.3)
+                      : null,
+                  child: Row(
+                    children: [
+                      // ── Avatar ──
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => _navigateToProfile(ctx, entry),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: HelpiColors.of(context).pastelTeal,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            entry.isSenior ? Icons.elderly : Icons.school,
+                            size: 18,
+                            color: HelpiTheme.accent,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // ── Name + subtitle ──
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              entry.name,
+                              style: TextStyle(
+                                fontWeight: unread > 0
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            // If orderer → show "za <seniorName>"
+                            if (entry.senior?.hasOrderer == true)
+                              Text(
+                                'za ${entry.senior!.fullName}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: HelpiColors.of(context).textSecondary,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            else if (entry.room?.lastMessageText != null)
+                              Text(
+                                entry.room!.lastMessageText!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: HelpiColors.of(context).textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            else if (!hasRoom)
+                              Text(
+                                AppStrings.chatNoConversationYet,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: HelpiColors.of(context).textSecondary,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      // ── Date + unread badge ──
+                      if (entry.room?.lastMessageAt != null) ...[
+                        const SizedBox(width: 6),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              _formatDate(entry.room!.lastMessageAt!),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: HelpiColors.of(context).textSecondary,
+                              ),
+                            ),
+                            if (unread > 0)
+                              Container(
+                                margin: const EdgeInsets.only(top: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: HelpiTheme.accent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '$unread',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
-  String _formatTime(DateTime dt) {
+  String _formatDate(DateTime dt) {
     final now = DateTime.now();
-    if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
-      return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    final local = dt.toLocal();
+    if (local.year == now.year &&
+        local.month == now.month &&
+        local.day == now.day) {
+      return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
     }
-    return '${dt.day}.${dt.month}.';
+    return '${local.day}.${local.month}.';
   }
 }
 

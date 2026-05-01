@@ -169,6 +169,11 @@ class AdminChatRoomsNotifier extends StateNotifier<List<ApiChatRoom>> {
         if (r.id == roomId) ...[r..unreadCount = 0] else r,
     ];
   }
+
+  void addRoom(ApiChatRoom room) {
+    if (state.any((r) => r.id == room.id)) return;
+    state = [room, ...state];
+  }
 }
 
 final adminChatRoomsProvider =

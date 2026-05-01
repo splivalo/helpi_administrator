@@ -429,6 +429,8 @@ class AppStrings {
       'chatSelectConversation': 'Odaberite razgovor',
       'chatNoMessages': 'Nema poruka',
       'chatInputHint': 'Upiši poruku...',
+      'chatSearchHint': 'Pretraži korisnike...',
+      'chatNoConversationYet': 'Još nema razgovora',
 
       // ── Seniori ───────────────────────────────
       'seniorsTitle': 'Seniori',
@@ -1019,6 +1021,8 @@ class AppStrings {
       'chatSelectConversation': 'Select a conversation',
       'chatNoMessages': 'No messages',
       'chatInputHint': 'Type a message...',
+      'chatSearchHint': 'Search users...',
+      'chatNoConversationYet': 'No conversation yet',
 
       // ── Seniori ───────────────────────────────
       'seniorsTitle': 'Seniors',
@@ -1578,6 +1582,8 @@ class AppStrings {
   static String get chatSelectConversation => _t('chatSelectConversation');
   static String get chatNoMessages => _t('chatNoMessages');
   static String get chatInputHint => _t('chatInputHint');
+  static String get chatSearchHint => _t('chatSearchHint');
+  static String get chatNoConversationYet => _t('chatNoConversationYet');
 
   // ── Seniori ──
   static String get seniorsTitle => _t('seniorsTitle');

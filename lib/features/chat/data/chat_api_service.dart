@@ -179,4 +179,18 @@ class ChatApiService {
       return 0;
     }
   }
+
+  /// Creates or gets an existing room with [otherUserId].
+  Future<ApiChatRoom?> getOrCreateRoom(int otherUserId) async {
+    try {
+      final response = await _client.post(
+        ApiEndpoints.chatRooms,
+        data: {'otherUserId': otherUserId},
+      );
+      return ApiChatRoom.fromJson(response.data as Map<String, dynamic>);
+    } catch (e) {
+      debugPrint('[AdminChatApi] getOrCreateRoom error: $e');
+      return null;
+    }
+  }
 }
