@@ -179,6 +179,14 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
   List<StudentModel> _filteredStudents(_StudentFilter filter) {
     var students = ref.read(studentsProvider).toList();
 
+    // Pre-build lookup: studentId → orders (izbjegava O(studenti×narudžbe) po buildu)
+    final allOrders = ref.read(ordersProvider);
+    final ordersByStudentId = <String, List<OrderModel>>{};
+    for (final o in allOrders) {
+      final sid = o.student?.id;
+      if (sid != null) (ordersByStudentId[sid] ??= []).add(o);
+    }
+
     // Combined status + contract filter
     switch (filter) {
       case _StudentFilter.all:
@@ -231,13 +239,25 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
     if (_activityPeriod != null) {
       final (from, to) = _dateRangeFor(_activityPeriod!);
       if (_activityWorked == true) {
-        students = students
-            .where((s) => _jobsInRange(s, from, to) > 0)
-            .toList();
+        students = students.where((s) {
+          final orders = ordersByStudentId[s.id] ?? const [];
+          return orders.any(
+            (o) =>
+                o.status == OrderStatus.completed &&
+                !o.scheduledDate.isBefore(from) &&
+                !o.scheduledDate.isAfter(to),
+          );
+        }).toList();
       } else if (_activityWorked == false) {
-        students = students
-            .where((s) => _jobsInRange(s, from, to) == 0)
-            .toList();
+        students = students.where((s) {
+          final orders = ordersByStudentId[s.id] ?? const [];
+          return !orders.any(
+            (o) =>
+                o.status == OrderStatus.completed &&
+                !o.scheduledDate.isBefore(from) &&
+                !o.scheduledDate.isAfter(to),
+          );
+        }).toList();
       }
     }
 
@@ -298,7 +318,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
     // Worked with specific senior
     if (_seniorFilter != null) {
       students = students.where((s) {
-        return _seniorIdsForStudent(s).contains(_seniorFilter);
+        final orders = ordersByStudentId[s.id] ?? const [];
+        return orders.any((o) => o.senior.id == _seniorFilter);
       }).toList();
     }
 
