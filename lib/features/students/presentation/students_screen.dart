@@ -135,28 +135,6 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen>
     }
   }
 
-  // ── Jobs in a date range ──
-  int _jobsInRange(StudentModel student, DateTime from, DateTime to) {
-    final allOrders = ref.read(ordersProvider);
-    return allOrders
-        .where(
-          (o) =>
-              o.student?.id == student.id &&
-              o.status == OrderStatus.completed &&
-              !o.scheduledDate.isBefore(from) &&
-              !o.scheduledDate.isAfter(to),
-        )
-        .length;
-  }
-
-  Set<String> _seniorIdsForStudent(StudentModel student) {
-    final allOrders = ref.read(ordersProvider);
-    return allOrders
-        .where((o) => o.student?.id == student.id)
-        .map((o) => o.senior.id)
-        .toSet();
-  }
-
   // ── Check if availability slot fully covers the requested time range ──
   bool _matchesTimeRange(DayAvailability a) {
     final slotFromMin = a.from.hour * 60 + a.from.minute;

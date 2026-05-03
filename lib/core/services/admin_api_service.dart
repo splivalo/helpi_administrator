@@ -2085,4 +2085,37 @@ class AdminApiService {
     }
     return 'Greška: ${e.message ?? "nepoznata"}';
   }
+
+  // ── Google Calendar ──────────────────────────────────────────────────
+
+  Future<ApiResult<String>> getCalendarConnectUrl() async {
+    try {
+      final res = await _api.dio.get(
+        ApiEndpoints.googleCalendarConnectUrl,
+        queryParameters: {'lang': AppStrings.currentLocale},
+      );
+      final url = (res.data as Map<String, dynamic>)['url'] as String;
+      return ApiResult.ok(url);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<Map<String, dynamic>>> getCalendarStatus() async {
+    try {
+      final res = await _api.dio.get(ApiEndpoints.googleCalendarStatus);
+      return ApiResult.ok(res.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  Future<ApiResult<void>> disconnectCalendar() async {
+    try {
+      await _api.dio.delete(ApiEndpoints.googleCalendarDisconnect);
+      return ApiResult.ok(null);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
 }

@@ -87,6 +87,20 @@ class AppStrings {
       'sponsorDeleteLogoConfirm': 'Želiš li obrisati ovaj logotip?',
       'sponsorDeleteFailed': 'Brisanje logotipa nije uspjelo',
 
+      // ── Google Kalendar ────────────────────────────
+      'calendarTitle': 'Google Kalendar',
+      'calendarConnect': 'Poveži s Google Kalendarom',
+      'calendarDisconnect': 'Odspoji kalendar',
+      'calendarConnected': 'Povezano',
+      'calendarNotConnected': 'Nije spojeno',
+      'calendarConnecting': 'Otvaranje preglednika...',
+      'calendarConnectSuccess': 'Kalendar je spojen! Provjeri Google Kalendar.',
+      'calendarConnectFailed': 'Povezivanje nije uspjelo',
+      'calendarDisconnectSuccess': 'Kalendar odspojeni',
+      'calendarDisconnectFailed': 'Odspajanje nije uspjelo',
+      'calendarStatusLoading': 'Provjera statusa...',
+      'calendarConnectedAs': 'Spojeno kao',
+
       // ── Kuponi ────────────────────────────
       'couponsTitle': 'Kuponi',
       'couponNew': 'Novi kupon',
@@ -679,6 +693,20 @@ class AppStrings {
           'Deactivate sponsor before deleting the main logo.',
       'sponsorDeleteLogoConfirm': 'Do you want to delete this logo?',
       'sponsorDeleteFailed': 'Failed to delete logo',
+
+      // ── Google Calendar ────────────────────────────
+      'calendarTitle': 'Google Calendar',
+      'calendarConnect': 'Connect to Google Calendar',
+      'calendarDisconnect': 'Disconnect calendar',
+      'calendarConnected': 'Connected',
+      'calendarNotConnected': 'Not connected',
+      'calendarConnecting': 'Opening browser...',
+      'calendarConnectSuccess': 'Calendar connected! Check Google Calendar.',
+      'calendarConnectFailed': 'Connection failed',
+      'calendarDisconnectSuccess': 'Calendar disconnected',
+      'calendarDisconnectFailed': 'Failed to disconnect',
+      'calendarStatusLoading': 'Checking status...',
+      'calendarConnectedAs': 'Connected as',
 
       // ── Coupons ────────────────────────────
       'couponsTitle': 'Coupons',
@@ -1826,6 +1854,21 @@ class AppStrings {
   static String get sponsorDeleteLogoMsg => _t('sponsorDeleteLogoMsg');
   static String get sponsorDeleteLogoConfirm => _t('sponsorDeleteLogoConfirm');
   static String get sponsorDeleteFailed => _t('sponsorDeleteFailed');
+
+  // ── Google Kalendar ──
+  static String get calendarTitle => _t('calendarTitle');
+  static String get calendarConnect => _t('calendarConnect');
+  static String get calendarDisconnect => _t('calendarDisconnect');
+  static String get calendarConnected => _t('calendarConnected');
+  static String get calendarNotConnected => _t('calendarNotConnected');
+  static String get calendarConnecting => _t('calendarConnecting');
+  static String get calendarConnectSuccess => _t('calendarConnectSuccess');
+  static String get calendarConnectFailed => _t('calendarConnectFailed');
+  static String get calendarDisconnectSuccess =>
+      _t('calendarDisconnectSuccess');
+  static String get calendarDisconnectFailed => _t('calendarDisconnectFailed');
+  static String get calendarStatusLoading => _t('calendarStatusLoading');
+  static String get calendarConnectedAs => _t('calendarConnectedAs');
 
   // ── Kuponi ──
   static String get couponsTitle => _t('couponsTitle');

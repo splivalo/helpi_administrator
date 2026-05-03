@@ -163,4 +163,11 @@ class ApiEndpoints {
       '/api/coupons/my-coupons?seniorId=$seniorId';
   static String deactivateMyAssignment(int assignmentId) =>
       '/api/coupons/my-assignments/$assignmentId';
+
+  // Google Calendar
+  static const String googleCalendarConnectUrl =
+      '/api/google-calendar/connect-url';
+  static const String googleCalendarStatus = '/api/google-calendar/status';
+  static const String googleCalendarDisconnect =
+      '/api/google-calendar/disconnect';
 }

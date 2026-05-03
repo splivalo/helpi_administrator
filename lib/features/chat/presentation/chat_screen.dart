@@ -356,7 +356,7 @@ class _ChatRoomListState extends ConsumerState<_ChatRoomList> {
           child: ListView.separated(
             padding: EdgeInsets.zero,
             itemCount: filtered.length,
-            separatorBuilder: (_, __) => Divider(
+            separatorBuilder: (_, _) => Divider(
               height: 1,
               indent: 16,
               endIndent: 16,

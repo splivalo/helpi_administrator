@@ -1,4 +1,5 @@
 import 'package:file_selector/file_selector.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,6 +80,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _savingSponsor = false;
   bool _editingSponsor = false;
 
+  // ── Google Calendar ──
+  bool _calendarConnected = false;
+  String? _calendarEmail;
+  DateTime? _calendarConnectedAt;
+  bool _calendarLoading = true;
+  bool _calendarConnecting = false;
+  bool _calendarDisconnecting = false;
+
   // ── Rules section (Ograničenja) ──
   bool _editingRules = false;
   bool _savingRules = false;
@@ -95,6 +104,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     super.initState();
     _loadSettings();
     _loadSponsor();
+    _loadCalendarStatus();
   }
 
   @override
@@ -312,6 +322,81 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
     if (!mounted) return;
     setState(() => _sponsorLoading = false);
+  }
+
+  Future<void> _loadCalendarStatus() async {
+    setState(() => _calendarLoading = true);
+    final result = await _adminApi.getCalendarStatus();
+    if (!mounted) return;
+    if (result.success && result.data != null) {
+      final data = result.data!;
+      _calendarConnected = data['isConnected'] as bool? ?? false;
+      _calendarEmail = data['connectedEmail'] as String?;
+      final raw = data['connectedAt'] as String?;
+      _calendarConnectedAt = raw != null
+          ? DateTime.tryParse(raw)?.toLocal()
+          : null;
+    }
+    setState(() => _calendarLoading = false);
+  }
+
+  Future<void> _connectCalendar() async {
+    setState(() => _calendarConnecting = true);
+    final result = await _adminApi.getCalendarConnectUrl();
+    if (!mounted) return;
+    if (!result.success || result.data == null) {
+      setState(() => _calendarConnecting = false);
+      showErrorSnack(context, AppStrings.calendarConnectFailed);
+      return;
+    }
+    final uri = Uri.parse(result.data!);
+    bool launched = false;
+    try {
+      if (await canLaunchUrl(uri)) {
+        launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {
+      launched = false;
+    }
+    if (!mounted) return;
+    setState(() => _calendarConnecting = false);
+    if (!launched) {
+      showErrorSnack(context, AppStrings.calendarConnectFailed);
+      return;
+    }
+    // Record when we started waiting so we can ignore stale tokens
+    final pollStart = DateTime.now().toUtc();
+    setState(() => _calendarConnecting = true);
+    // Poll every 3s for up to 60s — only accept connection NEWER than pollStart
+    for (var i = 0; i < 20; i++) {
+      await Future.delayed(const Duration(seconds: 3));
+      if (!mounted) return;
+      await _loadCalendarStatus();
+      if (!mounted) return;
+      if (_calendarConnected &&
+          _calendarConnectedAt != null &&
+          _calendarConnectedAt!.toUtc().isAfter(pollStart)) {
+        setState(() => _calendarConnecting = false);
+        return;
+      }
+    }
+    setState(() => _calendarConnecting = false);
+  }
+
+  Future<void> _disconnectCalendar() async {
+    setState(() => _calendarDisconnecting = true);
+    final result = await _adminApi.disconnectCalendar();
+    if (!mounted) return;
+    setState(() => _calendarDisconnecting = false);
+    if (result.success) {
+      showSuccessSnack(context, AppStrings.calendarDisconnectSuccess);
+      await _loadCalendarStatus();
+    } else {
+      showErrorSnack(
+        context,
+        result.error ?? AppStrings.calendarDisconnectFailed,
+      );
+    }
   }
 
   Future<void> _saveSponsor() async {
@@ -926,6 +1011,60 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             ),
                           ],
                         ],
+                ),
+                const SizedBox(height: 10),
+
+                // ── Google Calendar ──
+                _sectionCard(
+                  icon: Icons.calendar_today,
+                  title: AppStrings.calendarTitle,
+                  children: [
+                    if (_calendarLoading)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(AppStrings.calendarStatusLoading),
+                      )
+                    else if (_calendarConnected)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${AppStrings.calendarConnected} · ${AppStrings.calendarConnectedAs} ${_calendarEmail ?? ''}',
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          ActionChipButton(
+                            icon: Icons.link_off,
+                            label: AppStrings.calendarDisconnect,
+                            color: Colors.red,
+                            loading: _calendarDisconnecting,
+                            onTap: _calendarDisconnecting
+                                ? () {}
+                                : _disconnectCalendar,
+                          ),
+                        ],
+                      )
+                    else
+                      ActionChipButton(
+                        icon: Icons.add_link,
+                        label: _calendarConnecting
+                            ? AppStrings.calendarConnecting
+                            : AppStrings.calendarConnect,
+                        color: HelpiTheme.accent,
+                        loading: _calendarConnecting,
+                        onTap: _calendarConnecting ? () {} : _connectCalendar,
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 10),
 
