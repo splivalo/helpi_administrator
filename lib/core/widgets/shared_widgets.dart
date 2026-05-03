@@ -10,13 +10,19 @@ import 'package:helpi_admin/core/network/api_endpoints.dart';
 
 void showSuccessSnack(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message), backgroundColor: HelpiTheme.accent),
+    SnackBar(
+      content: Text(message, style: const TextStyle(color: Colors.white)),
+      backgroundColor: HelpiTheme.accent,
+    ),
   );
 }
 
 void showErrorSnack(BuildContext context, String message) {
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(message), backgroundColor: HelpiTheme.error),
+    SnackBar(
+      content: Text(message, style: const TextStyle(color: Colors.white)),
+      backgroundColor: HelpiTheme.error,
+    ),
   );
 }
 
