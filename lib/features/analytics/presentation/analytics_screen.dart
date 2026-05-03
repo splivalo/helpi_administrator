@@ -12,6 +12,7 @@ import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/excel_export_service.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/network/api_endpoints.dart';
+import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/widgets/widgets.dart';
 
 /// GA-style analytics — date-range selector, 3 stacked line charts
@@ -64,11 +65,27 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
 
   int _lastPricingVersion = 0;
 
+  // Flat sessions list fetched once at init for analytics metrics
+  List<SessionModel> _sessions = [];
+
   @override
   void initState() {
     super.initState();
     _loadPricing();
+    _loadSessions();
     _applyPreset(_RangePreset.last7);
+  }
+
+  Future<void> _loadSessions() async {
+    try {
+      final result = await AdminApiService().getSessions();
+      if (!mounted) return;
+      if (result.success && result.data != null) {
+        setState(() => _sessions = result.data!);
+      }
+    } catch (_) {
+      // keep empty — metrics will show 0
+    }
   }
 
   Future<void> _loadPricing() async {
@@ -187,34 +204,37 @@ class _AnalyticsScreenState extends ConsumerState<AnalyticsScreen> {
           if (idx >= 0 && idx < days) result[idx] += 1;
         }
       case _Metric.revenue:
-        for (final o in orders) {
-          if (o.student == null) continue;
-          for (final s in o.sessions) {
-            if (s.status == SessionStatus.cancelled) continue;
-            final d = DateTime(s.date.year, s.date.month, s.date.day);
-            final idx = d.difference(from).inDays;
-            if (idx >= 0 && idx < days) {
-              final seniorRate = _resolveSeniorRate(s);
-              final gross = s.durationHours * seniorRate;
+        for (final s in _sessions) {
+          if (s.status == SessionStatus.cancelled) continue;
+          if (s.studentId == null) continue;
+          final d = DateTime(s.date.year, s.date.month, s.date.day);
+          final idx = d.difference(from).inDays;
+          if (idx >= 0 && idx < days) {
+            final seniorRate = _resolveSeniorRate(s);
+            final gross = s.durationHours * seniorRate;
 
-              if (_showEarnings) {
-                result[idx] += _resolveCompanyEarnings(s);
-              } else {
-                result[idx] += gross;
-              }
+            if (_showEarnings) {
+              result[idx] += _resolveCompanyEarnings(s);
+            } else {
+              result[idx] += gross;
             }
           }
         }
       case _Metric.activeSeniors:
+        // Build orderId → seniorId map for fast lookup
+        final orderSeniorMap = <String, String>{
+          for (final o in orders) o.id: o.senior.id,
+        };
         final daySets = List.generate(days, (_) => <String>{});
-        for (final o in orders) {
-          for (final s in o.sessions) {
-            if (s.status == SessionStatus.cancelled) continue;
-            final d = DateTime(s.date.year, s.date.month, s.date.day);
-            final idx = d.difference(from).inDays;
-            if (idx >= 0 && idx < days) {
-              daySets[idx].add(o.senior.id);
-            }
+        for (final s in _sessions) {
+          if (s.status == SessionStatus.cancelled) continue;
+          if (s.orderId == null) continue;
+          final seniorId = orderSeniorMap[s.orderId];
+          if (seniorId == null) continue;
+          final d = DateTime(s.date.year, s.date.month, s.date.day);
+          final idx = d.difference(from).inDays;
+          if (idx >= 0 && idx < days) {
+            daySets[idx].add(seniorId);
           }
         }
         for (var i = 0; i < days; i++) {
