@@ -67,6 +67,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           '[OrderDetailScreen] sessionsVersion changed $prev → $next, reloading sessions',
         );
         _loadSessions();
+        _loadSeniorCoupons();
       }
     });
   }
@@ -1318,25 +1319,46 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             ),
           ),
 
-          // Row 3: student name
+          // Row 3: student name (+ pending status as subtitle)
           if (session.studentName != null) ...[
             const SizedBox(height: 4),
             Padding(
               padding: const EdgeInsets.only(left: 26),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.person_outline,
-                    size: 14,
-                    color: HelpiTheme.accent,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Icon(
+                      session.assignmentPending
+                          ? Icons.hourglass_top_rounded
+                          : Icons.person_outline,
+                      size: 14,
+                      color: session.assignmentPending
+                          ? HelpiTheme.statusProcessingText
+                          : HelpiTheme.accent,
+                    ),
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    session.studentName!,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: HelpiColors.of(context).textSecondary,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        session.studentName!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: HelpiColors.of(context).textSecondary,
+                        ),
+                      ),
+                      if (session.assignmentPending)
+                        Text(
+                          AppStrings.studentAwaitingAcceptance,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: HelpiTheme.statusProcessingText,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
@@ -1681,6 +1703,14 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         availableStudents = result.success ? (result.data ?? []) : [];
         isLoadingStudents = false;
 
+        // For reactivation with no pre-selected student, auto-select first available.
+        if (isReactivation &&
+            selectedStudentId == null &&
+            availableStudents.isNotEmpty) {
+          selectedStudentId = int.tryParse(availableStudents.first.id);
+          return;
+        }
+
         // Only reset selection if the selected student is NOT the current
         // one AND is no longer in the available list.
         if (selectedStudentId != session.studentId &&
@@ -1947,6 +1977,14 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 size: ActionChipButtonSize.medium,
                 onTap: () async {
                   if (isLoadingStudents) return;
+                  // For reactivation, require a student to be selected
+                  if (isReactivation && selectedStudentId == null) {
+                    showErrorSnack(
+                      context,
+                      AppStrings.sessionReactivateNoStudentError,
+                    );
+                    return;
+                  }
                   Navigator.pop(ctx);
                   if (!mounted) return;
                   final sessionId = int.tryParse(session.id);
@@ -1976,37 +2014,20 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                   }
 
                   if (isReactivation) {
-                    // Step 1: Reactivate the session
-                    final reactivateResult = await api.reactivateSession(
+                    // Single atomic call: reactivate + optional date/time/student change
+                    final result = await api.reactivateAndManageSession(
                       sessionId,
+                      newDate: dateChanged ? selectedDate : null,
+                      newStartTime: timeChanged ? selectedTime : null,
+                      newEndTime: timeChanged ? newEndTime : null,
+                      preferredStudentId: studentChanged
+                          ? selectedStudentId
+                          : null,
                     );
                     if (!mounted) return;
-                    if (!reactivateResult.success) {
-                      showErrorSnack(
-                        context,
-                        _localizeError(reactivateResult.error),
-                      );
+                    if (!result.success) {
+                      showErrorSnack(context, _localizeError(result.error));
                       return;
-                    }
-                    // Step 2: If anything changed, manage session
-                    if (dateChanged || timeChanged || studentChanged) {
-                      final manageResult = await api.manageSession(
-                        sessionId,
-                        newDate: dateChanged ? selectedDate : null,
-                        newStartTime: timeChanged ? selectedTime : null,
-                        newEndTime: newEndTime,
-                        preferredStudentId: studentChanged
-                            ? selectedStudentId
-                            : null,
-                      );
-                      if (!mounted) return;
-                      if (!manageResult.success) {
-                        showErrorSnack(
-                          context,
-                          _localizeError(manageResult.error),
-                        );
-                        return;
-                      }
                     }
                   } else {
                     // Reschedule: nothing changed → just close

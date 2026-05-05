@@ -510,7 +510,8 @@ class AppStrings {
       'timeMismatch': 'Razlika u satima',
       'unavailableDay': 'Nedostupan taj dan',
       'sessionReactivate': 'Vrati termin',
-      'sessionModified': 'Izmijenjeno',
+      'sessionReactivateNoStudentError':
+          'Odaberite studenta za povrat termina.',
       'seniorSessionConflict':
           'Senior već ima drugi termin na {date} koji se preklapa s {time}.',
 
@@ -1115,7 +1116,8 @@ class AppStrings {
       'timePickerHour': 'Hour',
       'timePickerMinute': 'Min',
       'sessionReactivate': 'Restore session',
-      'sessionModified': 'Modified',
+      'sessionReactivateNoStudentError':
+          'Please select a student to restore this session.',
       'seniorSessionConflict':
           'Senior already has another session on {date} that overlaps with {time}.',
 
@@ -1737,6 +1739,8 @@ class AppStrings {
   static String get timePickerHour => _t('timePickerHour');
   static String get timePickerMinute => _t('timePickerMinute');
   static String get sessionReactivate => _t('sessionReactivate');
+  static String get sessionReactivateNoStudentError =>
+      _t('sessionReactivateNoStudentError');
   static String get sessionModified => _t('sessionModified');
   static String seniorSessionConflict(String date, String time) =>
       _t('seniorSessionConflict', params: {'date': date, 'time': time});

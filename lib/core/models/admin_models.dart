@@ -477,6 +477,9 @@ class SessionModel {
   final SessionStatus status;
   final bool isModified;
 
+  /// True when the assigned student has not yet accepted (AssignmentStatus.PendingAcceptance = 0).
+  final bool assignmentPending;
+
   const SessionModel({
     required this.id,
     this.orderId,
@@ -492,6 +495,7 @@ class SessionModel {
     this.studentName,
     this.status = SessionStatus.scheduled,
     this.isModified = false,
+    this.assignmentPending = false,
   });
 
   SessionModel copyWith({
@@ -509,6 +513,7 @@ class SessionModel {
     String? Function()? studentName,
     SessionStatus? status,
     bool? isModified,
+    bool? assignmentPending,
   }) {
     return SessionModel(
       id: id ?? this.id,
@@ -525,6 +530,7 @@ class SessionModel {
       studentName: studentName != null ? studentName() : this.studentName,
       status: status ?? this.status,
       isModified: isModified ?? this.isModified,
+      assignmentPending: assignmentPending ?? this.assignmentPending,
     );
   }
 }

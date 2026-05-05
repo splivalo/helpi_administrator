@@ -382,6 +382,43 @@ class AdminApiService {
     }
   }
 
+  /// Atomically reactivates a cancelled session with optional in-place date/time
+  /// update and/or new student assignment (PendingAcceptance).
+  /// Replaces the two-call pattern (reactivateSession → manageSession).
+  Future<ApiResult<void>> reactivateAndManageSession(
+    int sessionId, {
+    DateTime? newDate,
+    TimeOfDay? newStartTime,
+    TimeOfDay? newEndTime,
+    int? preferredStudentId,
+  }) async {
+    try {
+      final data = <String, dynamic>{};
+      if (newDate != null) {
+        data['newDate'] =
+            '${newDate.year}-${newDate.month.toString().padLeft(2, '0')}-${newDate.day.toString().padLeft(2, '0')}';
+      }
+      if (newStartTime != null) {
+        data['newStartTime'] =
+            '${newStartTime.hour.toString().padLeft(2, '0')}:${newStartTime.minute.toString().padLeft(2, '0')}:00';
+      }
+      if (newEndTime != null) {
+        data['newEndTime'] =
+            '${newEndTime.hour.toString().padLeft(2, '0')}:${newEndTime.minute.toString().padLeft(2, '0')}:00';
+      }
+      if (preferredStudentId != null) {
+        data['preferredStudentId'] = preferredStudentId;
+      }
+      await _api.post(
+        ApiEndpoints.reactivateAndManageSession(sessionId),
+        data: data,
+      );
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   // ─────────────────────────────────────────────
   //  REVIEWS
   // ─────────────────────────────────────────────
@@ -1799,6 +1836,8 @@ class AdminApiService {
       studentName: studentContact?['fullName'] as String?,
       status: _mapSessionStatus(json['status']),
       isModified: json['isRescheduleVariant'] == true,
+      // AssignmentStatus enum: 0 = PendingAcceptance
+      assignmentPending: (assignment?['status'] as int?) == 0,
     );
   }
 

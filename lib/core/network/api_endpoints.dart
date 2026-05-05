@@ -27,6 +27,8 @@ class ApiEndpoints {
   static String sessionsByOrder(int orderId) => '/api/sessions/order/$orderId';
   static String cancelSession(int id) => '/api/sessions/$id/cancel';
   static String reactivateSession(int id) => '/api/sessions/$id/reactivate';
+  static String reactivateAndManageSession(int id) =>
+      '/api/sessions/$id/reactivate-manage';
   static String manageSession(int id) => '/api/sessions/$id/manage';
 
   // Students
