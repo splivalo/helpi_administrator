@@ -2029,6 +2029,37 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                       showErrorSnack(context, _localizeError(result.error));
                       return;
                     }
+                    // Optimistic update: immediately show the session as
+                    // scheduled + pending acceptance so the card reflects
+                    // the new state before the server roundtrip for _loadSessions.
+                    final targetStudent = availableStudents
+                        .where(
+                          (s) =>
+                              s.id ==
+                              (studentChanged
+                                      ? selectedStudentId
+                                      : session.studentId)
+                                  ?.toString(),
+                        )
+                        .firstOrNull;
+                    setState(() {
+                      _order = _order.copyWith(
+                        sessions: _order.sessions.map((s) {
+                          if (s.id == session.id) {
+                            return s.copyWith(
+                              status: SessionStatus.scheduled,
+                              assignmentPending: true,
+                              studentId: () =>
+                                  selectedStudentId ?? session.studentId,
+                              studentName: () =>
+                                  targetStudent?.fullName ??
+                                  session.studentName,
+                            );
+                          }
+                          return s;
+                        }).toList(),
+                      );
+                    });
                     // Force immediate session reload so the card reflects the
                     // new "Čeka potvrdu studenta" state without requiring navigation.
                     await _loadSessions();

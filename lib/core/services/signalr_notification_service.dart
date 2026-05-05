@@ -143,7 +143,14 @@ class SignalRNotificationService {
     debugPrint('[SignalR] EntityChanged ($entityType) — debounced refresh');
 
     // Bump sessionsVersion for session-related entities (instant refresh)
-    const sessionEntities = {'JobInstances', 'Orders', 'Sessions'};
+    // ScheduleAssignments is included so that student accept/decline
+    // triggers _loadSessions in the admin order detail screen.
+    const sessionEntities = {
+      'JobInstances',
+      'Orders',
+      'Sessions',
+      'ScheduleAssignments',
+    };
     if (_ref != null && sessionEntities.contains(entityType)) {
       _ref!.read(sessionsVersionProvider.notifier).state++;
       debugPrint('[SignalR] sessionsVersion bumped');
