@@ -2029,6 +2029,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                       showErrorSnack(context, _localizeError(result.error));
                       return;
                     }
+                    // Force immediate session reload so the card reflects the
+                    // new "Čeka potvrdu studenta" state without requiring navigation.
+                    await _loadSessions();
+                    if (!mounted) return;
                   } else {
                     // Reschedule: nothing changed → just close
                     if (!dateChanged && !timeChanged && !studentChanged) {
