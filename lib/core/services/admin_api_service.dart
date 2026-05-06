@@ -673,6 +673,27 @@ class AdminApiService {
     }
   }
 
+  Future<ApiResult<void>> adminBulkAssign(
+    List<({int orderScheduleId, int studentId})> assignments,
+  ) async {
+    try {
+      await _api.post(
+        ApiEndpoints.adminBulkAssign,
+        data: assignments
+            .map(
+              (a) => {
+                'orderScheduleId': a.orderScheduleId,
+                'studentId': a.studentId,
+              },
+            )
+            .toList(),
+      );
+      return const ApiResult._(success: true);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
   Future<ApiResult<void>> adminTerminate(int orderScheduleId) async {
     try {
       await _api.post(ApiEndpoints.adminTerminate(orderScheduleId));

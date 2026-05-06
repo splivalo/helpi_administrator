@@ -2216,7 +2216,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         }
       }
 
-      // Assign each non-skipped schedule to backend
+      // Build the full list of (scheduleId, studentId) pairs to assign in one call.
+      // Using bulk assign ensures the student receives ONE notification only AFTER
+      // all schedules are assigned — prevents the modal from showing an incomplete list.
+      final assignmentPairs = <({int orderScheduleId, int studentId})>[];
       for (final entry in weekdayToSchedule.entries) {
         final weekday = entry.key;
         final scheduleId = entry.value;
@@ -2228,8 +2231,11 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
             .map((p) => p.substituteStudent!)
             .firstOrNull;
         final assignId = sub != null ? int.parse(sub.id) : studentId;
+        assignmentPairs.add((orderScheduleId: scheduleId, studentId: assignId));
+      }
 
-        final result = await assignApi.adminAssign(scheduleId, assignId);
+      if (assignmentPairs.isNotEmpty) {
+        final result = await assignApi.adminBulkAssign(assignmentPairs);
         if (!mounted) return;
         if (!result.success) {
           _isAssigning = false;
@@ -2529,7 +2535,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 }
               }
 
-              // Assign student only to uncovered schedules
+              // Build pairs for all uncovered schedules and assign in one bulk call
+              // so the student receives ONE notification only AFTER all are created.
+              final assignmentPairs =
+                  <({int orderScheduleId, int studentId})>[];
               for (
                 var i = 0;
                 i < _order.scheduleIds.length && i < _order.dayEntries.length;
@@ -2538,8 +2547,14 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 if (coveredDays.contains(_order.dayEntries[i].dayOfWeek)) {
                   continue;
                 }
-                final scheduleId = _order.scheduleIds[i];
-                final result = await api.adminAssign(scheduleId, studentId);
+                assignmentPairs.add((
+                  orderScheduleId: _order.scheduleIds[i],
+                  studentId: studentId,
+                ));
+              }
+
+              if (assignmentPairs.isNotEmpty) {
+                final result = await api.adminBulkAssign(assignmentPairs);
                 if (!result.success) {
                   if (!mounted) return;
                   showErrorSnack(context, result.error ?? 'Error');
