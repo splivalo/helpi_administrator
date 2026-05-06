@@ -104,6 +104,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   }
 
   bool _showingDayPicker = false;
+  bool _isSaving = false;
 
   // ── Services ──
   final Set<ServiceType> _selectedServices = {};
@@ -284,10 +285,11 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     alignment: Alignment.centerRight,
                     child: ActionChipButton(
                       icon: Icons.check,
-                      label: AppStrings.save,
+                      label: _isSaving ? AppStrings.saving : AppStrings.save,
                       color: HelpiTheme.accent,
                       size: ActionChipButtonSize.medium,
-                      onTap: _onSave,
+                      onTap: _isSaving ? () {} : _onSave,
+                      loading: _isSaving,
                     ),
                   )
                 else
@@ -295,9 +297,20 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     width: double.infinity,
                     height: 48,
                     child: FilledButton.icon(
-                      onPressed: _onSave,
-                      icon: const Icon(Icons.check, size: 20),
-                      label: Text(AppStrings.save),
+                      onPressed: _isSaving ? null : _onSave,
+                      icon: _isSaving
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.check, size: 20),
+                      label: Text(
+                        _isSaving ? AppStrings.saving : AppStrings.save,
+                      ),
                       style: FilledButton.styleFrom(
                         backgroundColor: HelpiTheme.accent,
                         shape: RoundedRectangleBorder(
@@ -543,7 +556,10 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               !_showingDayPicker &&
               _availableDays.isNotEmpty &&
               _dayEntries.every(
-                (e) => e.startHour != null && e.startMinute != null,
+                (e) =>
+                    e.startHour != null &&
+                    e.startMinute != null &&
+                    e.durationHours != null,
               ))
             _buildAddDayButton(),
         ],
@@ -961,6 +977,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   //  SAVE
   // ═══════════════════════════════════════════════════════════════
   Future<void> _onSave() async {
+    if (_isSaving) return;
     if (_selectedSenior == null) {
       _showError(AppStrings.seniorRequired);
       return;
@@ -1030,10 +1047,27 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           .toList();
     }
 
-    if (_isEditMode) {
-      await _saveEdit(freq, scheduledDate, scheduledTime, duration, dayEntries);
-    } else {
-      await _saveNew(freq, scheduledDate, scheduledTime, duration, dayEntries);
+    setState(() => _isSaving = true);
+    try {
+      if (_isEditMode) {
+        await _saveEdit(
+          freq,
+          scheduledDate,
+          scheduledTime,
+          duration,
+          dayEntries,
+        );
+      } else {
+        await _saveNew(
+          freq,
+          scheduledDate,
+          scheduledTime,
+          duration,
+          dayEntries,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
