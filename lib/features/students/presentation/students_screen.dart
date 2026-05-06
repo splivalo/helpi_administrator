@@ -1810,18 +1810,12 @@ class _StudentCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              if (student.isSuspended)
+              if (student.isArchived)
+                StatusBadge.archived()
+              else if (student.isSuspended)
                 StatusBadge.suspended()
               else
                 StatusBadge.contract(student.contractStatus),
-              if (student.isArchived) ...[
-                const SizedBox(width: 6),
-                StatusBadge(
-                  textColor: HelpiColors.of(context).textSecondary,
-                  bgColor: HelpiColors.of(context).chipBg,
-                  label: AppStrings.statusArchived,
-                ),
-              ],
             ],
           ),
           const SizedBox(height: 10),

@@ -1625,7 +1625,9 @@ class AdminApiService {
           statusStr != 'PendingPermanentDeletion' &&
           statusStr != 'Deleted',
       isArchived:
-          statusStr == 'PendingPermanentDeletion' || statusStr == 'Deleted',
+          statusStr == 'AccountDeactivated' ||
+          statusStr == 'PendingPermanentDeletion' ||
+          statusStr == 'Deleted',
       isSuspended: json['isSuspended'] as bool? ?? false,
       suspensionReason: json['suspensionReason'] as String?,
       createdAt: _parseDateTime(json['dateRegistered']),

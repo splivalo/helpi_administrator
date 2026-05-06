@@ -204,18 +204,12 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
               child: Text(_student.fullName, overflow: TextOverflow.ellipsis),
             ),
             const SizedBox(width: 8),
-            if (_student.isSuspended)
+            if (_student.isArchived)
+              StatusBadge.archived()
+            else if (_student.isSuspended)
               StatusBadge.suspended()
             else
               StatusBadge.contract(_student.contractStatus),
-            if (_student.isArchived) ...[
-              const SizedBox(width: 6),
-              StatusBadge(
-                textColor: HelpiColors.of(context).textSecondary,
-                bgColor: HelpiColors.of(context).chipBg,
-                label: AppStrings.statusArchived,
-              ),
-            ],
           ],
         ),
         actions: [

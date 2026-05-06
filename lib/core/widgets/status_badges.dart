@@ -221,6 +221,16 @@ class StatusBadge extends StatelessWidget {
     );
   }
 
+  /// Archived badge — consistent across seniors and students.
+  factory StatusBadge.archived({StatusBadgeSize size = StatusBadgeSize.small}) {
+    return StatusBadge(
+      textColor: HelpiTheme.textSecondary,
+      bgColor: HelpiTheme.chipBg,
+      label: AppStrings.statusArchived,
+      size: size,
+    );
+  }
+
   /// Computes the correct senior status badge from model + live orders.
   ///
   /// [liveOrders] must be pre-filtered to only processing/active orders
