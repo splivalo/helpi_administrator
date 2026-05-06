@@ -145,12 +145,11 @@ class SignalRNotificationService {
     // Bump sessionsVersion for session-related entities (instant refresh)
     // ScheduleAssignments is included so that student accept/decline
     // triggers _loadSessions in the admin order detail screen.
-    const sessionEntities = {
-      'JobInstances',
-      'Orders',
-      'Sessions',
-      'ScheduleAssignments',
-    };
+    // NOTE: 'Orders' is intentionally excluded — a new/changed order on a
+    // different senior must NOT cause every open OrderDetailScreen to reload
+    // its sessions. Order status changes are handled by the ordersProvider
+    // listener which checks if the *same* order was updated.
+    const sessionEntities = {'JobInstances', 'Sessions', 'ScheduleAssignments'};
     if (_ref != null && sessionEntities.contains(entityType)) {
       _ref!.read(sessionsVersionProvider.notifier).state++;
       debugPrint('[SignalR] sessionsVersion bumped');
