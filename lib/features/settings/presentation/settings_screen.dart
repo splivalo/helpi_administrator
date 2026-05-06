@@ -519,9 +519,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         queryParameters: {'reason': 'Admin settings update'},
       );
       if (!mounted) return;
+      setState(() => _editing = false);
       ref.read(pricingVersionProvider.notifier).state++;
       if (!mounted) return;
-      setState(() => _editing = false);
       _showSnack(AppStrings.settingsSaved);
     } catch (_) {
       if (!mounted) return;
