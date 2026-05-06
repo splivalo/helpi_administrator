@@ -3467,7 +3467,7 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
       final endMin = startMin + order.durationHours * 60;
       final weekday = order.scheduledDate.weekday;
 
-      final availConflict = _checkAvailability(weekday, startMin);
+      final availConflict = _checkAvailability(weekday, startMin, endMin);
       final schedConflict = availConflict
           ? null
           : findConflict(
@@ -3518,8 +3518,11 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
       final startMin = toMinutes(entry.startTime);
       final endMin = startMin + entry.durationHours * 60;
 
-      // Conflict detection at weekday level (same conflict every week)
-      final availConflict = _checkAvailability(entry.dayOfWeek, startMin);
+      final availConflict = _checkAvailability(
+        entry.dayOfWeek,
+        startMin,
+        endMin,
+      );
       final schedConflict = availConflict
           ? null
           : findConflict(
@@ -3548,15 +3551,17 @@ class _OrderSessionPreviewHelper extends SessionPreviewHelperBase {
     return result;
   }
 
-  /// Returns `true` if the student is NOT available on [weekday] at [startMin].
-  bool _checkAvailability(int weekday, int startMin) {
+  /// Returns `true` if the student is NOT available on [weekday] for the
+  /// full window [startMin]–[endMin] (backend uses full-containment check:
+  /// slot.startTime <= targetStart && slot.endTime >= targetEnd).
+  bool _checkAvailability(int weekday, int startMin, int endMin) {
     if (student.availability.isEmpty) return false;
     final dayAvail = student.availability.where((a) => a.dayOfWeek == weekday);
     if (dayAvail.isEmpty || !dayAvail.first.isEnabled) return true;
     final avail = dayAvail.first;
     final fromMin = toMinutes(avail.from);
     final toMin = toMinutes(avail.to);
-    return startMin < fromMin || startMin >= toMin;
+    return startMin < fromMin || endMin > toMin;
   }
 
   @override

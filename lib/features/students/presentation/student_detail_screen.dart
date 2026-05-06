@@ -784,11 +784,9 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
   // ── Suspend / Activate logic ──
 
   Future<void> _confirmSuspend() async {
-    // Refresh orders from API so the active-order check is up to date
-    await DataLoader.loadAll(ref: ref);
-    if (!mounted) return;
-
-    // Warn if user has active orders (will be reassigned)
+    // Use already-loaded provider data to check for active orders.
+    // No need for a full DataLoader.loadAll here — that happens after the
+    // actual suspend API call to refresh state.
     final studentOrders = ref
         .read(ordersProvider)
         .where((o) => o.student?.id == _student.id)

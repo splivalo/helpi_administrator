@@ -109,10 +109,13 @@ class DataLoader {
       final signalROnly = AppData.notifications
           .where((n) => !freshIds.contains(n.id))
           .toList();
+      // Filter out locally-deleted IDs so rapid deletes don't get restored
+      // when the backend fetch races ahead of the DELETE API call.
+      final deleted = AppData.deletedNotificationIds;
       AppData.notifications
         ..clear()
-        ..addAll(signalROnly)
-        ..addAll(notifResult.data!);
+        ..addAll(signalROnly.where((n) => !deleted.contains(n.id)))
+        ..addAll(notifResult.data!.where((n) => !deleted.contains(n.id)));
       // Sort newest first
       AppData.notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     } else {

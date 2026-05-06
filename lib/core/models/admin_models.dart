@@ -771,4 +771,8 @@ class AppData {
   static final List<ReviewModel> reviews = [];
   static final List<NotificationModel> notifications = [];
   static final List<ChatRoom> chatRooms = [];
+
+  /// IDs of notifications deleted locally. Used to prevent DataLoader from
+  /// re-adding them when the backend fetch races ahead of the DELETE API call.
+  static final Set<String> deletedNotificationIds = {};
 }

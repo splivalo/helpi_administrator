@@ -118,11 +118,17 @@ class NotificationsNotifier extends StateNotifier<List<NotificationModel>> {
   }
 
   void removeRead() {
+    final removedIds = AppData.notifications
+        .where((n) => n.isRead)
+        .map((n) => n.id)
+        .toSet();
+    AppData.deletedNotificationIds.addAll(removedIds);
     AppData.notifications.removeWhere((n) => n.isRead);
     state = state.where((n) => !n.isRead).toList();
   }
 
   void removeById(String id) {
+    AppData.deletedNotificationIds.add(id);
     AppData.notifications.removeWhere((n) => n.id == id);
     state = state.where((n) => n.id != id).toList();
   }

@@ -183,8 +183,10 @@ class SignalRNotificationService {
 
       final notification = _parseNotification(json);
 
-      // Prepend to AppData
-      AppData.notifications.insert(0, notification);
+      // Prepend to AppData (skip if locally deleted)
+      if (!AppData.deletedNotificationIds.contains(notification.id)) {
+        AppData.notifications.insert(0, notification);
+      }
 
       // Update Riverpod provider
       if (_ref != null) {
