@@ -53,6 +53,9 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
   /// Availability loaded from backend.
   List<DayAvailability> _availability = [];
 
+  /// Sessions loaded from backend for work summary calculation.
+  List<SessionModel> _sessions = [];
+
   /// Date range for work summary payout calculation.
   late DateTime _summaryStart;
   late DateTime _summaryEnd;
@@ -75,6 +78,18 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     _loadSuspensionStatus();
     _loadContracts();
     _loadAvailability();
+    _loadSessions();
+  }
+
+  Future<void> _loadSessions() async {
+    final studentId = int.tryParse(_student.id);
+    if (studentId == null) return;
+    final api = AdminApiService();
+    final result = await api.getSessionsByStudent(studentId);
+    if (!mounted) return;
+    if (result.success && result.data != null) {
+      setState(() => _sessions = result.data!);
+    }
   }
 
   Future<void> _loadContracts() async {
@@ -1349,38 +1364,33 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
   //  WORK SUMMARY (Obračun)
   // ─────────────────────────────────────────────────────────
 
-  /// Counts (completed, cancelled) orders within [_summaryStart]..[_summaryEnd].
+  /// All sessions (including cancelled) within [_summaryStart]..[_summaryEnd].
+  List<SessionModel> _rangeSessionsAll() {
+    return _sessions.where((session) {
+      final sessionDate = DateTime(
+        session.date.year,
+        session.date.month,
+        session.date.day,
+      );
+      return !sessionDate.isBefore(_summaryStart) &&
+          !sessionDate.isAfter(_summaryEnd);
+    }).toList();
+  }
+
+  /// Counts (completed, cancelled) sessions within [_summaryStart]..[_summaryEnd].
   (int, int) _rangeJobCounts() {
-    final studentOrders = ref
-        .read(ordersProvider)
-        .where((o) => o.student?.id == _student.id);
-
-    int completed = 0;
-    int cancelled = 0;
-
-    for (final order in studentOrders) {
-      // One-time orders: check scheduledDate
-      if (order.dayEntries.isEmpty) {
-        if (!order.scheduledDate.isBefore(_summaryStart) &&
-            !order.scheduledDate.isAfter(_summaryEnd)) {
-          if (order.status == OrderStatus.completed) completed++;
-          if (order.status == OrderStatus.cancelled) cancelled++;
-        }
-      } else {
-        // Recurring: if order falls in range at all, count it once
-        if (order.status == OrderStatus.completed) completed++;
-        if (order.status == OrderStatus.cancelled) cancelled++;
-      }
-    }
+    final all = _rangeSessionsAll();
+    final completed = all
+        .where((s) => s.status == SessionStatus.completed)
+        .length;
+    final cancelled = all
+        .where((s) => s.status == SessionStatus.cancelled)
+        .length;
     return (completed, cancelled);
   }
 
   List<SessionModel> _rangeSessions() {
-    final studentOrders = ref
-        .read(ordersProvider)
-        .where((o) => o.student?.id == _student.id);
-
-    return studentOrders.expand((order) => order.sessions).where((session) {
+    return _sessions.where((session) {
       if (session.status == SessionStatus.cancelled) {
         return false;
       }
@@ -1482,17 +1492,33 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
         .toList();
     final (regularHrs, overtimeHrs) = _rangeHours();
     final totalHrs = regularHrs + overtimeHrs;
-    final regularPay = regularSessions.fold<double>(
-      0,
-      (sum, session) => sum + session.durationHours * session.studentHourlyRate,
-    );
-    final overtimePay = overtimeSessions.fold<double>(
-      0,
-      (sum, session) => sum + session.durationHours * session.studentHourlyRate,
-    );
+    final regularPay =
+        regularHrs *
+        (_student.hourlyRate > 0
+            ? _student.hourlyRate
+            : regularSessions.fold<double>(
+                    0,
+                    (s, e) => s + e.studentHourlyRate,
+                  ) /
+                  (regularSessions.isEmpty ? 1 : regularSessions.length));
+    final overtimePay =
+        overtimeHrs *
+        (_student.sundayHourlyRate > 0
+            ? _student.sundayHourlyRate
+            : overtimeSessions.fold<double>(
+                    0,
+                    (s, e) => s + e.studentHourlyRate,
+                  ) /
+                  (overtimeSessions.isEmpty ? 1 : overtimeSessions.length));
     final totalPay = regularPay + overtimePay;
-    final regularRate = _singleStudentRate(regularSessions);
-    final overtimeRate = _singleStudentRate(overtimeSessions);
+    // Use student's configured rates (editable in settings).
+    // Fall back to computing from session data only if not set.
+    final regularRate = _student.hourlyRate > 0
+        ? _student.hourlyRate
+        : _singleStudentRate(regularSessions);
+    final overtimeRate = _student.sundayHourlyRate > 0
+        ? _student.sundayHourlyRate
+        : _singleStudentRate(overtimeSessions);
 
     final (completedCount, cancelledCount) = _rangeJobCounts();
 
@@ -1533,19 +1559,12 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                   if (_isCustomRange)
                     GestureDetector(
                       onTap: _resetToContractRange,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: HelpiTheme.statusProcessingBg,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.restart_alt,
-                          size: 16,
-                          color: HelpiTheme.statusProcessingText,
+                      child: Text(
+                        AppStrings.filterReset,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: HelpiTheme.primary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
