@@ -104,6 +104,7 @@ class AppStrings {
       // ── Kuponi ────────────────────────────
       'couponsTitle': 'Kuponi',
       'couponNew': 'Novi kupon',
+      'couponEdit': 'Uredi kupon',
       'couponCode': 'Kod',
       'couponName': 'Naziv',
       'couponDescription': 'Opis',
@@ -129,6 +130,29 @@ class AppStrings {
       'couponTypeMonthlyHours': 'Mjesečno (sati)',
       'couponTypeWeeklyHours': 'Tjedno (sati)',
       'couponTypeOneTimeHours': 'Jednokratno (sati)',
+      'couponTypeYearlyHours': 'Godišnje (sati)',
+      'couponAssignTitle': 'Dodijeli korisnicima',
+      'couponScopeTitle': 'Dostupnost',
+      'couponScopeAll': 'Svi korisnici',
+      'couponScopeAllHint': 'Bilo tko s kodom može ga upisati',
+      'couponScopeSelected': 'Odabrani korisnici',
+      'couponScopeSelectedHint': 'Samo odabrani mogu imati/upisati kupon',
+      'couponAssignImmediately': 'Odmah dodijeli',
+      'couponAssignSearchHint': 'Pretraži (ime, naručitelj, email)',
+      'couponAssignSelectAll': 'Odaberi sve',
+      'couponAssignDeselectAll': 'Poništi odabir',
+      'couponAssignOrderer': 'Naručitelj: {name}',
+      'couponAssignClear': 'Poništi odabir',
+      'couponAssignAlready': 'Već ima',
+      'couponAssignButton': 'Dodijeli ({count})',
+      'couponAssignSelectedCount': 'Odabrano: {count}',
+      'couponAssignNoneSelected': 'Odaberi barem jednog korisnika',
+      'couponAssignNoSeniors': 'Nema dostupnih korisnika',
+      'couponAssignNeedsActive': 'Aktiviraj kupon da bi dodijelio korisnike.',
+      'couponAssignResult': 'Dodijeljeno: {assigned}, preskočeno: {skipped}',
+      'couponAssignApplied': 'Dodijeljeno: {added}, uklonjeno: {removed}',
+      'couponAssignFailed': 'Dodjela nije uspjela: {error}',
+      'couponAssignTooltip': 'Dodijeli korisnicima',
       'couponRemainingHours': 'Preostalo sati',
       'couponAssignedBy': 'Dodijelio',
       'couponSelfRedeemed': 'Unio senior',
@@ -142,7 +166,7 @@ class AppStrings {
       'couponAlreadyActive': 'Kupon je već aktivan',
       'couponNotYetValid': 'Kupon još nije valjan',
       'couponExclusiveConflict': 'Ne može se kombinirati s postojećim kuponom',
-      'couponActiveCoupons': 'Aktivni kuponi',
+      'couponActiveCoupons': 'Kuponi',
       'couponNone': 'Nema aktivnih kupona',
       'couponCodeCopied': 'Kod kupona kopiran',
       'couponCopyCode': 'Kopiraj kod',
@@ -712,6 +736,7 @@ class AppStrings {
       // ── Coupons ────────────────────────────
       'couponsTitle': 'Coupons',
       'couponNew': 'New coupon',
+      'couponEdit': 'Edit coupon',
       'couponCode': 'Code',
       'couponName': 'Name',
       'couponDescription': 'Description',
@@ -737,6 +762,29 @@ class AppStrings {
       'couponTypeMonthlyHours': 'Monthly (hours)',
       'couponTypeWeeklyHours': 'Weekly (hours)',
       'couponTypeOneTimeHours': 'One-time (hours)',
+      'couponTypeYearlyHours': 'Yearly (hours)',
+      'couponAssignTitle': 'Assign to users',
+      'couponScopeTitle': 'Availability',
+      'couponScopeAll': 'Everyone',
+      'couponScopeAllHint': 'Anyone with the code can redeem it',
+      'couponScopeSelected': 'Selected users',
+      'couponScopeSelectedHint': 'Only selected users can have/redeem the coupon',
+      'couponAssignImmediately': 'Assign immediately',
+      'couponAssignSearchHint': 'Search (name, orderer, email)',
+      'couponAssignSelectAll': 'Select all',
+      'couponAssignDeselectAll': 'Deselect all',
+      'couponAssignOrderer': 'Orderer: {name}',
+      'couponAssignClear': 'Clear selection',
+      'couponAssignAlready': 'Already has',
+      'couponAssignButton': 'Assign ({count})',
+      'couponAssignSelectedCount': 'Selected: {count}',
+      'couponAssignNoneSelected': 'Select at least one user',
+      'couponAssignNoSeniors': 'No users available',
+      'couponAssignNeedsActive': 'Activate the coupon to assign users.',
+      'couponAssignResult': 'Assigned: {assigned}, skipped: {skipped}',
+      'couponAssignApplied': 'Added: {added}, removed: {removed}',
+      'couponAssignFailed': 'Assign failed: {error}',
+      'couponAssignTooltip': 'Assign to users',
       'couponRemainingHours': 'Remaining hours',
       'couponAssignedBy': 'Assigned by',
       'couponSelfRedeemed': 'Self-redeemed',
@@ -750,7 +798,7 @@ class AppStrings {
       'couponAlreadyActive': 'Coupon is already active',
       'couponNotYetValid': 'Coupon is not yet valid',
       'couponExclusiveConflict': 'Cannot combine with existing coupon',
-      'couponActiveCoupons': 'Active coupons',
+      'couponActiveCoupons': 'Coupons',
       'couponNone': 'No active coupons',
       'couponCodeCopied': 'Coupon code copied',
       'couponCopyCode': 'Copy code',
@@ -1877,6 +1925,7 @@ class AppStrings {
   // ── Kuponi ──
   static String get couponsTitle => _t('couponsTitle');
   static String get couponNew => _t('couponNew');
+  static String get couponEdit => _t('couponEdit');
   static String get couponCode => _t('couponCode');
   static String get couponName => _t('couponName');
   static String get couponDescription => _t('couponDescription');
@@ -1898,10 +1947,54 @@ class AppStrings {
   static String get couponDeleted => _t('couponDeleted');
   static String get couponDeleteFailed => _t('couponDeleteFailed');
   static String get couponDeleteConfirm => _t('couponDeleteConfirm');
+  /// "Dodijeljen je N korisniku/korisnicima i bit će uklonjen kod svih."
+  /// Deletion always removes the coupon for every assigned user; proper HR declension.
+  static String couponDeleteAssigned(int count) {
+    if (_currentLocale == 'hr') {
+      final noun = count == 1 ? 'korisniku' : 'korisnicima';
+      return 'Dodijeljen je $count $noun i bit će uklonjen kod svih.';
+    }
+    final noun = count == 1 ? 'user' : 'users';
+    return 'Assigned to $count $noun and will be removed from all of them.';
+  }
+
   static String get couponNoCoupons => _t('couponNoCoupons');
   static String get couponTypeMonthlyHours => _t('couponTypeMonthlyHours');
   static String get couponTypeWeeklyHours => _t('couponTypeWeeklyHours');
   static String get couponTypeOneTimeHours => _t('couponTypeOneTimeHours');
+  static String get couponTypeYearlyHours => _t('couponTypeYearlyHours');
+  static String get couponAssignTitle => _t('couponAssignTitle');
+  static String get couponScopeTitle => _t('couponScopeTitle');
+  static String get couponScopeAll => _t('couponScopeAll');
+  static String get couponScopeAllHint => _t('couponScopeAllHint');
+  static String get couponScopeSelected => _t('couponScopeSelected');
+  static String get couponScopeSelectedHint => _t('couponScopeSelectedHint');
+  static String get couponAssignImmediately => _t('couponAssignImmediately');
+  static String get couponAssignSearchHint => _t('couponAssignSearchHint');
+  static String get couponAssignSelectAll => _t('couponAssignSelectAll');
+  static String get couponAssignDeselectAll => _t('couponAssignDeselectAll');
+  static String couponAssignOrderer(String name) =>
+      _t('couponAssignOrderer', params: {'name': name});
+  static String get couponAssignClear => _t('couponAssignClear');
+  static String get couponAssignAlready => _t('couponAssignAlready');
+  static String couponAssignButton(int count) =>
+      _t('couponAssignButton', params: {'count': '$count'});
+  static String couponAssignSelectedCount(int count) =>
+      _t('couponAssignSelectedCount', params: {'count': '$count'});
+  static String get couponAssignNoneSelected => _t('couponAssignNoneSelected');
+  static String get couponAssignNoSeniors => _t('couponAssignNoSeniors');
+  static String get couponAssignNeedsActive => _t('couponAssignNeedsActive');
+  static String couponAssignResult(int assigned, int skipped) => _t(
+    'couponAssignResult',
+    params: {'assigned': '$assigned', 'skipped': '$skipped'},
+  );
+  static String couponAssignApplied(int added, int removed) => _t(
+    'couponAssignApplied',
+    params: {'added': '$added', 'removed': '$removed'},
+  );
+  static String couponAssignFailed(String error) =>
+      _t('couponAssignFailed', params: {'error': error});
+  static String get couponAssignTooltip => _t('couponAssignTooltip');
   static String get couponRemainingHours => _t('couponRemainingHours');
   static String get couponAssignedBy => _t('couponAssignedBy');
   static String get couponSelfRedeemed => _t('couponSelfRedeemed');

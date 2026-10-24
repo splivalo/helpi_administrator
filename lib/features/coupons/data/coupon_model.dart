@@ -3,12 +3,14 @@ import 'package:helpi_admin/core/l10n/app_strings.dart';
 enum CouponType {
   monthlyHours,
   weeklyHours,
-  oneTimeHours;
+  oneTimeHours,
+  yearlyHours;
 
   String get label => switch (this) {
     monthlyHours => AppStrings.couponTypeMonthlyHours,
     weeklyHours => AppStrings.couponTypeWeeklyHours,
     oneTimeHours => AppStrings.couponTypeOneTimeHours,
+    yearlyHours => AppStrings.couponTypeYearlyHours,
   };
 
   static CouponType fromIndex(int index) => CouponType.values[index];
@@ -28,6 +30,8 @@ class CouponModel {
   final String validUntil;
   final bool isActive;
   final int assignmentCount;
+  final bool restrictToSelected;
+  final List<int> eligibleSeniorIds;
   final DateTime createdAt;
 
   CouponModel({
@@ -44,6 +48,8 @@ class CouponModel {
     required this.validUntil,
     required this.isActive,
     this.assignmentCount = 0,
+    this.restrictToSelected = false,
+    this.eligibleSeniorIds = const [],
     required this.createdAt,
   });
 
@@ -62,6 +68,11 @@ class CouponModel {
       validUntil: json['validUntil'] as String,
       isActive: json['isActive'] as bool,
       assignmentCount: json['assignmentCount'] as int? ?? 0,
+      restrictToSelected: json['restrictToSelected'] as bool? ?? false,
+      eligibleSeniorIds:
+          (json['eligibleSeniorIds'] as List<dynamic>? ?? [])
+              .map((e) => (e as num).toInt())
+              .toList(),
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }

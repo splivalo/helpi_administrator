@@ -75,6 +75,8 @@ enum NotificationType {
   assignmentAccepted, // 34
   assignmentDeclined, // 35
   assignmentRevoked, // 36
+  jobReactivated, // 37
+  adminContractExpiredReassign, // 38
 }
 
 // ═══════════════════════════════════════════════════════════════

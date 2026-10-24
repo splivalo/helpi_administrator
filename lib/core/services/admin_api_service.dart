@@ -1437,6 +1437,9 @@ class AdminApiService {
     int? cityId,
     required String validFrom,
     required String validUntil,
+    bool restrictToSelected = false,
+    List<int> eligibleSeniorIds = const [],
+    bool assignImmediately = false,
   }) async {
     try {
       final payload = {
@@ -1449,6 +1452,9 @@ class AdminApiService {
         'cityId': ?cityId,
         'validFrom': validFrom,
         'validUntil': validUntil,
+        'restrictToSelected': restrictToSelected,
+        'eligibleSeniorIds': eligibleSeniorIds,
+        'assignImmediately': assignImmediately,
       };
       final response = await _api.post(ApiEndpoints.coupons, data: payload);
       return ApiResult.ok(response.data as Map<String, dynamic>);
@@ -1470,6 +1476,9 @@ class AdminApiService {
     String? validFrom,
     String? validUntil,
     bool? isActive,
+    bool? restrictToSelected,
+    List<int>? eligibleSeniorIds,
+    bool assignImmediately = false,
   }) async {
     try {
       final data = <String, dynamic>{};
@@ -1481,6 +1490,13 @@ class AdminApiService {
       if (validFrom != null) data['validFrom'] = validFrom;
       if (validUntil != null) data['validUntil'] = validUntil;
       if (isActive != null) data['isActive'] = isActive;
+      if (restrictToSelected != null) {
+        data['restrictToSelected'] = restrictToSelected;
+      }
+      if (eligibleSeniorIds != null) {
+        data['eligibleSeniorIds'] = eligibleSeniorIds;
+      }
+      data['assignImmediately'] = assignImmediately;
       await _api.put(ApiEndpoints.couponById(id), data: data);
       return const ApiResult._(success: true);
     } on DioException catch (e) {
@@ -1488,9 +1504,15 @@ class AdminApiService {
     }
   }
 
-  Future<ApiResult<void>> deleteCoupon(int id) async {
+  Future<ApiResult<void>> deleteCoupon(
+    int id, {
+    bool deleteHistory = false,
+  }) async {
     try {
-      await _api.delete(ApiEndpoints.couponById(id));
+      await _api.delete(
+        ApiEndpoints.couponById(id),
+        queryParameters: {'deleteHistory': deleteHistory},
+      );
       return const ApiResult._(success: true);
     } on DioException catch (e) {
       return ApiResult.fail(_extractError(e));
@@ -1505,6 +1527,39 @@ class AdminApiService {
       final response = await _api.post(
         ApiEndpoints.couponAssign(couponId),
         data: {'seniorId': seniorId},
+      );
+      return ApiResult.ok(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Assigns a coupon to many seniors at once. Returns the backend summary
+  /// ({assigned, skipped, skippedDetails}). Seniors already holding the coupon are skipped.
+  Future<ApiResult<Map<String, dynamic>>> assignCouponBulk(
+    int couponId,
+    List<int> seniorIds,
+  ) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.couponAssignBulk(couponId),
+        data: {'seniorIds': seniorIds},
+      );
+      return ApiResult.ok(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      return ApiResult.fail(_extractError(e));
+    }
+  }
+
+  /// Removes (deactivates) a coupon from many seniors at once. Returns {removed}.
+  Future<ApiResult<Map<String, dynamic>>> unassignCouponBulk(
+    int couponId,
+    List<int> seniorIds,
+  ) async {
+    try {
+      final response = await _api.post(
+        ApiEndpoints.couponUnassignBulk(couponId),
+        data: {'seniorIds': seniorIds},
       );
       return ApiResult.ok(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
@@ -1710,6 +1765,32 @@ class AdminApiService {
     );
   }
 
+  /// Maps an order's recurrence into a [FrequencyType].
+  ///
+  /// The backend has no "open-ended" flag: a recurring order the user left without an
+  /// end date is stored as startDate + 1 year. We treat exactly that value as "no end
+  /// date" (→ [FrequencyType.recurring]); any other end date is a user-chosen one
+  /// (→ [FrequencyType.recurringWithEnd]) so the UI can show the concrete date.
+  FrequencyType _mapFrequency({
+    required bool isRecurring,
+    required DateTime startDate,
+    required DateTime? endDate,
+  }) {
+    if (!isRecurring) return FrequencyType.oneTime;
+    if (endDate == null) return FrequencyType.recurring;
+
+    final defaultOpenEnded = DateTime(
+      startDate.year + 1,
+      startDate.month,
+      startDate.day,
+    );
+    final isDefault = endDate.year == defaultOpenEnded.year &&
+        endDate.month == defaultOpenEnded.month &&
+        endDate.day == defaultOpenEnded.day;
+
+    return isDefault ? FrequencyType.recurring : FrequencyType.recurringWithEnd;
+  }
+
   OrderModel _mapOrder(Map<String, dynamic> json) {
     final schedules = (json['schedules'] as List<dynamic>? ?? [])
         .map((s) => s as Map<String, dynamic>)
@@ -1787,18 +1868,23 @@ class AdminApiService {
       );
     }
 
+    final orderStartDate = _parseDate(json['startDate']);
+    final orderEndDate = _parseNullableDate(json['endDate']);
+
     return OrderModel(
       id: '${json['id']}',
       orderNumber: '${json['orderNumber'] ?? json['id']}',
       senior: _mapOrderSenior(json),
       student: assignedStudent,
       status: _mapOrderStatus(json['status']),
-      frequency: (json['isRecurring'] == true)
-          ? FrequencyType.recurring
-          : FrequencyType.oneTime,
+      frequency: _mapFrequency(
+        isRecurring: json['isRecurring'] == true,
+        startDate: orderStartDate,
+        endDate: orderEndDate,
+      ),
       services: services,
       createdAt: _parseDateTime(json['createdAt']),
-      scheduledDate: _parseDate(json['startDate']),
+      scheduledDate: orderStartDate,
       scheduledStart: _parseTimeOfDay(firstSchedule['startTime']),
       durationHours: _calcHours(
         firstSchedule['startTime'],
@@ -1806,7 +1892,7 @@ class AdminApiService {
       ),
       notes: json['notes'] as String?,
       address: json['seniorAddress'] as String? ?? '',
-      endDate: _parseNullableDate(json['endDate']),
+      endDate: orderEndDate,
       dayEntries: dayEntries,
       sessions: const [],
       scheduleIds: scheduleIds,

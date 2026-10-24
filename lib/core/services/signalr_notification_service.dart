@@ -12,6 +12,8 @@ import 'package:helpi_admin/core/providers/data_providers.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
 import 'package:helpi_admin/core/services/data_loader.dart';
 import 'package:helpi_admin/features/chat/data/chat_api_service.dart';
+import 'package:helpi_admin/features/coupons/data/coupon_model.dart';
+import 'package:helpi_admin/features/coupons/data/coupon_provider.dart';
 
 /// SignalR service for real-time admin notifications.
 ///
@@ -159,8 +161,25 @@ class SignalRNotificationService {
     _entityChangedDebounce = Timer(const Duration(milliseconds: 500), () {
       if (_ref != null) {
         DataLoader.loadAll(ref: _ref!);
+        // Coupons are not part of DataLoader.loadAll, so refresh them separately
+        // (e.g. so a coupon's assignment count updates after assign/unassign).
+        if (entityType == 'Coupons') {
+          _refreshCoupons();
+        }
       }
     });
+  }
+
+  Future<void> _refreshCoupons() async {
+    try {
+      final res = await AdminApiService().getCoupons();
+      if (res.success && res.data != null && _ref != null) {
+        final list = res.data!.map((j) => CouponModel.fromJson(j)).toList();
+        _ref!.read(couponsProvider.notifier).setAll(list);
+      }
+    } catch (_) {
+      // best-effort refresh — ignore errors
+    }
   }
 
   void _onReceiveNotification(List<Object?>? args) {
@@ -222,6 +241,7 @@ class SignalRNotificationService {
     NotificationType.orderBackToProcessing,
     NotificationType.assignmentAccepted,
     NotificationType.assignmentDeclined,
+    NotificationType.adminContractExpiredReassign,
   };
 
   bool _isDataChangingType(NotificationType type) =>

@@ -1975,6 +1975,12 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
       icon: Icons.admin_panel_settings,
       children: [
         ActionChipButton(
+          icon: Icons.local_offer,
+          label: AppStrings.couponAssignSenior,
+          color: HelpiTheme.accent,
+          onTap: _showAssignCouponDialog,
+        ),
+        ActionChipButton(
           icon: _senior.isArchived ? Icons.unarchive : Icons.archive,
           label: _senior.isArchived
               ? AppStrings.studentUnarchive
@@ -1987,6 +1993,61 @@ class SeniorDetailScreenState extends ConsumerState<SeniorDetailScreen> {
         ),
       ],
     );
+  }
+
+  /// Assign a coupon to this senior from their profile (active, non-expired coupons).
+  Future<void> _showAssignCouponDialog() async {
+    final seniorId = int.tryParse(_senior.id);
+    if (seniorId == null) return;
+    final api = AdminApiService();
+
+    final res = await api.getCoupons();
+    if (!mounted) return;
+    if (!res.success || res.data == null) {
+      showErrorSnack(context, res.error ?? AppStrings.couponNoCoupons);
+      return;
+    }
+
+    final today = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
+    );
+    final coupons = res.data!.where((c) {
+      final active = c['isActive'] as bool? ?? false;
+      final until = DateTime.tryParse(c['validUntil'] as String? ?? '');
+      final notExpired = until == null || !until.isBefore(today);
+      return active && notExpired;
+    }).toList();
+
+    if (coupons.isEmpty) {
+      showErrorSnack(context, AppStrings.couponNoCoupons);
+      return;
+    }
+
+    final chosenId = await showDialog<int>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(AppStrings.couponAssignSenior),
+        children: coupons.map((c) {
+          final code = c['couponCode'] as String? ?? c['code'] as String? ?? '';
+          final name = c['name'] as String? ?? '';
+          return SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, c['id'] as int),
+            child: Text(name.isEmpty || name == code ? code : '$code · $name'),
+          );
+        }).toList(),
+      ),
+    );
+    if (chosenId == null || !mounted) return;
+
+    final assignRes = await api.assignCouponToSenior(chosenId, seniorId);
+    if (!mounted) return;
+    if (assignRes.success) {
+      showSuccessSnack(context, AppStrings.couponSaved);
+    } else {
+      showErrorSnack(context, assignRes.error ?? AppStrings.couponSaveFailed);
+    }
   }
 
   List<ReviewModel> get _seniorReviews => ref

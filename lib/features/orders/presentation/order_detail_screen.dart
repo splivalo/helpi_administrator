@@ -850,44 +850,49 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                       runSpacing: 4,
                       children: _seniorCoupons.map((c) {
                         final code = c['couponCode'] as String? ?? '';
-                        final assignmentId = c['id'] as int? ?? 0;
                         final remaining = (c['remainingValue'] as num?)
                             ?.toDouble();
-                        final couponType = c['couponType'] as int? ?? 0;
                         final couponValue =
                             (c['couponValue'] as num?)?.toDouble() ?? 0;
                         final couponName = c['couponName'] as String? ?? code;
+                        // Coupon deactivated/expired → the assignment stays but the
+                        // coupon won't apply, so show it greyed out (disabled).
+                        final available = c['couponIsAvailable'] as bool? ?? true;
 
-                        // Build hover tooltip
+                        // Build hover tooltip (all coupon types are hour-based)
                         String tooltip = couponName;
-                        if (couponType <= 2 && remaining != null) {
-                          // Hour-based: show remaining
+                        if (remaining != null) {
                           tooltip =
                               '$couponName\n${remaining.toStringAsFixed(remaining == remaining.roundToDouble() ? 0 : 1)}h preostalo od ${couponValue.toStringAsFixed(couponValue == couponValue.roundToDouble() ? 0 : 1)}h';
-                        } else if (couponType == 3) {
-                          tooltip =
-                              '$couponName\n${couponValue.toStringAsFixed(0)}% po terminu';
-                        } else if (couponType == 4) {
-                          tooltip =
-                              '$couponName\n€${couponValue.toStringAsFixed(2)} po terminu';
                         }
+                        if (!available) {
+                          tooltip = '$tooltip\n(${AppStrings.couponInactive})';
+                        }
+
+                        final mutedColor = HelpiColors.of(context).textSecondary;
 
                         return Tooltip(
                           message: tooltip,
                           child: Chip(
-                            avatar: const Icon(Icons.local_offer, size: 14),
+                            avatar: Icon(
+                              Icons.local_offer,
+                              size: 14,
+                              color: available ? null : mutedColor,
+                            ),
                             label: Text(
                               code,
-                              style: const TextStyle(fontSize: 11),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: available ? null : mutedColor,
+                                decoration: available
+                                    ? null
+                                    : TextDecoration.lineThrough,
+                              ),
                             ),
                             side: BorderSide(
                               color: HelpiColors.of(context).border,
                               width: 0.5,
                             ),
-                            deleteIcon: const Icon(Icons.close, size: 14),
-                            deleteButtonTooltipMessage: '',
-                            onDeleted: () =>
-                                _deactivateSeniorCoupon(assignmentId),
                             materialTapTargetSize:
                                 MaterialTapTargetSize.shrinkWrap,
                             visualDensity: VisualDensity.compact,
@@ -1457,103 +1462,12 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 color: HelpiTheme.primary,
                 onTap: _confirmCancelOrder,
               ),
-            if (!isCancelled)
-              ActionChipButton(
-                icon: Icons.local_offer,
-                label: AppStrings.couponAssignSenior,
-                color: HelpiTheme.accent,
-                onTap: _showCouponDialog,
-              ),
+            // Coupons are managed on the senior's profile, not on the order.
+            // The order only displays the senior's active coupons (read-only).
           ],
         ),
       ],
     );
-  }
-
-  void _showCouponDialog() {
-    final controller = TextEditingController();
-    showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.couponRedeemTitle),
-        content: SizedBox(
-          width: 400,
-          child: TextField(
-            controller: controller,
-            decoration: InputDecoration(
-              hintText: AppStrings.couponRedeemHint,
-              labelText: AppStrings.couponCode,
-              prefixIcon: const Icon(Icons.local_offer),
-            ),
-            autofocus: true,
-            textCapitalization: TextCapitalization.characters,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(AppStrings.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: Text(AppStrings.confirm),
-          ),
-        ],
-      ),
-    ).then((code) async {
-      if (code == null || code.isEmpty || !mounted) return;
-      final seniorId = int.tryParse(_order.senior.id);
-      if (seniorId == null) return;
-      final api = AdminApiService();
-      final result = await api.redeemCouponForSenior(code, seniorId);
-      if (!mounted) return;
-      if (!result.success) {
-        showErrorSnack(context, result.error ?? AppStrings.couponRedeemFailed);
-        return;
-      }
-      final data = result.data;
-      if (data != null && data['isValid'] == true) {
-        showSuccessSnack(context, AppStrings.couponRedeemed);
-        await _loadSeniorCoupons();
-      } else {
-        final errorCode = data?['errorCode'] as String? ?? '';
-        showErrorSnack(context, _mapCouponErrorCode(errorCode));
-      }
-    });
-  }
-
-  Future<void> _deactivateSeniorCoupon(int assignmentId) async {
-    final api = AdminApiService();
-    final result = await api.deactivateMyAssignment(assignmentId);
-    if (!mounted) return;
-    if (result.success) {
-      showSuccessSnack(context, AppStrings.couponDeactivated);
-      await _loadSeniorCoupons();
-    } else {
-      showErrorSnack(
-        context,
-        result.error ?? AppStrings.couponDeactivateFailed,
-      );
-    }
-  }
-
-  String _mapCouponErrorCode(String code) {
-    switch (code) {
-      case 'coupon_not_found':
-        return AppStrings.couponNotFound;
-      case 'coupon_already_active':
-        return AppStrings.couponAlreadyActive;
-      case 'coupon_inactive':
-        return AppStrings.couponInactive;
-      case 'coupon_not_yet_valid':
-        return AppStrings.couponNotYetValid;
-      case 'coupon_expired':
-        return AppStrings.couponExpired;
-      case 'exclusive_coupon_conflict':
-        return AppStrings.couponExclusiveConflict;
-      default:
-        return AppStrings.couponRedeemFailed;
-    }
   }
 
   void _confirmCancelOrder() {

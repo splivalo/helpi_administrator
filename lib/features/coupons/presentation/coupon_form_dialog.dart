@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:helpi_admin/app/theme.dart';
 import 'package:helpi_admin/core/l10n/app_strings.dart';
+import 'package:helpi_admin/core/models/admin_models.dart';
 import 'package:helpi_admin/core/network/api_client.dart';
 import 'package:helpi_admin/core/network/api_endpoints.dart';
 import 'package:helpi_admin/core/services/admin_api_service.dart';
@@ -31,14 +32,26 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
   late final TextEditingController _valueCtrl;
 
   CouponType _type = CouponType.monthlyHours;
-  bool _combinable = true;
+  bool _combinable = false;
   bool _isActive = true;
+  // Doseg: false = "Svi" (bilo tko s kodom), true = "Odabrani" (samo s popisa).
+  bool _restrictToSelected = false;
+  // "Odmah dodijeli" — odmah grantaj eligible seniorima (ili svima ako doseg = Svi).
+  bool _assignImmediately = false;
   DateTime _validFrom = DateTime.now();
   DateTime _validUntil = DateTime.now().add(const Duration(days: 365));
 
   // City dropdown
   List<_CityOption> _cities = [];
   int? _selectedCityId;
+
+  // Assign-to-users (optional, same modal)
+  final _seniorSearchCtrl = TextEditingController();
+  List<SeniorModel> _seniors = [];
+  final Set<int> _selectedSeniorIds = {};
+  Set<int> _alreadyAssigned = {};
+  String _seniorQuery = '';
+  bool _seniorsLoading = true;
 
   bool _saving = false;
   bool get _isEdit => widget.existing != null;
@@ -56,11 +69,37 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
       _type = e.type;
       _combinable = e.isCombainable;
       _isActive = e.isActive;
+      _restrictToSelected = e.restrictToSelected;
       _validFrom = DateFormat('yyyy-MM-dd').parse(e.validFrom);
       _validUntil = DateFormat('yyyy-MM-dd').parse(e.validUntil);
       // _selectedCityId is set in _loadCities() after cities are fetched
     }
     _loadCities();
+    _seniorSearchCtrl.addListener(
+      () => setState(
+        () => _seniorQuery = _seniorSearchCtrl.text.trim().toLowerCase(),
+      ),
+    );
+    _loadSeniors();
+    if (_isEdit) _loadEligible();
+  }
+
+  /// Loads the coupon's eligibility allowlist (fetched by id — the list view
+  /// doesn't carry it) and pre-checks those seniors in the picker.
+  Future<void> _loadEligible() async {
+    final res = await _api.getCouponById(widget.existing!.id);
+    if (!mounted) return;
+    if (res.success && res.data != null) {
+      final ids = (res.data!['eligibleSeniorIds'] as List<dynamic>? ?? [])
+          .map((e) => (e as num).toInt())
+          .toSet();
+      setState(() {
+        _alreadyAssigned = ids;
+        _selectedSeniorIds
+          ..clear()
+          ..addAll(ids);
+      });
+    }
   }
 
   @override
@@ -68,8 +107,64 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
     _codeCtrl.dispose();
     _descCtrl.dispose();
     _valueCtrl.dispose();
+    _seniorSearchCtrl.dispose();
     super.dispose();
   }
+
+  Future<void> _loadSeniors() async {
+    final res = await _api.getSeniors();
+    if (!mounted) return;
+    setState(() {
+      if (res.success && res.data != null) {
+        _seniors = res.data!
+            .where((s) => s.isActive && !s.isArchived)
+            .toList();
+      }
+      _seniorsLoading = false;
+    });
+  }
+
+  int _sid(SeniorModel s) => int.tryParse(s.id) ?? -1;
+
+  List<SeniorModel> _filteredSeniors() {
+    Iterable<SeniorModel> list = _seniors;
+
+    // Scope to the coupon's selected city (city is chosen in the dropdown above,
+    // so it is not part of the text search). "All cities" → no city filter.
+    if (_selectedCityId != null) {
+      final cityName = _cities
+          .where((c) => c.id == _selectedCityId)
+          .map((c) => c.name)
+          .firstOrNull;
+      if (cityName != null) {
+        list = list.where((s) => s.city == cityName);
+      }
+    }
+
+    // Text search — same logic as the seniors page: matches the senior and the
+    // orderer (the person who orders for the senior), plus email/phone.
+    if (_seniorQuery.isNotEmpty) {
+      final q = _seniorQuery;
+      list = list.where(
+        (s) =>
+            s.fullName.toLowerCase().contains(q) ||
+            s.contactName.toLowerCase().contains(q) ||
+            s.email.toLowerCase().contains(q) ||
+            s.phone.contains(q),
+      );
+    }
+
+    // Already-assigned seniors first, then the rest; alphabetical within each group.
+    final result = list.toList()
+      ..sort((a, b) {
+        final aAssigned = _alreadyAssigned.contains(_sid(a));
+        final bAssigned = _alreadyAssigned.contains(_sid(b));
+        if (aAssigned != bAssigned) return aAssigned ? -1 : 1;
+        return a.fullName.toLowerCase().compareTo(b.fullName.toLowerCase());
+      });
+    return result;
+  }
+
 
   Future<void> _loadCities() async {
     try {
@@ -155,6 +250,11 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
           validFrom: dateFmt.format(_validFrom),
           validUntil: dateFmt.format(_validUntil),
           isActive: _isActive,
+          restrictToSelected: _restrictToSelected,
+          eligibleSeniorIds: _restrictToSelected
+              ? _selectedSeniorIds.toList()
+              : const [],
+          assignImmediately: _assignImmediately,
         );
         if (!mounted) return;
         if (result.success) {
@@ -178,8 +278,13 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
             validUntil: dateFmt.format(_validUntil),
             isActive: _isActive,
             assignmentCount: widget.existing!.assignmentCount,
+            restrictToSelected: _restrictToSelected,
+            eligibleSeniorIds: _restrictToSelected
+                ? _selectedSeniorIds.toList()
+                : const [],
             createdAt: widget.existing!.createdAt,
           );
+          if (!mounted) return;
           Navigator.pop(context, updated);
           ScaffoldMessenger.of(
             context,
@@ -203,10 +308,16 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
           cityId: _selectedCityId,
           validFrom: dateFmt.format(_validFrom),
           validUntil: dateFmt.format(_validUntil),
+          restrictToSelected: _restrictToSelected,
+          eligibleSeniorIds: _restrictToSelected
+              ? _selectedSeniorIds.toList()
+              : const [],
+          assignImmediately: _assignImmediately,
         );
         if (!mounted) return;
         if (result.success) {
           final created = CouponModel.fromJson(result.data!);
+          if (!mounted) return;
           Navigator.pop(context, created);
           ScaffoldMessenger.of(
             context,
@@ -234,6 +345,7 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
   @override
   Widget build(BuildContext context) {
     final dateFmt = DateFormat('dd.MM.yyyy');
+    final filteredSeniors = _filteredSeniors();
 
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -250,9 +362,9 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
             children: [
               // ── Title ──
               Text(
-                _isEdit ? AppStrings.couponName : AppStrings.couponNew,
+                _isEdit ? AppStrings.couponEdit : AppStrings.couponNew,
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -397,6 +509,184 @@ class _CouponFormDialogState extends State<CouponFormDialog> {
               ),
 
               const SizedBox(height: 20),
+
+              // ── Dostupnost: doseg (Svi / Odabrani) + "Odmah dodijeli" ──
+              const Divider(height: 1),
+              const SizedBox(height: 12),
+              Text(
+                AppStrings.couponScopeTitle,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              RadioListTile<bool>(
+                value: false,
+                groupValue: _restrictToSelected,
+                onChanged: (_) => setState(() => _restrictToSelected = false),
+                title: Text(
+                  AppStrings.couponScopeAll,
+                  style: const TextStyle(fontSize: 13),
+                ),
+                subtitle: Text(
+                  AppStrings.couponScopeAllHint,
+                  style: const TextStyle(fontSize: 11),
+                ),
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+              RadioListTile<bool>(
+                value: true,
+                groupValue: _restrictToSelected,
+                onChanged: (_) => setState(() => _restrictToSelected = true),
+                title: Text(
+                  AppStrings.couponScopeSelected,
+                  style: const TextStyle(fontSize: 13),
+                ),
+                subtitle: Text(
+                  AppStrings.couponScopeSelectedHint,
+                  style: const TextStyle(fontSize: 11),
+                ),
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      AppStrings.couponAssignImmediately,
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                  ),
+                  HelpiSwitch(
+                    value: _assignImmediately,
+                    onChanged: (v) => setState(() => _assignImmediately = v),
+                  ),
+                ],
+              ),
+              if (_restrictToSelected) ...[
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _seniorSearchCtrl,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.search, size: 18),
+                    hintText: AppStrings.couponAssignSearchHint,
+                    isDense: true,
+                  ),
+                ),
+                const SizedBox(height: 8),
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  border: Border.all(color: HelpiColors.of(context).border),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: _seniorsLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : filteredSeniors.isEmpty
+                    ? Center(child: Text(AppStrings.couponAssignNoSeniors))
+                    : ListView.builder(
+                        itemCount: filteredSeniors.length,
+                        itemBuilder: (_, i) {
+                          final s = filteredSeniors[i];
+                          final id = _sid(s);
+                          final already = _alreadyAssigned.contains(id);
+                          // Show the user like the seniors page: senior name as
+                          // title, and the orderer (if any) as the subtitle.
+                          final subtitle = s.hasOrderer
+                              ? AppStrings.couponAssignOrderer(s.ordererFullName)
+                              : s.email;
+                          // Thin separator between the already-assigned group
+                          // (on top) and the rest of the users.
+                          final showDivider =
+                              i > 0 &&
+                              !already &&
+                              _alreadyAssigned.contains(
+                                _sid(filteredSeniors[i - 1]),
+                              );
+
+                          final tile = CheckboxListTile(
+                            dense: true,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            value: _selectedSeniorIds.contains(id),
+                            onChanged: (v) => setState(() {
+                              if (v == true) {
+                                _selectedSeniorIds.add(id);
+                              } else {
+                                _selectedSeniorIds.remove(id);
+                              }
+                            }),
+                            title: Text(
+                              s.fullName,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                            subtitle: subtitle.isEmpty
+                                ? null
+                                : Text(
+                                    subtitle,
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                          );
+
+                          if (!showDivider) return tile;
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [const Divider(height: 1), tile],
+                          );
+                        },
+                      ),
+              ),
+              const SizedBox(height: 4),
+              Builder(
+                builder: (context) {
+                  // All seniors in the current (city + search) view.
+                  final selectableIds = filteredSeniors
+                      .map(_sid)
+                      .where((id) => id > 0)
+                      .toList();
+                  final allSelected =
+                      selectableIds.isNotEmpty &&
+                      selectableIds.every(_selectedSeniorIds.contains);
+
+                  return Row(
+                    children: [
+                      Text(
+                        AppStrings.couponAssignSelectedCount(
+                          _selectedSeniorIds.length,
+                        ),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: HelpiColors.of(context).textSecondary,
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: selectableIds.isEmpty
+                            ? null
+                            : () => setState(() {
+                                if (allSelected) {
+                                  _selectedSeniorIds.removeAll(selectableIds);
+                                } else {
+                                  _selectedSeniorIds.addAll(selectableIds);
+                                }
+                              }),
+                        child: Text(
+                          allSelected
+                              ? AppStrings.couponAssignDeselectAll
+                              : AppStrings.couponAssignSelectAll,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              ],
+              const SizedBox(height: 12),
 
               // ── Actions ──
               Row(

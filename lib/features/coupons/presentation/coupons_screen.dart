@@ -49,16 +49,29 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: Text(AppStrings.couponDeleteConfirm),
-        content: Text(coupon.code),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(coupon.code),
+            if (coupon.assignmentCount > 0) ...[
+              const SizedBox(height: 8),
+              Text(
+                AppStrings.couponDeleteAssigned(coupon.assignmentCount),
+                style: TextStyle(color: HelpiColors.of(ctx).textSecondary),
+              ),
+            ],
+          ],
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(ctx, false),
             child: Text(AppStrings.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: HelpiTheme.error),
             child: Text(AppStrings.delete),
           ),
@@ -68,6 +81,7 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
     if (confirmed != true) return;
     if (!context.mounted) return;
 
+    // Soft-delete: coupon is removed for everyone, but usage history is kept.
     final result = await _api.deleteCoupon(coupon.id);
     if (!context.mounted) return;
     if (result.success) {
@@ -87,6 +101,8 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
     );
     if (created != null) {
       ref.read(couponsProvider.notifier).addItem(created);
+      // Reload so the assignment count reflects any users assigned in the form.
+      await _loadCoupons();
     }
   }
 
@@ -97,6 +113,8 @@ class _CouponsScreenState extends ConsumerState<CouponsScreen> {
     );
     if (updated != null) {
       ref.read(couponsProvider.notifier).updateItem(updated);
+      // Reload so the assignment count reflects any users assigned in the form.
+      await _loadCoupons();
     }
   }
 
@@ -327,6 +345,8 @@ class _CouponCard extends StatelessWidget {
         return '$hours / tj.';
       case CouponType.oneTimeHours:
         return '$hours / ukupno';
+      case CouponType.yearlyHours:
+        return '$hours / god.';
     }
   }
 

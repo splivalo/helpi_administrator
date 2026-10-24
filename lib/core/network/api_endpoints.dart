@@ -159,6 +159,8 @@ class ApiEndpoints {
   static const String coupons = '/api/coupons';
   static String couponById(int id) => '/api/coupons/$id';
   static String couponAssign(int id) => '/api/coupons/$id/assign';
+  static String couponAssignBulk(int id) => '/api/coupons/$id/assign-bulk';
+  static String couponUnassignBulk(int id) => '/api/coupons/$id/unassign-bulk';
   static String couponAssignments(int id) => '/api/coupons/$id/assignments';
   static String couponDeactivateAssignment(int id) =>
       '/api/coupons/assignments/$id';
